@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Snefuru Cloud Connector
+ * Plugin Name: Snefuruplin Cloud Connector
  * Plugin URI: https://yoursite.com/snefuru-plugin
  * Description: Connects your WordPress site to the Snefuru Cloud platform for advanced analytics and management.
  * Version: 1.0.0
