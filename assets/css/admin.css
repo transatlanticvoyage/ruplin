@@ -1,0 +1,69 @@
+.snefuru-dashboard {
+    margin-top: 20px;
+}
+
+.snefuru-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.snefuru-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.snefuru-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #1d2327;
+}
+
+.snefuru-card p {
+    margin: 8px 0;
+}
+
+.snefuru-recent-activity {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.snefuru-logs-preview {
+    margin-top: 15px;
+}
+
+.status-success {
+    color: #00a32a;
+    font-weight: 600;
+}
+
+.status-error {
+    color: #d63638;
+    font-weight: 600;
+}
+
+.status-warning {
+    color: #dba617;
+    font-weight: 600;
+}
+
+.status-pending {
+    color: #72aee6;
+    font-weight: 600;
+}
+
+.status-completed {
+    color: #00a32a;
+    font-weight: 600;
+}
+
+#connection-status {
+    margin-bottom: 15px;
+} 
