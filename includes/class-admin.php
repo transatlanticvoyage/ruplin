@@ -68,6 +68,15 @@ class Snefuru_Admin {
             'snefuru-logs',
             array($this, 'logs_page')
         );
+        
+        add_submenu_page(
+            'snefuru',
+            'screen 4 - manage',
+            'screen 4 - manage',
+            'manage_options',
+            'snefuru-screen4-manage',
+            array($this, 'screen4_manage_page')
+        );
     }
     
     /**
@@ -829,6 +838,52 @@ class Snefuru_Admin {
         }
         </script>
         
+        <?php
+    }
+    
+    /**
+     * Screen 4 - Manage page
+     */
+    public function screen4_manage_page() {
+        // Handle form submission
+        if (isset($_POST['submit'])) {
+            check_admin_referer('snefuru_screen4_manage_nonce');
+            
+            update_option('snefuru_maleench1', sanitize_textarea_field($_POST['snefuru_maleench1']));
+            
+            echo '<div class="notice notice-success"><p>maleench1 data saved!</p></div>';
+        }
+        
+        $maleench1_value = get_option('snefuru_maleench1', '');
+        
+        ?>
+        <div class="wrap">
+            <h1>screen 4 - manage</h1>
+            
+            <form method="post" action="">
+                <?php wp_nonce_field('snefuru_screen4_manage_nonce'); ?>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="snefuru_maleench1">maleench1</label>
+                        </th>
+                        <td>
+                            <textarea 
+                                name="snefuru_maleench1" 
+                                id="snefuru_maleench1" 
+                                rows="10" 
+                                cols="80" 
+                                class="large-text"
+                            ><?php echo esc_textarea($maleench1_value); ?></textarea>
+                            <p class="description">Enter your maleench1 data here.</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <?php submit_button(); ?>
+            </form>
+        </div>
         <?php
     }
 } 
