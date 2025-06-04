@@ -430,9 +430,17 @@ class Snefuru_Upload_Handler {
      * Get site posts and pages for syncing
      */
     public function get_site_posts($request) {
+        error_log('Snefuru Plugin: get_site_posts method called');
+        
         try {
-            // Add debugging
-            error_log('Snefuru Plugin: get_site_posts called');
+            // Check permissions first
+            $permission_check = $this->check_posts_permissions($request);
+            if (is_wp_error($permission_check)) {
+                error_log('Snefuru Plugin: Permission check failed: ' . $permission_check->get_error_message());
+                return $permission_check;
+            }
+            
+            error_log('Snefuru Plugin: Permission check passed');
             
             // Get parameters
             $post_type = $request->get_param('post_type');
@@ -507,18 +515,30 @@ class Snefuru_Upload_Handler {
 
             error_log('Snefuru Plugin: Total posts found: ' . count($all_posts));
 
-            return rest_ensure_response(array(
+            $response_data = array(
                 'success' => true,
                 'data' => $all_posts,
                 'total' => count($all_posts),
                 'message' => sprintf('Retrieved %d posts/pages', count($all_posts))
-            ));
+            );
+            
+            error_log('Snefuru Plugin: Returning response with ' . count($all_posts) . ' posts');
+            return rest_ensure_response($response_data);
 
         } catch (Exception $e) {
-            error_log('Snefuru Plugin: Error in get_site_posts: ' . $e->getMessage());
+            error_log('Snefuru Plugin: Exception in get_site_posts: ' . $e->getMessage());
+            error_log('Snefuru Plugin: Exception trace: ' . $e->getTraceAsString());
             return rest_ensure_response(array(
                 'success' => false,
                 'message' => 'Error retrieving posts: ' . $e->getMessage(),
+                'data' => array()
+            ));
+        } catch (Error $e) {
+            error_log('Snefuru Plugin: Fatal error in get_site_posts: ' . $e->getMessage());
+            error_log('Snefuru Plugin: Error trace: ' . $e->getTraceAsString());
+            return rest_ensure_response(array(
+                'success' => false,
+                'message' => 'Fatal error retrieving posts: ' . $e->getMessage(),
                 'data' => array()
             ));
         }
