@@ -30,6 +30,7 @@ class Snefuru_Media_Tab {
      * Set narplichtab as the default active tab
      */
     public function set_default_tab($default_tab) {
+        error_log('Snefuru: Default tab called, returning narplichtab instead of: ' . $default_tab);
         return 'narplichtab';
     }
     
