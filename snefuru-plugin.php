@@ -42,6 +42,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-admin.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-settings.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-upload-handler.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-media-tab.php';
     }
     
     private function init_hooks() {
@@ -51,6 +52,7 @@ class SnefuruPlugin {
         new Snefuru_Admin();
         new Snefuru_Settings();
         new Snefuru_Upload_Handler();
+        new Snefuru_Media_Tab();
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));

@@ -158,6 +158,41 @@ class Snefuru_API_Client {
     }
     
     /**
+     * Get generated images from the Snefuru system
+     */
+    public function get_generated_images($limit = 50) {
+        if (empty($this->api_key)) {
+            return array();
+        }
+        
+        $endpoint = $this->api_base_url . '/generated-images';
+        $site_id = $this->get_site_identifier();
+        
+        $response = wp_remote_get($endpoint . '?site_id=' . urlencode($site_id) . '&limit=' . intval($limit), array(
+            'timeout' => 30,
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $this->api_key,
+                'User-Agent' => 'Snefuru-Plugin/' . SNEFURU_PLUGIN_VERSION
+            )
+        ));
+        
+        if (is_wp_error($response)) {
+            error_log('Snefuru API Error getting images: ' . $response->get_error_message());
+            return array();
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        
+        if ($response_code === 200) {
+            $images = json_decode(wp_remote_retrieve_body($response), true);
+            return is_array($images) ? $images : array();
+        }
+        
+        error_log('Snefuru API Error: HTTP ' . $response_code . ' when fetching images');
+        return array();
+    }
+    
+    /**
      * Log plugin activities
      */
     private function log_activity($action, $message) {
