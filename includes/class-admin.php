@@ -11,6 +11,12 @@ class Snefuru_Admin {
         add_action('wp_ajax_snefuru_generate_api_key', array($this, 'generate_upload_api_key'));
         add_action('wp_ajax_snefuru_clear_upload_logs', array($this, 'clear_upload_logs'));
         add_action('wp_ajax_snefuru_test_upload_endpoint', array($this, 'test_upload_endpoint'));
+        add_action('wp_ajax_fetch_site_data', array($this, 'fetch_site_data'));
+        add_action('wp_ajax_sync_data_now', array($this, 'sync_data_now'));
+        add_action('wp_ajax_clear_logs', array($this, 'clear_logs'));
+        
+        // Add Elementor data viewer
+        add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
     }
     
     /**
@@ -698,5 +704,131 @@ class Snefuru_Admin {
                 'message' => 'Status endpoint test failed. Response: ' . $body
             ));
         }
+    }
+    
+    /**
+     * Add metabox to show Elementor data
+     */
+    public function add_elementor_data_metabox() {
+        // Add to posts and pages
+        add_meta_box(
+            'snefuru-elementor-data',
+            'Elementor Raw Data (Snefuru Plugin)',
+            array($this, 'elementor_data_metabox_callback'),
+            'post',
+            'normal',
+            'low'
+        );
+        
+        add_meta_box(
+            'snefuru-elementor-data',
+            'Elementor Raw Data (Snefuru Plugin)',
+            array($this, 'elementor_data_metabox_callback'),
+            'page',
+            'normal',
+            'low'
+        );
+        
+        // Add to any other post types that might use Elementor
+        $post_types = get_post_types(array('public' => true), 'names');
+        foreach ($post_types as $post_type) {
+            if (!in_array($post_type, array('post', 'page', 'attachment'))) {
+                add_meta_box(
+                    'snefuru-elementor-data',
+                    'Elementor Raw Data (Snefuru Plugin)',
+                    array($this, 'elementor_data_metabox_callback'),
+                    $post_type,
+                    'normal',
+                    'low'
+                );
+            }
+        }
+    }
+    
+    /**
+     * Metabox callback to display Elementor data
+     */
+    public function elementor_data_metabox_callback($post) {
+        // Get the Elementor data
+        $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            echo '<p style="color: #666; font-style: italic;">No Elementor data found for this post/page.</p>';
+            echo '<p style="color: #666; font-size: 12px;">This metabox will only show data if this post/page was created or edited with Elementor.</p>';
+            return;
+        }
+        
+        // Format the JSON for better readability
+        $formatted_data = '';
+        if (is_string($elementor_data)) {
+            // If it's already a JSON string, try to format it
+            $decoded = json_decode($elementor_data, true);
+            if ($decoded !== null) {
+                $formatted_data = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            } else {
+                $formatted_data = $elementor_data;
+            }
+        } else {
+            // If it's an array/object, encode it
+            $formatted_data = json_encode($elementor_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+        
+        ?>
+        <div style="margin-bottom: 10px;">
+            <p><strong>Raw Elementor Data (_elementor_data field):</strong></p>
+            <p style="font-size: 12px; color: #666;">
+                This is the raw data that Elementor stores for this page. You can copy this data for backup, 
+                debugging, or transferring page designs. 
+                <strong>Warning:</strong> Do not modify this data unless you know what you're doing.
+            </p>
+        </div>
+        
+        <div style="position: relative;">
+            <textarea 
+                id="snefuru-elementor-data" 
+                readonly 
+                style="width: 100%; height: 300px; font-family: monospace; font-size: 11px; background: #f9f9f9; border: 1px solid #ddd; padding: 10px; resize: vertical;"
+                onclick="this.select();"
+            ><?php echo esc_textarea($formatted_data); ?></textarea>
+            
+            <button 
+                type="button" 
+                onclick="copyElementorData()" 
+                style="position: absolute; top: 5px; right: 5px; background: #0073aa; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 11px;"
+                title="Copy to clipboard"
+            >
+                Copy
+            </button>
+        </div>
+        
+        <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            <strong>Data size:</strong> <?php echo size_format(strlen($formatted_data)); ?> | 
+            <strong>Last modified:</strong> <?php echo get_the_modified_date('Y-m-d H:i:s', $post->ID); ?>
+        </div>
+        
+        <script>
+        function copyElementorData() {
+            var textArea = document.getElementById('snefuru-elementor-data');
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                document.execCommand('copy');
+                // Show success message
+                var button = event.target;
+                var originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#28a745';
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#0073aa';
+                }, 2000);
+            } catch (err) {
+                alert('Failed to copy. Please manually select and copy the text.');
+            }
+        }
+        </script>
+        
+        <?php
     }
 } 
