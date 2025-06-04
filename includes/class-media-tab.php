@@ -15,6 +15,7 @@ class Snefuru_Media_Tab {
     public function __construct() {
         add_filter('media_upload_tabs', array($this, 'add_narplichtab'));
         add_action('media_upload_narplichtab', array($this, 'narplichtab_handler'));
+        add_filter('media_upload_default_tab', array($this, 'set_default_tab'));
     }
     
     /**
@@ -23,6 +24,13 @@ class Snefuru_Media_Tab {
     public function add_narplichtab($tabs) {
         $tabs['narplichtab'] = __('Narplichtab', 'snefuru-plugin');
         return $tabs;
+    }
+    
+    /**
+     * Set narplichtab as the default active tab
+     */
+    public function set_default_tab($default_tab) {
+        return 'narplichtab';
     }
     
     /**
