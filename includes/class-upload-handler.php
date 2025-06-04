@@ -431,6 +431,9 @@ class Snefuru_Upload_Handler {
      */
     public function get_site_posts($request) {
         try {
+            // Add debugging
+            error_log('Snefuru Plugin: get_site_posts called');
+            
             // Get parameters
             $post_type = $request->get_param('post_type');
             $status = $request->get_param('status');
@@ -440,6 +443,8 @@ class Snefuru_Upload_Handler {
             // Default to both posts and pages
             $post_types = $post_type ? array($post_type) : array('post', 'page');
             $post_status = $status ? array($status) : array('publish', 'private', 'draft', 'pending');
+
+            error_log('Snefuru Plugin: Query params - post_types: ' . json_encode($post_types) . ', post_status: ' . json_encode($post_status) . ', limit: ' . $limit);
 
             $all_posts = array();
 
@@ -454,7 +459,9 @@ class Snefuru_Upload_Handler {
                     'order' => 'DESC',
                 );
 
+                error_log('Snefuru Plugin: Querying for type: ' . $type . ' with args: ' . json_encode($query_args));
                 $posts = get_posts($query_args);
+                error_log('Snefuru Plugin: Found ' . count($posts) . ' posts of type: ' . $type);
 
                 foreach ($posts as $post) {
                     // Get all post meta
@@ -498,6 +505,8 @@ class Snefuru_Upload_Handler {
                 }
             }
 
+            error_log('Snefuru Plugin: Total posts found: ' . count($all_posts));
+
             return rest_ensure_response(array(
                 'success' => true,
                 'data' => $all_posts,
@@ -506,6 +515,7 @@ class Snefuru_Upload_Handler {
             ));
 
         } catch (Exception $e) {
+            error_log('Snefuru Plugin: Error in get_site_posts: ' . $e->getMessage());
             return rest_ensure_response(array(
                 'success' => false,
                 'message' => 'Error retrieving posts: ' . $e->getMessage(),
