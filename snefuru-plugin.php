@@ -39,6 +39,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-data-collector.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-admin.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-settings.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-upload-handler.php';
     }
     
     private function init_hooks() {
@@ -47,6 +48,7 @@ class SnefuruPlugin {
         new Snefuru_Data_Collector();
         new Snefuru_Admin();
         new Snefuru_Settings();
+        new Snefuru_Upload_Handler();
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
@@ -60,6 +62,14 @@ class SnefuruPlugin {
         // Schedule recurring events
         if (!wp_next_scheduled('snefuru_sync_data')) {
             wp_schedule_event(time(), 'hourly', 'snefuru_sync_data');
+        }
+        
+        // Set default upload settings
+        if (get_option('snefuru_upload_enabled') === false) {
+            update_option('snefuru_upload_enabled', 1);
+        }
+        if (get_option('snefuru_upload_max_size') === false) {
+            update_option('snefuru_upload_max_size', '10MB');
         }
     }
     
