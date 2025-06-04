@@ -1,12 +1,14 @@
 <?php
 /**
- * Plugin Name: Snefuruplin Cloud Connector
- * Plugin URI: https://yoursite.com/snefuru-plugin
- * Description: Connects your WordPress site to the Snefuru Cloud platform for advanced analytics and management.
+ * Plugin Name: Snefuru Image Upload Plugin
+ * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
+ * Description: WordPress plugin for handling image uploads to Snefuru system
  * Version: 1.0.0
- * Author: Your Name
+ * Author: Snefuru Team
  * License: GPL v2 or later
- * Text Domain: snefuru
+ * Text Domain: snefuru-plugin
+ * 
+ * Test comment: Git subtree setup completed successfully!
  */
 
 // Prevent direct access
