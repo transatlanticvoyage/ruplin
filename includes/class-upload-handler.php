@@ -487,6 +487,24 @@ class Snefuru_Upload_Handler {
                     // Get featured image
                     $featured_media = get_post_thumbnail_id($post->ID);
 
+                    // Get Elementor data specifically
+                    $elementor_data = null;
+                    if (isset($processed_meta['_elementor_data'])) {
+                        $elementor_raw = $processed_meta['_elementor_data'];
+                        // Try to decode JSON if it's a string
+                        if (is_string($elementor_raw)) {
+                            $decoded = json_decode($elementor_raw, true);
+                            if (json_last_error() === JSON_ERROR_NONE) {
+                                $elementor_data = $decoded;
+                            } else {
+                                // If it's not valid JSON, store as string
+                                $elementor_data = $elementor_raw;
+                            }
+                        } else {
+                            $elementor_data = $elementor_raw;
+                        }
+                    }
+
                     $post_data = array(
                         'ID' => $post->ID,
                         'post_title' => $post->post_title,
@@ -507,6 +525,7 @@ class Snefuru_Upload_Handler {
                         'categories' => $categories,
                         'tags' => $tags,
                         'meta' => $processed_meta,
+                        'elementor_data' => $elementor_data,
                     );
 
                     $all_posts[] = $post_data;
