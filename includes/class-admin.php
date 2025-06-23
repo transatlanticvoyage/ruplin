@@ -77,6 +77,15 @@ class Snefuru_Admin {
             'snefuru-screen4-manage',
             array($this, 'screen4_manage_page')
         );
+        
+        add_submenu_page(
+            'snefuru',
+            'Bespoke CSS Editor',
+            'CSS Editor',
+            'manage_options',
+            'snefuruplin-bespoke-css-1',
+            array($this, 'bespoke_css_editor_page')
+        );
     }
     
     /**
@@ -884,6 +893,169 @@ class Snefuru_Admin {
                 <?php submit_button(); ?>
             </form>
         </div>
+        <?php
+    }
+    
+    /**
+     * Bespoke CSS Editor page
+     */
+    public function bespoke_css_editor_page() {
+        global $wpdb;
+        $styling_table = $wpdb->prefix . 'snefuruplin_styling';
+        
+        // Handle form submission
+        if (isset($_POST['save_css'])) {
+            check_admin_referer('snefuru_css_editor_nonce');
+            
+            $styling_content = wp_unslash($_POST['styling_content']);
+            $styling_end_url = esc_url_raw($_POST['styling_end_url']);
+            
+            // Update or insert CSS content
+            $existing_record = $wpdb->get_row("SELECT * FROM $styling_table ORDER BY styling_id LIMIT 1");
+            
+            if ($existing_record) {
+                $wpdb->update(
+                    $styling_table,
+                    array(
+                        'styling_content' => $styling_content,
+                        'styling_end_url' => $styling_end_url
+                    ),
+                    array('styling_id' => $existing_record->styling_id)
+                );
+            } else {
+                $wpdb->insert(
+                    $styling_table,
+                    array(
+                        'styling_content' => $styling_content,
+                        'styling_end_url' => $styling_end_url
+                    )
+                );
+            }
+            
+            echo '<div class="notice notice-success"><p>CSS saved successfully!</p></div>';
+        }
+        
+        // Get current CSS content
+        $current_record = $wpdb->get_row("SELECT * FROM $styling_table ORDER BY styling_id LIMIT 1");
+        $css_content = $current_record ? $current_record->styling_content : "/* Bespoke CSS Editor - Add your custom styles here */\n\nbody {\n    /* Your custom styles */\n}";
+        $end_url = $current_record ? $current_record->styling_end_url : get_site_url() . '/wp-json/snefuru/v1/css/bespoke';
+        
+        ?>
+        <div class="wrap" style="margin: 20px 0 0 0;">
+            <h1>Bespoke CSS Editor</h1>
+            
+            <form method="post" action="" style="height: calc(100vh - 120px);">
+                <?php wp_nonce_field('snefuru_css_editor_nonce'); ?>
+                
+                <!-- Top controls bar -->
+                <div style="background: #fff; padding: 15px; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 4px;">
+                    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 10px;">
+                        <button type="submit" name="save_css" class="button button-primary button-large">
+                            💾 Save Changes
+                        </button>
+                        
+                        <div style="flex: 1;">
+                            <label for="styling_end_url" style="font-weight: 600; margin-right: 10px;">Public CSS URL:</label>
+                            <input 
+                                type="url" 
+                                name="styling_end_url" 
+                                id="styling_end_url" 
+                                value="<?php echo esc_attr($end_url); ?>" 
+                                style="width: 400px; padding: 4px 8px;"
+                                readonly
+                            />
+                            <button type="button" onclick="copyToClipboard('styling_end_url')" class="button button-secondary" style="margin-left: 10px;">
+                                📋 Copy URL
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="font-size: 12px; color: #666;">
+                        <strong>Usage:</strong> Include this CSS in external sites with: 
+                        <code>&lt;link rel="stylesheet" href="<?php echo esc_html($end_url); ?>"&gt;</code>
+                    </div>
+                </div>
+                
+                <!-- CSS Editor -->
+                <div style="height: calc(100% - 100px); border: 1px solid #ddd; border-radius: 4px; overflow: hidden;">
+                    <textarea 
+                        name="styling_content" 
+                        id="css-editor"
+                        style="width: 100%; height: 100%; border: none; font-family: 'Monaco', 'Consolas', 'Courier New', monospace; font-size: 13px; line-height: 1.4; padding: 20px; resize: none; outline: none; background: #f8f9fa;"
+                        placeholder="/* Add your custom CSS here... */"
+                    ><?php echo esc_textarea($css_content); ?></textarea>
+                </div>
+            </form>
+        </div>
+        
+        <style>
+        .wrap {
+            margin-right: 20px !important;
+        }
+        
+        #css-editor {
+            tab-size: 4;
+            -moz-tab-size: 4;
+        }
+        
+        #css-editor:focus {
+            background: #fff !important;
+            box-shadow: inset 0 0 0 2px #0073aa;
+        }
+        
+        /* Syntax highlighting for basic CSS */
+        #css-editor {
+            color: #333;
+        }
+        </style>
+        
+        <script>
+        function copyToClipboard(elementId) {
+            var element = document.getElementById(elementId);
+            element.select();
+            element.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                // Show success feedback
+                var button = event.target;
+                var originalText = button.textContent;
+                button.textContent = '✅ Copied!';
+                button.style.background = '#28a745';
+                button.style.color = '#fff';
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                }, 2000);
+            } catch (err) {
+                alert('Failed to copy. Please manually select and copy the URL.');
+            }
+        }
+        
+        // Auto-save functionality (optional)
+        var autoSaveTimeout;
+        document.getElementById('css-editor').addEventListener('input', function() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(function() {
+                // Could implement auto-save here
+                console.log('CSS content changed - auto-save could trigger here');
+            }, 5000);
+        });
+        
+        // Enhance textarea with basic features
+        document.getElementById('css-editor').addEventListener('keydown', function(e) {
+            // Tab key support
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+            }
+        });
+        </script>
+        
         <?php
     }
 } 
