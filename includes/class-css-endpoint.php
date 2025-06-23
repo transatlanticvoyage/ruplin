@@ -39,17 +39,19 @@ class Snefuru_CSS_Endpoint {
             $css_content = $record->styling_content;
         }
         
-        // Set proper headers for CSS
-        $response = new WP_REST_Response($css_content);
-        $response->set_headers(array(
-            'Content-Type' => 'text/css; charset=UTF-8',
-            'Cache-Control' => 'public, max-age=3600', // Cache for 1 hour
-            'Access-Control-Allow-Origin' => '*', // Allow cross-origin requests
-            'Access-Control-Allow-Methods' => 'GET',
-            'Access-Control-Allow-Headers' => 'Content-Type',
-        ));
+        // Set proper headers and output raw CSS (not JSON)
+        header('Content-Type: text/css; charset=UTF-8');
+        header('Cache-Control: public, max-age=3600'); // Cache for 1 hour
+        header('Access-Control-Allow-Origin: *'); // Allow cross-origin requests
+        header('Access-Control-Allow-Methods: GET');
+        header('Access-Control-Allow-Headers: Content-Type');
         
-        return $response;
+        // Stop WordPress from adding any extra output
+        status_header(200);
+        
+        // Output raw CSS and exit
+        echo $css_content;
+        exit;
     }
     
     /**
