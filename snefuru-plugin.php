@@ -44,6 +44,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-upload-handler.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-media-tab.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-css-endpoint.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-barkro-updater.php';
     }
     
     private function init_hooks() {
@@ -55,6 +56,7 @@ class SnefuruPlugin {
         new Snefuru_Upload_Handler();
         new Snefuru_Media_Tab();
         new Snefuru_CSS_Endpoint();
+        new Snefuru_Barkro_Updater();
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
