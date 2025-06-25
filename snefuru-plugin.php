@@ -45,6 +45,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-media-tab.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-css-endpoint.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-barkro-updater.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
     }
     
     private function init_hooks() {
@@ -57,6 +58,7 @@ class SnefuruPlugin {
         new Snefuru_Media_Tab();
         new Snefuru_CSS_Endpoint();
         new Snefuru_Barkro_Updater();
+        new Snefuru_Elementor_Updater();
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
