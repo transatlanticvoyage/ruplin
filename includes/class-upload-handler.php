@@ -111,10 +111,15 @@ class Snefuru_Upload_Handler {
         // Check the ruplin API key
         $stored_api_key = get_option('snefuru_ruplin_api_key_1', '');
         
+        error_log("Snefuru: Stored API key: " . ($stored_api_key ? substr($stored_api_key, 0, 8) . "..." : "NO STORED KEY"));
+        error_log("Snefuru: Received API key: " . ($api_key ? substr($api_key, 0, 8) . "..." : "NO RECEIVED KEY"));
+        
         if (!empty($stored_api_key) && hash_equals($stored_api_key, $api_key)) {
+            error_log("Snefuru: API key validation successful");
             return true;
         }
         
+        error_log("Snefuru: API key validation failed");
         return new WP_Error(
             'invalid_api_key',
             'Invalid API key provided',
@@ -414,6 +419,8 @@ class Snefuru_Upload_Handler {
         } else {
             $api_key = $request->get_param('api_key');
         }
+        
+        error_log("Snefuru: API key received: " . ($api_key ? substr($api_key, 0, 8) . "..." : "NO KEY"));
         
         return $this->validate_api_key($api_key);
     }
