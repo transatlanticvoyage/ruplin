@@ -7,7 +7,7 @@ class Snefuru_API_Client {
     
     public function __construct() {
         $this->api_base_url = get_option('snefuru_api_url', 'https://your-app.vercel.app/api');
-        $this->api_key = get_option('snefuru_api_key', '');
+        $this->api_key = get_option('snefuru_ruplin_api_key_1', '');
     }
     
     /**

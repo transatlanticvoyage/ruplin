@@ -52,34 +52,12 @@ class Snefuru_Elementor_Updater {
         // Log the validation attempt
         error_log("Snefuru: Validating ruplin API key for elementor update: " . substr($provided_key, 0, 8) . "...");
         
-        // Get all configured API keys from WordPress options
-        // These should be populated by your sync system
-        $valid_keys = array();
+        // Get the ruplin API key
+        $stored_key = get_option('snefuru_ruplin_api_key_1', '');
         
-        // Method 1: Check if key is stored in WordPress options (sync from your app)
-        $stored_ruplin_keys = get_option('snefuru_ruplin_api_keys', array());
-        if (is_array($stored_ruplin_keys)) {
-            $valid_keys = array_merge($valid_keys, $stored_ruplin_keys);
-        }
-        
-        // Method 2: Check against individual option (backwards compatibility)
-        $single_ruplin_key = get_option('snefuru_ruplin_api_key_1', '');
-        if (!empty($single_ruplin_key)) {
-            $valid_keys[] = $single_ruplin_key;
-        }
-        
-        // Method 3: Fallback to main upload API key if configured
-        $upload_key = get_option('snefuru_upload_api_key', '');
-        if (!empty($upload_key)) {
-            $valid_keys[] = $upload_key;
-        }
-        
-        // Validate the provided key against all valid keys
-        foreach ($valid_keys as $valid_key) {
-            if (hash_equals($valid_key, $provided_key)) {
-                error_log("Snefuru: Valid ruplin API key authenticated for elementor update");
-                return true;
-            }
+        if (!empty($stored_key) && hash_equals($stored_key, $provided_key)) {
+            error_log("Snefuru: Valid ruplin API key authenticated for elementor update");
+            return true;
         }
         
         error_log("Snefuru: Invalid ruplin API key provided for elementor update");

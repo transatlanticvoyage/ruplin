@@ -35,9 +35,9 @@ class Snefuru_Barkro_Updater {
      */
     public function verify_api_key($request) {
         $api_key = $request->get_header('X-API-Key');
-        $stored_key = get_option('snefuru_upload_api_key', '');
+        $stored_key = get_option('snefuru_ruplin_api_key_1', '');
         
-        return !empty($api_key) && $api_key === $stored_key;
+        return !empty($api_key) && hash_equals($stored_key, $api_key);
     }
     
     /**

@@ -108,18 +108,10 @@ class Snefuru_Upload_Handler {
             );
         }
         
-        // Check the main plugin API key first
-        $stored_api_key = get_option('snefuru_api_key', '');
+        // Check the ruplin API key
+        $stored_api_key = get_option('snefuru_ruplin_api_key_1', '');
         
         if (!empty($stored_api_key) && hash_equals($stored_api_key, $api_key)) {
-            return true;
-        }
-        
-        // If main API key doesn't match, check if it's a valid site-specific API key
-        // This allows our sync system to work with individual site API keys
-        if (strlen($api_key) >= 32) { // Basic validation for API key format
-            // For now, accept any reasonably long API key
-            // In the future, you could validate against a database of valid keys
             return true;
         }
         

@@ -8,7 +8,6 @@ class Snefuru_Admin {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_ajax_snefuru_test_connection', array($this, 'test_api_connection'));
         add_action('wp_ajax_snefuru_sync_now', array($this, 'manual_sync'));
-        add_action('wp_ajax_snefuru_generate_api_key', array($this, 'generate_upload_api_key'));
         add_action('wp_ajax_snefuru_clear_upload_logs', array($this, 'clear_upload_logs'));
         add_action('wp_ajax_snefuru_test_upload_endpoint', array($this, 'test_upload_endpoint'));
         add_action('wp_ajax_fetch_site_data', array($this, 'fetch_site_data'));
@@ -208,68 +207,49 @@ class Snefuru_Admin {
      * Settings page
      */
     public function settings_page() {
-        if (isset($_POST['submit'])) {
-            check_admin_referer('snefuru_settings_nonce');
-            
-            update_option('snefuru_api_key', sanitize_text_field($_POST['snefuru_api_key']));
-            update_option('snefuru_api_url', esc_url_raw($_POST['snefuru_api_url']));
-            update_option('snefuru_sync_interval', sanitize_text_field($_POST['snefuru_sync_interval']));
-            update_option('snefuru_auto_sync', isset($_POST['snefuru_auto_sync']) ? 1 : 0);
-            
-            echo '<div class="notice notice-success"><p>Settings saved!</p></div>';
-        }
-        
-        $api_key = get_option('snefuru_api_key', '');
+        $ruplin_api_key = get_option('snefuru_ruplin_api_key_1', '');
         $api_url = get_option('snefuru_api_url', 'https://your-app.vercel.app/api');
-        $sync_interval = get_option('snefuru_sync_interval', 'hourly');
-        $auto_sync = get_option('snefuru_auto_sync', 1);
         
         ?>
         <div class="wrap">
             <h1>Snefuru Settings</h1>
             
-            <form method="post" action="">
-                <?php wp_nonce_field('snefuru_settings_nonce'); ?>
-                
+            <div class="snefuru-card">
+                <h3>Ruplin API Configuration</h3>
                 <table class="form-table">
                     <tr>
-                        <th scope="row">API Key</th>
+                        <th scope="row">Ruplin API Key</th>
                         <td>
-                            <input type="text" name="snefuru_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" />
-                            <p class="description">Your Snefuru Cloud API key</p>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="text" id="ruplin-api-key" value="<?php echo esc_attr($ruplin_api_key); ?>" class="regular-text" readonly />
+                                <?php if (!empty($ruplin_api_key)): ?>
+                                    <button type="button" class="button button-secondary" onclick="navigator.clipboard.writeText(document.getElementById('ruplin-api-key').value); alert('API key copied to clipboard!');">Copy</button>
+                                <?php endif; ?>
+                            </div>
+                            <p class="description">
+                                <?php if (!empty($ruplin_api_key)): ?>
+                                    This is your Ruplin API key used for all plugin operations.
+                                <?php else: ?>
+                                    No Ruplin API key found. Please download and install the plugin using Option 2 from your Snefuru dashboard.
+                                <?php endif; ?>
+                            </p>
                         </td>
                     </tr>
                     <tr>
                         <th scope="row">API URL</th>
                         <td>
-                            <input type="url" name="snefuru_api_url" value="<?php echo esc_attr($api_url); ?>" class="regular-text" />
+                            <code><?php echo esc_html($api_url); ?></code>
                             <p class="description">The base URL for your Snefuru Cloud API</p>
                         </td>
                     </tr>
-                    <tr>
-                        <th scope="row">Sync Interval</th>
-                        <td>
-                            <select name="snefuru_sync_interval">
-                                <option value="hourly" <?php selected($sync_interval, 'hourly'); ?>>Hourly</option>
-                                <option value="twicedaily" <?php selected($sync_interval, 'twicedaily'); ?>>Twice Daily</option>
-                                <option value="daily" <?php selected($sync_interval, 'daily'); ?>>Daily</option>
-                            </select>
-                            <p class="description">How often to sync data with the cloud</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Auto Sync</th>
-                        <td>
-                            <label>
-                                <input type="checkbox" name="snefuru_auto_sync" value="1" <?php checked($auto_sync, 1); ?> />
-                                Enable automatic data synchronization
-                            </label>
-                        </td>
-                    </tr>
                 </table>
-                
-                <?php submit_button(); ?>
-            </form>
+            </div>
+            
+            <div class="snefuru-card">
+                <h3>Plugin Status</h3>
+                <p><strong>Plugin Version:</strong> <?php echo SNEFURU_PLUGIN_VERSION; ?></p>
+                <p><strong>API Key Status:</strong> <?php echo !empty($ruplin_api_key) ? '<span class="status-success">Configured</span>' : '<span class="status-error">Not Configured</span>'; ?></p>
+            </div>
         </div>
         <?php
     }
@@ -366,9 +346,9 @@ class Snefuru_Admin {
      * Display connection status
      */
     private function display_connection_status() {
-        $api_key = get_option('snefuru_api_key', '');
+        $ruplin_api_key = get_option('snefuru_ruplin_api_key_1', '');
         
-        if (empty($api_key)) {
+        if (empty($ruplin_api_key)) {
             echo '<span class="status-error">Not configured</span>';
         } else {
             $last_successful_sync = get_option('snefuru_last_successful_sync', '');
@@ -441,7 +421,7 @@ class Snefuru_Admin {
             echo '<div class="notice notice-success"><p>Upload settings saved!</p></div>';
         }
         
-        $upload_api_key = get_option('snefuru_upload_api_key', '');
+        $ruplin_api_key = get_option('snefuru_ruplin_api_key_1', '');
         $upload_enabled = get_option('snefuru_upload_enabled', 1);
         $upload_max_size = get_option('snefuru_upload_max_size', '10MB');
         
@@ -456,21 +436,20 @@ class Snefuru_Admin {
                     
                     <table class="form-table">
                         <tr>
-                            <th scope="row">Upload API Key</th>
+                            <th scope="row">Ruplin API Key</th>
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="text" id="upload-api-key" value="<?php echo esc_attr($upload_api_key); ?>" class="regular-text" readonly />
-                                    <button type="button" class="button button-secondary" id="generate-api-key">
-                                        <?php echo empty($upload_api_key) ? 'Generate API Key' : 'Regenerate Key'; ?>
-                                    </button>
-                                    <?php if (!empty($upload_api_key)): ?>
+                                    <input type="text" id="upload-api-key" value="<?php echo esc_attr($ruplin_api_key); ?>" class="regular-text" readonly />
+                                    <?php if (!empty($ruplin_api_key)): ?>
                                         <button type="button" class="button button-secondary" id="copy-api-key">Copy</button>
                                     <?php endif; ?>
                                 </div>
                                 <p class="description">
-                                    This API key is used to authenticate upload requests from your Next.js app.
-                                    <?php if (!empty($upload_api_key)): ?>
-                                        <br><strong>Keep this key secure and add it to your Next.js app's environment variables.</strong>
+                                    <?php if (!empty($ruplin_api_key)): ?>
+                                        This Ruplin API key is used to authenticate all requests from your Next.js app.
+                                        <br><strong>Keep this key secure.</strong>
+                                    <?php else: ?>
+                                        No Ruplin API key found. Please reinstall the plugin using Option 2.
                                     <?php endif; ?>
                                 </p>
                             </td>
@@ -478,14 +457,18 @@ class Snefuru_Admin {
                         <tr>
                             <th scope="row">Upload Endpoints</th>
                             <td>
-                                <?php if (!empty($upload_api_key)): ?>
+                                <?php if (!empty($ruplin_api_key)): ?>
                                     <p><strong>Upload URL:</strong><br>
                                     <code><?php echo rest_url('snefuru/v1/upload-image'); ?></code></p>
                                     <p><strong>Status URL:</strong><br>
                                     <code><?php echo rest_url('snefuru/v1/status'); ?></code></p>
+                                    <p><strong>Posts Sync URL:</strong><br>
+                                    <code><?php echo rest_url('snefuru/v1/posts'); ?></code></p>
+                                    <p><strong>Elementor Update URL:</strong><br>
+                                    <code><?php echo rest_url('snefuru/v1/posts/{id}/elementor'); ?></code></p>
                                     <button type="button" class="button button-secondary" id="test-upload-endpoint">Test Upload Endpoint</button>
                                 <?php else: ?>
-                                    <p class="description">Generate an API key to see the upload endpoints.</p>
+                                    <p class="description">Install the plugin with a Ruplin API key to see the upload endpoints.</p>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -540,12 +523,11 @@ class Snefuru_Admin {
             
             <div class="snefuru-card">
                 <h3>Integration Instructions</h3>
-                <p>To use the plugin upload method in your Next.js app:</p>
+                <p>Your plugin is configured with a unified Ruplin API key system:</p>
                 <ol>
-                    <li><strong>Add the API key to your environment:</strong><br>
-                        <code>WORDPRESS_UPLOAD_API_KEY=<?php echo !empty($upload_api_key) ? esc_attr($upload_api_key) : 'YOUR_GENERATED_API_KEY'; ?></code></li>
-                    <li><strong>Update your domain configuration</strong> to set <code>wp_plugin_installed1=true</code> and <code>wp_plugin_connected2=true</code></li>
-                    <li><strong>Use <code>push_method='wp_plugin'</code></strong> in your sfunc_63_push_images function</li>
+                    <li><strong>All operations use the same Ruplin API key</strong> - no need for multiple keys</li>
+                    <li><strong>The key is pre-configured</strong> when you download using Option 2</li>
+                    <li><strong>Your Next.js app automatically uses this key</strong> for all operations (uploads, sync, elementor updates)</li>
                     <li><strong>Test the connection</strong> using the "Test Upload Endpoint" button above</li>
                 </ol>
             </div>
@@ -553,22 +535,6 @@ class Snefuru_Admin {
         
         <script>
         jQuery(document).ready(function($) {
-            $('#generate-api-key').on('click', function() {
-                if (confirm('This will generate a new API key. Any existing integrations will need to be updated. Continue?')) {
-                    $.post(ajaxurl, {
-                        action: 'snefuru_generate_api_key',
-                        nonce: '<?php echo wp_create_nonce('snefuru_upload_nonce'); ?>'
-                    }, function(response) {
-                        if (response.success) {
-                            $('#upload-api-key').val(response.data.api_key);
-                            location.reload();
-                        } else {
-                            alert('Error generating API key: ' + response.data.message);
-                        }
-                    });
-                }
-            });
-            
             $('#copy-api-key').on('click', function() {
                 $('#upload-api-key').select();
                 document.execCommand('copy');
@@ -646,24 +612,6 @@ class Snefuru_Admin {
         echo '</tbody></table>';
     }
     
-    /**
-     * Generate upload API key
-     */
-    public function generate_upload_api_key() {
-        check_ajax_referer('snefuru_upload_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
-        
-        $api_key = wp_generate_password(32, false);
-        update_option('snefuru_upload_api_key', $api_key);
-        
-        wp_send_json_success(array(
-            'api_key' => $api_key,
-            'message' => 'API key generated successfully'
-        ));
-    }
     
     /**
      * Clear upload logs
@@ -692,11 +640,11 @@ class Snefuru_Admin {
             wp_die('Insufficient permissions');
         }
         
-        $api_key = get_option('snefuru_upload_api_key', '');
+        $api_key = get_option('snefuru_ruplin_api_key_1', '');
         
         if (empty($api_key)) {
             wp_send_json_error(array(
-                'message' => 'No API key configured. Please generate an API key first.'
+                'message' => 'No Ruplin API key configured. Please reinstall the plugin using Option 2.'
             ));
         }
         
