@@ -3,7 +3,7 @@
  * Plugin Name: Snefuruplin
  * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
  * Description: WordPress plugin for handling image uploads to Snefuru system
- * Version: 1.0.0
+ * Version: 4.0.0
  * Author: Snefuru Team
  * License: GPL v2 or later
  * Text Domain: snefuru-plugin
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SNEFURU_PLUGIN_VERSION', '1.0.0');
+define('SNEFURU_PLUGIN_VERSION', '4.0.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 
