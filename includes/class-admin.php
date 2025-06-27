@@ -14,6 +14,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_sync_data_now', array($this, 'sync_data_now'));
         add_action('wp_ajax_clear_logs', array($this, 'clear_logs'));
         add_action('wp_ajax_snefuru_save_api_key', array($this, 'save_api_key'));
+        add_action('wp_ajax_snefuru_clear_update_debug', array($this, 'clear_update_debug'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -347,6 +348,15 @@ class Snefuru_Admin {
                 <p><strong>Plugin Version:</strong> <?php echo SNEFURU_PLUGIN_VERSION; ?></p>
                 <p><strong>API Key Status:</strong> <?php echo !empty($ruplin_api_key) ? '<span class="status-success">Configured</span>' : '<span class="status-error">Not Configured</span>'; ?></p>
             </div>
+            
+            <div class="snefuru-card">
+                <h3>Barkro Update System Debug</h3>
+                <?php $this->display_barkro_debug_info(); ?>
+                <p>
+                    <button type="button" class="button button-secondary" onclick="location.reload();">Refresh Debug Info</button>
+                    <button type="button" class="button button-secondary" id="clear-update-logs">Clear Update Logs</button>
+                </p>
+            </div>
         </div>
         
         <script>
@@ -523,6 +533,22 @@ class Snefuru_Admin {
                             alert('Upload logs cleared successfully!');
                         } else {
                             alert('Error clearing logs: ' + response.data.message);
+                        }
+                    });
+                }
+            });
+            
+            $('#clear-update-logs').on('click', function() {
+                if (confirm('Are you sure you want to clear Barkro update debug data?')) {
+                    $.post(ajaxurl, {
+                        action: 'snefuru_clear_update_debug',
+                        nonce: '<?php echo wp_create_nonce('snefuru_admin_nonce'); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            alert('Update debug data cleared successfully!');
+                            location.reload();
+                        } else {
+                            alert('Error clearing debug data: ' + response.data.message);
                         }
                     });
                 }
@@ -1154,5 +1180,98 @@ class Snefuru_Admin {
         </script>
         
         <?php
+    }
+    
+    /**
+     * Display Barkro update system debug information
+     */
+    private function display_barkro_debug_info() {
+        global $wpdb;
+        
+        // Get last update attempt info
+        $last_attempt = get_option('snefuru_last_update_attempt', array());
+        
+        // Get recent Barkro logs
+        $table_name = $wpdb->prefix . 'snefuru_logs';
+        $barkro_logs = $wpdb->get_results($wpdb->prepare(
+            "SELECT * FROM {$table_name} WHERE action = 'barkro_update' ORDER BY timestamp DESC LIMIT 10"
+        ));
+        
+        // Get current update transient
+        $update_transient = get_site_transient('snefuru_update_data');
+        
+        echo '<div class="barkro-debug-info">';
+        
+        // Last Update Attempt
+        echo '<h4>Last Update Attempt</h4>';
+        if (!empty($last_attempt)) {
+            echo '<table class="widefat" style="max-width: 100%;">';
+            foreach ($last_attempt as $key => $value) {
+                echo '<tr>';
+                echo '<td style="width: 200px;"><strong>' . esc_html(ucwords(str_replace('_', ' ', $key))) . ':</strong></td>';
+                echo '<td>' . esc_html($value) . '</td>';
+                echo '</tr>';
+            }
+            echo '</table>';
+        } else {
+            echo '<p>No update attempts recorded.</p>';
+        }
+        
+        // Current Update Transient
+        echo '<h4>Current Update Transient</h4>';
+        if ($update_transient) {
+            echo '<pre style="background: #f9f9f9; padding: 10px; border: 1px solid #ddd; max-height: 200px; overflow-y: auto;">';
+            echo esc_html(json_encode($update_transient, JSON_PRETTY_PRINT));
+            echo '</pre>';
+        } else {
+            echo '<p>No update transient data found.</p>';
+        }
+        
+        // Recent Logs
+        echo '<h4>Recent Barkro Update Logs</h4>';
+        if ($barkro_logs) {
+            echo '<table class="wp-list-table widefat fixed striped" style="max-width: 100%;">';
+            echo '<thead><tr><th style="width: 150px;">Timestamp</th><th>Event</th><th>Status</th></tr></thead>';
+            echo '<tbody>';
+            foreach ($barkro_logs as $log) {
+                echo '<tr>';
+                echo '<td>' . esc_html(mysql2date('M j, Y g:i:s A', $log->timestamp)) . '</td>';
+                echo '<td>' . esc_html($log->data) . '</td>';
+                echo '<td><span class="status-' . esc_attr($log->status) . '">' . esc_html($log->status) . '</span></td>';
+                echo '</tr>';
+            }
+            echo '</tbody></table>';
+        } else {
+            echo '<p>No Barkro update logs found.</p>';
+        }
+        
+        echo '</div>';
+    }
+    
+    /**
+     * Clear Barkro update debug data
+     */
+    public function clear_update_debug() {
+        check_ajax_referer('snefuru_admin_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        global $wpdb;
+        
+        // Clear update attempt data
+        delete_option('snefuru_last_update_attempt');
+        
+        // Clear update transient
+        delete_site_transient('snefuru_update_data');
+        
+        // Clear Barkro logs
+        $table_name = $wpdb->prefix . 'snefuru_logs';
+        $wpdb->delete($table_name, array('action' => 'barkro_update'));
+        
+        wp_send_json_success(array(
+            'message' => 'Barkro update debug data cleared successfully'
+        ));
     }
 } 

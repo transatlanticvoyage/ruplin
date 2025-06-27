@@ -17,6 +17,11 @@ class Snefuru_Barkro_Updater {
         
         // Add automatic update support
         add_filter('auto_update_plugin', array($this, 'auto_update_plugin'), 10, 2);
+        
+        // Track WordPress update process
+        add_action('upgrader_process_complete', array($this, 'track_update_complete'), 10, 2);
+        add_action('wp_ajax_update-plugin', array($this, 'track_update_start'), 1);
+        add_action('wp_ajax_nopriv_update-plugin', array($this, 'track_update_start'), 1);
     }
     
     /**
@@ -61,20 +66,41 @@ class Snefuru_Barkro_Updater {
         }
         
         // Store update data
-        set_site_transient('snefuru_update_data', $params['update_data'], 12 * HOUR_IN_SECONDS);
+        $transient_result = set_site_transient('snefuru_update_data', $params['update_data'], 12 * HOUR_IN_SECONDS);
+        $this->log_update_event('Update notification received. Transient stored: ' . ($transient_result ? 'success' : 'failed'));
         
         // Get current plugin version
         $plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $this->plugin_base);
         $current_version = $plugin_data['Version'];
+        $new_version = $params['update_data']['version'] ?? 'unknown';
+        
+        $this->log_update_event( "Version comparison - Current: {$current_version}, New: {$new_version}");
+        
+        // Store update attempt for verification
+        update_option('snefuru_last_update_attempt', array(
+            'timestamp' => current_time('mysql'),
+            'current_version' => $current_version,
+            'target_version' => $new_version,
+            'download_url' => $params['update_data']['download_url'] ?? '',
+            'status' => 'notification_received'
+        ));
         
         // Force WordPress to check for updates
         delete_site_transient('update_plugins');
         wp_update_plugins();
         
+        $this->log_update_event( 'WordPress update check triggered');
+        
         return new WP_REST_Response(array(
             'success' => true,
-            'message' => 'Update notification received',
-            'current_version' => $current_version
+            'message' => "Update notification received - Current: {$current_version}, Target: {$new_version}",
+            'current_version' => $current_version,
+            'target_version' => $new_version,
+            'debug' => array(
+                'transient_stored' => $transient_result,
+                'update_data_keys' => array_keys($params['update_data']),
+                'plugin_file' => $this->plugin_base
+            )
         ), 200);
     }
     
@@ -83,6 +109,7 @@ class Snefuru_Barkro_Updater {
      */
     public function check_for_update($transient) {
         if (empty($transient->checked)) {
+            $this->log_update_event( 'WordPress update check called but transient->checked is empty');
             return $transient;
         }
         
@@ -90,16 +117,21 @@ class Snefuru_Barkro_Updater {
         $update_data = get_site_transient('snefuru_update_data');
         
         if (!$update_data) {
-            // No update data available
+            $this->log_update_event( 'WordPress update check called but no update_data transient found');
             return $transient;
         }
+        
+        $this->log_update_event( 'WordPress update check processing. Update data found: ' . json_encode(array_keys($update_data)));
         
         // Get current plugin version
         $plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $this->plugin_base);
         $current_version = $plugin_data['Version'];
         
         // Compare versions
-        if (version_compare($current_version, $update_data['version'], '<')) {
+        $version_compare_result = version_compare($current_version, $update_data['version'], '<');
+        $this->log_update_event( "Version comparison result: {$current_version} < {$update_data['version']} = " . ($version_compare_result ? 'true' : 'false'));
+        
+        if ($version_compare_result) {
             $plugin_update = array(
                 'id' => $this->plugin_base,
                 'plugin' => $this->plugin_base,
@@ -117,6 +149,15 @@ class Snefuru_Barkro_Updater {
             );
             
             $transient->response[$this->plugin_base] = (object) $plugin_update;
+            $this->log_update_event( "Plugin update added to WordPress transient. Download URL: {$update_data['download_url']}");
+            
+            // Update status
+            update_option('snefuru_last_update_attempt', array_merge(
+                get_option('snefuru_last_update_attempt', array()),
+                array('status' => 'queued_for_wordpress')
+            ));
+        } else {
+            $this->log_update_event( 'No update needed - current version is up to date or newer');
         }
         
         return $transient;
@@ -168,6 +209,51 @@ class Snefuru_Barkro_Updater {
         }
         
         return $update;
+    }
+    
+    /**
+     * Track when WordPress starts updating our plugin
+     */
+    public function track_update_start() {
+        if (isset($_POST['plugin']) && $_POST['plugin'] === $this->plugin_base) {
+            $this->log_update_event( 'WordPress plugin update process started');
+            update_option('snefuru_last_update_attempt', array_merge(
+                get_option('snefuru_last_update_attempt', array()),
+                array('status' => 'wordpress_update_started', 'start_time' => current_time('mysql'))
+            ));
+        }
+    }
+    
+    /**
+     * Track when WordPress completes updating any plugin
+     */
+    public function track_update_complete($upgrader_object, $options) {
+        if (isset($options['type']) && $options['type'] === 'plugin') {
+            if (isset($options['plugins']) && in_array($this->plugin_base, $options['plugins'])) {
+                $plugin_data = get_plugin_data(WP_PLUGIN_DIR . '/' . $this->plugin_base);
+                $new_version = $plugin_data['Version'];
+                
+                $this->log_update_event( "WordPress plugin update completed. New version: {$new_version}");
+                
+                // Check if update was successful
+                $last_attempt = get_option('snefuru_last_update_attempt', array());
+                $target_version = $last_attempt['target_version'] ?? '';
+                $success = version_compare($new_version, $target_version, '>=');
+                
+                update_option('snefuru_last_update_attempt', array_merge(
+                    $last_attempt,
+                    array(
+                        'status' => $success ? 'completed_successfully' : 'completed_with_version_mismatch',
+                        'completion_time' => current_time('mysql'),
+                        'final_version' => $new_version,
+                        'version_match' => $success
+                    )
+                ));
+                
+                // Clear the update transient since we've processed it
+                delete_site_transient('snefuru_update_data');
+            }
+        }
     }
     
     /**
