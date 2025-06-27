@@ -24,8 +24,8 @@ class Snefuru_Admin {
      */
     public function add_admin_menu() {
         add_menu_page(
-            'Snefuru Cloud',
-            'Snefuru',
+            'Snefuruplin Dashboard',
+            'Snefuruplin',
             'manage_options',
             'snefuru',
             array($this, 'admin_page'),
@@ -135,7 +135,7 @@ class Snefuru_Admin {
         
         ?>
         <div class="wrap">
-            <h1>Snefuru Cloud Dashboard</h1>
+            <h1>Snefuruplin Dashboard</h1>
             
             <div class="snefuru-dashboard">
                 <div class="snefuru-cards">
@@ -212,7 +212,7 @@ class Snefuru_Admin {
         
         ?>
         <div class="wrap">
-            <h1>Snefuru Settings</h1>
+            <h1>Snefuruplin Settings</h1>
             
             <div class="snefuru-card">
                 <h3>Ruplin API Configuration</h3>
@@ -442,7 +442,7 @@ class Snefuru_Admin {
         
         ?>
         <div class="wrap">
-            <h1>Snefuru Logs</h1>
+            <h1>Snefuruplin Logs</h1>
             
             <div class="tablenav top">
                 <form method="post" style="float: right;">
@@ -626,7 +626,7 @@ class Snefuru_Admin {
         
         ?>
         <div class="wrap">
-            <h1>Snefuru Upload Settings</h1>
+            <h1>Snefuruplin Upload Settings</h1>
             
             <div class="snefuru-upload-info">
                 <div class="snefuru-card">

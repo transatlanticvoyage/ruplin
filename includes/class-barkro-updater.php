@@ -137,7 +137,7 @@ class Snefuru_Barkro_Updater {
         }
         
         $plugin_info = array(
-            'name' => 'Snefuru Image Upload Plugin',
+            'name' => 'Snefuruplin',
             'slug' => $this->plugin_slug,
             'version' => $update_data['version'],
             'author' => '<a href="https://snefuru.com">Snefuru Team</a>',

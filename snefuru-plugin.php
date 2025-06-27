@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Snefuru Image Upload Plugin
+ * Plugin Name: Snefuruplin
  * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
  * Description: WordPress plugin for handling image uploads to Snefuru system
  * Version: 1.0.0
