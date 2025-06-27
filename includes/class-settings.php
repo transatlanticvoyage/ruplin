@@ -13,7 +13,7 @@ class Snefuru_Settings {
     
     public static function get_default_settings() {
         return array(
-            'api_key' => '',
+            'ruplin_api_key_1' => '',
             'api_url' => 'https://your-app.vercel.app/api',
             'sync_interval' => 'hourly',
             'auto_sync' => true,

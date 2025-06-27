@@ -91,11 +91,10 @@ class Snefuru_Admin {
      * Initialize settings
      */
     public function init_settings() {
-        register_setting('snefuru_settings', 'snefuru_api_key');
+        register_setting('snefuru_settings', 'snefuru_ruplin_api_key_1');
         register_setting('snefuru_settings', 'snefuru_api_url');
         register_setting('snefuru_settings', 'snefuru_sync_interval');
         register_setting('snefuru_settings', 'snefuru_auto_sync');
-        register_setting('snefuru_upload_settings', 'snefuru_upload_api_key');
         register_setting('snefuru_upload_settings', 'snefuru_upload_enabled');
         register_setting('snefuru_upload_settings', 'snefuru_upload_max_size');
     }
