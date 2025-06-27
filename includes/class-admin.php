@@ -13,6 +13,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_fetch_site_data', array($this, 'fetch_site_data'));
         add_action('wp_ajax_sync_data_now', array($this, 'sync_data_now'));
         add_action('wp_ajax_clear_logs', array($this, 'clear_logs'));
+        add_action('wp_ajax_snefuru_save_api_key', array($this, 'save_api_key'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -221,17 +222,25 @@ class Snefuru_Admin {
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <input type="text" id="ruplin-api-key" value="<?php echo esc_attr($ruplin_api_key); ?>" class="regular-text" readonly />
-                                <?php if (!empty($ruplin_api_key)): ?>
-                                    <button type="button" class="button button-secondary" onclick="navigator.clipboard.writeText(document.getElementById('ruplin-api-key').value); alert('API key copied to clipboard!');">Copy</button>
-                                <?php endif; ?>
+                                <div id="api-key-view-buttons" style="display: flex; gap: 10px;">
+                                    <?php if (!empty($ruplin_api_key)): ?>
+                                        <button type="button" class="button button-secondary" id="copy-api-key">Copy</button>
+                                    <?php endif; ?>
+                                    <button type="button" class="button button-secondary" id="edit-api-key">Edit</button>
+                                </div>
+                                <div id="api-key-edit-buttons" style="display: none; gap: 10px;">
+                                    <button type="button" class="button button-primary" id="save-api-key">Save</button>
+                                    <button type="button" class="button button-secondary" id="cancel-edit-api-key">Cancel</button>
+                                </div>
                             </div>
                             <p class="description">
                                 <?php if (!empty($ruplin_api_key)): ?>
                                     This is your Ruplin API key used for all plugin operations.
                                 <?php else: ?>
-                                    No Ruplin API key found. Please download and install the plugin using Option 2 from your Snefuru dashboard.
+                                    No Ruplin API key found. Enter your API key or download the plugin using Option 2 from your Snefuru dashboard.
                                 <?php endif; ?>
                             </p>
+                            <div id="api-key-message" style="margin-top: 10px; display: none;"></div>
                         </td>
                     </tr>
                     <tr>
@@ -250,6 +259,91 @@ class Snefuru_Admin {
                 <p><strong>API Key Status:</strong> <?php echo !empty($ruplin_api_key) ? '<span class="status-success">Configured</span>' : '<span class="status-error">Not Configured</span>'; ?></p>
             </div>
         </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            var originalApiKey = $('#ruplin-api-key').val();
+            
+            // Copy API key
+            $('#copy-api-key').on('click', function() {
+                $('#ruplin-api-key').select();
+                document.execCommand('copy');
+                alert('API key copied to clipboard!');
+            });
+            
+            // Edit API key
+            $('#edit-api-key').on('click', function() {
+                $('#ruplin-api-key').prop('readonly', false).focus();
+                $('#api-key-view-buttons').hide();
+                $('#api-key-edit-buttons').css('display', 'flex');
+            });
+            
+            // Cancel edit
+            $('#cancel-edit-api-key').on('click', function() {
+                $('#ruplin-api-key').val(originalApiKey).prop('readonly', true);
+                $('#api-key-view-buttons').css('display', 'flex');
+                $('#api-key-edit-buttons').hide();
+                $('#api-key-message').hide();
+            });
+            
+            // Save API key
+            $('#save-api-key').on('click', function() {
+                var newApiKey = $('#ruplin-api-key').val().trim();
+                var $button = $(this);
+                var $message = $('#api-key-message');
+                
+                if (!newApiKey) {
+                    $message.removeClass('notice-success').addClass('notice notice-error').html('<p>API key cannot be empty.</p>').show();
+                    return;
+                }
+                
+                $button.prop('disabled', true).text('Saving...');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'snefuru_save_api_key',
+                        api_key: newApiKey,
+                        nonce: '<?php echo wp_create_nonce('snefuru_save_api_key'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            originalApiKey = newApiKey;
+                            $('#ruplin-api-key').prop('readonly', true);
+                            $('#api-key-view-buttons').css('display', 'flex');
+                            $('#api-key-edit-buttons').hide();
+                            $message.removeClass('notice-error').addClass('notice notice-success').html('<p>' + response.data.message + '</p>').show();
+                            
+                            // Update the copy button visibility
+                            if (newApiKey && $('#copy-api-key').length === 0) {
+                                $('#edit-api-key').before('<button type="button" class="button button-secondary" id="copy-api-key">Copy</button>');
+                                $('#copy-api-key').on('click', function() {
+                                    $('#ruplin-api-key').select();
+                                    document.execCommand('copy');
+                                    alert('API key copied to clipboard!');
+                                });
+                            }
+                            
+                            // Update API key status
+                            var $status = $('p:contains("API Key Status:")');
+                            if ($status.length) {
+                                $status.html('<strong>API Key Status:</strong> <span class="status-success">Configured</span>');
+                            }
+                        } else {
+                            $message.removeClass('notice-success').addClass('notice notice-error').html('<p>' + response.data.message + '</p>').show();
+                        }
+                    },
+                    error: function() {
+                        $message.removeClass('notice-success').addClass('notice notice-error').html('<p>Failed to save API key. Please try again.</p>').show();
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false).text('Save');
+                    }
+                });
+            });
+        });
+        </script>
         <?php
     }
     
@@ -404,6 +498,43 @@ class Snefuru_Admin {
             wp_send_json_success('Data synchronized successfully!');
         } else {
             wp_send_json_error('Synchronization failed. Please check your connection settings.');
+        }
+    }
+    
+    /**
+     * AJAX: Save API key
+     */
+    public function save_api_key() {
+        check_ajax_referer('snefuru_save_api_key', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $api_key = sanitize_text_field($_POST['api_key']);
+        
+        if (empty($api_key)) {
+            wp_send_json_error(array('message' => 'API key cannot be empty.'));
+        }
+        
+        // Validate API key format (basic validation)
+        if (strlen($api_key) < 10) {
+            wp_send_json_error(array('message' => 'Invalid API key format.'));
+        }
+        
+        // Save the API key
+        update_option('snefuru_ruplin_api_key_1', $api_key);
+        
+        // Test the API key by making a test connection
+        $api_client = new Snefuru_API_Client();
+        $test_data = array('test' => true, 'timestamp' => current_time('mysql'));
+        $result = $api_client->send_data_to_cloud($test_data);
+        
+        if ($result) {
+            wp_send_json_success(array('message' => 'API key saved and verified successfully!'));
+        } else {
+            // Still save the key but warn about connection
+            wp_send_json_success(array('message' => 'API key saved. Warning: Could not verify connection with this key.'));
         }
     }
     
