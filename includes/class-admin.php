@@ -221,9 +221,12 @@ class Snefuru_Admin {
                         <th scope="row">Ruplin API Key</th>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="text" id="ruplin-api-key" value="<?php echo esc_attr($ruplin_api_key); ?>" class="regular-text" readonly />
+                                <input type="text" id="ruplin-api-key" value="<?php echo esc_attr($ruplin_api_key); ?>" class="regular-text" readonly data-full-key="<?php echo esc_attr($ruplin_api_key); ?>" />
                                 <div id="api-key-view-buttons" style="display: flex; gap: 10px;">
                                     <?php if (!empty($ruplin_api_key)): ?>
+                                        <button type="button" class="button button-secondary" id="toggle-api-key" title="Show/Hide API Key">
+                                            <span class="dashicons dashicons-visibility" style="font-size: 16px; width: 16px; height: 16px; margin: 2px 0;"></span>
+                                        </button>
                                         <button type="button" class="button button-secondary" id="copy-api-key">Copy</button>
                                     <?php endif; ?>
                                     <button type="button" class="button button-secondary" id="edit-api-key">Edit</button>
@@ -262,28 +265,68 @@ class Snefuru_Admin {
         
         <script>
         jQuery(document).ready(function($) {
-            var originalApiKey = $('#ruplin-api-key').val();
+            var originalApiKey = $('#ruplin-api-key').data('full-key');
+            var isKeyVisible = false;
             
-            // Copy API key
+            // Function to mask API key
+            function maskApiKey(key) {
+                if (!key || key.length < 15) return key;
+                return key.substring(0, 10) + '*'.repeat(key.length - 10);
+            }
+            
+            // Initially mask the API key
+            if (originalApiKey) {
+                $('#ruplin-api-key').val(maskApiKey(originalApiKey));
+            }
+            
+            // Toggle API key visibility
+            $('#toggle-api-key').on('click', function() {
+                isKeyVisible = !isKeyVisible;
+                var $icon = $(this).find('.dashicons');
+                
+                if (isKeyVisible) {
+                    $('#ruplin-api-key').val(originalApiKey);
+                    $icon.removeClass('dashicons-visibility').addClass('dashicons-hidden');
+                    $(this).attr('title', 'Hide API Key');
+                } else {
+                    $('#ruplin-api-key').val(maskApiKey(originalApiKey));
+                    $icon.removeClass('dashicons-hidden').addClass('dashicons-visibility');
+                    $(this).attr('title', 'Show API Key');
+                }
+            });
+            
+            // Copy API key (always copy the full key)
             $('#copy-api-key').on('click', function() {
-                $('#ruplin-api-key').select();
+                var tempInput = $('<input>');
+                $('body').append(tempInput);
+                tempInput.val(originalApiKey).select();
                 document.execCommand('copy');
+                tempInput.remove();
                 alert('API key copied to clipboard!');
             });
             
             // Edit API key
             $('#edit-api-key').on('click', function() {
-                $('#ruplin-api-key').prop('readonly', false).focus();
+                // Show full key when editing
+                $('#ruplin-api-key').val(originalApiKey).prop('readonly', false).focus();
                 $('#api-key-view-buttons').hide();
                 $('#api-key-edit-buttons').css('display', 'flex');
+                isKeyVisible = true; // Key is visible during edit
             });
             
             // Cancel edit
             $('#cancel-edit-api-key').on('click', function() {
-                $('#ruplin-api-key').val(originalApiKey).prop('readonly', true);
+                // Restore masked state
+                isKeyVisible = false;
+                $('#ruplin-api-key').val(maskApiKey(originalApiKey)).prop('readonly', true);
                 $('#api-key-view-buttons').css('display', 'flex');
                 $('#api-key-edit-buttons').hide();
                 $('#api-key-message').hide();
+                // Reset icon to show state
+                $('#toggle-api-key').find('.dashicons')
+                    .removeClass('dashicons-hidden')
+                    .addClass('dashicons-visibility');
+                $('#toggle-api-key').attr('title', 'Show API Key');
             });
             
             // Save API key
@@ -310,17 +353,43 @@ class Snefuru_Admin {
                     success: function(response) {
                         if (response.success) {
                             originalApiKey = newApiKey;
-                            $('#ruplin-api-key').prop('readonly', true);
+                            isKeyVisible = false;
+                            $('#ruplin-api-key').val(maskApiKey(newApiKey)).prop('readonly', true);
+                            $('#ruplin-api-key').data('full-key', newApiKey);
                             $('#api-key-view-buttons').css('display', 'flex');
                             $('#api-key-edit-buttons').hide();
                             $message.removeClass('notice-error').addClass('notice notice-success').html('<p>' + response.data.message + '</p>').show();
                             
-                            // Update the copy button visibility
-                            if (newApiKey && $('#copy-api-key').length === 0) {
-                                $('#edit-api-key').before('<button type="button" class="button button-secondary" id="copy-api-key">Copy</button>');
+                            // Update the toggle/copy button visibility
+                            if (newApiKey && $('#toggle-api-key').length === 0) {
+                                var buttonsHtml = '<button type="button" class="button button-secondary" id="toggle-api-key" title="Show/Hide API Key">' +
+                                    '<span class="dashicons dashicons-visibility" style="font-size: 16px; width: 16px; height: 16px; margin: 2px 0;"></span>' +
+                                    '</button>' +
+                                    '<button type="button" class="button button-secondary" id="copy-api-key">Copy</button>';
+                                $('#edit-api-key').before(buttonsHtml);
+                                
+                                // Re-attach event handlers
+                                $('#toggle-api-key').on('click', function() {
+                                    isKeyVisible = !isKeyVisible;
+                                    var $icon = $(this).find('.dashicons');
+                                    
+                                    if (isKeyVisible) {
+                                        $('#ruplin-api-key').val(originalApiKey);
+                                        $icon.removeClass('dashicons-visibility').addClass('dashicons-hidden');
+                                        $(this).attr('title', 'Hide API Key');
+                                    } else {
+                                        $('#ruplin-api-key').val(maskApiKey(originalApiKey));
+                                        $icon.removeClass('dashicons-hidden').addClass('dashicons-visibility');
+                                        $(this).attr('title', 'Show API Key');
+                                    }
+                                });
+                                
                                 $('#copy-api-key').on('click', function() {
-                                    $('#ruplin-api-key').select();
+                                    var tempInput = $('<input>');
+                                    $('body').append(tempInput);
+                                    tempInput.val(originalApiKey).select();
                                     document.execCommand('copy');
+                                    tempInput.remove();
                                     alert('API key copied to clipboard!');
                                 });
                             }
