@@ -51,14 +51,6 @@ class Snefuru_Admin {
             array($this, 'settings_page')
         );
         
-        add_submenu_page(
-            'snefuru',
-            'Upload Settings',
-            'Upload Settings',
-            'manage_options',
-            'snefuru-upload-settings',
-            array($this, 'upload_settings_page')
-        );
         
         add_submenu_page(
             'snefuru',
@@ -96,8 +88,8 @@ class Snefuru_Admin {
         register_setting('snefuru_settings', 'snefuru_api_url');
         register_setting('snefuru_settings', 'snefuru_sync_interval');
         register_setting('snefuru_settings', 'snefuru_auto_sync');
-        register_setting('snefuru_upload_settings', 'snefuru_upload_enabled');
-        register_setting('snefuru_upload_settings', 'snefuru_upload_max_size');
+        register_setting('snefuru_settings', 'snefuru_upload_enabled');
+        register_setting('snefuru_settings', 'snefuru_upload_max_size');
     }
     
     /**
@@ -207,8 +199,20 @@ class Snefuru_Admin {
      * Settings page
      */
     public function settings_page() {
+        // Handle upload settings form submission
+        if (isset($_POST['submit_upload_settings'])) {
+            check_admin_referer('snefuru_upload_settings_nonce');
+            
+            update_option('snefuru_upload_enabled', isset($_POST['snefuru_upload_enabled']) ? 1 : 0);
+            update_option('snefuru_upload_max_size', sanitize_text_field($_POST['snefuru_upload_max_size']));
+            
+            echo '<div class="notice notice-success"><p>Upload settings saved!</p></div>';
+        }
+        
         $ruplin_api_key = get_option('snefuru_ruplin_api_key_1', '');
         $api_url = get_option('snefuru_api_url', 'https://your-app.vercel.app/api');
+        $upload_enabled = get_option('snefuru_upload_enabled', 1);
+        $upload_max_size = get_option('snefuru_upload_max_size', '10MB');
         
         ?>
         <div class="wrap">
@@ -256,6 +260,88 @@ class Snefuru_Admin {
                 </table>
             </div>
             
+            <div class="snefuru-card">
+                <h3>Upload API Configuration</h3>
+                <p>Configure the plugin to receive image uploads directly from your Next.js application.</p>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Upload Endpoints</th>
+                        <td>
+                            <?php if (!empty($ruplin_api_key)): ?>
+                                <p><strong>Upload URL:</strong><br>
+                                <code><?php echo rest_url('snefuru/v1/upload-image'); ?></code></p>
+                                <p><strong>Status URL:</strong><br>
+                                <code><?php echo rest_url('snefuru/v1/status'); ?></code></p>
+                                <p><strong>Posts Sync URL:</strong><br>
+                                <code><?php echo rest_url('snefuru/v1/posts'); ?></code></p>
+                                <p><strong>Elementor Update URL:</strong><br>
+                                <code><?php echo rest_url('snefuru/v1/posts/{id}/elementor'); ?></code></p>
+                                <button type="button" class="button button-secondary" id="test-upload-endpoint">Test Upload Endpoint</button>
+                            <?php else: ?>
+                                <p class="description">Enter a Ruplin API key above to see the upload endpoints.</p>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <form method="post" action="">
+                <?php wp_nonce_field('snefuru_upload_settings_nonce'); ?>
+                
+                <div class="snefuru-card">
+                    <h3>Upload Configuration</h3>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">Enable Uploads</th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="snefuru_upload_enabled" value="1" <?php checked($upload_enabled, 1); ?> />
+                                    Allow image uploads via the plugin API
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Maximum File Size</th>
+                            <td>
+                                <select name="snefuru_upload_max_size">
+                                    <option value="1MB" <?php selected($upload_max_size, '1MB'); ?>>1 MB</option>
+                                    <option value="5MB" <?php selected($upload_max_size, '5MB'); ?>>5 MB</option>
+                                    <option value="10MB" <?php selected($upload_max_size, '10MB'); ?>>10 MB</option>
+                                    <option value="25MB" <?php selected($upload_max_size, '25MB'); ?>>25 MB</option>
+                                    <option value="50MB" <?php selected($upload_max_size, '50MB'); ?>>50 MB</option>
+                                </select>
+                                <p class="description">Maximum allowed file size for uploads (WordPress maximum: <?php echo size_format(wp_max_upload_size()); ?>)</p>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <?php submit_button('Save Upload Settings', 'secondary', 'submit_upload_settings'); ?>
+                </div>
+            </form>
+            
+            <div class="snefuru-card">
+                <h3>Recent Upload Activity</h3>
+                <div id="upload-logs-preview">
+                    <?php $this->display_recent_upload_logs(); ?>
+                </div>
+                <p>
+                    <button type="button" class="button button-secondary" onclick="location.href='<?php echo admin_url('admin.php?page=snefuru-logs'); ?>'">View All Upload Logs</button>
+                    <button type="button" class="button button-secondary" id="clear-upload-logs">Clear Upload Logs</button>
+                </p>
+            </div>
+
+            <div class="snefuru-card">
+                <h3>Integration Instructions</h3>
+                <p>Your plugin is configured with a unified Ruplin API key system:</p>
+                <ol>
+                    <li><strong>All operations use the same Ruplin API key</strong> - no need for multiple keys</li>
+                    <li><strong>The key is pre-configured</strong> when you download using Option 2</li>
+                    <li><strong>Your Next.js app automatically uses this key</strong> for all operations (uploads, sync, elementor updates)</li>
+                    <li><strong>Test the connection</strong> using the "Test Upload Endpoint" button above</li>
+                </ol>
+            </div>
+
             <div class="snefuru-card">
                 <h3>Plugin Status</h3>
                 <p><strong>Plugin Version:</strong> <?php echo SNEFURU_PLUGIN_VERSION; ?></p>
@@ -410,6 +496,36 @@ class Snefuru_Admin {
                         $button.prop('disabled', false).text('Save');
                     }
                 });
+            });
+            
+            // Upload functionality
+            $('#test-upload-endpoint').on('click', function() {
+                $.post(ajaxurl, {
+                    action: 'snefuru_test_upload_endpoint',
+                    nonce: '<?php echo wp_create_nonce('snefuru_upload_nonce'); ?>'
+                }, function(response) {
+                    if (response.success) {
+                        alert('✅ Upload endpoint is working correctly!\n\n' + response.data.message);
+                    } else {
+                        alert('❌ Upload endpoint test failed:\n\n' + response.data.message);
+                    }
+                });
+            });
+            
+            $('#clear-upload-logs').on('click', function() {
+                if (confirm('Are you sure you want to clear all upload logs?')) {
+                    $.post(ajaxurl, {
+                        action: 'snefuru_clear_upload_logs',
+                        nonce: '<?php echo wp_create_nonce('snefuru_upload_nonce'); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            $('#upload-logs-preview').html('<p>Upload logs cleared.</p>');
+                            alert('Upload logs cleared successfully!');
+                        } else {
+                            alert('Error clearing logs: ' + response.data.message);
+                        }
+                    });
+                }
             });
         });
         </script>
@@ -605,172 +721,6 @@ class Snefuru_Admin {
             // Still save the key but warn about connection
             wp_send_json_success(array('message' => 'API key saved. Warning: Could not verify connection with this key.'));
         }
-    }
-    
-    /**
-     * Upload Settings page
-     */
-    public function upload_settings_page() {
-        if (isset($_POST['submit'])) {
-            check_admin_referer('snefuru_upload_settings_nonce');
-            
-            update_option('snefuru_upload_enabled', isset($_POST['snefuru_upload_enabled']) ? 1 : 0);
-            update_option('snefuru_upload_max_size', sanitize_text_field($_POST['snefuru_upload_max_size']));
-            
-            echo '<div class="notice notice-success"><p>Upload settings saved!</p></div>';
-        }
-        
-        $ruplin_api_key = get_option('snefuru_ruplin_api_key_1', '');
-        $upload_enabled = get_option('snefuru_upload_enabled', 1);
-        $upload_max_size = get_option('snefuru_upload_max_size', '10MB');
-        
-        ?>
-        <div class="wrap">
-            <h1>Snefuruplin Upload Settings</h1>
-            
-            <div class="snefuru-upload-info">
-                <div class="snefuru-card">
-                    <h3>Upload API Configuration</h3>
-                    <p>Configure the plugin to receive image uploads directly from your Next.js application.</p>
-                    
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">Ruplin API Key</th>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="text" id="upload-api-key" value="<?php echo esc_attr($ruplin_api_key); ?>" class="regular-text" readonly />
-                                    <?php if (!empty($ruplin_api_key)): ?>
-                                        <button type="button" class="button button-secondary" id="copy-api-key">Copy</button>
-                                    <?php endif; ?>
-                                </div>
-                                <p class="description">
-                                    <?php if (!empty($ruplin_api_key)): ?>
-                                        This Ruplin API key is used to authenticate all requests from your Next.js app.
-                                        <br><strong>Keep this key secure.</strong>
-                                    <?php else: ?>
-                                        No Ruplin API key found. Please reinstall the plugin using Option 2.
-                                    <?php endif; ?>
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Upload Endpoints</th>
-                            <td>
-                                <?php if (!empty($ruplin_api_key)): ?>
-                                    <p><strong>Upload URL:</strong><br>
-                                    <code><?php echo rest_url('snefuru/v1/upload-image'); ?></code></p>
-                                    <p><strong>Status URL:</strong><br>
-                                    <code><?php echo rest_url('snefuru/v1/status'); ?></code></p>
-                                    <p><strong>Posts Sync URL:</strong><br>
-                                    <code><?php echo rest_url('snefuru/v1/posts'); ?></code></p>
-                                    <p><strong>Elementor Update URL:</strong><br>
-                                    <code><?php echo rest_url('snefuru/v1/posts/{id}/elementor'); ?></code></p>
-                                    <button type="button" class="button button-secondary" id="test-upload-endpoint">Test Upload Endpoint</button>
-                                <?php else: ?>
-                                    <p class="description">Install the plugin with a Ruplin API key to see the upload endpoints.</p>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            
-            <form method="post" action="">
-                <?php wp_nonce_field('snefuru_upload_settings_nonce'); ?>
-                
-                <div class="snefuru-card">
-                    <h3>Upload Configuration</h3>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">Enable Uploads</th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" name="snefuru_upload_enabled" value="1" <?php checked($upload_enabled, 1); ?> />
-                                    Allow image uploads via the plugin API
-                                </label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Maximum File Size</th>
-                            <td>
-                                <select name="snefuru_upload_max_size">
-                                    <option value="1MB" <?php selected($upload_max_size, '1MB'); ?>>1 MB</option>
-                                    <option value="5MB" <?php selected($upload_max_size, '5MB'); ?>>5 MB</option>
-                                    <option value="10MB" <?php selected($upload_max_size, '10MB'); ?>>10 MB</option>
-                                    <option value="25MB" <?php selected($upload_max_size, '25MB'); ?>>25 MB</option>
-                                    <option value="50MB" <?php selected($upload_max_size, '50MB'); ?>>50 MB</option>
-                                </select>
-                                <p class="description">Maximum allowed file size for uploads (WordPress maximum: <?php echo size_format(wp_max_upload_size()); ?>)</p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                
-                <div class="snefuru-card">
-                    <h3>Recent Upload Activity</h3>
-                    <div id="upload-logs-preview">
-                        <?php $this->display_recent_upload_logs(); ?>
-                    </div>
-                    <p>
-                        <button type="button" class="button button-secondary" onclick="location.href='<?php echo admin_url('admin.php?page=snefuru-logs'); ?>'">View All Upload Logs</button>
-                        <button type="button" class="button button-secondary" id="clear-upload-logs">Clear Upload Logs</button>
-                    </p>
-                </div>
-                
-                <?php submit_button('Save Upload Settings'); ?>
-            </form>
-            
-            <div class="snefuru-card">
-                <h3>Integration Instructions</h3>
-                <p>Your plugin is configured with a unified Ruplin API key system:</p>
-                <ol>
-                    <li><strong>All operations use the same Ruplin API key</strong> - no need for multiple keys</li>
-                    <li><strong>The key is pre-configured</strong> when you download using Option 2</li>
-                    <li><strong>Your Next.js app automatically uses this key</strong> for all operations (uploads, sync, elementor updates)</li>
-                    <li><strong>Test the connection</strong> using the "Test Upload Endpoint" button above</li>
-                </ol>
-            </div>
-        </div>
-        
-        <script>
-        jQuery(document).ready(function($) {
-            $('#copy-api-key').on('click', function() {
-                $('#upload-api-key').select();
-                document.execCommand('copy');
-                alert('API key copied to clipboard!');
-            });
-            
-            $('#test-upload-endpoint').on('click', function() {
-                $.post(ajaxurl, {
-                    action: 'snefuru_test_upload_endpoint',
-                    nonce: '<?php echo wp_create_nonce('snefuru_upload_nonce'); ?>'
-                }, function(response) {
-                    if (response.success) {
-                        alert('✅ Upload endpoint is working correctly!\n\n' + response.data.message);
-                    } else {
-                        alert('❌ Upload endpoint test failed:\n\n' + response.data.message);
-                    }
-                });
-            });
-            
-            $('#clear-upload-logs').on('click', function() {
-                if (confirm('Are you sure you want to clear all upload logs?')) {
-                    $.post(ajaxurl, {
-                        action: 'snefuru_clear_upload_logs',
-                        nonce: '<?php echo wp_create_nonce('snefuru_upload_nonce'); ?>'
-                    }, function(response) {
-                        if (response.success) {
-                            $('#upload-logs-preview').html('<p>Upload logs cleared.</p>');
-                            alert('Upload logs cleared successfully!');
-                        } else {
-                            alert('Error clearing logs: ' + response.data.message);
-                        }
-                    });
-                }
-            });
-        });
-        </script>
-        <?php
     }
     
     /**
