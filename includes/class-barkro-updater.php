@@ -18,10 +18,19 @@ class Snefuru_Barkro_Updater {
         // Add automatic update support
         add_filter('auto_update_plugin', array($this, 'auto_update_plugin'), 10, 2);
         
+        // Force enable automatic updates globally (WordPress 5.5+)
+        add_filter('plugins_auto_update_enabled', '__return_true');
+        
+        // Enable background updates
+        add_filter('automatic_updater_disabled', '__return_false');
+        
         // Track WordPress update process
         add_action('upgrader_process_complete', array($this, 'track_update_complete'), 10, 2);
         add_action('wp_ajax_update-plugin', array($this, 'track_update_start'), 1);
         add_action('wp_ajax_nopriv_update-plugin', array($this, 'track_update_start'), 1);
+        
+        // Force WordPress to check for updates more frequently
+        add_action('init', array($this, 'force_update_check'));
     }
     
     /**
@@ -203,9 +212,9 @@ class Snefuru_Barkro_Updater {
     public function auto_update_plugin($update, $item) {
         // Check if this is our plugin
         if (isset($item->plugin) && $item->plugin === $this->plugin_base) {
-            // Check if auto-updates are enabled for this site
-            $auto_update_enabled = get_option('snefuru_auto_update_enabled', false);
-            return $auto_update_enabled;
+            // Force enable auto-updates for our plugin regardless of global settings
+            $this->log_update_event('Auto-update enabled for Snefuruplin plugin');
+            return true;
         }
         
         return $update;
@@ -273,5 +282,22 @@ class Snefuru_Barkro_Updater {
                 'status' => $type
             )
         );
+    }
+    
+    /**
+     * Force WordPress to check for updates more frequently
+     */
+    public function force_update_check() {
+        // Only run if there's pending update data
+        $update_data = get_site_transient('snefuru_update_data');
+        if ($update_data) {
+            // Check if update is still pending
+            $last_attempt = get_option('snefuru_last_update_attempt', array());
+            if (isset($last_attempt['status']) && $last_attempt['status'] === 'queued_for_wordpress') {
+                // Force WordPress to process updates now
+                wp_maybe_auto_update();
+                $this->log_update_event('Forced WordPress auto-update check due to pending Barkro update');
+            }
+        }
     }
 }

@@ -1194,7 +1194,7 @@ class Snefuru_Admin {
         // Get recent Barkro logs
         $table_name = $wpdb->prefix . 'snefuru_logs';
         $barkro_logs = $wpdb->get_results($wpdb->prepare(
-            "SELECT * FROM {$table_name} WHERE action = 'barkro_update' ORDER BY timestamp DESC LIMIT 10"
+            "SELECT * FROM {$table_name} WHERE action = 'barkro_update' ORDER BY timestamp DESC LIMIT 50"
         ));
         
         // Get current update transient
