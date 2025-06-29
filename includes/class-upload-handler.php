@@ -514,7 +514,7 @@ class Snefuru_Upload_Handler {
                         'post_date' => $post->post_date,
                         'post_modified' => $post->post_modified,
                         'post_author' => $post->post_author,
-                        'post_name' => $post->post_name, // slug
+                        'post_name' => !empty($post->post_name) ? $post->post_name : sanitize_title($post->post_title), // slug - generate from title if empty
                         'guid' => $post->guid,
                         'comment_status' => $post->comment_status,
                         'ping_status' => $post->ping_status,
