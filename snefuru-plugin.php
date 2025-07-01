@@ -21,6 +21,9 @@ define('SNEFURU_PLUGIN_VERSION', '4.0.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+// Supabase configuration is now managed through WordPress admin settings
+// Go to Settings → Ketch Width Manager to configure your Supabase credentials
+
 // Main plugin class
 class SnefuruPlugin {
     
@@ -46,6 +49,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-css-endpoint.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-barkro-updater.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-settings.php';
     }
     
     private function init_hooks() {
