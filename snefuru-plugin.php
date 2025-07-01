@@ -50,6 +50,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-barkro-updater.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-settings.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
     }
     
     private function init_hooks() {

@@ -222,8 +222,8 @@ class Ketch_Settings {
             button.textContent = 'Testing...';
             resultDiv.innerHTML = '<p style="color: #666;">Testing connection...</p>';
             
-            // Make AJAX request to test webhook
-            fetch('<?php echo plugins_url('webhooks/update-ketch-css.php', dirname(__FILE__)); ?>', {
+            // Make AJAX request to test REST API endpoint
+            fetch('<?php echo rest_url('snefuru/v1/ketch/trigger-css-update'); ?>', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
