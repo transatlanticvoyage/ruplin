@@ -52,6 +52,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-settings.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-hot-plugin-updater.php';
     }
     
     private function init_hooks() {
