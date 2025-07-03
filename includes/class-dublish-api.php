@@ -65,7 +65,8 @@ class Snefuru_Dublish_API {
         $user_agent = $request->get_header('User-Agent');
         
         // Only allow requests from Snefuru system
-        if (strpos($user_agent, 'Snefuru-Dublish-System') === false) {
+        if (strpos($user_agent, 'Snefuru-Dublish-System') === false && 
+            strpos($user_agent, 'Snefuru-Snoverride-System') === false) {
             return new WP_Error('unauthorized', 'Unauthorized access', array('status' => 401));
         }
         
