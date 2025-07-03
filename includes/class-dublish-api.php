@@ -80,23 +80,44 @@ class Snefuru_Dublish_API {
                 return new WP_Error('elementor_inactive', 'Elementor plugin is not active', array('status' => 400));
             }
             
+            // Validate Elementor data format
+            $elementor_data = $post_data['meta_input']['_elementor_data'];
+            if (is_string($elementor_data)) {
+                $parsed_data = json_decode($elementor_data, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return new WP_Error('invalid_elementor_data', 'Invalid Elementor JSON data', array('status' => 400));
+                }
+                // Ensure it's stored as string for Elementor
+                $post_data['meta_input']['_elementor_data'] = $elementor_data;
+            }
+            
             // Prepare post data for wp_insert_post
             $insert_post_data = array(
                 'post_title' => sanitize_text_field($post_data['post_title']),
                 'post_name' => isset($post_data['post_name']) ? sanitize_title($post_data['post_name']) : '',
-                'post_status' => isset($post_data['post_status']) ? $post_data['post_status'] : 'publish',
+                'post_status' => 'draft', // Start as draft to avoid errors on live site
                 'post_type' => isset($post_data['post_type']) ? $post_data['post_type'] : 'page',
                 'post_content' => '', // Elementor uses meta, not content
                 'post_author' => 1, // Use admin user
                 'meta_input' => array()
             );
             
-            // Prepare meta data
+            // Prepare meta data - use safe defaults
+            $safe_meta = array(
+                '_elementor_edit_mode' => 'builder',
+                '_elementor_template_type' => 'wp-page',
+                '_elementor_version' => '3.17.0',
+                '_wp_page_template' => 'default', // Use default template instead of elementor_header_footer
+            );
+            
+            // Add custom meta if provided
             if (isset($post_data['meta_input']) && is_array($post_data['meta_input'])) {
                 foreach ($post_data['meta_input'] as $meta_key => $meta_value) {
-                    $insert_post_data['meta_input'][$meta_key] = $meta_value;
+                    $safe_meta[$meta_key] = $meta_value;
                 }
             }
+            
+            $insert_post_data['meta_input'] = $safe_meta;
             
             // Add Snefuru tracking meta
             $insert_post_data['meta_input']['_snefuru_gcon_piece_id'] = $gcon_piece_id;
@@ -107,7 +128,20 @@ class Snefuru_Dublish_API {
             $post_id = wp_insert_post($insert_post_data, true);
             
             if (is_wp_error($post_id)) {
+                error_log('Dublish Error - Post Creation Failed: ' . $post_id->get_error_message());
+                error_log('Dublish Error - Post Data: ' . print_r($insert_post_data, true));
                 return new WP_Error('post_creation_failed', 'Failed to create post: ' . $post_id->get_error_message(), array('status' => 500));
+            }
+            
+            // After successful creation, try to publish if all is well
+            $publish_result = wp_update_post(array(
+                'ID' => $post_id,
+                'post_status' => isset($post_data['post_status']) ? $post_data['post_status'] : 'publish'
+            ));
+            
+            if (is_wp_error($publish_result)) {
+                error_log('Dublish Warning - Could not publish post ' . $post_id . ': ' . $publish_result->get_error_message());
+                // Continue anyway, post exists as draft
             }
             
             // Log the creation
