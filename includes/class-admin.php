@@ -64,6 +64,15 @@ class Snefuru_Admin {
         
         add_submenu_page(
             'snefuru',
+            'Dublish Logs',
+            'Dublish Logs',
+            'manage_options',
+            'snefuru-dublish-logs',
+            array($this, 'dublish_logs_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
             'screen 4 - manage',
             'screen 4 - manage',
             'manage_options',
@@ -1273,5 +1282,106 @@ class Snefuru_Admin {
         wp_send_json_success(array(
             'message' => 'Barkro update debug data cleared successfully'
         ));
+    }
+    
+    /**
+     * Dublish logs page
+     */
+    public function dublish_logs_page() {
+        // Get Dublish API instance to fetch logs
+        $dublish_api = new Snefuru_Dublish_API();
+        $logs = $dublish_api->get_dublish_logs(100);
+        
+        ?>
+        <div class="wrap">
+            <h1>Dublish Activity Logs</h1>
+            <p>This page shows all Elementor pages created via the Dublish system from Snefuru.</p>
+            
+            <?php if (empty($logs)): ?>
+                <div class="notice notice-info">
+                    <p>No Dublish activity found yet. Elementor pages created via Dublish will appear here.</p>
+                </div>
+            <?php else: ?>
+                <div class="snefuru-card">
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Post ID</th>
+                                <th>Post Title</th>
+                                <th>Gcon Piece ID</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($logs as $log): 
+                                $data = json_decode($log->data, true);
+                                $post_id = isset($data['post_id']) ? $data['post_id'] : 'N/A';
+                                $post_title = isset($data['post_title']) ? $data['post_title'] : 'N/A';
+                                $gcon_piece_id = isset($data['gcon_piece_id']) ? $data['gcon_piece_id'] : 'N/A';
+                                ?>
+                                <tr>
+                                    <td><?php echo esc_html($log->timestamp); ?></td>
+                                    <td>
+                                        <?php if ($post_id !== 'N/A'): ?>
+                                            <strong><?php echo esc_html($post_id); ?></strong>
+                                        <?php else: ?>
+                                            N/A
+                                        <?php endif; ?>
+                                    </td>
+                                    <td><?php echo esc_html($post_title); ?></td>
+                                    <td>
+                                        <code style="font-size: 11px;">
+                                            <?php echo esc_html(substr($gcon_piece_id, 0, 8) . '...'); ?>
+                                        </code>
+                                    </td>
+                                    <td>
+                                        <span class="status-<?php echo esc_attr($log->status); ?>">
+                                            <?php echo esc_html($log->status); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <?php if ($post_id !== 'N/A' && get_post($post_id)): ?>
+                                            <a href="<?php echo admin_url('post.php?post=' . $post_id . '&action=elementor'); ?>" class="button button-small" target="_blank">
+                                                Edit in Elementor
+                                            </a>
+                                            <a href="<?php echo get_permalink($post_id); ?>" class="button button-small" target="_blank">
+                                                View Page
+                                            </a>
+                                        <?php else: ?>
+                                            <em>Post not found</em>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+            
+            <style>
+                .snefuru-card {
+                    background: white;
+                    padding: 20px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    margin: 20px 0;
+                }
+                .status-completed {
+                    color: #46b450;
+                    font-weight: bold;
+                }
+                .status-failed {
+                    color: #dc3232;
+                    font-weight: bold;
+                }
+                .status-pending {
+                    color: #ffb900;
+                    font-weight: bold;
+                }
+            </style>
+        </div>
+        <?php
     }
 } 

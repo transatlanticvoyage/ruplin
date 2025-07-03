@@ -53,6 +53,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-hot-plugin-updater.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
     }
     
     private function init_hooks() {
@@ -66,6 +67,7 @@ class SnefuruPlugin {
         new Snefuru_CSS_Endpoint();
         new Snefuru_Barkro_Updater();
         new Snefuru_Elementor_Updater();
+        new Snefuru_Dublish_API();
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
