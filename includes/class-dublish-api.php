@@ -34,6 +34,26 @@ class Snefuru_Dublish_API {
                 )
             )
         ));
+        
+        register_rest_route('snefuru/v1', '/snoverride-update-page', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'update_elementor_page'),
+            'permission_callback' => array($this, 'permission_check'),
+            'args' => array(
+                'action' => array(
+                    'required' => true,
+                    'type' => 'string'
+                ),
+                'post_id' => array(
+                    'required' => true,
+                    'type' => 'integer'
+                ),
+                'update_data' => array(
+                    'required' => true,
+                    'type' => 'object'
+                )
+            )
+        ));
     }
     
     /**
@@ -209,5 +229,139 @@ class Snefuru_Dublish_API {
         ));
         
         return $results;
+    }
+    
+    /**
+     * Update existing Elementor page via Snoverride
+     */
+    public function update_elementor_page($request) {
+        try {
+            $params = $request->get_json_params();
+            
+            if (!isset($params['action']) || $params['action'] !== 'snoverride_update_elementor_page') {
+                return new WP_Error('invalid_action', 'Invalid action specified', array('status' => 400));
+            }
+            
+            if (!isset($params['post_id']) || !isset($params['update_data'])) {
+                return new WP_Error('missing_data', 'Post ID and update data are required', array('status' => 400));
+            }
+            
+            $post_id = intval($params['post_id']);
+            $update_data = $params['update_data'];
+            $gcon_piece_id = isset($params['gcon_piece_id']) ? $params['gcon_piece_id'] : '';
+            
+            // Validate that post exists
+            $existing_post = get_post($post_id);
+            if (!$existing_post) {
+                return new WP_Error('post_not_found', 'Post with ID ' . $post_id . ' not found', array('status' => 404));
+            }
+            
+            // Check if Elementor is active
+            if (!is_plugin_active('elementor/elementor.php')) {
+                return new WP_Error('elementor_inactive', 'Elementor plugin is not active', array('status' => 400));
+            }
+            
+            // Prepare update data
+            $post_update_data = array(
+                'ID' => $post_id
+            );
+            
+            // Update post title if provided
+            if (!empty($update_data['post_title'])) {
+                $post_update_data['post_title'] = sanitize_text_field($update_data['post_title']);
+            }
+            
+            // Update the post
+            $update_result = wp_update_post($post_update_data, true);
+            
+            if (is_wp_error($update_result)) {
+                error_log('Snoverride Error - Post Update Failed: ' . $update_result->get_error_message());
+                return new WP_Error('update_failed', 'Failed to update post: ' . $update_result->get_error_message(), array('status' => 500));
+            }
+            
+            // Update meta fields
+            if (isset($update_data['meta_input']) && is_array($update_data['meta_input'])) {
+                foreach ($update_data['meta_input'] as $meta_key => $meta_value) {
+                    // Special handling for Elementor data
+                    if ($meta_key === '_elementor_data') {
+                        // Ensure it's a valid JSON string
+                        if (is_string($meta_value)) {
+                            $parsed = json_decode($meta_value, true);
+                            if (json_last_error() !== JSON_ERROR_NONE) {
+                                error_log('Snoverride Warning - Invalid Elementor JSON data');
+                                continue;
+                            }
+                        }
+                        // Clear Elementor cache for this post
+                        delete_post_meta($post_id, '_elementor_css');
+                    }
+                    
+                    update_post_meta($post_id, $meta_key, $meta_value);
+                }
+            }
+            
+            // Add Snoverride tracking meta
+            update_post_meta($post_id, '_snefuru_last_snoverride', current_time('mysql'));
+            update_post_meta($post_id, '_snefuru_snoverride_gcon_piece_id', $gcon_piece_id);
+            update_post_meta($post_id, '_snefuru_snoverride_count', intval(get_post_meta($post_id, '_snefuru_snoverride_count', true)) + 1);
+            
+            // Clear WordPress and Elementor caches
+            wp_cache_delete($post_id, 'posts');
+            wp_cache_delete($post_id, 'post_meta');
+            
+            // If Elementor Pro is active, clear its cache too
+            if (defined('ELEMENTOR_PRO_VERSION')) {
+                do_action('elementor/core/files/clear_cache');
+            }
+            
+            // Log the update
+            $this->log_snoverride_activity($post_id, $gcon_piece_id, $existing_post->post_title);
+            
+            // Get the post URL
+            $post_url = get_permalink($post_id);
+            $edit_url = admin_url('post.php?post=' . $post_id . '&action=elementor');
+            
+            // Prepare success response
+            $response_data = array(
+                'success' => true,
+                'message' => 'Elementor page updated successfully',
+                'post_id' => $post_id,
+                'post_url' => $post_url,
+                'edit_url' => $edit_url,
+                'post_title' => get_the_title($post_id),
+                'gcon_piece_id' => $gcon_piece_id,
+                'updated_at' => current_time('mysql')
+            );
+            
+            return new WP_REST_Response($response_data, 200);
+            
+        } catch (Exception $e) {
+            error_log('Snefuru Snoverride API Error: ' . $e->getMessage());
+            return new WP_Error('internal_error', 'Internal server error: ' . $e->getMessage(), array('status' => 500));
+        }
+    }
+    
+    /**
+     * Log Snoverride activity
+     */
+    private function log_snoverride_activity($post_id, $gcon_piece_id, $post_title) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'snefuru_logs';
+        
+        $wpdb->insert(
+            $table_name,
+            array(
+                'action' => 'snoverride_update_elementor_page',
+                'data' => json_encode(array(
+                    'post_id' => $post_id,
+                    'post_title' => $post_title,
+                    'gcon_piece_id' => $gcon_piece_id,
+                    'site_url' => get_site_url()
+                )),
+                'status' => 'completed'
+            ),
+            array('%s', '%s', '%s')
+        );
     }
 }
