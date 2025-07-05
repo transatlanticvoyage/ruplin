@@ -40,7 +40,7 @@ class Ketch_API {
             error_log('Ketch API: CSS update triggered from Supabase');
             
             // Query Supabase for current settings
-            $settings = $this->query_ketch_width_settings();
+            $settings = $this->query_ketch_settings();
             
             if ($settings === false) {
                 return new WP_REST_Response([
@@ -71,7 +71,7 @@ class Ketch_API {
                 'data' => [
                     'settings_count' => count($settings),
                     'css_length' => strlen($css_content),
-                    'css_file_path' => 'wp-content/ketch/ketch-widths-all.css',
+                    'css_file_path' => 'wp-content/ketch/ketch-styles.css',
                     'timestamp' => current_time('mysql'),
                     'trigger_source' => 'supabase_webhook'
                 ]
@@ -92,7 +92,7 @@ class Ketch_API {
      */
     public function ketch_status($request) {
         $ketch_options = get_option('ketch_options', array());
-        $css_file_path = ABSPATH . 'wp-content/ketch/ketch-widths-all.css';
+        $css_file_path = ABSPATH . 'wp-content/ketch/ketch-styles.css';
         $css_dir_path = ABSPATH . 'wp-content/ketch/';
         
         $status = [
@@ -102,7 +102,7 @@ class Ketch_API {
             'configuration' => [
                 'supabase_url_configured' => !empty($ketch_options['supabase_url']),
                 'supabase_key_configured' => !empty($ketch_options['supabase_anon_key']),
-                'css_file_path' => $ketch_options['css_file_path'] ?? 'wp-content/ketch/ketch-widths-all.css'
+                'css_file_path' => $ketch_options['css_file_path'] ?? 'wp-content/ketch/ketch-styles.css'
             ],
             'file_system' => [
                 'css_directory_exists' => is_dir($css_dir_path),
@@ -117,9 +117,9 @@ class Ketch_API {
     }
     
     /**
-     * Query Supabase for ketch width settings
+     * Query Supabase for ketch settings
      */
-    private function query_ketch_width_settings() {
+    private function query_ketch_settings() {
         // Get Supabase connection details from WordPress options
         $ketch_options = get_option('ketch_options', array());
         $supabase_url = isset($ketch_options['supabase_url']) ? $ketch_options['supabase_url'] : '';
@@ -130,7 +130,7 @@ class Ketch_API {
             return false;
         }
         
-        $endpoint = $supabase_url . '/rest/v1/ketch_width_settings?select=*&order=rel_ui_table_grid.asc,rel_db_field.asc';
+        $endpoint = $supabase_url . '/rest/v1/ketch_settings?select=*&order=app_page.asc,element_tag.asc,class.asc';
         
         $headers = [
             'apikey: ' . $supabase_key,
@@ -172,51 +172,82 @@ class Ketch_API {
     }
     
     /**
-     * Generate CSS from ketch width settings
+     * Generate CSS from ketch settings
      */
     private function generate_ketch_css($settings) {
         if (empty($settings)) {
-            return "/* No ketch width settings found */\n";
+            return "/* No ketch settings found */\n";
         }
         
-        $css = "/* Ketch Width Management System - Auto-generated CSS */\n";
+        $css = "/* Ketch CSS Management System - Auto-generated CSS */\n";
         $css .= "/* Generated on: " . current_time('Y-m-d H:i:s') . " */\n";
         $css .= "/* WordPress Site: " . get_bloginfo('name') . " */\n";
         $css .= "/* Total Settings: " . count($settings) . " */\n\n";
         
-        // Group settings by rel_ui_table_grid
+        // Group settings by app_page
         $grouped_settings = [];
         foreach ($settings as $setting) {
-            $grid = $setting['rel_ui_table_grid'];
-            if (!isset($grouped_settings[$grid])) {
-                $grouped_settings[$grid] = [];
+            $page = $setting['app_page'] ?? 'global';
+            if (!isset($grouped_settings[$page])) {
+                $grouped_settings[$page] = [];
             }
-            $grouped_settings[$grid][] = $setting;
+            $grouped_settings[$page][] = $setting;
         }
         
-        // Generate CSS sections for each UI table grid
-        foreach ($grouped_settings as $grid_name => $grid_settings) {
-            $css .= "/* ========== {$grid_name} UI Table Grid ========== */\n";
+        // Generate CSS sections for each app page
+        foreach ($grouped_settings as $page_name => $page_settings) {
+            $css .= "/* ========== {$page_name} Page Styles ========== */\n";
             
-            foreach ($grid_settings as $setting) {
-                $width_px = $setting['width_pon'];
+            foreach ($page_settings as $setting) {
+                // Build CSS selector
+                $selector_parts = [];
                 
-                if ($setting['is_kustom_col'] && !empty($setting['kustom_col_id'])) {
-                    // Custom column
-                    $selector = ".ketch-{$grid_name} .ketch-col-{$setting['kustom_col_id']}";
+                if (!empty($setting['app_page'])) {
+                    $selector_parts[] = ".ketch-" . $setting['app_page'];
+                }
+                if (!empty($setting['ancestor_element'])) {
+                    $selector_parts[] = $setting['ancestor_element'];
+                }
+                if (!empty($setting['element_tag'])) {
+                    $selector_parts[] = $setting['element_tag'];
+                }
+                if (!empty($setting['id'])) {
+                    $selector_parts[] = "#" . $setting['id'];
+                }
+                if (!empty($setting['class'])) {
+                    $selector_parts[] = "." . $setting['class'];
+                }
+                
+                $selector = !empty($selector_parts) ? implode(' ', $selector_parts) : '.ketch-default';
+                
+                // Build CSS properties (start with dimension properties)
+                $properties = [];
+                
+                if (!empty($setting['width'])) {
+                    $properties[] = "width: " . $setting['width'];
+                }
+                if (!empty($setting['min_width'])) {
+                    $properties[] = "min-width: " . $setting['min_width'];
+                }
+                if (!empty($setting['max_width'])) {
+                    $properties[] = "max-width: " . $setting['max_width'];
+                }
+                if (!empty($setting['height'])) {
+                    $properties[] = "height: " . $setting['height'];
+                }
+                if (!empty($setting['min_height'])) {
+                    $properties[] = "min-height: " . $setting['min_height'];
+                }
+                if (!empty($setting['max_height'])) {
+                    $properties[] = "max-height: " . $setting['max_height'];
+                }
+                
+                // Generate CSS rule if we have properties
+                if (!empty($properties)) {
                     $css .= "{$selector} {\n";
-                    $css .= "  width: {$width_px}px;\n";
-                    $css .= "  min-width: {$width_px}px;\n";
-                    $css .= "  max-width: {$width_px}px;\n";
-                    $css .= "}\n\n";
-                } else {
-                    // Regular database field column
-                    $field = $setting['rel_db_field'];
-                    $selector = ".ketch-{$grid_name} .ketch-col-{$field}";
-                    $css .= "{$selector} {\n";
-                    $css .= "  width: {$width_px}px;\n";
-                    $css .= "  min-width: {$width_px}px;\n";
-                    $css .= "  max-width: {$width_px}px;\n";
+                    foreach ($properties as $property) {
+                        $css .= "  {$property};\n";
+                    }
                     $css .= "}\n\n";
                 }
             }
@@ -233,7 +264,7 @@ class Ketch_API {
     private function write_ketch_css_file($css_content) {
         // Get CSS file path from options
         $ketch_options = get_option('ketch_options', array());
-        $css_relative_path = isset($ketch_options['css_file_path']) ? $ketch_options['css_file_path'] : 'wp-content/ketch/ketch-widths-all.css';
+        $css_relative_path = isset($ketch_options['css_file_path']) ? $ketch_options['css_file_path'] : 'wp-content/ketch/ketch-styles.css';
         
         // Ensure ketch directory exists
         $ketch_dir = ABSPATH . 'wp-content/ketch';
@@ -244,7 +275,7 @@ class Ketch_API {
             }
         }
         
-        $css_file = $ketch_dir . '/ketch-widths-all.css';
+        $css_file = $ketch_dir . '/ketch-styles.css';
         
         $result = file_put_contents($css_file, $css_content);
         
