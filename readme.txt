@@ -1,18 +1,18 @@
-=== Snefuru Cloud Connector ===
+=== Snefuruplin ===
 Contributors: yourname
 Tags: analytics, monitoring, cloud, management, performance
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 4.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connect your WordPress site to the Snefuru Cloud platform for comprehensive site monitoring and management.
+Snefuruplin WordPress plugin for handling image uploads and integration with Snefuru system.
 
 == Description ==
 
-Snefuru Cloud Connector seamlessly integrates your WordPress website with the powerful Snefuru Cloud platform, providing:
+Snefuruplin seamlessly integrates your WordPress website with the Snefuru platform, providing:
 
 * **Real-time Site Monitoring** - Track performance, security, and content metrics
 * **Automated Data Sync** - Hourly, daily, or custom sync intervals
@@ -40,7 +40,7 @@ Snefuru Cloud Connector seamlessly integrates your WordPress website with the po
 
 == Installation ==
 
-1. Upload the plugin files to `/wp-content/plugins/snefuru-plugin/`
+1. Upload the plugin files to `/wp-content/plugins/snefuruplin/`
 2. Activate the plugin through the 'Plugins' screen in WordPress
 3. Navigate to 'Snefuru' in your WordPress admin menu
 4. Enter your Snefuru Cloud API key and URL in Settings
@@ -85,7 +85,7 @@ Currently, the plugin collects standard site metrics including performance, secu
 
 == Changelog ==
 
-= 1.0.0 =
+= 4.1.0 =
 * Initial release
 * Core functionality for data collection and API communication
 * WordPress admin interface
@@ -95,8 +95,8 @@ Currently, the plugin collects standard site metrics including performance, secu
 
 == Upgrade Notice ==
 
-= 1.0.0 =
-Initial release of Snefuru Cloud Connector.
+= 4.1.0 =
+Updated release of Snefuruplin with consistent naming.
 
 == Privacy Policy ==
 
