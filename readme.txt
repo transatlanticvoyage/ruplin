@@ -4,7 +4,7 @@ Tags: analytics, monitoring, cloud, management, performance
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 4.1.0
+Stable tag: 4.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -85,8 +85,16 @@ Currently, the plugin collects standard site metrics including performance, secu
 
 == Changelog ==
 
+= 4.2.0 =
+* Removed Hot Plugin Updater system to prevent conflicts with WP Pusher
+* Fixed plugin naming consistency (snefuru-plugin.php → snefuruplin.php)
+* Updated text domain to match plugin name
+* Cleaned up file path references
+* Improved plugin update mechanism compatibility
+
 = 4.1.0 =
-* Initial release
+* Updated plugin naming consistency
+* Fixed text domain and file references
 * Core functionality for data collection and API communication
 * WordPress admin interface
 * Automated sync scheduling
@@ -94,6 +102,9 @@ Currently, the plugin collects standard site metrics including performance, secu
 * Security and performance monitoring
 
 == Upgrade Notice ==
+
+= 4.2.0 =
+Hot Plugin Updater removed to fix WP Pusher conflicts. Improved update compatibility.
 
 = 4.1.0 =
 Updated release of Snefuruplin with consistent naming.

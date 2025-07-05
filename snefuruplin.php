@@ -3,7 +3,7 @@
  * Plugin Name: Snefuruplin
  * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
  * Description: WordPress plugin for handling image uploads to Snefuru system
- * Version: 4.1.0
+ * Version: 4.2.0
  * Author: Snefuru Team
  * License: GPL v2 or later
  * Text Domain: snefuruplin
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SNEFURU_PLUGIN_VERSION', '4.1.0');
+define('SNEFURU_PLUGIN_VERSION', '4.2.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -52,7 +52,6 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-settings.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
-        // require_once SNEFURU_PLUGIN_PATH . 'includes/class-hot-plugin-updater.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
     }
     

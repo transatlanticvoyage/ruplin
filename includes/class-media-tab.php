@@ -22,7 +22,7 @@ class Snefuru_Media_Tab {
      * Add the narplichtab to media upload tabs
      */
     public function add_narplichtab($tabs) {
-        $tabs['narplichtab'] = __('Narplichtab', 'snefuru-plugin');
+        $tabs['narplichtab'] = __('Narplichtab', 'snefuruplin');
         return $tabs;
     }
     

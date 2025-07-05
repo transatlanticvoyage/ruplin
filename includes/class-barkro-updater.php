@@ -3,7 +3,7 @@
 class Snefuru_Barkro_Updater {
     
     private $plugin_slug = 'snefuruplin';
-    private $plugin_base = 'snefuruplin/snefuru-plugin.php';
+    private $plugin_base = 'snefuruplin/snefuruplin.php';
     private $update_check_url = '';
     
     public function __construct() {
