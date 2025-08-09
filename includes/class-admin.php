@@ -34,6 +34,16 @@ class Snefuru_Admin {
             30
         );
         
+        // Add KenliSidebarLinks as a non-clickable label
+        add_submenu_page(
+            'snefuru',
+            'KenliSidebarLinks',
+            'KenliSidebarLinks',
+            'manage_options',
+            'snefuru-kenli-sidebar-links',
+            array($this, 'kenli_sidebar_links_page')
+        );
+        
         add_submenu_page(
             'snefuru',
             'Dashboard',
@@ -117,6 +127,16 @@ class Snefuru_Admin {
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('snefuru_nonce')
         ));
+    }
+    
+    /**
+     * KenliSidebarLinks placeholder page (non-functional)
+     */
+    public function kenli_sidebar_links_page() {
+        echo '<div class="wrap">';
+        echo '<h1>KenliSidebarLinks</h1>';
+        echo '<p>This is a placeholder menu item.</p>';
+        echo '</div>';
     }
     
     /**
