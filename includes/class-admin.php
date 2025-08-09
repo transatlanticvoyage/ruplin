@@ -21,6 +21,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_locations_get_data', array($this, 'rup_locations_get_data'));
         add_action('wp_ajax_rup_locations_update_field', array($this, 'rup_locations_update_field'));
         add_action('wp_ajax_rup_locations_create', array($this, 'rup_locations_create'));
+        add_action('wp_ajax_rup_locations_get_image_url', array($this, 'rup_locations_get_image_url'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -1519,6 +1520,9 @@ class Snefuru_Admin {
             return;
         }
         
+        // Enqueue WordPress media scripts
+        wp_enqueue_media();
+        
         ?>
         <div class="wrap" style="margin: 0; padding: 20px;">
             <h1 style="margin-bottom: 20px;">📍 Zen Locations Manager</h1>
@@ -1585,6 +1589,7 @@ class Snefuru_Admin {
                                 <th data-sort="zip_code" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">zip_code</th>
                                 <th data-sort="country" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">country</th>
                                 <th data-sort="rel_image1_id" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">rel_image1_id</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">pick image1</th>
                                 <th data-sort="is_pinned_location" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">is_pinned_location</th>
                                 <th data-sort="position_in_custom_order" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">position_in_custom_order</th>
                             </tr>
@@ -1845,7 +1850,7 @@ class Snefuru_Admin {
                     // Data columns
                     ['location_id', 'location_name', 'location_placard', 'location_moniker', 
                      'location_sobriquet', 'street', 'city', 'state_code', 'zip_code', 
-                     'country', 'rel_image1_id', 'is_pinned_location', 'position_in_custom_order'].forEach(function(field) {
+                     'country', 'rel_image1_id', 'pick_image1', 'is_pinned_location', 'position_in_custom_order'].forEach(function(field) {
                         let td = $('<td style="padding: 8px; border: 1px solid #ddd;"></td>');
                         
                         if (field === 'is_pinned_location') {
@@ -1868,6 +1873,36 @@ class Snefuru_Admin {
                             });
                             
                             td.append(toggleSwitch);
+                        } else if (field === 'pick_image1') {
+                            // Image picker widget
+                            let imageId = row['rel_image1_id'];
+                            let imageContainer = $('<div style="display: flex; align-items: center; gap: 5px;"></div>');
+                            
+                            if (imageId && imageId > 0) {
+                                // Show existing image with "assign new image" button
+                                let assignBtn = $('<button style="padding: 3px 8px; font-size: 11px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap;">assign new image</button>');
+                                assignBtn.click(function() {
+                                    openImagePicker(row.location_id, imageContainer);
+                                });
+                                imageContainer.append(assignBtn);
+                                
+                                // Add image preview (will be loaded via AJAX)
+                                let imagePreview = $('<img style="max-height: 30px; max-width: 200px; border: 1px solid #ddd; margin-left: 5px;">');
+                                imagePreview.attr('data-image-id', imageId);
+                                imageContainer.append(imagePreview);
+                                
+                                // Load image source
+                                loadImagePreview(imageId, imagePreview);
+                            } else {
+                                // Show "choose image" button
+                                let chooseBtn = $('<button style="padding: 3px 8px; font-size: 11px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer;">choose image</button>');
+                                chooseBtn.click(function() {
+                                    openImagePicker(row.location_id, imageContainer);
+                                });
+                                imageContainer.append(chooseBtn);
+                            }
+                            
+                            td.append(imageContainer);
                         } else {
                             // Text field
                             let value = row[field] || '';
@@ -1973,12 +2008,11 @@ class Snefuru_Admin {
                 
                 // Other fields
                 ['location_name', 'location_placard', 'location_moniker', 'location_sobriquet', 
-                 'street', 'city', 'state_code', 'zip_code', 'country', 'rel_image1_id', 
-                 'position_in_custom_order'].forEach(function(field) {
+                 'street', 'city', 'state_code', 'zip_code', 'country', 'rel_image1_id'].forEach(function(field) {
                     let td = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
                     let input;
-                    if (field === 'rel_image1_id' || field === 'position_in_custom_order') {
-                        input = $('<input type="number" style="width: 100%; padding: 4px; border: 1px solid #ccc;">');
+                    if (field === 'rel_image1_id') {
+                        input = $('<input type="number" style="width: 100%; padding: 4px; border: 1px solid #ccc;" placeholder="Image ID">');
                     } else {
                         input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #ccc;">');
                     }
@@ -1987,10 +2021,21 @@ class Snefuru_Admin {
                     newRow.append(td);
                 });
                 
+                // Pick image1 column (placeholder for inline creation)
+                let pickImageTd = $('<td style="padding: 4px; border: 1px solid #ddd; text-align: center; color: #999;"></td>');
+                pickImageTd.text('(set after save)');
+                newRow.append(pickImageTd);
+                
                 // Boolean field
                 let boolTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
                 boolTd.append('<input type="checkbox" name="is_pinned_location" style="width: 20px; height: 20px;">');
                 newRow.append(boolTd);
+                
+                // Position field
+                let positionTd = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
+                let positionInput = $('<input type="number" name="position_in_custom_order" style="width: 100%; padding: 4px; border: 1px solid #ccc;" placeholder="Order">');
+                positionTd.append(positionInput);
+                newRow.append(positionTd);
                 
                 // Add save/cancel buttons
                 let actionTd = $('<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
@@ -2140,6 +2185,79 @@ class Snefuru_Admin {
                 }
                 filterAndDisplay();
             });
+            
+            // Image picker functions
+            function openImagePicker(locationId, container) {
+                // Check if WordPress media uploader is available
+                if (typeof wp !== 'undefined' && wp.media) {
+                    let mediaUploader = wp.media({
+                        title: 'Choose Image for Location',
+                        button: {
+                            text: 'Use This Image'
+                        },
+                        multiple: false,
+                        library: {
+                            type: 'image'
+                        }
+                    });
+                    
+                    mediaUploader.on('select', function() {
+                        let attachment = mediaUploader.state().get('selection').first().toJSON();
+                        let imageId = attachment.id;
+                        
+                        // Update the rel_image1_id field
+                        updateField(locationId, 'rel_image1_id', imageId);
+                        
+                        // Update local data
+                        let dataItem = allData.find(item => item.location_id == locationId);
+                        if (dataItem) {
+                            dataItem.rel_image1_id = imageId;
+                        }
+                        
+                        // Update the container display
+                        container.empty();
+                        
+                        let assignBtn = $('<button style="padding: 3px 8px; font-size: 11px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap;">assign new image</button>');
+                        assignBtn.click(function() {
+                            openImagePicker(locationId, container);
+                        });
+                        container.append(assignBtn);
+                        
+                        let imagePreview = $('<img style="max-height: 30px; max-width: 200px; border: 1px solid #ddd; margin-left: 5px;">');
+                        imagePreview.attr('src', attachment.sizes?.thumbnail?.url || attachment.url);
+                        container.append(imagePreview);
+                    });
+                    
+                    mediaUploader.open();
+                } else {
+                    alert('WordPress media uploader not available. Please refresh the page.');
+                }
+            }
+            
+            function loadImagePreview(imageId, imageElement) {
+                // Load image URL via AJAX
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_locations_get_image_url',
+                        nonce: '<?php echo wp_create_nonce('rup_locations_nonce'); ?>',
+                        image_id: imageId
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.url) {
+                            imageElement.attr('src', response.data.url);
+                        } else {
+                            imageElement.attr('src', '');
+                            imageElement.attr('alt', 'Image not found');
+                        }
+                    },
+                    error: function() {
+                        imageElement.attr('src', '');
+                        imageElement.attr('alt', 'Error loading image');
+                    }
+                });
+            }
         });
         </script>
         <?php
@@ -2383,6 +2501,40 @@ class Snefuru_Admin {
             ));
         } catch (Exception $e) {
             wp_send_json_error('Error creating location: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Get image URL by ID
+     */
+    public function rup_locations_get_image_url() {
+        check_ajax_referer('rup_locations_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $image_id = intval($_POST['image_id']);
+        
+        if (!$image_id) {
+            wp_send_json_error('Invalid image ID');
+            return;
+        }
+        
+        $image_url = wp_get_attachment_image_url($image_id, 'thumbnail');
+        
+        if (!$image_url) {
+            // Try full size if thumbnail doesn't exist
+            $image_url = wp_get_attachment_image_url($image_id, 'full');
+        }
+        
+        if ($image_url) {
+            wp_send_json_success(array(
+                'url' => $image_url,
+                'id' => $image_id
+            ));
+        } else {
+            wp_send_json_error('Image not found');
         }
     }
 } 
