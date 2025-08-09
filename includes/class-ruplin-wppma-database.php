@@ -22,53 +22,81 @@ class Ruplin_WP_Database_Horse_Class {
     public static function create_tables() {
         global $wpdb;
         
-        $charset_collate = $wpdb->get_charset_collate();
-        
-        // Create zen_services table
-        $services_table = $wpdb->prefix . 'zen_services';
-        $services_sql = "CREATE TABLE $services_table (
-            service_id INT(11) NOT NULL AUTO_INCREMENT,
-            service_name TEXT,
-            service_placard TEXT,
-            service_moniker TEXT,
-            service_sobriquet TEXT,
-            description1_short TEXT,
-            description1_long TEXT,
-            rel_image1_id INT(11),
-            is_pinned_service BOOLEAN DEFAULT FALSE,
-            position_in_custom_order INT(11),
-            PRIMARY KEY (service_id)
-        ) $charset_collate;";
-        
-        // Create zen_locations table
-        $locations_table = $wpdb->prefix . 'zen_locations';
-        $locations_sql = "CREATE TABLE $locations_table (
-            location_id INT(11) NOT NULL AUTO_INCREMENT,
-            location_name TEXT,
-            location_placard TEXT,
-            location_moniker TEXT,
-            location_sobriquet TEXT,
-            street TEXT,
-            city TEXT,
-            state_code TEXT,
-            zip_code TEXT,
-            country TEXT,
-            rel_image1_id INT(11),
-            is_pinned_location BOOLEAN DEFAULT FALSE,
-            position_in_custom_order INT(11),
-            PRIMARY KEY (location_id)
-        ) $charset_collate;";
-        
-        // Use dbDelta to create/update tables
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($services_sql);
-        dbDelta($locations_sql);
-        
-        // Update database version
-        update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
-        
-        // Log successful creation
-        error_log('Snefuru Zen tables created/updated successfully');
+        try {
+            $charset_collate = $wpdb->get_charset_collate();
+            
+            // Create zen_services table
+            $services_table = $wpdb->prefix . 'zen_services';
+            $services_sql = "CREATE TABLE $services_table (
+                service_id INT(11) NOT NULL AUTO_INCREMENT,
+                service_name TEXT,
+                service_placard TEXT,
+                service_moniker TEXT,
+                service_sobriquet TEXT,
+                description1_short TEXT,
+                description1_long TEXT,
+                rel_image1_id INT(11),
+                is_pinned_service BOOLEAN DEFAULT FALSE,
+                position_in_custom_order INT(11),
+                PRIMARY KEY (service_id)
+            ) $charset_collate;";
+            
+            // Create zen_locations table
+            $locations_table = $wpdb->prefix . 'zen_locations';
+            $locations_sql = "CREATE TABLE $locations_table (
+                location_id INT(11) NOT NULL AUTO_INCREMENT,
+                location_name TEXT,
+                location_placard TEXT,
+                location_moniker TEXT,
+                location_sobriquet TEXT,
+                street TEXT,
+                city TEXT,
+                state_code TEXT,
+                zip_code TEXT,
+                country TEXT,
+                rel_image1_id INT(11),
+                is_pinned_location BOOLEAN DEFAULT FALSE,
+                position_in_custom_order INT(11),
+                PRIMARY KEY (location_id)
+            ) $charset_collate;";
+            
+            // Use dbDelta to create/update tables
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            
+            // Log the SQL for debugging
+            error_log('Snefuru: Creating services table with SQL: ' . $services_sql);
+            error_log('Snefuru: Creating locations table with SQL: ' . $locations_sql);
+            
+            $services_result = dbDelta($services_sql);
+            $locations_result = dbDelta($locations_sql);
+            
+            // Log dbDelta results
+            error_log('Snefuru: Services table dbDelta result: ' . print_r($services_result, true));
+            error_log('Snefuru: Locations table dbDelta result: ' . print_r($locations_result, true));
+            
+            // Update database version
+            update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
+            
+            // Verify tables were created
+            $services_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'") == $services_table;
+            $locations_exists = $wpdb->get_var("SHOW TABLES LIKE '$locations_table'") == $locations_table;
+            
+            // Log verification results
+            error_log('Snefuru: Services table exists: ' . ($services_exists ? 'YES' : 'NO'));
+            error_log('Snefuru: Locations table exists: ' . ($locations_exists ? 'YES' : 'NO'));
+            
+            if ($services_exists && $locations_exists) {
+                error_log('Snefuru: Zen tables created/updated successfully');
+                return true;
+            } else {
+                error_log('Snefuru: Table verification failed');
+                return false;
+            }
+            
+        } catch (Exception $e) {
+            error_log('Snefuru: Error creating zen tables: ' . $e->getMessage());
+            return false;
+        }
     }
     
     /**

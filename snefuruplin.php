@@ -81,6 +81,9 @@ class SnefuruPlugin {
         // Create database tables if needed
         $this->create_tables();
         
+        // Load the database class before trying to use it
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
+        
         // Create zen tables
         Ruplin_WP_Database_Horse_Class::create_tables();
         

@@ -841,20 +841,33 @@ class Snefuru_Admin {
                 require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
             }
             
+            error_log('Snefuru: AJAX rebuild request started');
+            
             // Create/rebuild the tables
-            Ruplin_WP_Database_Horse_Class::create_tables();
+            $result = Ruplin_WP_Database_Horse_Class::create_tables();
+            
+            error_log('Snefuru: create_tables() returned: ' . ($result ? 'true' : 'false'));
             
             // Check if tables exist to verify success
             if (Ruplin_WP_Database_Horse_Class::tables_exist()) {
+                global $wpdb;
+                $services_table = $wpdb->prefix . 'zen_services';
+                $locations_table = $wpdb->prefix . 'zen_locations';
+                
+                // Get table row counts for confirmation
+                $services_count = $wpdb->get_var("SELECT COUNT(*) FROM $services_table");
+                $locations_count = $wpdb->get_var("SELECT COUNT(*) FROM $locations_table");
+                
                 wp_send_json_success(array(
-                    'message' => 'Zen tables rebuilt successfully! Tables _zen_services and _zen_locations are ready.'
+                    'message' => "Zen tables rebuilt successfully! Tables {$services_table} ({$services_count} rows) and {$locations_table} ({$locations_count} rows) are ready."
                 ));
             } else {
                 wp_send_json_error(array(
-                    'message' => 'Tables were processed but verification failed. Please check database permissions.'
+                    'message' => 'Tables were processed but verification failed. Check error_log for details.'
                 ));
             }
         } catch (Exception $e) {
+            error_log('Snefuru: AJAX rebuild exception: ' . $e->getMessage());
             wp_send_json_error(array(
                 'message' => 'Error rebuilding tables: ' . $e->getMessage()
             ));
