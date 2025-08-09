@@ -136,6 +136,15 @@ class Snefuru_Admin {
             'rup_location_tags_mar',
             array($this, 'rup_location_tags_mar_page')
         );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_horse_class_page',
+            'rup_horse_class_page',
+            'manage_options',
+            'rup_horse_class_page',
+            array($this, 'rup_horse_class_page')
+        );
     }
     
     /**
@@ -226,7 +235,6 @@ class Snefuru_Admin {
                         <button type="button" class="button button-primary" id="sync-now">Sync Now</button>
                         <button type="button" class="button button-secondary" onclick="location.href='<?php echo admin_url('admin.php?page=snefuru-settings'); ?>'">Settings</button>
                         <button type="button" class="button button-secondary" onclick="location.href='<?php echo admin_url('admin.php?page=snefuru-logs'); ?>'">View Logs</button>
-                        <button type="button" class="button button-secondary" id="rebuild-zen-tables">Rebuild Zen Tables</button>
                     </div>
                 </div>
                 
@@ -1514,5 +1522,71 @@ class Snefuru_Admin {
         echo '<div class="wrap">';
         echo '<h1><strong>rup_location_tags_mar</strong></h1>';
         echo '</div>';
+    }
+    
+    /**
+     * rup_horse_class_page - Database Horse Class Management
+     */
+    public function rup_horse_class_page() {
+        echo '<div class="wrap">';
+        echo '<h1>Database Horse Class Management</h1>';
+        echo '<div class="card" style="max-width: 600px;">';
+        echo '<h2>Zen Tables Management</h2>';
+        echo '<p>This tool rebuilds the <code>_zen_services</code> and <code>_zen_locations</code> tables in your WordPress database.</p>';
+        echo '<p><strong>What it does:</strong></p>';
+        echo '<ul>';
+        echo '<li>Recreates both zen tables with proper schema</li>';
+        echo '<li>Preserves existing data if tables already exist</li>';
+        echo '<li>Updates table structure if schema has changed</li>';
+        echo '</ul>';
+        echo '<div style="margin: 20px 0;">';
+        echo '<button id="rebuild-zen-tables" class="button button-primary">Rebuild Zen Tables</button>';
+        echo '</div>';
+        echo '<div id="rebuild-status" style="margin-top: 15px;"></div>';
+        echo '</div>';
+        echo '</div>';
+        
+        // Add JavaScript for button functionality
+        ?>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('#rebuild-zen-tables').on('click', function(e) {
+                e.preventDefault();
+                
+                if (!confirm('This will rebuild the _zen_services and _zen_locations tables. Continue?')) {
+                    return;
+                }
+                
+                var $button = $(this);
+                var originalText = $button.text();
+                
+                $button.text('Rebuilding...').prop('disabled', true);
+                $('#rebuild-status').html('<p style="color: #0073aa;">Processing...</p>');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'snefuru_rebuild_zen_tables',
+                        nonce: '<?php echo wp_create_nonce('snefuru_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#rebuild-status').html('<p style="color: #46b450;">✅ ' + response.data.message + '</p>');
+                        } else {
+                            $('#rebuild-status').html('<p style="color: #dc3232;">❌ Error: ' + (response.data.message || 'Failed to rebuild tables') + '</p>');
+                        }
+                    },
+                    error: function() {
+                        $('#rebuild-status').html('<p style="color: #dc3232;">❌ Failed to rebuild tables. Please check server logs.</p>');
+                    },
+                    complete: function() {
+                        $button.text(originalText).prop('disabled', false);
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
     }
 } 
