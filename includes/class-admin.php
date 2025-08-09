@@ -166,6 +166,15 @@ class Snefuru_Admin {
             'document_outlook_aug9',
             array($this, 'document_outlook_aug9_page')
         );
+        
+        add_submenu_page(
+            'snefuru',
+            'dynamic_images_man',
+            'dynamic_images_man',
+            'manage_options',
+            'dynamic_images_man',
+            array($this, 'dynamic_images_man_page')
+        );
     }
     
     /**
@@ -3773,6 +3782,150 @@ class Snefuru_Admin {
                     
                     <hr style="margin: 30px 0;">
                     <p style="margin: 0; font-style: italic; color: #666;">this is a documentation page</p>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+    
+    /**
+     * dynamic_images_man page - Dynamic Images Management Documentation
+     */
+    public function dynamic_images_man_page() {
+        // Check if Elementor is active
+        $elementor_active = is_plugin_active('elementor/elementor.php') || did_action('elementor/loaded');
+        
+        ?>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">🎯 Dynamic Images Management</h1>
+                
+                <div style="background: white; border: 1px solid #ddd; padding: 30px; border-radius: 5px; max-width: 1200px;">
+                    
+                    <?php if ($elementor_active): ?>
+                        <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin-bottom: 30px;">
+                            <h3 style="margin-top: 0; color: #155724;">✅ Elementor Dynamic Tags System Active</h3>
+                            <p style="margin-bottom: 0; color: #155724;">Your Elementor Dynamic Tags for Zen Services and Locations are ready to use!</p>
+                        </div>
+                    <?php else: ?>
+                        <div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin-bottom: 30px;">
+                            <h3 style="margin-top: 0; color: #721c24;">⚠️ Elementor Not Detected</h3>
+                            <p style="margin-bottom: 0; color: #721c24;">Please install and activate Elementor plugin to use Dynamic Tags functionality.</p>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <h2 style="margin-top: 0; color: #0073aa;">How to Use Zen Dynamic Tags in Elementor</h2>
+                    
+                    <p style="line-height: 1.6; margin-bottom: 20px;">
+                        The Dynamic Tags system allows you to pull images and text directly from your zen_services and zen_locations database tables into any Elementor widget that supports dynamic content.
+                    </p>
+                    
+                    <h3 style="color: #0073aa; margin-top: 30px;">Step 1: Add an Image Widget</h3>
+                    <ol style="line-height: 1.6; margin-left: 20px;">
+                        <li>In Elementor editor, drag an <strong>Image widget</strong> onto your page</li>
+                        <li>In the widget settings, look for the <strong>"Choose Image"</strong> button</li>
+                        <li>Click the small <strong>📋 "Dynamic"</strong> button next to "Choose Image"</li>
+                    </ol>
+                    
+                    <h3 style="color: #0073aa; margin-top: 30px;">Step 2: Select Zen Dynamic Tag</h3>
+                    <p style="line-height: 1.6;">In the Dynamic Tags panel, you'll see a <strong>"Zen Garage"</strong> group with these options:</p>
+                    <ul style="line-height: 1.6; margin-left: 20px;">
+                        <li><strong>Zen Service Image</strong> - Pull images from zen_services table</li>
+                        <li><strong>Zen Location Image</strong> - Pull images from zen_locations table</li>
+                    </ul>
+                    
+                    <h3 style="color: #0073aa; margin-top: 30px;">Step 3: Configure the Tag</h3>
+                    <div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                        <h4 style="margin-top: 0;">For Service Images:</h4>
+                        <ul style="line-height: 1.6; margin-left: 20px;">
+                            <li><strong>Service ID:</strong> Enter the ID number from your zen_services table</li>
+                            <li><strong>Image Size:</strong> Choose thumbnail, medium, large, or full size</li>
+                        </ul>
+                        
+                        <h4>For Location Images:</h4>
+                        <ul style="line-height: 1.6; margin-left: 20px;">
+                            <li><strong>Location ID:</strong> Enter the ID number from your zen_locations table</li>
+                            <li><strong>Image Size:</strong> Choose thumbnail, medium, large, or full size</li>
+                        </ul>
+                    </div>
+                    
+                    <h3 style="color: #0073aa; margin-top: 30px;">Text Dynamic Tags</h3>
+                    <p style="line-height: 1.6;">For text widgets (headings, text blocks, etc.), you can also use:</p>
+                    <ul style="line-height: 1.6; margin-left: 20px;">
+                        <li><strong>Zen Service Name</strong> - Pull service names, descriptions, placards, etc.</li>
+                        <li><strong>Zen Location Name</strong> - Pull location names, addresses, city, state, etc.</li>
+                    </ul>
+                    
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 5px; margin: 30px 0;">
+                        <h4 style="margin-top: 0; color: #856404;">💡 Pro Tip: Finding IDs</h4>
+                        <p style="margin-bottom: 0; color: #856404; line-height: 1.6;">
+                            To find Service IDs and Location IDs, visit your <strong>rup_services_mar</strong> and <strong>rup_locations_mar</strong> admin pages. 
+                            The ID numbers are shown in the first column of each table. You can also use the <strong>SH</strong> copy buttons to quickly copy shortcodes with the correct IDs.
+                        </p>
+                    </div>
+                    
+                    <h3 style="color: #0073aa; margin-top: 30px;">Available Service Fields</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                        <div>
+                            <ul style="line-height: 1.6;">
+                                <li>Service Name</li>
+                                <li>Service Placard</li>
+                                <li>Service Moniker</li>
+                                <li>Service Sobriquet</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <ul style="line-height: 1.6;">
+                                <li>Short Description</li>
+                                <li>Long Description</li>
+                                <li>Service Image (via rel_image1_id)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <h3 style="color: #0073aa; margin-top: 30px;">Available Location Fields</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                        <div>
+                            <ul style="line-height: 1.6;">
+                                <li>Location Name</li>
+                                <li>Location Placard</li>
+                                <li>Location Moniker</li>
+                                <li>Location Sobriquet</li>
+                                <li>Street Address</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <ul style="line-height: 1.6;">
+                                <li>City</li>
+                                <li>State Code</li>
+                                <li>Zip Code</li>
+                                <li>Country</li>
+                                <li>Location Image (via rel_image1_id)</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #e7f3ff; border: 1px solid #0073aa; padding: 20px; border-radius: 5px; margin-top: 30px;">
+                        <h4 style="margin-top: 0; color: #0073aa;">🚀 Benefits of Dynamic Tags</h4>
+                        <ul style="line-height: 1.6; margin-bottom: 0; color: #0073aa;">
+                            <li><strong>Real-time updates:</strong> Change data in your admin tables, see updates immediately on frontend</li>
+                            <li><strong>No manual image uploads:</strong> Images managed centrally through your zen system</li>
+                            <li><strong>Consistent data:</strong> Single source of truth for all service and location information</li>
+                            <li><strong>Easy maintenance:</strong> Update once, changes appear everywhere the tag is used</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #0073aa;">
+                        <h4 style="color: #0073aa;">Quick Links to Data Management:</h4>
+                        <ul style="line-height: 1.6;">
+                            <li><a href="<?php echo admin_url('admin.php?page=rup_services_mar'); ?>" class="button button-secondary">Manage Services & Images →</a></li>
+                            <li style="margin-top: 10px;"><a href="<?php echo admin_url('admin.php?page=rup_locations_mar'); ?>" class="button button-secondary">Manage Locations & Images →</a></li>
+                        </ul>
+                    </div>
+                    
                 </div>
             </div>
         </div>

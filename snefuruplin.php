@@ -55,6 +55,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
     }
     
     private function init_hooks() {
@@ -73,6 +74,11 @@ class SnefuruPlugin {
         new Snefuru_Elementor_Updater();
         new Snefuru_Dublish_API();
         new Zen_Shortcodes();
+        
+        // Initialize Elementor Dynamic Tags (only if Elementor is active)
+        if (did_action('elementor/loaded')) {
+            new Zen_Elementor_Dynamic_Tags();
+        }
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
