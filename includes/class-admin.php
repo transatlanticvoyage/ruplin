@@ -23,6 +23,12 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_locations_create', array($this, 'rup_locations_create'));
         add_action('wp_ajax_rup_locations_get_image_url', array($this, 'rup_locations_get_image_url'));
         
+        // Services management AJAX actions
+        add_action('wp_ajax_rup_services_get_data', array($this, 'rup_services_get_data'));
+        add_action('wp_ajax_rup_services_update_field', array($this, 'rup_services_update_field'));
+        add_action('wp_ajax_rup_services_create', array($this, 'rup_services_create'));
+        add_action('wp_ajax_rup_services_get_image_url', array($this, 'rup_services_get_image_url'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
     }
@@ -2264,12 +2270,780 @@ class Snefuru_Admin {
     }
     
     /**
-     * rup_services_mar page
+     * rup_services_mar page - Services Management
      */
     public function rup_services_mar_page() {
-        echo '<div class="wrap">';
-        echo '<h1><strong>rup_services_mar</strong></h1>';
-        echo '</div>';
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_services';
+        
+        // Handle AJAX requests
+        if (isset($_POST['action'])) {
+            $this->handle_services_ajax();
+            return;
+        }
+        
+        // Enqueue WordPress media scripts
+        wp_enqueue_media();
+        
+        ?>
+        <div class="wrap" style="margin: 0; padding: 20px;">
+            <h1 style="margin-bottom: 20px;">🔧 Zen Services Manager</h1>
+            
+            <!-- Control Bar -->
+            <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="create-inline-btn" class="button button-primary">Create New (Inline)</button>
+                        <button id="create-popup-btn" class="button button-secondary">Create New (Popup)</button>
+                    </div>
+                </div>
+                
+                <!-- Nubra Tableface Kite -->
+                <div id="nubra-tableface-kite" style="margin-bottom: 15px;"></div>
+                
+                <!-- Pagination and Search Controls -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <!-- Items per page -->
+                        <div style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <button class="per-page-btn" data-value="10" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px;">10</button>
+                            <button class="per-page-btn" data-value="20" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">20</button>
+                            <button class="per-page-btn" data-value="50" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">50</button>
+                            <button class="per-page-btn active" data-value="100" style="border: none; padding: 10px 15px; background: #0073aa; color: white; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">100</button>
+                            <button class="per-page-btn" data-value="200" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">200</button>
+                            <button class="per-page-btn" data-value="500" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">500</button>
+                            <button class="per-page-btn" data-value="all" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc; border-top-right-radius: 4px; border-bottom-right-radius: 4px;">All</button>
+                        </div>
+                        
+                        <!-- Page navigation -->
+                        <div id="page-nav" style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <!-- Dynamic page buttons will go here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Search -->
+                    <div style="position: relative;">
+                        <input type="text" id="search-box" placeholder="Search services..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 250px; font-size: 14px;">
+                        <button id="clear-search" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ffeb3b; border: none; padding: 4px 8px; font-size: 12px; font-weight: bold; border-radius: 3px; cursor: pointer;">CL</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Table -->
+            <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                <div style="overflow-x: auto;">
+                    <table id="services-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f0f0f0; width: 50px; cursor: pointer;" onclick="toggleSelectAll()">
+                                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                        <input type="checkbox" id="select-all" style="width: 20px; height: 20px;">
+                                    </div>
+                                </th>
+                                <th data-sort="service_id" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">service_id</th>
+                                <th data-sort="service_name" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">service_name</th>
+                                <th data-sort="service_placard" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">service_placard</th>
+                                <th data-sort="service_moniker" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">service_moniker</th>
+                                <th data-sort="service_sobriquet" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">service_sobriquet</th>
+                                <th data-sort="description1_short" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">description1_short</th>
+                                <th data-sort="description1_long" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">description1_long</th>
+                                <th data-sort="rel_image1_id" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">rel_image1_id</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">pick image1</th>
+                                <th data-sort="is_pinned_service" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">is_pinned_service</th>
+                                <th data-sort="position_in_custom_order" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">position_in_custom_order</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data will be loaded here via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Bottom Pagination -->
+            <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-top: 20px; border-radius: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div id="record-info" style="font-size: 14px; color: #666;"></div>
+                        
+                        <!-- Bottom Items per page -->
+                        <div style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <button class="per-page-btn-bottom" data-value="10" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px;">10</button>
+                            <button class="per-page-btn-bottom" data-value="20" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">20</button>
+                            <button class="per-page-btn-bottom" data-value="50" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">50</button>
+                            <button class="per-page-btn-bottom active" data-value="100" style="border: none; padding: 10px 15px; background: #0073aa; color: white; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">100</button>
+                            <button class="per-page-btn-bottom" data-value="200" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">200</button>
+                            <button class="per-page-btn-bottom" data-value="500" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">500</button>
+                            <button class="per-page-btn-bottom" data-value="all" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc; border-top-right-radius: 4px; border-bottom-right-radius: 4px;">All</button>
+                        </div>
+                        
+                        <!-- Bottom Page navigation -->
+                        <div id="page-nav-bottom" style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <!-- Dynamic page buttons will go here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Search -->
+                    <div style="position: relative;">
+                        <input type="text" id="search-box-bottom" placeholder="Search services..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 250px; font-size: 14px;">
+                        <button id="clear-search-bottom" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ffeb3b; border: none; padding: 4px 8px; font-size: 12px; font-weight: bold; border-radius: 3px; cursor: pointer;">CL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Create Popup Modal -->
+        <div id="create-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; width: 700px; max-height: 80vh; overflow-y: auto;">
+                <h2 style="margin-top: 0;">Create New Service</h2>
+                <form id="create-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Service Name:</label>
+                            <input type="text" name="service_name" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Service Placard:</label>
+                            <input type="text" name="service_placard" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Service Moniker:</label>
+                            <input type="text" name="service_moniker" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Service Sobriquet:</label>
+                            <input type="text" name="service_sobriquet" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Short Description:</label>
+                            <textarea name="description1_short" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Long Description:</label>
+                            <textarea name="description1_long" rows="5" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Related Image ID:</label>
+                            <input type="number" name="rel_image1_id" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Position Order:</label>
+                            <input type="number" name="position_in_custom_order" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: bold;">
+                                <input type="checkbox" name="is_pinned_service" style="width: 20px; height: 20px;">
+                                Is Pinned Service
+                            </label>
+                        </div>
+                    </div>
+                    <div style="text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                        <button type="button" id="cancel-create" style="margin-right: 10px; padding: 8px 20px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button type="submit" style="padding: 8px 20px; background: #0073aa; color: white; border: none; border-radius: 4px; cursor: pointer;">Create Service</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            let currentPage = 1;
+            let itemsPerPage = 100;
+            let searchTerm = '';
+            let sortField = 'service_id';
+            let sortOrder = 'asc';
+            let selectedRows = new Set();
+            let allData = [];
+            let filteredData = [];
+            let editingCell = null;
+            
+            // Load Nubra Tableface Kite
+            loadNubraTablefaceKite();
+            
+            // Initial load
+            loadData();
+            
+            // Search functionality
+            $('#search-box, #search-box-bottom').on('input', function() {
+                searchTerm = $(this).val();
+                $('#search-box, #search-box-bottom').val(searchTerm); // Sync both search boxes
+                currentPage = 1;
+                filterAndDisplay();
+            });
+            
+            $('#clear-search, #clear-search-bottom').click(function() {
+                searchTerm = '';
+                $('#search-box, #search-box-bottom').val('');
+                currentPage = 1;
+                filterAndDisplay();
+            });
+            
+            // Per page buttons
+            $('.per-page-btn, .per-page-btn-bottom').click(function() {
+                itemsPerPage = $(this).data('value') === 'all' ? 999999 : $(this).data('value');
+                $('.per-page-btn, .per-page-btn-bottom').removeClass('active').css({'background': '#f9f9f9', 'color': 'black'});
+                $(`.per-page-btn[data-value="${$(this).data('value')}"], .per-page-btn-bottom[data-value="${$(this).data('value')}"]`).addClass('active').css({'background': '#0073aa', 'color': 'white'});
+                currentPage = 1;
+                filterAndDisplay();
+            });
+            
+            // Create buttons
+            $('#create-inline-btn').click(function() {
+                createInlineRow();
+            });
+            
+            $('#create-popup-btn').click(function() {
+                $('#create-modal').show();
+            });
+            
+            $('#cancel-create').click(function() {
+                $('#create-modal').hide();
+                $('#create-form')[0].reset();
+            });
+            
+            $('#create-form').submit(function(e) {
+                e.preventDefault();
+                createServicePopup();
+            });
+            
+            // Load data function
+            function loadData() {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_services_get_data',
+                        nonce: '<?php echo wp_create_nonce('rup_services_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            allData = response.data;
+                            filterAndDisplay();
+                        }
+                    },
+                    error: function() {
+                        alert('Error loading data');
+                    }
+                });
+            }
+            
+            function loadNubraTablefaceKite() {
+                $('#nubra-tableface-kite').html('<div style="color: #666; font-size: 12px; font-style: italic; padding: 5px 0; border-left: 3px solid #0073aa; padding-left: 10px;">nubra-tableface-kite: zen_services comprehensive management grid</div>');
+            }
+            
+            function filterAndDisplay() {
+                // Filter data
+                if (searchTerm === '') {
+                    filteredData = allData;
+                } else {
+                    filteredData = allData.filter(item => {
+                        return Object.values(item).some(value => 
+                            value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                        );
+                    });
+                }
+                
+                // Sort data
+                filteredData.sort((a, b) => {
+                    let aVal = a[sortField] || '';
+                    let bVal = b[sortField] || '';
+                    if (sortOrder === 'asc') {
+                        return aVal > bVal ? 1 : -1;
+                    } else {
+                        return aVal < bVal ? 1 : -1;
+                    }
+                });
+                
+                displayTable();
+                updatePagination();
+                updateRecordInfo();
+            }
+            
+            function displayTable() {
+                let startIndex = (currentPage - 1) * itemsPerPage;
+                let endIndex = startIndex + itemsPerPage;
+                let pageData = filteredData.slice(startIndex, endIndex);
+                
+                let tbody = $('#table-body');
+                tbody.empty();
+                
+                pageData.forEach(function(row) {
+                    let tr = $('<tr style="cursor: pointer;"></tr>');
+                    tr.hover(function() {
+                        $(this).css('background-color', '#f9f9f9');
+                    }, function() {
+                        $(this).css('background-color', '');
+                    });
+                    
+                    // Checkbox column
+                    let checkboxTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center; cursor: pointer;"></td>');
+                    let checkbox = $('<input type="checkbox" style="width: 20px; height: 20px;">');
+                    checkbox.prop('checked', selectedRows.has(row.service_id));
+                    checkbox.change(function() {
+                        if (this.checked) {
+                            selectedRows.add(row.service_id);
+                        } else {
+                            selectedRows.delete(row.service_id);
+                        }
+                    });
+                    checkboxTd.click(function(e) {
+                        if (e.target.type !== 'checkbox') {
+                            checkbox.prop('checked', !checkbox.prop('checked')).change();
+                        }
+                    });
+                    checkboxTd.append(checkbox);
+                    tr.append(checkboxTd);
+                    
+                    // Data columns
+                    ['service_id', 'service_name', 'service_placard', 'service_moniker', 
+                     'service_sobriquet', 'description1_short', 'description1_long', 'rel_image1_id', 
+                     'pick_image1', 'is_pinned_service', 'position_in_custom_order'].forEach(function(field) {
+                        let td = $('<td style="padding: 8px; border: 1px solid #ddd;"></td>');
+                        
+                        if (field === 'is_pinned_service') {
+                            // Boolean toggle switch
+                            let toggleSwitch = $('<label style="position: relative; display: inline-block; width: 50px; height: 24px;"><input type="checkbox" style="opacity: 0; width: 0; height: 0;"><span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;"></span></label>');
+                            let checkbox = toggleSwitch.find('input');
+                            let slider = toggleSwitch.find('span');
+                            
+                            checkbox.prop('checked', row[field] == 1);
+                            if (row[field] == 1) {
+                                slider.css('background-color', '#2196F3');
+                                slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 26px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
+                            } else {
+                                slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
+                            }
+                            
+                            checkbox.change(function() {
+                                updateField(row.service_id, 'is_pinned_service', this.checked ? 1 : 0);
+                                row.is_pinned_service = this.checked ? 1 : 0;
+                            });
+                            
+                            td.append(toggleSwitch);
+                        } else if (field === 'pick_image1') {
+                            // Image picker widget
+                            let imageId = row['rel_image1_id'];
+                            let imageContainer = $('<div style="display: flex; align-items: center; gap: 5px;"></div>');
+                            
+                            if (imageId && imageId > 0) {
+                                // Show existing image with "assign new image" button
+                                let assignBtn = $('<button style="padding: 3px 8px; font-size: 11px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap;">assign new image</button>');
+                                assignBtn.click(function() {
+                                    openImagePicker(row.service_id, imageContainer);
+                                });
+                                imageContainer.append(assignBtn);
+                                
+                                // Add image preview (will be loaded via AJAX)
+                                let imagePreview = $('<img style="max-height: 30px; max-width: 200px; border: 1px solid #ddd; margin-left: 5px;">');
+                                imagePreview.attr('data-image-id', imageId);
+                                imageContainer.append(imagePreview);
+                                
+                                // Load image source
+                                loadImagePreview(imageId, imagePreview);
+                            } else {
+                                // Show "choose image" button
+                                let chooseBtn = $('<button style="padding: 3px 8px; font-size: 11px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer;">choose image</button>');
+                                chooseBtn.click(function() {
+                                    openImagePicker(row.service_id, imageContainer);
+                                });
+                                imageContainer.append(chooseBtn);
+                            }
+                            
+                            td.append(imageContainer);
+                        } else {
+                            // Text field
+                            let value = row[field] || '';
+                            
+                            // Truncate long text for display
+                            if ((field === 'description1_short' || field === 'description1_long') && value.length > 50) {
+                                td.text(value.substring(0, 50) + '...');
+                                td.attr('title', value);
+                            } else {
+                                td.text(value);
+                            }
+                            
+                            if (field !== 'service_id') { // Don't allow editing ID
+                                td.attr('data-field', field);
+                                td.attr('data-id', row.service_id);
+                                td.css('cursor', 'text');
+                                td.click(function() {
+                                    startInlineEdit($(this), value, row.service_id, field);
+                                });
+                            }
+                        }
+                        
+                        tr.append(td);
+                    });
+                    
+                    tbody.append(tr);
+                });
+            }
+            
+            function startInlineEdit(cell, currentValue, id, field) {
+                if (editingCell) return; // Only one cell at a time
+                
+                editingCell = { cell: cell, id: id, field: field, originalValue: currentValue };
+                
+                let input;
+                if (field === 'description1_short' || field === 'description1_long') {
+                    input = $('<textarea style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff; min-height: 60px; resize: vertical;"></textarea>');
+                } else {
+                    input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff;">');
+                }
+                
+                input.val(currentValue);
+                cell.empty().append(input);
+                input.focus().select();
+                
+                input.keydown(function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        saveInlineEdit();
+                    } else if (e.key === 'Escape') {
+                        cancelInlineEdit();
+                    }
+                });
+                
+                input.blur(function() {
+                    saveInlineEdit();
+                });
+            }
+            
+            function saveInlineEdit() {
+                if (!editingCell) return;
+                
+                let newValue = editingCell.cell.find('input, textarea').val();
+                updateField(editingCell.id, editingCell.field, newValue);
+                
+                // Update local data
+                let dataItem = allData.find(item => item.service_id == editingCell.id);
+                if (dataItem) {
+                    dataItem[editingCell.field] = newValue;
+                }
+                
+                // Display truncated text if needed
+                let displayValue = newValue;
+                if ((editingCell.field === 'description1_short' || editingCell.field === 'description1_long') && newValue.length > 50) {
+                    displayValue = newValue.substring(0, 50) + '...';
+                    editingCell.cell.attr('title', newValue);
+                }
+                
+                editingCell.cell.empty().text(displayValue);
+                editingCell = null;
+            }
+            
+            function cancelInlineEdit() {
+                if (!editingCell) return;
+                
+                let displayValue = editingCell.originalValue;
+                if ((editingCell.field === 'description1_short' || editingCell.field === 'description1_long') && editingCell.originalValue.length > 50) {
+                    displayValue = editingCell.originalValue.substring(0, 50) + '...';
+                    editingCell.cell.attr('title', editingCell.originalValue);
+                }
+                
+                editingCell.cell.empty().text(displayValue);
+                editingCell = null;
+            }
+            
+            function updateField(id, field, value) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_services_update_field',
+                        nonce: '<?php echo wp_create_nonce('rup_services_nonce'); ?>',
+                        id: id,
+                        field: field,
+                        value: value
+                    },
+                    success: function(response) {
+                        if (!response.success) {
+                            alert('Error updating field: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating field');
+                    }
+                });
+            }
+            
+            function createInlineRow() {
+                let tbody = $('#table-body');
+                let newRow = $('<tr style="background: #ffffcc; border: 2px solid #0073aa;"></tr>');
+                
+                // Create empty row with inputs
+                // Checkbox
+                let checkboxTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                checkboxTd.append('<input type="checkbox" style="width: 20px; height: 20px;" disabled>');
+                newRow.append(checkboxTd);
+                
+                // Service ID (auto-generated)
+                newRow.append('<td style="padding: 8px; border: 1px solid #ddd; color: #999;">(auto)</td>');
+                
+                // Text fields
+                ['service_name', 'service_placard', 'service_moniker', 'service_sobriquet'].forEach(function(field) {
+                    let td = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
+                    let input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #ccc;">');
+                    input.attr('name', field);
+                    td.append(input);
+                    newRow.append(td);
+                });
+                
+                // Description fields (textareas)
+                ['description1_short', 'description1_long'].forEach(function(field) {
+                    let td = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
+                    let textarea = $('<textarea style="width: 100%; padding: 4px; border: 1px solid #ccc; height: 40px; resize: vertical;"></textarea>');
+                    textarea.attr('name', field);
+                    td.append(textarea);
+                    newRow.append(td);
+                });
+                
+                // Related image ID
+                let imageIdTd = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
+                let imageIdInput = $('<input type="number" name="rel_image1_id" style="width: 100%; padding: 4px; border: 1px solid #ccc;" placeholder="Image ID">');
+                imageIdTd.append(imageIdInput);
+                newRow.append(imageIdTd);
+                
+                // Pick image1 column (placeholder for inline creation)
+                let pickImageTd = $('<td style="padding: 4px; border: 1px solid #ddd; text-align: center; color: #999;"></td>');
+                pickImageTd.text('(set after save)');
+                newRow.append(pickImageTd);
+                
+                // Boolean field
+                let boolTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                boolTd.append('<input type="checkbox" name="is_pinned_service" style="width: 20px; height: 20px;">');
+                newRow.append(boolTd);
+                
+                // Position field
+                let positionTd = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
+                let positionInput = $('<input type="number" name="position_in_custom_order" style="width: 100%; padding: 4px; border: 1px solid #ccc;" placeholder="Order">');
+                positionTd.append(positionInput);
+                newRow.append(positionTd);
+                
+                // Add save/cancel buttons
+                let actionTd = $('<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                actionTd.append('<button onclick="saveInlineRow(this)" style="margin-right: 5px; padding: 4px 12px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer;">Save</button>');
+                actionTd.append('<button onclick="cancelInlineRow(this)" style="padding: 4px 12px; background: #666; color: white; border: none; border-radius: 3px; cursor: pointer;">Cancel</button>');
+                newRow.append(actionTd);
+                
+                tbody.prepend(newRow);
+            }
+            
+            window.saveInlineRow = function(btn) {
+                let row = $(btn).closest('tr');
+                let formData = {};
+                
+                row.find('input[name], textarea[name]').each(function() {
+                    let field = $(this).attr('name');
+                    let value = $(this).val();
+                    if ($(this).attr('type') === 'checkbox') {
+                        value = $(this).is(':checked') ? 1 : 0;
+                    }
+                    formData[field] = value;
+                });
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_services_create',
+                        nonce: '<?php echo wp_create_nonce('rup_services_nonce'); ?>',
+                        data: formData
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            loadData(); // Reload all data
+                        } else {
+                            alert('Error creating service: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error creating service');
+                    }
+                });
+            };
+            
+            window.cancelInlineRow = function(btn) {
+                $(btn).closest('tr').remove();
+            };
+            
+            function createServicePopup() {
+                let formData = {};
+                $('#create-form input, #create-form textarea').each(function() {
+                    let field = $(this).attr('name');
+                    let value = $(this).val();
+                    if ($(this).attr('type') === 'checkbox') {
+                        value = $(this).is(':checked') ? 1 : 0;
+                    }
+                    formData[field] = value;
+                });
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_services_create',
+                        nonce: '<?php echo wp_create_nonce('rup_services_nonce'); ?>',
+                        data: formData
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#create-modal').hide();
+                            $('#create-form')[0].reset();
+                            loadData();
+                        } else {
+                            alert('Error creating service: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error creating service');
+                    }
+                });
+            }
+            
+            function updatePagination() {
+                let totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                let pageNav = $('#page-nav, #page-nav-bottom');
+                pageNav.empty();
+                
+                for (let i = 1; i <= totalPages && i <= 20; i++) {
+                    let btn = $('<button>' + i + '</button>');
+                    btn.css({
+                        'border': 'none',
+                        'padding': '10px 15px',
+                        'background': i === currentPage ? '#0073aa' : '#f9f9f9',
+                        'color': i === currentPage ? 'white' : 'black',
+                        'cursor': 'pointer',
+                        'font-size': '14px'
+                    });
+                    
+                    if (i > 1) {
+                        btn.css('border-left', '1px solid #ccc');
+                    }
+                    
+                    btn.click(function() {
+                        currentPage = i;
+                        filterAndDisplay();
+                    });
+                    
+                    pageNav.append(btn);
+                }
+            }
+            
+            function updateRecordInfo() {
+                let start = (currentPage - 1) * itemsPerPage + 1;
+                let end = Math.min(currentPage * itemsPerPage, filteredData.length);
+                let info = start + '-' + end + ' of ' + filteredData.length + ' services';
+                if (selectedRows.size > 0) {
+                    info += ' (' + selectedRows.size + ' selected)';
+                }
+                $('#record-info').text(info);
+            }
+            
+            // Select all functionality
+            window.toggleSelectAll = function() {
+                let selectAll = $('#select-all');
+                let isChecked = !selectAll.prop('checked');
+                selectAll.prop('checked', isChecked);
+                
+                if (isChecked) {
+                    filteredData.forEach(function(item) {
+                        selectedRows.add(item.service_id);
+                    });
+                } else {
+                    selectedRows.clear();
+                }
+                
+                filterAndDisplay();
+            };
+            
+            // Sort functionality
+            $('th[data-sort]').click(function() {
+                let field = $(this).data('sort');
+                if (sortField === field) {
+                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortField = field;
+                    sortOrder = 'asc';
+                }
+                filterAndDisplay();
+            });
+            
+            // Image picker functions
+            function openImagePicker(serviceId, container) {
+                // Check if WordPress media uploader is available
+                if (typeof wp !== 'undefined' && wp.media) {
+                    let mediaUploader = wp.media({
+                        title: 'Choose Image for Service',
+                        button: {
+                            text: 'Use This Image'
+                        },
+                        multiple: false,
+                        library: {
+                            type: 'image'
+                        }
+                    });
+                    
+                    mediaUploader.on('select', function() {
+                        let attachment = mediaUploader.state().get('selection').first().toJSON();
+                        let imageId = attachment.id;
+                        
+                        // Update the rel_image1_id field
+                        updateField(serviceId, 'rel_image1_id', imageId);
+                        
+                        // Update local data
+                        let dataItem = allData.find(item => item.service_id == serviceId);
+                        if (dataItem) {
+                            dataItem.rel_image1_id = imageId;
+                        }
+                        
+                        // Update the container display
+                        container.empty();
+                        
+                        let assignBtn = $('<button style="padding: 3px 8px; font-size: 11px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; white-space: nowrap;">assign new image</button>');
+                        assignBtn.click(function() {
+                            openImagePicker(serviceId, container);
+                        });
+                        container.append(assignBtn);
+                        
+                        let imagePreview = $('<img style="max-height: 30px; max-width: 200px; border: 1px solid #ddd; margin-left: 5px;">');
+                        imagePreview.attr('src', attachment.sizes?.thumbnail?.url || attachment.url);
+                        container.append(imagePreview);
+                    });
+                    
+                    mediaUploader.open();
+                } else {
+                    alert('WordPress media uploader not available. Please refresh the page.');
+                }
+            }
+            
+            function loadImagePreview(imageId, imageElement) {
+                // Load image URL via AJAX
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_services_get_image_url',
+                        nonce: '<?php echo wp_create_nonce('rup_services_nonce'); ?>',
+                        image_id: imageId
+                    },
+                    success: function(response) {
+                        if (response.success && response.data.url) {
+                            imageElement.attr('src', response.data.url);
+                        } else {
+                            imageElement.attr('src', '');
+                            imageElement.attr('alt', 'Image not found');
+                        }
+                    },
+                    error: function() {
+                        imageElement.attr('src', '');
+                        imageElement.attr('alt', 'Error loading image');
+                    }
+                });
+            }
+        });
+        </script>
+        <?php
     }
     
     /**
@@ -2509,6 +3283,188 @@ class Snefuru_Admin {
      */
     public function rup_locations_get_image_url() {
         check_ajax_referer('rup_locations_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $image_id = intval($_POST['image_id']);
+        
+        if (!$image_id) {
+            wp_send_json_error('Invalid image ID');
+            return;
+        }
+        
+        $image_url = wp_get_attachment_image_url($image_id, 'thumbnail');
+        
+        if (!$image_url) {
+            // Try full size if thumbnail doesn't exist
+            $image_url = wp_get_attachment_image_url($image_id, 'full');
+        }
+        
+        if ($image_url) {
+            wp_send_json_success(array(
+                'url' => $image_url,
+                'id' => $image_id
+            ));
+        } else {
+            wp_send_json_error('Image not found');
+        }
+    }
+    
+    /**
+     * AJAX: Get services data
+     */
+    public function rup_services_get_data() {
+        check_ajax_referer('rup_services_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_services';
+        
+        try {
+            $results = $wpdb->get_results("SELECT * FROM $table_name ORDER BY service_id ASC", ARRAY_A);
+            
+            if ($wpdb->last_error) {
+                wp_send_json_error('Database error: ' . $wpdb->last_error);
+                return;
+            }
+            
+            // Convert boolean values to proper format
+            foreach ($results as &$row) {
+                $row['is_pinned_service'] = (int) $row['is_pinned_service'];
+            }
+            
+            wp_send_json_success($results);
+        } catch (Exception $e) {
+            wp_send_json_error('Error loading services: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Update service field
+     */
+    public function rup_services_update_field() {
+        check_ajax_referer('rup_services_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $id = intval($_POST['id']);
+        $field = sanitize_text_field($_POST['field']);
+        $value = $_POST['value'];
+        
+        // Validate field name
+        $allowed_fields = [
+            'service_name', 'service_placard', 'service_moniker', 'service_sobriquet',
+            'description1_short', 'description1_long', 'rel_image1_id',
+            'is_pinned_service', 'position_in_custom_order'
+        ];
+        
+        if (!in_array($field, $allowed_fields)) {
+            wp_send_json_error('Invalid field name');
+            return;
+        }
+        
+        // Sanitize value based on field type
+        if ($field === 'rel_image1_id' || $field === 'position_in_custom_order') {
+            $value = $value === '' ? NULL : intval($value);
+        } elseif ($field === 'is_pinned_service') {
+            $value = $value ? 1 : 0;
+        } else {
+            $value = $value === '' ? NULL : sanitize_text_field($value);
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_services';
+        
+        try {
+            $result = $wpdb->update(
+                $table_name,
+                array($field => $value),
+                array('service_id' => $id),
+                null,
+                array('%d')
+            );
+            
+            if ($result === false) {
+                wp_send_json_error('Database update failed: ' . $wpdb->last_error);
+                return;
+            }
+            
+            wp_send_json_success('Field updated successfully');
+        } catch (Exception $e) {
+            wp_send_json_error('Error updating field: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Create new service
+     */
+    public function rup_services_create() {
+        check_ajax_referer('rup_services_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $data = $_POST['data'];
+        
+        // Sanitize and validate data
+        $insert_data = array();
+        
+        $text_fields = ['service_name', 'service_placard', 'service_moniker', 'service_sobriquet', 'description1_short', 'description1_long'];
+        $int_fields = ['rel_image1_id', 'position_in_custom_order'];
+        $bool_fields = ['is_pinned_service'];
+        
+        foreach ($text_fields as $field) {
+            if (isset($data[$field]) && $data[$field] !== '') {
+                $insert_data[$field] = sanitize_text_field($data[$field]);
+            }
+        }
+        
+        foreach ($int_fields as $field) {
+            if (isset($data[$field]) && $data[$field] !== '') {
+                $insert_data[$field] = intval($data[$field]);
+            }
+        }
+        
+        foreach ($bool_fields as $field) {
+            if (isset($data[$field])) {
+                $insert_data[$field] = $data[$field] ? 1 : 0;
+            }
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_services';
+        
+        try {
+            $result = $wpdb->insert($table_name, $insert_data);
+            
+            if ($result === false) {
+                wp_send_json_error('Database insert failed: ' . $wpdb->last_error);
+                return;
+            }
+            
+            $new_id = $wpdb->insert_id;
+            wp_send_json_success(array(
+                'message' => 'Service created successfully',
+                'id' => $new_id
+            ));
+        } catch (Exception $e) {
+            wp_send_json_error('Error creating service: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Get image URL by ID for services
+     */
+    public function rup_services_get_image_url() {
+        check_ajax_referer('rup_services_nonce', 'nonce');
         
         if (!current_user_can('manage_options')) {
             wp_die('Unauthorized');
