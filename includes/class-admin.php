@@ -98,6 +98,43 @@ class Snefuru_Admin {
             'snefuruplin-bespoke-css-1',
             array($this, 'bespoke_css_editor_page')
         );
+        
+        // New Ruplin pages
+        add_submenu_page(
+            'snefuru',
+            'rup_locations_mar',
+            'rup_locations_mar',
+            'manage_options',
+            'rup_locations_mar',
+            array($this, 'rup_locations_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_services_mar',
+            'rup_services_mar',
+            'manage_options',
+            'rup_services_mar',
+            array($this, 'rup_services_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_service_tags_mar',
+            'rup_service_tags_mar',
+            'manage_options',
+            'rup_service_tags_mar',
+            array($this, 'rup_service_tags_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_location_tags_mar',
+            'rup_location_tags_mar',
+            'manage_options',
+            'rup_location_tags_mar',
+            array($this, 'rup_location_tags_mar_page')
+        );
     }
     
     /**
@@ -1403,5 +1440,41 @@ class Snefuru_Admin {
             </style>
         </div>
         <?php
+    }
+    
+    /**
+     * rup_locations_mar page
+     */
+    public function rup_locations_mar_page() {
+        echo '<div class="wrap">';
+        echo '<h1><strong>rup_locations_mar</strong></h1>';
+        echo '</div>';
+    }
+    
+    /**
+     * rup_services_mar page
+     */
+    public function rup_services_mar_page() {
+        echo '<div class="wrap">';
+        echo '<h1><strong>rup_services_mar</strong></h1>';
+        echo '</div>';
+    }
+    
+    /**
+     * rup_service_tags_mar page
+     */
+    public function rup_service_tags_mar_page() {
+        echo '<div class="wrap">';
+        echo '<h1><strong>rup_service_tags_mar</strong></h1>';
+        echo '</div>';
+    }
+    
+    /**
+     * rup_location_tags_mar page
+     */
+    public function rup_location_tags_mar_page() {
+        echo '<div class="wrap">';
+        echo '<h1><strong>rup_location_tags_mar</strong></h1>';
+        echo '</div>';
     }
 } 
