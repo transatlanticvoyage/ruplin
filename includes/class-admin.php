@@ -1954,9 +1954,13 @@ class Snefuru_Admin {
                 
                 editingCell = { cell: cell, id: id, field: field, originalValue: currentValue };
                 
-                let input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff;">');
+                // Preserve the copy button
+                let copyButton = cell.find('.shortcode-copy-btn').detach();
+                
+                let input = $('<input type="text" style="width: calc(100% - 12px); padding: 4px; border: 1px solid #0073aa; background: #fff;">');
                 input.val(currentValue);
                 cell.empty().append(input);
+                cell.append(copyButton); // Re-add the copy button
                 input.focus().select();
                 
                 input.keydown(function(e) {
@@ -1984,14 +1988,20 @@ class Snefuru_Admin {
                     dataItem[editingCell.field] = newValue;
                 }
                 
+                // Preserve the copy button
+                let copyButton = editingCell.cell.find('.shortcode-copy-btn').detach();
                 editingCell.cell.empty().text(newValue);
+                editingCell.cell.append(copyButton); // Re-add the copy button
                 editingCell = null;
             }
             
             function cancelInlineEdit() {
                 if (!editingCell) return;
                 
+                // Preserve the copy button
+                let copyButton = editingCell.cell.find('.shortcode-copy-btn').detach();
                 editingCell.cell.empty().text(editingCell.originalValue);
+                editingCell.cell.append(copyButton); // Re-add the copy button
                 editingCell = null;
             }
             
@@ -2777,15 +2787,19 @@ class Snefuru_Admin {
                 
                 editingCell = { cell: cell, id: id, field: field, originalValue: currentValue };
                 
+                // Preserve the copy button
+                let copyButton = cell.find('.shortcode-copy-btn').detach();
+                
                 let input;
                 if (field === 'description1_short' || field === 'description1_long') {
-                    input = $('<textarea style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff; min-height: 60px; resize: vertical;"></textarea>');
+                    input = $('<textarea style="width: calc(100% - 12px); padding: 4px; border: 1px solid #0073aa; background: #fff; min-height: 60px; resize: vertical;"></textarea>');
                 } else {
-                    input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff;">');
+                    input = $('<input type="text" style="width: calc(100% - 12px); padding: 4px; border: 1px solid #0073aa; background: #fff;">');
                 }
                 
                 input.val(currentValue);
                 cell.empty().append(input);
+                cell.append(copyButton); // Re-add the copy button
                 input.focus().select();
                 
                 input.keydown(function(e) {
@@ -2821,7 +2835,10 @@ class Snefuru_Admin {
                     editingCell.cell.attr('title', newValue);
                 }
                 
+                // Preserve the copy button
+                let copyButton = editingCell.cell.find('.shortcode-copy-btn').detach();
                 editingCell.cell.empty().text(displayValue);
+                editingCell.cell.append(copyButton); // Re-add the copy button
                 editingCell = null;
             }
             
@@ -2834,7 +2851,10 @@ class Snefuru_Admin {
                     editingCell.cell.attr('title', editingCell.originalValue);
                 }
                 
+                // Preserve the copy button
+                let copyButton = editingCell.cell.find('.shortcode-copy-btn').detach();
                 editingCell.cell.empty().text(displayValue);
+                editingCell.cell.append(copyButton); // Re-add the copy button
                 editingCell = null;
             }
             
