@@ -53,9 +53,13 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
     }
     
     private function init_hooks() {
+        // Check and update database schema if needed
+        Ruplin_WP_Database_Horse_Class::check_database_version();
+        
         // Initialize components
         new Snefuru_API_Client();
         new Snefuru_Data_Collector();
@@ -76,6 +80,9 @@ class SnefuruPlugin {
     public function activate() {
         // Create database tables if needed
         $this->create_tables();
+        
+        // Create zen tables
+        Ruplin_WP_Database_Horse_Class::create_tables();
         
         // Schedule recurring events
         if (!wp_next_scheduled('snefuru_sync_data')) {

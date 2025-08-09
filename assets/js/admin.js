@@ -66,4 +66,40 @@ jQuery(document).ready(function($) {
         });
     });
     
+    // Rebuild Zen Tables button
+    $('#rebuild-zen-tables').on('click', function(e) {
+        e.preventDefault();
+        
+        if (!confirm('This will rebuild the _zen_services and _zen_locations tables. Continue?')) {
+            return;
+        }
+        
+        var $button = $(this);
+        var originalText = $button.text();
+        
+        $button.text('Rebuilding...').prop('disabled', true);
+        
+        $.ajax({
+            url: snefuru_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'snefuru_rebuild_zen_tables',
+                nonce: snefuru_ajax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Success: ' + response.data.message);
+                } else {
+                    alert('Error: ' + (response.data.message || 'Failed to rebuild tables'));
+                }
+            },
+            error: function() {
+                alert('Failed to rebuild tables. Please check server logs.');
+            },
+            complete: function() {
+                $button.text(originalText).prop('disabled', false);
+            }
+        });
+    });
+    
 }); 

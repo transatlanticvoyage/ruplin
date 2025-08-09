@@ -15,6 +15,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_clear_logs', array($this, 'clear_logs'));
         add_action('wp_ajax_snefuru_save_api_key', array($this, 'save_api_key'));
         add_action('wp_ajax_snefuru_clear_update_debug', array($this, 'clear_update_debug'));
+        add_action('wp_ajax_snefuru_rebuild_zen_tables', array($this, 'rebuild_zen_tables'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -225,6 +226,7 @@ class Snefuru_Admin {
                         <button type="button" class="button button-primary" id="sync-now">Sync Now</button>
                         <button type="button" class="button button-secondary" onclick="location.href='<?php echo admin_url('admin.php?page=snefuru-settings'); ?>'">Settings</button>
                         <button type="button" class="button button-secondary" onclick="location.href='<?php echo admin_url('admin.php?page=snefuru-logs'); ?>'">View Logs</button>
+                        <button type="button" class="button button-secondary" id="rebuild-zen-tables">Rebuild Zen Tables</button>
                     </div>
                 </div>
                 
@@ -812,6 +814,42 @@ class Snefuru_Admin {
         } else {
             // Still save the key but warn about connection
             wp_send_json_success(array('message' => 'API key saved. Warning: Could not verify connection with this key.'));
+        }
+    }
+    
+    /**
+     * AJAX: Rebuild Zen Tables
+     */
+    public function rebuild_zen_tables() {
+        check_ajax_referer('snefuru_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        try {
+            // Include the database class if not already loaded
+            if (!class_exists('Ruplin_WP_Database_Horse_Class')) {
+                require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
+            }
+            
+            // Create/rebuild the tables
+            Ruplin_WP_Database_Horse_Class::create_tables();
+            
+            // Check if tables exist to verify success
+            if (Ruplin_WP_Database_Horse_Class::tables_exist()) {
+                wp_send_json_success(array(
+                    'message' => 'Zen tables rebuilt successfully! Tables _zen_services and _zen_locations are ready.'
+                ));
+            } else {
+                wp_send_json_error(array(
+                    'message' => 'Tables were processed but verification failed. Please check database permissions.'
+                ));
+            }
+        } catch (Exception $e) {
+            wp_send_json_error(array(
+                'message' => 'Error rebuilding tables: ' . $e->getMessage()
+            ));
         }
     }
     
