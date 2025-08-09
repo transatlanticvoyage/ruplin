@@ -1925,7 +1925,7 @@ class Snefuru_Admin {
                         }
                         
                         // Add shortcode copy button to all cells
-                        let copyButton = $('<div class="shortcode-copy-btn" style="display: none; position: absolute; top: 0; right: 0; width: 30px; height: 100%; background: white; border: 1px solid #999; z-index: 10; cursor: pointer; font-size: 14px; color: #666; display: flex; align-items: center; justify-content: center;">SH</div>');
+                        let copyButton = $('<div class="shortcode-copy-btn" style="position: absolute; top: 0; right: 0; width: 10px; height: 100%; background: white; border: 1px solid #999; z-index: 10; cursor: pointer; font-size: 11px; color: #666; display: flex; align-items: center; justify-content: center;">SH</div>');
                         
                         copyButton.hover(function() {
                             $(this).css('background-color', '#ffeb3b');
@@ -1941,13 +1941,6 @@ class Snefuru_Admin {
                         });
                         
                         td.append(copyButton);
-                        
-                        // Show/hide copy button on hover
-                        td.hover(function() {
-                            $(this).find('.shortcode-copy-btn').show();
-                        }, function() {
-                            $(this).find('.shortcode-copy-btn').hide();
-                        });
                         
                         tr.append(td);
                     });
@@ -2755,7 +2748,7 @@ class Snefuru_Admin {
                         }
                         
                         // Add shortcode copy button to all cells
-                        let copyButton = $('<div class="shortcode-copy-btn" style="display: none; position: absolute; top: 0; right: 0; width: 30px; height: 100%; background: white; border: 1px solid #999; z-index: 10; cursor: pointer; font-size: 14px; color: #666; display: flex; align-items: center; justify-content: center;">SH</div>');
+                        let copyButton = $('<div class="shortcode-copy-btn" style="position: absolute; top: 0; right: 0; width: 10px; height: 100%; background: white; border: 1px solid #999; z-index: 10; cursor: pointer; font-size: 11px; color: #666; display: flex; align-items: center; justify-content: center;">SH</div>');
                         
                         copyButton.hover(function() {
                             $(this).css('background-color', '#ffeb3b');
@@ -2771,13 +2764,6 @@ class Snefuru_Admin {
                         });
                         
                         td.append(copyButton);
-                        
-                        // Show/hide copy button on hover
-                        td.hover(function() {
-                            $(this).find('.shortcode-copy-btn').show();
-                        }, function() {
-                            $(this).find('.shortcode-copy-btn').hide();
-                        });
                         
                         tr.append(td);
                     });
