@@ -1529,9 +1529,19 @@ class Snefuru_Admin {
         // Enqueue WordPress media scripts
         wp_enqueue_media();
         
+        // Suppress all admin notices except those directly related to this page
+        add_action('admin_print_scripts', function() {
+            remove_all_actions('admin_notices');
+            remove_all_actions('all_admin_notices');
+        });
+        
         ?>
-        <div class="wrap" style="margin: 0; padding: 20px;">
-            <h1 style="margin-bottom: 20px;">📍 Zen Locations Manager</h1>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">📍 Zen Locations Manager</h1>
             
             <!-- Control Bar -->
             <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
@@ -1702,6 +1712,7 @@ class Snefuru_Admin {
                     </div>
                 </form>
             </div>
+            </div> <!-- Close padding wrapper -->
         </div>
 
         <script type="text/javascript">
@@ -2370,9 +2381,19 @@ class Snefuru_Admin {
         // Enqueue WordPress media scripts
         wp_enqueue_media();
         
+        // Suppress all admin notices except those directly related to this page
+        add_action('admin_print_scripts', function() {
+            remove_all_actions('admin_notices');
+            remove_all_actions('all_admin_notices');
+        });
+        
         ?>
-        <div class="wrap" style="margin: 0; padding: 20px;">
-            <h1 style="margin-bottom: 20px;">🔧 Zen Services Manager</h1>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">🔧 Zen Services Manager</h1>
             
             <!-- Control Bar -->
             <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
@@ -2528,6 +2549,7 @@ class Snefuru_Admin {
                     </div>
                 </form>
             </div>
+            </div> <!-- Close padding wrapper -->
         </div>
 
         <script type="text/javascript">
