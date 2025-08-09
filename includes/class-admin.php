@@ -1857,7 +1857,7 @@ class Snefuru_Admin {
                     ['location_id', 'location_name', 'location_placard', 'location_moniker', 
                      'location_sobriquet', 'street', 'city', 'state_code', 'zip_code', 
                      'country', 'rel_image1_id', 'pick_image1', 'is_pinned_location', 'position_in_custom_order'].forEach(function(field) {
-                        let td = $('<td style="padding: 8px; border: 1px solid #ddd;"></td>');
+                        let td = $('<td style="padding: 8px; border: 1px solid #ddd; position: relative;"></td>');
                         
                         if (field === 'is_pinned_location') {
                             // Boolean toggle switch
@@ -1923,6 +1923,31 @@ class Snefuru_Admin {
                                 });
                             }
                         }
+                        
+                        // Add shortcode copy button to all cells
+                        let copyButton = $('<div class="shortcode-copy-btn" style="display: none; position: absolute; top: 0; right: 0; width: 30px; height: 100%; background: white; border: 1px solid #999; z-index: 10; cursor: pointer; font-size: 14px; color: #666; display: flex; align-items: center; justify-content: center;">SH</div>');
+                        
+                        copyButton.hover(function() {
+                            $(this).css('background-color', '#ffeb3b');
+                        }, function() {
+                            $(this).css('background-color', 'white');
+                        });
+                        
+                        copyButton.click(function(e) {
+                            e.stopPropagation();
+                            let shortcode = generateLocationShortcode(field, row);
+                            copyToClipboard(shortcode);
+                            showCopySuccess($(this));
+                        });
+                        
+                        td.append(copyButton);
+                        
+                        // Show/hide copy button on hover
+                        td.hover(function() {
+                            $(this).find('.shortcode-copy-btn').show();
+                        }, function() {
+                            $(this).find('.shortcode-copy-btn').hide();
+                        });
                         
                         tr.append(td);
                     });
@@ -2264,6 +2289,63 @@ class Snefuru_Admin {
                     }
                 });
             }
+            
+            // Shortcode generation functions
+            function generateLocationShortcode(field, row) {
+                let locationId = row.location_id;
+                
+                if (field === 'location_id') {
+                    return '[zen_location id="' + locationId + '"]';
+                } else if (field === 'pick_image1' || field === 'rel_image1_id') {
+                    return '[zen_location_image id="' + locationId + '" size="medium"]';
+                } else {
+                    return '[zen_location id="' + locationId + '" field="' + field + '"]';
+                }
+            }
+            
+            function copyToClipboard(text) {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).catch(function(err) {
+                        fallbackCopyTextToClipboard(text);
+                    });
+                } else {
+                    fallbackCopyTextToClipboard(text);
+                }
+            }
+            
+            function fallbackCopyTextToClipboard(text) {
+                var textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            function showCopySuccess(button) {
+                let originalText = button.text();
+                let originalBg = button.css('background-color');
+                
+                button.text('✓');
+                button.css('background-color', '#4caf50');
+                button.css('color', 'white');
+                
+                setTimeout(function() {
+                    button.text(originalText);
+                    button.css('background-color', originalBg);
+                    button.css('color', '#666');
+                }, 1000);
+            }
         });
         </script>
         <?php
@@ -2598,7 +2680,7 @@ class Snefuru_Admin {
                     ['service_id', 'service_name', 'service_placard', 'service_moniker', 
                      'service_sobriquet', 'description1_short', 'description1_long', 'rel_image1_id', 
                      'pick_image1', 'is_pinned_service', 'position_in_custom_order'].forEach(function(field) {
-                        let td = $('<td style="padding: 8px; border: 1px solid #ddd;"></td>');
+                        let td = $('<td style="padding: 8px; border: 1px solid #ddd; position: relative;"></td>');
                         
                         if (field === 'is_pinned_service') {
                             // Boolean toggle switch
@@ -2671,6 +2753,31 @@ class Snefuru_Admin {
                                 });
                             }
                         }
+                        
+                        // Add shortcode copy button to all cells
+                        let copyButton = $('<div class="shortcode-copy-btn" style="display: none; position: absolute; top: 0; right: 0; width: 30px; height: 100%; background: white; border: 1px solid #999; z-index: 10; cursor: pointer; font-size: 14px; color: #666; display: flex; align-items: center; justify-content: center;">SH</div>');
+                        
+                        copyButton.hover(function() {
+                            $(this).css('background-color', '#ffeb3b');
+                        }, function() {
+                            $(this).css('background-color', 'white');
+                        });
+                        
+                        copyButton.click(function(e) {
+                            e.stopPropagation();
+                            let shortcode = generateServiceShortcode(field, row);
+                            copyToClipboard(shortcode);
+                            showCopySuccess($(this));
+                        });
+                        
+                        td.append(copyButton);
+                        
+                        // Show/hide copy button on hover
+                        td.hover(function() {
+                            $(this).find('.shortcode-copy-btn').show();
+                        }, function() {
+                            $(this).find('.shortcode-copy-btn').hide();
+                        });
                         
                         tr.append(td);
                     });
@@ -3040,6 +3147,63 @@ class Snefuru_Admin {
                         imageElement.attr('alt', 'Error loading image');
                     }
                 });
+            }
+            
+            // Shortcode generation functions
+            function generateServiceShortcode(field, row) {
+                let serviceId = row.service_id;
+                
+                if (field === 'service_id') {
+                    return '[zen_service id="' + serviceId + '"]';
+                } else if (field === 'pick_image1' || field === 'rel_image1_id') {
+                    return '[zen_service_image id="' + serviceId + '" size="medium"]';
+                } else {
+                    return '[zen_service id="' + serviceId + '" field="' + field + '"]';
+                }
+            }
+            
+            function copyToClipboard(text) {
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).catch(function(err) {
+                        fallbackCopyTextToClipboard(text);
+                    });
+                } else {
+                    fallbackCopyTextToClipboard(text);
+                }
+            }
+            
+            function fallbackCopyTextToClipboard(text) {
+                var textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback: Oops, unable to copy', err);
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            function showCopySuccess(button) {
+                let originalText = button.text();
+                let originalBg = button.css('background-color');
+                
+                button.text('✓');
+                button.css('background-color', '#4caf50');
+                button.css('color', 'white');
+                
+                setTimeout(function() {
+                    button.text(originalText);
+                    button.css('background-color', originalBg);
+                    button.css('color', '#666');
+                }, 1000);
             }
         });
         </script>
