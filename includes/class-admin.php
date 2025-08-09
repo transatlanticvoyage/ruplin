@@ -3918,6 +3918,17 @@ class Snefuru_Admin {
                         </ul>
                     </div>
                     
+                    <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 20px; border-radius: 5px; margin-top: 30px;">
+                        <h4 style="margin-top: 0; color: #856404;">⚡ NEW: Media Library Workaround</h4>
+                        <p style="color: #856404; margin-bottom: 10px;">Can't see Dynamic Tags in Elementor? We've created a workaround!</p>
+                        <ul style="line-height: 1.6; color: #856404; margin-bottom: 0;">
+                            <li><strong>When editing in Elementor:</strong> Click "Choose Image" on any Image Box element</li>
+                            <li><strong>Look for new tabs:</strong> You'll see "🚀 Zen Services" and "📍 Zen Locations" tabs</li>
+                            <li><strong>Select your zen data:</strong> Choose from your services/locations and their images</li>
+                            <li><strong>Works without Elementor Pro:</strong> Full Dynamic Tags functionality via media library</li>
+                        </ul>
+                    </div>
+                    
                     <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #0073aa;">
                         <h4 style="color: #0073aa;">Quick Links to Data Management:</h4>
                         <ul style="line-height: 1.6;">
