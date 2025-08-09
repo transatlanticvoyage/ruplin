@@ -17,6 +17,11 @@ class Snefuru_Admin {
         add_action('wp_ajax_snefuru_clear_update_debug', array($this, 'clear_update_debug'));
         add_action('wp_ajax_snefuru_rebuild_zen_tables', array($this, 'rebuild_zen_tables'));
         
+        // Locations management AJAX actions
+        add_action('wp_ajax_rup_locations_get_data', array($this, 'rup_locations_get_data'));
+        add_action('wp_ajax_rup_locations_update_field', array($this, 'rup_locations_update_field'));
+        add_action('wp_ajax_rup_locations_create', array($this, 'rup_locations_create'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
     }
@@ -1502,12 +1507,642 @@ class Snefuru_Admin {
     }
     
     /**
-     * rup_locations_mar page
+     * rup_locations_mar page - Locations Management
      */
     public function rup_locations_mar_page() {
-        echo '<div class="wrap">';
-        echo '<h1><strong>rup_locations_mar</strong></h1>';
-        echo '</div>';
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_locations';
+        
+        // Handle AJAX requests
+        if (isset($_POST['action'])) {
+            $this->handle_locations_ajax();
+            return;
+        }
+        
+        ?>
+        <div class="wrap" style="margin: 0; padding: 20px;">
+            <h1 style="margin-bottom: 20px;">📍 Zen Locations Manager</h1>
+            
+            <!-- Control Bar -->
+            <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="create-inline-btn" class="button button-primary">Create New (Inline)</button>
+                        <button id="create-popup-btn" class="button button-secondary">Create New (Popup)</button>
+                    </div>
+                </div>
+                
+                <!-- Nubra Tableface Kite -->
+                <div id="nubra-tableface-kite" style="margin-bottom: 15px;"></div>
+                
+                <!-- Pagination and Search Controls -->
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <!-- Items per page -->
+                        <div style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <button class="per-page-btn" data-value="10" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px;">10</button>
+                            <button class="per-page-btn" data-value="20" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">20</button>
+                            <button class="per-page-btn" data-value="50" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">50</button>
+                            <button class="per-page-btn active" data-value="100" style="border: none; padding: 10px 15px; background: #0073aa; color: white; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">100</button>
+                            <button class="per-page-btn" data-value="200" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">200</button>
+                            <button class="per-page-btn" data-value="500" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">500</button>
+                            <button class="per-page-btn" data-value="all" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc; border-top-right-radius: 4px; border-bottom-right-radius: 4px;">All</button>
+                        </div>
+                        
+                        <!-- Page navigation -->
+                        <div id="page-nav" style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <!-- Dynamic page buttons will go here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Search -->
+                    <div style="position: relative;">
+                        <input type="text" id="search-box" placeholder="Search locations..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 250px; font-size: 14px;">
+                        <button id="clear-search" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ffeb3b; border: none; padding: 4px 8px; font-size: 12px; font-weight: bold; border-radius: 3px; cursor: pointer;">CL</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Table -->
+            <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                <div style="overflow-x: auto;">
+                    <table id="locations-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f0f0f0; width: 50px; cursor: pointer;" onclick="toggleSelectAll()">
+                                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                                        <input type="checkbox" id="select-all" style="width: 20px; height: 20px;">
+                                    </div>
+                                </th>
+                                <th data-sort="location_id" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">location_id</th>
+                                <th data-sort="location_name" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">location_name</th>
+                                <th data-sort="location_placard" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">location_placard</th>
+                                <th data-sort="location_moniker" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">location_moniker</th>
+                                <th data-sort="location_sobriquet" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">location_sobriquet</th>
+                                <th data-sort="street" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">street</th>
+                                <th data-sort="city" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">city</th>
+                                <th data-sort="state_code" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">state_code</th>
+                                <th data-sort="zip_code" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">zip_code</th>
+                                <th data-sort="country" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">country</th>
+                                <th data-sort="rel_image1_id" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">rel_image1_id</th>
+                                <th data-sort="is_pinned_location" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">is_pinned_location</th>
+                                <th data-sort="position_in_custom_order" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; cursor: pointer; background: #f8f9fa;">position_in_custom_order</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data will be loaded here via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Bottom Pagination -->
+            <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-top: 20px; border-radius: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div id="record-info" style="font-size: 14px; color: #666;"></div>
+                        
+                        <!-- Bottom Items per page -->
+                        <div style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <button class="per-page-btn-bottom" data-value="10" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px;">10</button>
+                            <button class="per-page-btn-bottom" data-value="20" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">20</button>
+                            <button class="per-page-btn-bottom" data-value="50" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">50</button>
+                            <button class="per-page-btn-bottom active" data-value="100" style="border: none; padding: 10px 15px; background: #0073aa; color: white; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">100</button>
+                            <button class="per-page-btn-bottom" data-value="200" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">200</button>
+                            <button class="per-page-btn-bottom" data-value="500" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc;">500</button>
+                            <button class="per-page-btn-bottom" data-value="all" style="border: none; padding: 10px 15px; background: #f9f9f9; cursor: pointer; font-size: 14px; border-left: 1px solid #ccc; border-top-right-radius: 4px; border-bottom-right-radius: 4px;">All</button>
+                        </div>
+                        
+                        <!-- Bottom Page navigation -->
+                        <div id="page-nav-bottom" style="display: flex; gap: 0; border: 1px solid #ccc;">
+                            <!-- Dynamic page buttons will go here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Search -->
+                    <div style="position: relative;">
+                        <input type="text" id="search-box-bottom" placeholder="Search locations..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 250px; font-size: 14px;">
+                        <button id="clear-search-bottom" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ffeb3b; border: none; padding: 4px 8px; font-size: 12px; font-weight: bold; border-radius: 3px; cursor: pointer;">CL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Create Popup Modal -->
+        <div id="create-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; width: 600px; max-height: 80vh; overflow-y: auto;">
+                <h2 style="margin-top: 0;">Create New Location</h2>
+                <form id="create-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Location Name:</label>
+                            <input type="text" name="location_name" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Location Placard:</label>
+                            <input type="text" name="location_placard" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Location Moniker:</label>
+                            <input type="text" name="location_moniker" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Location Sobriquet:</label>
+                            <input type="text" name="location_sobriquet" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Street:</label>
+                            <input type="text" name="street" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">City:</label>
+                            <input type="text" name="city" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">State Code:</label>
+                            <input type="text" name="state_code" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Zip Code:</label>
+                            <input type="text" name="zip_code" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Country:</label>
+                            <input type="text" name="country" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Related Image ID:</label>
+                            <input type="number" name="rel_image1_id" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Position Order:</label>
+                            <input type="number" name="position_in_custom_order" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: bold;">
+                                <input type="checkbox" name="is_pinned_location" style="width: 20px; height: 20px;">
+                                Is Pinned Location
+                            </label>
+                        </div>
+                    </div>
+                    <div style="text-align: right; border-top: 1px solid #eee; padding-top: 20px;">
+                        <button type="button" id="cancel-create" style="margin-right: 10px; padding: 8px 20px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                        <button type="submit" style="padding: 8px 20px; background: #0073aa; color: white; border: none; border-radius: 4px; cursor: pointer;">Create Location</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            let currentPage = 1;
+            let itemsPerPage = 100;
+            let searchTerm = '';
+            let sortField = 'location_id';
+            let sortOrder = 'asc';
+            let selectedRows = new Set();
+            let allData = [];
+            let filteredData = [];
+            let editingCell = null;
+            
+            // Load Nubra Tableface Kite
+            loadNubraTablefaceKite();
+            
+            // Initial load
+            loadData();
+            
+            // Search functionality
+            $('#search-box, #search-box-bottom').on('input', function() {
+                searchTerm = $(this).val();
+                $('#search-box, #search-box-bottom').val(searchTerm); // Sync both search boxes
+                currentPage = 1;
+                filterAndDisplay();
+            });
+            
+            $('#clear-search, #clear-search-bottom').click(function() {
+                searchTerm = '';
+                $('#search-box, #search-box-bottom').val('');
+                currentPage = 1;
+                filterAndDisplay();
+            });
+            
+            // Per page buttons
+            $('.per-page-btn, .per-page-btn-bottom').click(function() {
+                itemsPerPage = $(this).data('value') === 'all' ? 999999 : $(this).data('value');
+                $('.per-page-btn, .per-page-btn-bottom').removeClass('active').css({'background': '#f9f9f9', 'color': 'black'});
+                $(`.per-page-btn[data-value="${$(this).data('value')}"], .per-page-btn-bottom[data-value="${$(this).data('value')}"]`).addClass('active').css({'background': '#0073aa', 'color': 'white'});
+                currentPage = 1;
+                filterAndDisplay();
+            });
+            
+            // Create buttons
+            $('#create-inline-btn').click(function() {
+                createInlineRow();
+            });
+            
+            $('#create-popup-btn').click(function() {
+                $('#create-modal').show();
+            });
+            
+            $('#cancel-create').click(function() {
+                $('#create-modal').hide();
+                $('#create-form')[0].reset();
+            });
+            
+            $('#create-form').submit(function(e) {
+                e.preventDefault();
+                createLocationPopup();
+            });
+            
+            // Load data function
+            function loadData() {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_locations_get_data',
+                        nonce: '<?php echo wp_create_nonce('rup_locations_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            allData = response.data;
+                            filterAndDisplay();
+                        }
+                    },
+                    error: function() {
+                        alert('Error loading data');
+                    }
+                });
+            }
+            
+            function loadNubraTablefaceKite() {
+                $('#nubra-tableface-kite').html('<div style="color: #666; font-size: 12px; font-style: italic; padding: 5px 0; border-left: 3px solid #0073aa; padding-left: 10px;">nubra-tableface-kite: zen_locations comprehensive management grid</div>');
+            }
+            
+            function filterAndDisplay() {
+                // Filter data
+                if (searchTerm === '') {
+                    filteredData = allData;
+                } else {
+                    filteredData = allData.filter(item => {
+                        return Object.values(item).some(value => 
+                            value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+                        );
+                    });
+                }
+                
+                // Sort data
+                filteredData.sort((a, b) => {
+                    let aVal = a[sortField] || '';
+                    let bVal = b[sortField] || '';
+                    if (sortOrder === 'asc') {
+                        return aVal > bVal ? 1 : -1;
+                    } else {
+                        return aVal < bVal ? 1 : -1;
+                    }
+                });
+                
+                displayTable();
+                updatePagination();
+                updateRecordInfo();
+            }
+            
+            function displayTable() {
+                let startIndex = (currentPage - 1) * itemsPerPage;
+                let endIndex = startIndex + itemsPerPage;
+                let pageData = filteredData.slice(startIndex, endIndex);
+                
+                let tbody = $('#table-body');
+                tbody.empty();
+                
+                pageData.forEach(function(row) {
+                    let tr = $('<tr style="cursor: pointer;"></tr>');
+                    tr.hover(function() {
+                        $(this).css('background-color', '#f9f9f9');
+                    }, function() {
+                        $(this).css('background-color', '');
+                    });
+                    
+                    // Checkbox column
+                    let checkboxTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center; cursor: pointer;"></td>');
+                    let checkbox = $('<input type="checkbox" style="width: 20px; height: 20px;">');
+                    checkbox.prop('checked', selectedRows.has(row.location_id));
+                    checkbox.change(function() {
+                        if (this.checked) {
+                            selectedRows.add(row.location_id);
+                        } else {
+                            selectedRows.delete(row.location_id);
+                        }
+                    });
+                    checkboxTd.click(function(e) {
+                        if (e.target.type !== 'checkbox') {
+                            checkbox.prop('checked', !checkbox.prop('checked')).change();
+                        }
+                    });
+                    checkboxTd.append(checkbox);
+                    tr.append(checkboxTd);
+                    
+                    // Data columns
+                    ['location_id', 'location_name', 'location_placard', 'location_moniker', 
+                     'location_sobriquet', 'street', 'city', 'state_code', 'zip_code', 
+                     'country', 'rel_image1_id', 'is_pinned_location', 'position_in_custom_order'].forEach(function(field) {
+                        let td = $('<td style="padding: 8px; border: 1px solid #ddd;"></td>');
+                        
+                        if (field === 'is_pinned_location') {
+                            // Boolean toggle switch
+                            let toggleSwitch = $('<label style="position: relative; display: inline-block; width: 50px; height: 24px;"><input type="checkbox" style="opacity: 0; width: 0; height: 0;"><span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;"></span></label>');
+                            let checkbox = toggleSwitch.find('input');
+                            let slider = toggleSwitch.find('span');
+                            
+                            checkbox.prop('checked', row[field] == 1);
+                            if (row[field] == 1) {
+                                slider.css('background-color', '#2196F3');
+                                slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 26px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
+                            } else {
+                                slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
+                            }
+                            
+                            checkbox.change(function() {
+                                updateField(row.location_id, field, this.checked ? 1 : 0);
+                                row[field] = this.checked ? 1 : 0;
+                            });
+                            
+                            td.append(toggleSwitch);
+                        } else {
+                            // Text field
+                            let value = row[field] || '';
+                            td.text(value);
+                            
+                            if (field !== 'location_id') { // Don't allow editing ID
+                                td.attr('data-field', field);
+                                td.attr('data-id', row.location_id);
+                                td.css('cursor', 'text');
+                                td.click(function() {
+                                    startInlineEdit($(this), value, row.location_id, field);
+                                });
+                            }
+                        }
+                        
+                        tr.append(td);
+                    });
+                    
+                    tbody.append(tr);
+                });
+            }
+            
+            function startInlineEdit(cell, currentValue, id, field) {
+                if (editingCell) return; // Only one cell at a time
+                
+                editingCell = { cell: cell, id: id, field: field, originalValue: currentValue };
+                
+                let input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff;">');
+                input.val(currentValue);
+                cell.empty().append(input);
+                input.focus().select();
+                
+                input.keydown(function(e) {
+                    if (e.key === 'Enter') {
+                        saveInlineEdit();
+                    } else if (e.key === 'Escape') {
+                        cancelInlineEdit();
+                    }
+                });
+                
+                input.blur(function() {
+                    saveInlineEdit();
+                });
+            }
+            
+            function saveInlineEdit() {
+                if (!editingCell) return;
+                
+                let newValue = editingCell.cell.find('input').val();
+                updateField(editingCell.id, editingCell.field, newValue);
+                
+                // Update local data
+                let dataItem = allData.find(item => item.location_id == editingCell.id);
+                if (dataItem) {
+                    dataItem[editingCell.field] = newValue;
+                }
+                
+                editingCell.cell.empty().text(newValue);
+                editingCell = null;
+            }
+            
+            function cancelInlineEdit() {
+                if (!editingCell) return;
+                
+                editingCell.cell.empty().text(editingCell.originalValue);
+                editingCell = null;
+            }
+            
+            function updateField(id, field, value) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_locations_update_field',
+                        nonce: '<?php echo wp_create_nonce('rup_locations_nonce'); ?>',
+                        id: id,
+                        field: field,
+                        value: value
+                    },
+                    success: function(response) {
+                        if (!response.success) {
+                            alert('Error updating field: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating field');
+                    }
+                });
+            }
+            
+            function createInlineRow() {
+                let tbody = $('#table-body');
+                let newRow = $('<tr style="background: #ffffcc; border: 2px solid #0073aa;"></tr>');
+                
+                // Create empty row with inputs
+                // Checkbox
+                let checkboxTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                checkboxTd.append('<input type="checkbox" style="width: 20px; height: 20px;" disabled>');
+                newRow.append(checkboxTd);
+                
+                // Location ID (auto-generated)
+                newRow.append('<td style="padding: 8px; border: 1px solid #ddd; color: #999;">(auto)</td>');
+                
+                // Other fields
+                ['location_name', 'location_placard', 'location_moniker', 'location_sobriquet', 
+                 'street', 'city', 'state_code', 'zip_code', 'country', 'rel_image1_id', 
+                 'position_in_custom_order'].forEach(function(field) {
+                    let td = $('<td style="padding: 4px; border: 1px solid #ddd;"></td>');
+                    let input;
+                    if (field === 'rel_image1_id' || field === 'position_in_custom_order') {
+                        input = $('<input type="number" style="width: 100%; padding: 4px; border: 1px solid #ccc;">');
+                    } else {
+                        input = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #ccc;">');
+                    }
+                    input.attr('name', field);
+                    td.append(input);
+                    newRow.append(td);
+                });
+                
+                // Boolean field
+                let boolTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                boolTd.append('<input type="checkbox" name="is_pinned_location" style="width: 20px; height: 20px;">');
+                newRow.append(boolTd);
+                
+                // Add save/cancel buttons
+                let actionTd = $('<td colspan="2" style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                actionTd.append('<button onclick="saveInlineRow(this)" style="margin-right: 5px; padding: 4px 12px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer;">Save</button>');
+                actionTd.append('<button onclick="cancelInlineRow(this)" style="padding: 4px 12px; background: #666; color: white; border: none; border-radius: 3px; cursor: pointer;">Cancel</button>');
+                newRow.append(actionTd);
+                
+                tbody.prepend(newRow);
+            }
+            
+            window.saveInlineRow = function(btn) {
+                let row = $(btn).closest('tr');
+                let formData = {};
+                
+                row.find('input[name]').each(function() {
+                    let field = $(this).attr('name');
+                    let value = $(this).val();
+                    if ($(this).attr('type') === 'checkbox') {
+                        value = $(this).is(':checked') ? 1 : 0;
+                    }
+                    formData[field] = value;
+                });
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_locations_create',
+                        nonce: '<?php echo wp_create_nonce('rup_locations_nonce'); ?>',
+                        data: formData
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            loadData(); // Reload all data
+                        } else {
+                            alert('Error creating location: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error creating location');
+                    }
+                });
+            };
+            
+            window.cancelInlineRow = function(btn) {
+                $(btn).closest('tr').remove();
+            };
+            
+            function createLocationPopup() {
+                let formData = {};
+                $('#create-form input').each(function() {
+                    let field = $(this).attr('name');
+                    let value = $(this).val();
+                    if ($(this).attr('type') === 'checkbox') {
+                        value = $(this).is(':checked') ? 1 : 0;
+                    }
+                    formData[field] = value;
+                });
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_locations_create',
+                        nonce: '<?php echo wp_create_nonce('rup_locations_nonce'); ?>',
+                        data: formData
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#create-modal').hide();
+                            $('#create-form')[0].reset();
+                            loadData();
+                        } else {
+                            alert('Error creating location: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error creating location');
+                    }
+                });
+            }
+            
+            function updatePagination() {
+                let totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                let pageNav = $('#page-nav, #page-nav-bottom');
+                pageNav.empty();
+                
+                for (let i = 1; i <= totalPages && i <= 20; i++) {
+                    let btn = $('<button>' + i + '</button>');
+                    btn.css({
+                        'border': 'none',
+                        'padding': '10px 15px',
+                        'background': i === currentPage ? '#0073aa' : '#f9f9f9',
+                        'color': i === currentPage ? 'white' : 'black',
+                        'cursor': 'pointer',
+                        'font-size': '14px'
+                    });
+                    
+                    if (i > 1) {
+                        btn.css('border-left', '1px solid #ccc');
+                    }
+                    
+                    btn.click(function() {
+                        currentPage = i;
+                        filterAndDisplay();
+                    });
+                    
+                    pageNav.append(btn);
+                }
+            }
+            
+            function updateRecordInfo() {
+                let start = (currentPage - 1) * itemsPerPage + 1;
+                let end = Math.min(currentPage * itemsPerPage, filteredData.length);
+                let info = start + '-' + end + ' of ' + filteredData.length + ' locations';
+                if (selectedRows.size > 0) {
+                    info += ' (' + selectedRows.size + ' selected)';
+                }
+                $('#record-info').text(info);
+            }
+            
+            // Select all functionality
+            window.toggleSelectAll = function() {
+                let selectAll = $('#select-all');
+                let isChecked = !selectAll.prop('checked');
+                selectAll.prop('checked', isChecked);
+                
+                if (isChecked) {
+                    filteredData.forEach(function(item) {
+                        selectedRows.add(item.location_id);
+                    });
+                } else {
+                    selectedRows.clear();
+                }
+                
+                filterAndDisplay();
+            };
+            
+            // Sort functionality
+            $('th[data-sort]').click(function() {
+                let field = $(this).data('sort');
+                if (sortField === field) {
+                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortField = field;
+                    sortOrder = 'asc';
+                }
+                filterAndDisplay();
+            });
+        });
+        </script>
+        <?php
     }
     
     /**
@@ -1601,5 +2236,153 @@ class Snefuru_Admin {
         });
         </script>
         <?php
+    }
+    
+    /**
+     * AJAX: Get locations data
+     */
+    public function rup_locations_get_data() {
+        check_ajax_referer('rup_locations_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_locations';
+        
+        try {
+            $results = $wpdb->get_results("SELECT * FROM $table_name ORDER BY location_id ASC", ARRAY_A);
+            
+            if ($wpdb->last_error) {
+                wp_send_json_error('Database error: ' . $wpdb->last_error);
+                return;
+            }
+            
+            // Convert boolean values to proper format
+            foreach ($results as &$row) {
+                $row['is_pinned_location'] = (int) $row['is_pinned_location'];
+            }
+            
+            wp_send_json_success($results);
+        } catch (Exception $e) {
+            wp_send_json_error('Error loading locations: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Update location field
+     */
+    public function rup_locations_update_field() {
+        check_ajax_referer('rup_locations_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $id = intval($_POST['id']);
+        $field = sanitize_text_field($_POST['field']);
+        $value = $_POST['value'];
+        
+        // Validate field name
+        $allowed_fields = [
+            'location_name', 'location_placard', 'location_moniker', 'location_sobriquet',
+            'street', 'city', 'state_code', 'zip_code', 'country', 'rel_image1_id',
+            'is_pinned_location', 'position_in_custom_order'
+        ];
+        
+        if (!in_array($field, $allowed_fields)) {
+            wp_send_json_error('Invalid field name');
+            return;
+        }
+        
+        // Sanitize value based on field type
+        if ($field === 'rel_image1_id' || $field === 'position_in_custom_order') {
+            $value = $value === '' ? NULL : intval($value);
+        } elseif ($field === 'is_pinned_location') {
+            $value = $value ? 1 : 0;
+        } else {
+            $value = $value === '' ? NULL : sanitize_text_field($value);
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_locations';
+        
+        try {
+            $result = $wpdb->update(
+                $table_name,
+                array($field => $value),
+                array('location_id' => $id),
+                null,
+                array('%d')
+            );
+            
+            if ($result === false) {
+                wp_send_json_error('Database update failed: ' . $wpdb->last_error);
+                return;
+            }
+            
+            wp_send_json_success('Field updated successfully');
+        } catch (Exception $e) {
+            wp_send_json_error('Error updating field: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Create new location
+     */
+    public function rup_locations_create() {
+        check_ajax_referer('rup_locations_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $data = $_POST['data'];
+        
+        // Sanitize and validate data
+        $insert_data = array();
+        
+        $text_fields = ['location_name', 'location_placard', 'location_moniker', 'location_sobriquet', 'street', 'city', 'state_code', 'zip_code', 'country'];
+        $int_fields = ['rel_image1_id', 'position_in_custom_order'];
+        $bool_fields = ['is_pinned_location'];
+        
+        foreach ($text_fields as $field) {
+            if (isset($data[$field]) && $data[$field] !== '') {
+                $insert_data[$field] = sanitize_text_field($data[$field]);
+            }
+        }
+        
+        foreach ($int_fields as $field) {
+            if (isset($data[$field]) && $data[$field] !== '') {
+                $insert_data[$field] = intval($data[$field]);
+            }
+        }
+        
+        foreach ($bool_fields as $field) {
+            if (isset($data[$field])) {
+                $insert_data[$field] = $data[$field] ? 1 : 0;
+            }
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_locations';
+        
+        try {
+            $result = $wpdb->insert($table_name, $insert_data);
+            
+            if ($result === false) {
+                wp_send_json_error('Database insert failed: ' . $wpdb->last_error);
+                return;
+            }
+            
+            $new_id = $wpdb->insert_id;
+            wp_send_json_success(array(
+                'message' => 'Location created successfully',
+                'id' => $new_id
+            ));
+        } catch (Exception $e) {
+            wp_send_json_error('Error creating location: ' . $e->getMessage());
+        }
     }
 } 
