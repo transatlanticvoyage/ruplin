@@ -3307,6 +3307,11 @@ class Snefuru_Admin {
         $table_name = $wpdb->prefix . 'zen_driggs';
         $current_site_url = get_site_url();
         
+        // Check if zen_driggs table exists, create if not
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            $this->create_zen_driggs_table();
+        }
+        
         // Handle AJAX requests
         if (isset($_POST['action'])) {
             $this->handle_driggs_ajax();
@@ -4755,5 +4760,67 @@ class Snefuru_Admin {
                 });
             </script>';
         });
+    }
+    
+    /**
+     * Create zen_driggs table if it doesn't exist
+     */
+    private function create_zen_driggs_table() {
+        global $wpdb;
+        
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        // Create zen_driggs table (site-specific driggs data)
+        $zen_driggs_table = $wpdb->prefix . 'zen_driggs';
+        $zen_driggs_sql = "CREATE TABLE $zen_driggs_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            site_url varchar(255) NOT NULL,
+            driggs_industry text,
+            driggs_city text,
+            driggs_brand_name text,
+            driggs_site_type_purpose text,
+            driggs_email_1 varchar(255),
+            driggs_address_full text,
+            driggs_phone_1 varchar(20),
+            driggs_special_note_for_ai_tool text,
+            driggs_phone1_platform_id int(11),
+            driggs_cgig_id int(11),
+            driggs_revenue_goal int(11),
+            driggs_address_species_id int(11),
+            driggs_citations_done tinyint(1) DEFAULT 0,
+            is_competitor tinyint(1) DEFAULT 0,
+            is_external tinyint(1) DEFAULT 0,
+            is_internal tinyint(1) DEFAULT 0,
+            is_ppx tinyint(1) DEFAULT 0,
+            is_ms tinyint(1) DEFAULT 0,
+            is_wayback_rebuild tinyint(1) DEFAULT 0,
+            is_naked_wp_build tinyint(1) DEFAULT 0,
+            is_rnr tinyint(1) DEFAULT 0,
+            is_aff tinyint(1) DEFAULT 0,
+            is_other1 tinyint(1) DEFAULT 0,
+            is_other2 tinyint(1) DEFAULT 0,
+            is_flylocal tinyint(1) DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY site_url (site_url)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($zen_driggs_sql);
+        
+        // Create default driggs record for current site
+        $current_site_url = get_site_url();
+        $existing_driggs = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $zen_driggs_table WHERE site_url = %s", $current_site_url));
+        if ($existing_driggs == 0) {
+            $wpdb->insert(
+                $zen_driggs_table,
+                array(
+                    'site_url' => $current_site_url,
+                    'driggs_brand_name' => get_bloginfo('name'),
+                    'driggs_email_1' => get_option('admin_email')
+                )
+            );
+        }
     }
 } 
