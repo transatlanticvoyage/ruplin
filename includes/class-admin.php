@@ -201,6 +201,15 @@ class Snefuru_Admin {
         
         add_submenu_page(
             'snefuru',
+            'rup_pantheon_mar',
+            'rup_pantheon_mar',
+            'manage_options',
+            'rup_pantheon_mar',
+            array($this, 'rup_pantheon_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
             'rup_horse_class_page',
             'rup_horse_class_page',
             'manage_options',
@@ -4113,6 +4122,409 @@ class Snefuru_Admin {
                         }
                     });
                 }
+            });
+            
+            // Initialize
+            updateSelectionCount();
+        });
+        </script>
+        <?php
+    }
+    
+    /**
+     * rup_pantheon_mar page - Pantheon Table Management
+     */
+    public function rup_pantheon_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION
+        $this->suppress_all_admin_notices();
+        
+        ?>
+        <div class="wrap">
+            <h1><strong>rup_pantheon_mar</strong></h1>
+            <p>Pantheon Table - Manage turtle entities and related parameters</p>
+            
+            <!-- Search and Filter Controls -->
+            <div style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 6px;">
+                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <label><strong>Search:</strong></label>
+                    <input type="text" id="pantheon-search" placeholder="Search descriptions..." style="padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 250px;">
+                    
+                    <label><strong>Filter Type:</strong></label>
+                    <select id="pantheon-filter-type" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px;">
+                        <option value="">All Types</option>
+                        <option value="chen">Chen Pages</option>
+                        <option value="sitejar4">SiteJar4</option>
+                        <option value="driggsman">Driggsman</option>
+                        <option value="gcjar1">GCJar1</option>
+                        <option value="nwjar1">NWJar1</option>
+                    </select>
+                    
+                    <button type="button" id="pantheon-clear-filters" class="button">Clear Filters</button>
+                </div>
+            </div>
+            
+            <!-- Bulk Actions -->
+            <div style="margin: 20px 0; padding: 15px; background: #fff; border: 2px solid #0073aa; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button type="button" id="pantheon-process-selected" class="button button-primary" style="background: linear-gradient(135deg, #0073aa 0%, #005177 100%); padding: 10px 20px; font-weight: 600;">
+                        🚀 Process Selected Items
+                    </button>
+                    <span id="pantheon-selection-count" style="color: #666; font-weight: 500;">0 items selected</span>
+                    <button type="button" id="pantheon-select-all" class="button" style="margin-left: auto;">Select All Visible</button>
+                    <button type="button" id="pantheon-deselect-all" class="button">Deselect All</button>
+                </div>
+            </div>
+            
+            <!-- Pantheon Table -->
+            <div style="background: white; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+                <table class="wp-list-table widefat fixed striped" id="pantheon-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" id="pantheon-select-all-checkbox" style="transform: scale(1.2);">
+                            </th>
+                            <th style="padding: 12px; font-weight: 600;">Description</th>
+                            <th style="width: 150px; text-align: center; padding: 12px;">Name</th>
+                            <th style="width: 150px; text-align: center; padding: 12px;">ID Code of Turtle</th>
+                            <th style="width: 200px; text-align: center; padding: 12px;">Related Entities</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-type="chen" data-description="open chen page">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="chen-1" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open chen page</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Navigate to chen administration interface
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #2271b1; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    CHEN-1
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_chen_01
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                admin_interface, navigation
+                            </td>
+                        </tr>
+                        
+                        <tr data-type="chen" data-description="open chen page">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="chen-2" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open chen page</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Navigate to chen administration interface
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #2271b1; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    CHEN-2
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_chen_02
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                admin_interface, navigation
+                            </td>
+                        </tr>
+                        
+                        <tr data-type="chen" data-description="open chen page">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="chen-3" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open chen page</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Navigate to chen administration interface
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #2271b1; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    CHEN-3
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_chen_03
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                admin_interface, navigation
+                            </td>
+                        </tr>
+                        
+                        <tr data-type="sitejar4" data-description="open /sitejar4?PARAMETER">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="sitejar4-1" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open /sitejar4?PARAMETER</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Access SiteJar4 with dynamic parameter
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #00a32a; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    SITEJAR4
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_sitejar4_01
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                parameter_handler, site_access
+                            </td>
+                        </tr>
+                        
+                        <tr data-type="driggsman" data-description="open /driggsman?PARAMETER">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="driggsman-1" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open /driggsman?PARAMETER</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Access Driggsman interface with parameter
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #d63638; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    DRIGGSMAN
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_driggsman_01
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                parameter_handler, driggs_access
+                            </td>
+                        </tr>
+                        
+                        <tr data-type="gcjar1" data-description="open /gcjar1?PARAMETER">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="gcjar1-1" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open /gcjar1?PARAMETER</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Access GCJar1 interface with parameter
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #dba617; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    GCJAR1
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_gcjar1_01
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                parameter_handler, gc_access
+                            </td>
+                        </tr>
+                        
+                        <tr data-type="nwjar1" data-description="open /nwjar1?PARAMETER">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="pantheon-checkbox" value="nwjar1-1" style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">open /nwjar1?PARAMETER</strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    Access NWJar1 interface with parameter
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span style="background: #8b1538; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                                    NWJAR1
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                turtle_nwjar1_01
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666;">
+                                parameter_handler, nw_access
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Status Messages -->
+            <div id="pantheon-status-messages" style="margin-top: 20px;"></div>
+        </div>
+        
+        <style>
+        #pantheon-table tbody tr:hover {
+            background-color: #f0f8ff !important;
+        }
+        
+        .pantheon-checkbox:checked {
+            accent-color: #0073aa;
+        }
+        
+        #pantheon-table tbody tr.selected {
+            background-color: #e8f4f8 !important;
+        }
+        
+        .pantheon-status-success {
+            background: #d1eddb; 
+            color: #155724; 
+            padding: 12px; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 6px; 
+            margin: 10px 0;
+        }
+        
+        .pantheon-status-error {
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 12px; 
+            border: 1px solid #f5c6cb; 
+            border-radius: 6px; 
+            margin: 10px 0;
+        }
+        
+        .pantheon-status-processing {
+            background: #d4edda; 
+            color: #155724; 
+            padding: 12px; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 6px; 
+            margin: 10px 0;
+        }
+        </style>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            var selectedCount = 0;
+            
+            // Update selection count
+            function updateSelectionCount() {
+                selectedCount = $('.pantheon-checkbox:checked').length;
+                $('#pantheon-selection-count').text(selectedCount + ' items selected');
+                $('#pantheon-process-selected').prop('disabled', selectedCount === 0);
+            }
+            
+            // Handle individual checkbox changes
+            $(document).on('change', '.pantheon-checkbox', function() {
+                var $row = $(this).closest('tr');
+                if ($(this).is(':checked')) {
+                    $row.addClass('selected');
+                } else {
+                    $row.removeClass('selected');
+                }
+                updateSelectionCount();
+            });
+            
+            // Handle select all checkbox
+            $('#pantheon-select-all-checkbox').change(function() {
+                var checked = $(this).is(':checked');
+                $('#pantheon-table tbody tr:visible .pantheon-checkbox').each(function() {
+                    $(this).prop('checked', checked);
+                    var $row = $(this).closest('tr');
+                    if (checked) {
+                        $row.addClass('selected');
+                    } else {
+                        $row.removeClass('selected');
+                    }
+                });
+                updateSelectionCount();
+            });
+            
+            // Handle select all visible button
+            $('#pantheon-select-all').click(function() {
+                $('#pantheon-table tbody tr:visible .pantheon-checkbox').each(function() {
+                    $(this).prop('checked', true);
+                    $(this).closest('tr').addClass('selected');
+                });
+                updateSelectionCount();
+            });
+            
+            // Handle deselect all button
+            $('#pantheon-deselect-all').click(function() {
+                $('.pantheon-checkbox').prop('checked', false);
+                $('#pantheon-table tbody tr').removeClass('selected');
+                $('#pantheon-select-all-checkbox').prop('checked', false);
+                updateSelectionCount();
+            });
+            
+            // Search functionality
+            $('#pantheon-search').on('input', function() {
+                filterTable();
+            });
+            
+            // Filter functionality
+            $('#pantheon-filter-type').change(function() {
+                filterTable();
+            });
+            
+            // Clear filters
+            $('#pantheon-clear-filters').click(function() {
+                $('#pantheon-search').val('');
+                $('#pantheon-filter-type').val('');
+                filterTable();
+            });
+            
+            // Filter table function
+            function filterTable() {
+                var searchText = $('#pantheon-search').val().toLowerCase();
+                var typeFilter = $('#pantheon-filter-type').val();
+                
+                $('#pantheon-table tbody tr').each(function() {
+                    var $row = $(this);
+                    var description = $row.attr('data-description').toLowerCase();
+                    var type = $row.attr('data-type');
+                    
+                    var matchesSearch = searchText === '' || description.includes(searchText);
+                    var matchesType = typeFilter === '' || type === typeFilter;
+                    
+                    if (matchesSearch && matchesType) {
+                        $row.show();
+                    } else {
+                        $row.hide();
+                        // Uncheck hidden rows
+                        $row.find('.pantheon-checkbox').prop('checked', false);
+                        $row.removeClass('selected');
+                    }
+                });
+                
+                updateSelectionCount();
+            }
+            
+            // Handle process selected button
+            $('#pantheon-process-selected').click(function() {
+                var selectedItems = [];
+                $('.pantheon-checkbox:checked').each(function() {
+                    selectedItems.push({
+                        value: $(this).val(),
+                        description: $(this).closest('tr').find('td:nth-child(2) strong').text(),
+                        type: $(this).closest('tr').attr('data-type')
+                    });
+                });
+                
+                if (selectedItems.length === 0) {
+                    alert('Please select at least one item to process.');
+                    return;
+                }
+                
+                // Show processing message
+                var $statusDiv = $('#pantheon-status-messages');
+                $statusDiv.html('<div class="pantheon-status-processing">🔄 Processing ' + selectedItems.length + ' selected items...</div>');
+                
+                // Simulate processing (replace with actual AJAX call)
+                setTimeout(function() {
+                    var successHtml = '<div class="pantheon-status-success">✅ Successfully processed ' + selectedItems.length + ' items:<br>';
+                    selectedItems.forEach(function(item) {
+                        successHtml += '• ' + item.description + ' (' + item.value + ')<br>';
+                    });
+                    successHtml += '</div>';
+                    $statusDiv.html(successHtml);
+                }, 2000);
             });
             
             // Initialize

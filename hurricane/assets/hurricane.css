@@ -148,7 +148,7 @@
 .snefuru-header303-db-mapping-header {
     position: relative;
     width: 400px;
-    margin-bottom: 0;
+    margin-bottom: 40px; /* Add space for the button */
 }
 
 .snefuru-header303-db-mapping-label {
@@ -201,7 +201,7 @@
 .snefuru-header303-header {
     position: relative;
     width: 400px;
-    margin-bottom: 0;
+    margin-bottom: 40px; /* Add space for the button */
 }
 
 .snefuru-header303-label {
@@ -252,7 +252,7 @@
 .snefuru-elementor-data-header {
     position: relative;
     width: 400px;
-    margin-bottom: 0;
+    margin-bottom: 40px; /* Add space for the button */
 }
 
 .snefuru-elementor-data-label {
@@ -266,7 +266,7 @@
 
 .snefuru-copy-btn {
     position: absolute;
-    bottom: 0;
+    bottom: -40px; /* Position below the header */
     left: 0;
     width: 400px;
     padding: 10px 16px;
