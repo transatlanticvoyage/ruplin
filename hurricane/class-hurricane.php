@@ -18,6 +18,207 @@ class Snefuru_Hurricane {
     }
     
     /**
+     * Extract frontend text content from Elementor data
+     * Parses _elementor_data JSON to get clean text content with widget separation
+     */
+    private function extract_elementor_frontend_text($post_id) {
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            return 'No Elementor data found for this page.';
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            return 'Could not parse Elementor data.';
+        }
+        
+        $extracted_content = array();
+        
+        // Process each top-level element (sections/containers)
+        foreach ($elements as $element) {
+            $content = $this->process_elementor_element($element);
+            if (!empty($content)) {
+                $extracted_content[] = $content;
+            }
+        }
+        
+        // Join content with separator bars
+        return implode("\n\n———————————————————————\n\n", $extracted_content);
+    }
+    
+    /**
+     * Recursively process Elementor elements to extract text content
+     */
+    private function process_elementor_element($element) {
+        if (!is_array($element) || empty($element['elType'])) {
+            return '';
+        }
+        
+        $content_parts = array();
+        
+        // Extract content based on element type
+        $widget_content = $this->extract_widget_text($element);
+        if (!empty($widget_content)) {
+            $content_parts[] = $widget_content;
+        }
+        
+        // Process child elements recursively
+        if (!empty($element['elements']) && is_array($element['elements'])) {
+            foreach ($element['elements'] as $child_element) {
+                $child_content = $this->process_elementor_element($child_element);
+                if (!empty($child_content)) {
+                    $content_parts[] = $child_content;
+                }
+            }
+        }
+        
+        return implode("\n", array_filter($content_parts));
+    }
+    
+    /**
+     * Extract text content from specific widget types
+     */
+    private function extract_widget_text($element) {
+        if (empty($element['widgetType']) && empty($element['elType'])) {
+            return '';
+        }
+        
+        $widget_type = !empty($element['widgetType']) ? $element['widgetType'] : $element['elType'];
+        $settings = !empty($element['settings']) ? $element['settings'] : array();
+        
+        $text_content = '';
+        
+        switch ($widget_type) {
+            case 'heading':
+                if (!empty($settings['title'])) {
+                    $text_content = strip_tags($settings['title']);
+                }
+                break;
+                
+            case 'text-editor':
+                if (!empty($settings['editor'])) {
+                    $text_content = wp_strip_all_tags($settings['editor']);
+                }
+                break;
+                
+            case 'button':
+                if (!empty($settings['text'])) {
+                    $text_content = strip_tags($settings['text']);
+                }
+                break;
+                
+            case 'image':
+                $parts = array();
+                if (!empty($settings['caption'])) {
+                    $parts[] = 'Caption: ' . strip_tags($settings['caption']);
+                }
+                if (!empty($settings['alt']) && empty($settings['caption'])) {
+                    $parts[] = 'Alt: ' . strip_tags($settings['alt']);
+                }
+                $text_content = implode("\n", $parts);
+                break;
+                
+            case 'testimonial':
+                $parts = array();
+                if (!empty($settings['testimonial_content'])) {
+                    $parts[] = wp_strip_all_tags($settings['testimonial_content']);
+                }
+                if (!empty($settings['testimonial_name'])) {
+                    $parts[] = '— ' . strip_tags($settings['testimonial_name']);
+                }
+                if (!empty($settings['testimonial_job'])) {
+                    $parts[] = strip_tags($settings['testimonial_job']);
+                }
+                $text_content = implode("\n", $parts);
+                break;
+                
+            case 'icon-box':
+                $parts = array();
+                if (!empty($settings['title_text'])) {
+                    $parts[] = strip_tags($settings['title_text']);
+                }
+                if (!empty($settings['description_text'])) {
+                    $parts[] = wp_strip_all_tags($settings['description_text']);
+                }
+                $text_content = implode("\n", $parts);
+                break;
+                
+            case 'accordion':
+            case 'toggle':
+                $parts = array();
+                if (!empty($settings['tabs']) && is_array($settings['tabs'])) {
+                    foreach ($settings['tabs'] as $tab) {
+                        if (!empty($tab['tab_title'])) {
+                            $parts[] = strip_tags($tab['tab_title']);
+                        }
+                        if (!empty($tab['tab_content'])) {
+                            $parts[] = wp_strip_all_tags($tab['tab_content']);
+                        }
+                    }
+                }
+                $text_content = implode("\n", $parts);
+                break;
+                
+            case 'tabs':
+                $parts = array();
+                if (!empty($settings['tabs']) && is_array($settings['tabs'])) {
+                    foreach ($settings['tabs'] as $tab) {
+                        if (!empty($tab['tab_title'])) {
+                            $parts[] = 'Tab: ' . strip_tags($tab['tab_title']);
+                        }
+                        if (!empty($tab['tab_content'])) {
+                            $parts[] = wp_strip_all_tags($tab['tab_content']);
+                        }
+                    }
+                }
+                $text_content = implode("\n", $parts);
+                break;
+                
+            case 'html':
+                if (!empty($settings['html'])) {
+                    $text_content = wp_strip_all_tags($settings['html']);
+                }
+                break;
+                
+            case 'shortcode':
+                if (!empty($settings['shortcode'])) {
+                    // Process shortcode and extract text
+                    $shortcode_output = do_shortcode($settings['shortcode']);
+                    $text_content = wp_strip_all_tags($shortcode_output);
+                }
+                break;
+                
+            case 'spacer':
+            case 'divider':
+                // Skip spacers and dividers
+                return '';
+                
+            default:
+                // For unknown widgets, try to extract any text-like settings
+                $text_fields = array('title', 'text', 'content', 'description', 'caption');
+                $parts = array();
+                foreach ($text_fields as $field) {
+                    if (!empty($settings[$field])) {
+                        $parts[] = wp_strip_all_tags($settings[$field]);
+                    }
+                }
+                $text_content = implode("\n", $parts);
+                break;
+        }
+        
+        // Clean up whitespace
+        if (!empty($text_content)) {
+            $text_content = preg_replace('/\s+/', ' ', $text_content);
+            $text_content = trim($text_content);
+        }
+        
+        return $text_content;
+    }
+    
+    /**
      * Add Stellar Chamber element above the title bar
      */
     public function add_stellar_chamber($post) {
@@ -140,13 +341,20 @@ class Snefuru_Hurricane {
                     </button>
                 </div>
                 
-                <!-- Live Frontend Screen Button -->
+                <!-- Live Frontend Screen Button with Copy -->
                 <div style="display: flex; align-items: center; margin-left: 15px;">
                     <a href="<?php echo esc_url(get_permalink($post->ID)); ?>" 
                        target="_blank" 
-                       style="background: #0073aa; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px 0 0 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
                         livefrontend screen
                     </a>
+                    <button type="button" 
+                            class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
+                            data-copy-url="<?php echo esc_url(get_permalink($post->ID)); ?>"
+                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 0; border-radius: 0 4px 4px 0; cursor: pointer; width: 20px; font-size: 12px;"
+                            title="Copy live frontend URL">
+                        📋
+                    </button>
                 </div>
             </div>
             <div class="snefuru-stellar-tabs">
@@ -348,40 +556,12 @@ class Snefuru_Hurricane {
                                                 placeholder="Frontend text content will be displayed here"
                                                 style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
                                             ><?php 
-                                            // Get the frontend URL for this page
-                                            $frontend_url = get_permalink($post->ID);
-                                            if (!$frontend_url) {
-                                                $frontend_url = get_site_url() . '/?p=' . $post->ID;
-                                            }
+                                            // Extract frontend text content using new Elementor data parsing approach
+                                            $frontend_text_content = $this->extract_elementor_frontend_text($post->ID);
                                             
-                                            // Attempt to fetch and parse text content from frontend
-                                            $frontend_text_content = '';
-                                            if ($frontend_url) {
-                                                // Simple attempt to get text content
-                                                $response = wp_remote_get($frontend_url, array(
-                                                    'timeout' => 10,
-                                                    'sslverify' => false
-                                                ));
-                                                
-                                                if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200) {
-                                                    $html_content = wp_remote_retrieve_body($response);
-                                                    if ($html_content) {
-                                                        // Strip HTML tags and get text content
-                                                        $text_content = wp_strip_all_tags($html_content);
-                                                        // Clean up whitespace
-                                                        $text_content = preg_replace('/\s+/', ' ', $text_content);
-                                                        $text_content = trim($text_content);
-                                                        
-                                                        // Limit length for display
-                                                        if (strlen($text_content) > 5000) {
-                                                            $text_content = substr($text_content, 0, 5000) . '... [Content truncated at 5000 characters]';
-                                                        }
-                                                        
-                                                        $frontend_text_content = $text_content;
-                                                    }
-                                                } else {
-                                                    $frontend_text_content = 'Error: Could not fetch frontend content. URL: ' . $frontend_url;
-                                                }
+                                            // Limit length for display if too long
+                                            if (strlen($frontend_text_content) > 10000) {
+                                                $frontend_text_content = substr($frontend_text_content, 0, 10000) . "\n\n... [Content truncated at 10,000 characters]";
                                             }
                                             
                                             echo esc_textarea($frontend_text_content);
