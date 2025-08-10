@@ -95,6 +95,36 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         console.log('Hurricane feature initialized');
     }
     
+    // Fallback function for copying text in older browsers
+    function fallbackCopyText(text, $button) {
+        // Create a temporary textarea
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        
+        try {
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            var successful = document.execCommand('copy');
+            
+            if (successful) {
+                $button.addClass('copied');
+                setTimeout(function() {
+                    $button.removeClass('copied');
+                }, 2000);
+                console.log('URL copied using fallback method:', text);
+            } else {
+                console.error('Fallback copy failed');
+            }
+        } catch (err) {
+            console.error('Fallback copy error:', err);
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+    
     function moveHurricaneToTop() {
         // Move the Hurricane metabox to the top of the side-sortables area
         const hurricaneBox = $('#snefuru-hurricane');
@@ -133,7 +163,7 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             $('.snefuru-stellar-tab-panel[data-panel="' + tabName + '"]').addClass('active');
         });
         
-        // Handle copy button clicks
+        // Handle copy button clicks for textboxes
         $(document).off('click.copy-btn').on('click.copy-btn', '.snefuru-copy-btn', function(e) {
             e.preventDefault();
             
@@ -158,7 +188,7 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
                             $button.text(originalText).removeClass('copied');
                         }, 2000);
                         
-                        console.log('Elementor data copied to clipboard');
+                        console.log('Textbox data copied to clipboard');
                     } else {
                         console.error('Failed to copy text');
                     }
@@ -175,7 +205,7 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
                                 $button.text(originalText).removeClass('copied');
                             }, 2000);
                             
-                            console.log('Elementor data copied to clipboard (modern method)');
+                            console.log('Textbox data copied to clipboard (modern method)');
                         }).catch(function(err) {
                             console.error('Clipboard write failed:', err);
                         });
@@ -185,7 +215,38 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
                 // Deselect the text
                 window.getSelection().removeAllRanges();
             } else {
-                console.log('No Elementor data to copy');
+                console.log('No textbox data to copy');
+            }
+        });
+        
+        // Handle copy button clicks for locations URL
+        $(document).off('click.locations-copy-btn').on('click.locations-copy-btn', '.snefuru-locations-copy-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var urlToCopy = $button.data('copy-url');
+            
+            if (urlToCopy) {
+                // Try modern clipboard API first
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(urlToCopy).then(function() {
+                        $button.addClass('copied');
+                        
+                        setTimeout(function() {
+                            $button.removeClass('copied');
+                        }, 2000);
+                        
+                        console.log('Locations URL copied to clipboard:', urlToCopy);
+                    }).catch(function(err) {
+                        console.error('Clipboard write failed:', err);
+                        fallbackCopyText(urlToCopy, $button);
+                    });
+                } else {
+                    // Fallback for older browsers
+                    fallbackCopyText(urlToCopy, $button);
+                }
+            } else {
+                console.log('No URL to copy');
             }
         });
         

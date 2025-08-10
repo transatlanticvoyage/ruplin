@@ -149,7 +149,19 @@ class Snefuru_Hurricane {
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="locations">
                         <h2 class="snefuru-kepler-title">Kepler Locations</h2>
-                        <!-- Locations content will go here -->
+                        <?php
+                        // Generate the admin URL for rup_locations_mar
+                        $locations_url = admin_url('admin.php?page=rup_locations_mar');
+                        ?>
+                        <div class="snefuru-locations-button-container">
+                            <a href="<?php echo esc_url($locations_url); ?>" class="snefuru-locations-main-btn">
+                                ?page=rup_locations_mar
+                            </a>
+                            <button type="button" class="snefuru-locations-copy-btn" data-copy-url="<?php echo esc_attr($locations_url); ?>" title="Copy link to clipboard">
+                                📋
+                            </button>
+                        </div>
+                        <!-- Additional locations content will go here -->
                     </div>
                 </div>
             </div>

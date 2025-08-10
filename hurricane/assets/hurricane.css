@@ -314,6 +314,91 @@
     font-style: italic;
 }
 
+/* Locations Tab Button Styling */
+.snefuru-locations-button-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 15px;
+}
+
+.snefuru-locations-main-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 6px 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    min-height: 44px;
+    user-select: none;
+}
+
+.snefuru-locations-main-btn:hover {
+    background: linear-gradient(135deg, #3582c4 0%, #1e7bb8 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    color: white;
+    text-decoration: none;
+}
+
+.snefuru-locations-main-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.snefuru-locations-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 44px;
+    background: linear-gradient(135deg, #00a32a 0%, #008a20 100%);
+    color: white;
+    border: none;
+    border-radius: 0 6px 6px 0;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    padding: 0;
+}
+
+.snefuru-locations-copy-btn:hover {
+    background: linear-gradient(135deg, #00ba37 0%, #009626 100%);
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.snefuru-locations-copy-btn:active {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.snefuru-locations-copy-btn.copied {
+    background: linear-gradient(135deg, #46b450 0%, #3a9540 100%);
+}
+
+.snefuru-locations-copy-btn.copied::after {
+    content: "✅";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+}
+
 /* Ensure it aligns with the title field width */
 @media (min-width: 600px) {
     .snefuru-stellar-chamber {
