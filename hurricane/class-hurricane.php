@@ -113,7 +113,7 @@ class Snefuru_Hurricane {
                     <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=elementor'); ?>" 
                        target="_blank" 
                        style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
-                        elementor editor
+                        elementor screen
                     </a>
                     <button type="button" 
                             class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
@@ -148,21 +148,21 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
                         Elementor Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 50px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: center; vertical-align: middle;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
                         Gutenberg Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gut-deployer">
                         Gut. Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 50px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: center; vertical-align: middle;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
                         Nimble Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble-deployer">
                         Nimble Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 50px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: center; vertical-align: middle;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="image-freeway">
                         Image Freeway
                     </button>
@@ -314,6 +314,63 @@ class Snefuru_Hurricane {
                                                 style="flex: 1;"
                                             ><?php echo esc_textarea($formatted_data); ?></textarea>
                                             <button type="button" class="snefuru-copy-btn-right" data-target="elementor-data-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 4 Wrapper: Frontend Text Content -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation:get all text content output on frontend</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="frontend-content-textbox" 
+                                                class="snefuru-frontend-content-textbox" 
+                                                readonly
+                                                placeholder="Frontend text content will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Get the frontend URL for this page
+                                            $frontend_url = get_permalink($post->ID);
+                                            if (!$frontend_url) {
+                                                $frontend_url = get_site_url() . '/?p=' . $post->ID;
+                                            }
+                                            
+                                            // Attempt to fetch and parse text content from frontend
+                                            $frontend_text_content = '';
+                                            if ($frontend_url) {
+                                                // Simple attempt to get text content
+                                                $response = wp_remote_get($frontend_url, array(
+                                                    'timeout' => 10,
+                                                    'sslverify' => false
+                                                ));
+                                                
+                                                if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) == 200) {
+                                                    $html_content = wp_remote_retrieve_body($response);
+                                                    if ($html_content) {
+                                                        // Strip HTML tags and get text content
+                                                        $text_content = wp_strip_all_tags($html_content);
+                                                        // Clean up whitespace
+                                                        $text_content = preg_replace('/\s+/', ' ', $text_content);
+                                                        $text_content = trim($text_content);
+                                                        
+                                                        // Limit length for display
+                                                        if (strlen($text_content) > 5000) {
+                                                            $text_content = substr($text_content, 0, 5000) . '... [Content truncated at 5000 characters]';
+                                                        }
+                                                        
+                                                        $frontend_text_content = $text_content;
+                                                    }
+                                                } else {
+                                                    $frontend_text_content = 'Error: Could not fetch frontend content. URL: ' . $frontend_url;
+                                                }
+                                            }
+                                            
+                                            echo esc_textarea($frontend_text_content);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="frontend-content-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
                                                 Copy
                                             </button>
                                         </div>

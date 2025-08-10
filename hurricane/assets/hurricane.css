@@ -41,17 +41,19 @@
     width: 4px !important;
     background: #000 !important;
     height: 50px !important;
-    margin: 0 5px !important;
+    margin: 0 8px !important;
     border-radius: 2px !important;
     pointer-events: none !important;
-    display: inline-block !important;
-    align-self: center !important;
+    display: block !important;
     flex-shrink: 0 !important;
-    vertical-align: middle !important;
+    z-index: 10 !important;
+    opacity: 1 !important;
+    position: relative !important;
 }
 
 .snefuru-stellar-tab-navigation {
     display: flex;
+    align-items: center;
     border-bottom: 2px solid #b8d4f1;
     padding: 0 15px;
     background: rgba(255, 255, 255, 0.7);
