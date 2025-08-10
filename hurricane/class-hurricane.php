@@ -44,7 +44,35 @@ class Snefuru_Hurricane {
                 </div>
                 <div class="snefuru-stellar-tab-content">
                     <div class="snefuru-stellar-tab-panel active" data-panel="elementor">
-                        <!-- Elementor content will go here -->
+                        <?php
+                        // Get Elementor data for this post
+                        $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+                        $formatted_data = '';
+                        
+                        if (!empty($elementor_data)) {
+                            // Decode and pretty print the JSON for better readability
+                            $decoded = json_decode($elementor_data, true);
+                            if ($decoded !== null) {
+                                $formatted_data = json_encode($decoded, JSON_PRETTY_PRINT);
+                            } else {
+                                $formatted_data = $elementor_data;
+                            }
+                        }
+                        ?>
+                        <div class="snefuru-elementor-data-container">
+                            <div class="snefuru-elementor-data-header">
+                                <span class="snefuru-elementor-data-label">_elementor_data</span>
+                                <button type="button" class="snefuru-copy-btn" data-target="elementor-data-textbox">
+                                    Copy
+                                </button>
+                            </div>
+                            <textarea 
+                                id="elementor-data-textbox" 
+                                class="snefuru-elementor-data-textbox" 
+                                readonly
+                                placeholder="No Elementor data found for this page"
+                            ><?php echo esc_textarea($formatted_data); ?></textarea>
+                        </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="gutenberg">
                         <!-- Gutenberg content will go here -->

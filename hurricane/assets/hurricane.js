@@ -133,6 +133,62 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             $('.snefuru-stellar-tab-panel[data-panel="' + tabName + '"]').addClass('active');
         });
         
+        // Handle copy button clicks
+        $(document).off('click.copy-btn').on('click.copy-btn', '.snefuru-copy-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var targetId = $button.data('target');
+            var $textbox = $('#' + targetId);
+            
+            if ($textbox.length && $textbox.val()) {
+                // Select the text
+                $textbox[0].select();
+                $textbox[0].setSelectionRange(0, 99999); // For mobile devices
+                
+                // Copy the text
+                try {
+                    var successful = document.execCommand('copy');
+                    if (successful) {
+                        // Change button text temporarily
+                        var originalText = $button.text();
+                        $button.text('Copied!').addClass('copied');
+                        
+                        setTimeout(function() {
+                            $button.text(originalText).removeClass('copied');
+                        }, 2000);
+                        
+                        console.log('Elementor data copied to clipboard');
+                    } else {
+                        console.error('Failed to copy text');
+                    }
+                } catch (err) {
+                    console.error('Copy error:', err);
+                    
+                    // Fallback for modern browsers
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText($textbox.val()).then(function() {
+                            var originalText = $button.text();
+                            $button.text('Copied!').addClass('copied');
+                            
+                            setTimeout(function() {
+                                $button.text(originalText).removeClass('copied');
+                            }, 2000);
+                            
+                            console.log('Elementor data copied to clipboard (modern method)');
+                        }).catch(function(err) {
+                            console.error('Clipboard write failed:', err);
+                        });
+                    }
+                }
+                
+                // Deselect the text
+                window.getSelection().removeAllRanges();
+            } else {
+                console.log('No Elementor data to copy');
+            }
+        });
+        
         // Check if tabs exist
         if ($('.snefuru-stellar-tab-button').length) {
             console.log('Stellar tabs found:', $('.snefuru-stellar-tab-button').length);

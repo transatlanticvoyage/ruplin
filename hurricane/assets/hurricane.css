@@ -90,6 +90,83 @@
     display: block;
 }
 
+/* Elementor Data Display */
+.snefuru-elementor-data-container {
+    position: relative;
+    display: inline-block;
+}
+
+.snefuru-elementor-data-header {
+    position: relative;
+    width: 400px;
+    margin-bottom: 0;
+}
+
+.snefuru-elementor-data-label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1d2327;
+    margin-bottom: 5px;
+}
+
+.snefuru-copy-btn {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 400px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    color: white;
+    border: 1px solid #005a87;
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.snefuru-copy-btn:hover {
+    background: linear-gradient(135deg, #0085c7 0%, #006494 100%);
+    transform: translateY(-1px);
+}
+
+.snefuru-copy-btn:active {
+    transform: translateY(0);
+}
+
+.snefuru-copy-btn.copied {
+    background: linear-gradient(135deg, #46b450 0%, #3a9540 100%);
+}
+
+.snefuru-elementor-data-textbox {
+    width: 400px;
+    height: 100px;
+    padding: 10px;
+    margin-top: 0;
+    border: 2px solid #007cba;
+    border-radius: 0 0 4px 4px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    resize: none;
+    background: #f9f9f9;
+    color: #2c3338;
+}
+
+.snefuru-elementor-data-textbox:focus {
+    outline: none;
+    border-color: #005a87;
+    background: #fff;
+}
+
+.snefuru-elementor-data-textbox:empty::before {
+    content: attr(placeholder);
+    color: #999;
+}
+
 /* Ensure it aligns with the title field width */
 @media (min-width: 600px) {
     .snefuru-stellar-chamber {
