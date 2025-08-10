@@ -29,6 +29,41 @@ class Snefuru_Hurricane {
         <div class="snefuru-stellar-chamber">
             <div class="snefuru-stellar-chamber-header">
                 <span class="snefuru-stellar-chamber-text">Stellar Chamber</span>
+                <svg class="snefuru-rocket-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" style="display: inline-block; vertical-align: middle; margin-left: 10px; transform: rotate(-30deg);">
+                    <!-- Rocket body -->
+                    <path d="M50 10 Q60 20 60 40 L60 55 Q50 65 40 55 L40 40 Q40 20 50 10" fill="#ff6b6b" stroke="#333" stroke-width="2"/>
+                    <!-- Rocket tip -->
+                    <path d="M50 10 Q55 5 50 0 Q45 5 50 10" fill="#333"/>
+                    <!-- Rocket window -->
+                    <circle cx="50" cy="30" r="6" fill="#87ceeb" stroke="#333" stroke-width="1"/>
+                    <!-- Rocket fins -->
+                    <path d="M40 45 L30 55 L35 50 L40 50 Z" fill="#666" stroke="#333" stroke-width="1"/>
+                    <path d="M60 45 L70 55 L65 50 L60 50 Z" fill="#666" stroke="#333" stroke-width="1"/>
+                    <!-- Fire/flames -->
+                    <g class="rocket-flames">
+                        <path d="M45 55 Q42 65 43 70 Q45 68 47 70 Q48 65 45 55" fill="#ff9500" opacity="0.9">
+                            <animate attributeName="d" 
+                                values="M45 55 Q42 65 43 70 Q45 68 47 70 Q48 65 45 55;
+                                        M45 55 Q41 66 44 72 Q46 69 48 72 Q49 66 45 55;
+                                        M45 55 Q42 65 43 70 Q45 68 47 70 Q48 65 45 55"
+                                dur="0.3s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M50 55 Q48 68 50 75 Q52 68 50 55" fill="#ff4500" opacity="0.8">
+                            <animate attributeName="d" 
+                                values="M50 55 Q48 68 50 75 Q52 68 50 55;
+                                        M50 55 Q47 70 50 78 Q53 70 50 55;
+                                        M50 55 Q48 68 50 75 Q52 68 50 55"
+                                dur="0.4s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M55 55 Q58 65 57 70 Q55 68 53 70 Q52 65 55 55" fill="#ff9500" opacity="0.9">
+                            <animate attributeName="d" 
+                                values="M55 55 Q58 65 57 70 Q55 68 53 70 Q52 65 55 55;
+                                        M55 55 Q59 66 56 72 Q54 69 52 72 Q51 66 55 55;
+                                        M55 55 Q58 65 57 70 Q55 68 53 70 Q52 65 55 55"
+                                dur="0.35s" repeatCount="indefinite"/>
+                        </path>
+                    </g>
+                </svg>
             </div>
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
