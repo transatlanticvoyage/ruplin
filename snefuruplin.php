@@ -168,7 +168,67 @@ class SnefuruPlugin {
         
         dbDelta($styling_sql);
         
-        // Insert default record if table is empty
+        // Create zen_sitespren table (mirrors Supabase sitespren structure)
+        $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        $zen_sitespren_sql = "CREATE TABLE $zen_sitespren_table (
+            id varchar(36) NOT NULL,
+            wppma_db_only_created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            wppma_db_only_updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            created_at datetime DEFAULT NULL,
+            sitespren_base text,
+            true_root_domain text,
+            full_subdomain text,
+            webproperty_type text,
+            fk_users_id varchar(36),
+            updated_at datetime DEFAULT NULL,
+            wpuser1 varchar(255),
+            wppass1 varchar(255),
+            wp_plugin_installed1 tinyint(1) DEFAULT 0,
+            wp_plugin_connected2 tinyint(1) DEFAULT 0,
+            fk_domreg_hostaccount varchar(36),
+            is_wp_site tinyint(1) DEFAULT 0,
+            wp_rest_app_pass text,
+            driggs_industry text,
+            driggs_city text,
+            driggs_brand_name text,
+            driggs_site_type_purpose text,
+            driggs_email_1 text,
+            driggs_address_full text,
+            driggs_phone_1 text,
+            driggs_special_note_for_ai_tool text,
+            ns_full text,
+            ip_address text,
+            is_starred1 text,
+            icon_name varchar(50),
+            icon_color varchar(7),
+            is_bulldozer tinyint(1) DEFAULT 0,
+            driggs_phone1_platform_id int(11),
+            driggs_cgig_id int(11),
+            driggs_revenue_goal int(11),
+            driggs_address_species_id int(11),
+            is_competitor tinyint(1) DEFAULT 0,
+            is_external tinyint(1) DEFAULT 0,
+            is_internal tinyint(1) DEFAULT 0,
+            is_ppx tinyint(1) DEFAULT 0,
+            is_ms tinyint(1) DEFAULT 0,
+            is_wayback_rebuild tinyint(1) DEFAULT 0,
+            is_naked_wp_build tinyint(1) DEFAULT 0,
+            is_rnr tinyint(1) DEFAULT 0,
+            is_aff tinyint(1) DEFAULT 0,
+            is_other1 tinyint(1) DEFAULT 0,
+            is_other2 tinyint(1) DEFAULT 0,
+            driggs_citations_done tinyint(1) DEFAULT 0,
+            is_flylocal tinyint(1) DEFAULT 0,
+            PRIMARY KEY (id),
+            KEY fk_users_id (fk_users_id),
+            KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
+            KEY sitespren_base (sitespren_base(50)),
+            KEY true_root_domain (true_root_domain(50))
+        ) $charset_collate;";
+        
+        dbDelta($zen_sitespren_sql);
+        
+        // Insert default record if styling table is empty
         $existing_records = $wpdb->get_var("SELECT COUNT(*) FROM $styling_table");
         if ($existing_records == 0) {
             $site_url = get_site_url();

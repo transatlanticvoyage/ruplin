@@ -102,12 +102,24 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-/* Ensure all bold text labels are properly weighted */
-.snefuru-stellar-chamber-text,
+/* Fix all label text styling - FORCE BOLD AND 16px */
 .snefuru-header303-label,
 .snefuru-header303-db-mapping-label,
 .snefuru-elementor-data-label {
-    font-weight: 700 !important; /* Force bold with numeric weight */
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    font-weight: bold !important;
+    color: #1d2327 !important;
+    display: block !important;
+    margin-bottom: 8px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    -webkit-font-smoothing: antialiased !important;
+    text-rendering: optimizeLegibility !important;
+}
+
+/* Ensure Stellar Chamber header text stays properly styled */
+.snefuru-stellar-chamber-text {
+    font-weight: 700 !important;
     font-weight: bold !important;
 }
 
@@ -135,24 +147,27 @@
 .snefuru-header303-db-mapping-textbox {
     width: 400px;
     height: 150px;
-    padding: 10px;
+    padding: 12px;
     margin-top: 0;
-    border: 2px solid #007cba;
-    border-radius: 0 0 4px 4px;
-    font-family: monospace;
-    font-size: 11px;
-    line-height: 1.5;
+    border: 2px solid #2271b1;
+    border-radius: 0 0 8px 8px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.6;
     resize: none;
-    background: #f9f9f9;
-    color: #2c3338;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    color: #23282d;
     white-space: pre-wrap;
     word-wrap: break-word;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .snefuru-header303-db-mapping-textbox:focus {
     outline: none;
-    border-color: #005a87;
-    background: #fff;
+    border-color: #135e96;
+    background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(34, 113, 177, 0.1);
 }
 
 /* Header303 Display */
@@ -179,24 +194,27 @@
 .snefuru-header303-textbox {
     width: 400px;
     height: 100px;
-    padding: 10px;
+    padding: 12px;
     margin-top: 0;
-    border: 2px solid #007cba;
-    border-radius: 0 0 4px 4px;
-    font-family: monospace;
+    border: 2px solid #2271b1;
+    border-radius: 0 0 8px 8px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
     font-size: 12px;
     line-height: 1.6;
     resize: none;
-    background: #f9f9f9;
-    color: #2c3338;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    color: #23282d;
     white-space: pre-wrap;
     word-wrap: break-word;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .snefuru-header303-textbox:focus {
     outline: none;
-    border-color: #005a87;
-    background: #fff;
+    border-color: #135e96;
+    background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(34, 113, 177, 0.1);
 }
 
 /* Elementor Data Display */
@@ -224,56 +242,76 @@
     bottom: 0;
     left: 0;
     width: 400px;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #2271b1 0%, #135e96 100%);
     color: white;
-    border: 1px solid #005a87;
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
-    font-size: 13px;
+    border: none;
+    border-radius: 6px 6px 0 0;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.snefuru-copy-btn::before {
+    content: "📋";
+    margin-right: 6px;
+    font-size: 16px;
 }
 
 .snefuru-copy-btn:hover {
-    background: linear-gradient(135deg, #0085c7 0%, #006494 100%);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #3582c4 0%, #1e7bb8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .snefuru-copy-btn:active {
     transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .snefuru-copy-btn.copied {
-    background: linear-gradient(135deg, #46b450 0%, #3a9540 100%);
+    background: linear-gradient(135deg, #00a32a 0%, #008a20 100%);
+}
+
+.snefuru-copy-btn.copied::before {
+    content: "✅";
 }
 
 .snefuru-elementor-data-textbox {
     width: 400px;
     height: 100px;
-    padding: 10px;
+    padding: 12px;
     margin-top: 0;
-    border: 2px solid #007cba;
-    border-radius: 0 0 4px 4px;
-    font-family: monospace;
-    font-size: 12px;
-    line-height: 1.4;
+    border: 2px solid #2271b1;
+    border-radius: 0 0 8px 8px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.5;
     resize: none;
-    background: #f9f9f9;
-    color: #2c3338;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    color: #23282d;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
 }
 
 .snefuru-elementor-data-textbox:focus {
     outline: none;
-    border-color: #005a87;
-    background: #fff;
+    border-color: #135e96;
+    background: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(34, 113, 177, 0.1);
 }
 
-.snefuru-elementor-data-textbox:empty::before {
-    content: attr(placeholder);
-    color: #999;
+.snefuru-elementor-data-textbox::placeholder {
+    color: #8c8f94;
+    font-style: italic;
 }
 
 /* Ensure it aligns with the title field width */
