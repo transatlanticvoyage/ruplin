@@ -1538,6 +1538,9 @@ class Snefuru_Admin {
         global $wpdb;
         $table_name = $wpdb->prefix . 'zen_locations';
         
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Handle AJAX requests
         if (isset($_POST['action'])) {
             $this->handle_locations_ajax();
@@ -1546,12 +1549,6 @@ class Snefuru_Admin {
         
         // Enqueue WordPress media scripts
         wp_enqueue_media();
-        
-        // Suppress all admin notices except those directly related to this page
-        add_action('admin_print_scripts', function() {
-            remove_all_actions('admin_notices');
-            remove_all_actions('all_admin_notices');
-        });
         
         ?>
         <div class="wrap" style="margin: 0; padding: 0;">
@@ -3948,5 +3945,123 @@ class Snefuru_Admin {
             </div>
         </div>
         <?php
+    }
+    
+    /**
+     * Completely suppress all admin notices on specific pages
+     * Used to create clean admin interfaces without WordPress plugin warnings/notices
+     */
+    private function suppress_all_admin_notices() {
+        // Remove all admin notices immediately
+        add_action('admin_print_styles', function() {
+            // Remove all notice actions
+            remove_all_actions('admin_notices');
+            remove_all_actions('all_admin_notices');
+            remove_all_actions('network_admin_notices');
+            
+            // Remove user admin notices
+            global $wp_filter;
+            if (isset($wp_filter['user_admin_notices'])) {
+                unset($wp_filter['user_admin_notices']);
+            }
+        }, 0);
+        
+        // Additional cleanup for persistent notices
+        add_action('admin_head', function() {
+            // Hide any notices that slip through via CSS
+            echo '<style type="text/css">
+                .notice, .notice-warning, .notice-error, .notice-success, .notice-info,
+                .updated, .error, .update-nag, .admin-notice,
+                div.notice, div.updated, div.error, div.update-nag,
+                .wrap > .notice, .wrap > .updated, .wrap > .error,
+                #adminmenu + .notice, #adminmenu + .updated, #adminmenu + .error,
+                .update-php, .php-update-nag,
+                .plugin-update-tr, .theme-update-message,
+                .update-message, .updating-message,
+                #update-nag, #deprecation-warning {
+                    display: none !important;
+                }
+                
+                /* Hide WordPress core update notices */
+                .update-core-php, .notice-alt {
+                    display: none !important;
+                }
+                
+                /* Hide plugin activation/deactivation notices */
+                .activated, .deactivated {
+                    display: none !important;
+                }
+            </style>';
+        });
+        
+        // Remove notices from third-party plugins by clearing the notices array
+        add_action('admin_print_scripts', function() {
+            global $wp_filter;
+            
+            // Clear all notice-related hooks
+            $notice_hooks = [
+                'admin_notices',
+                'all_admin_notices', 
+                'network_admin_notices',
+                'user_admin_notices'
+            ];
+            
+            foreach ($notice_hooks as $hook) {
+                if (isset($wp_filter[$hook])) {
+                    $wp_filter[$hook] = new WP_Hook();
+                }
+            }
+        }, 0);
+        
+        // Capture and discard any output from notices
+        add_action('admin_print_styles', function() {
+            ob_start(function($buffer) {
+                // Strip out common notice patterns
+                $patterns = [
+                    '/<div[^>]*class="[^"]*notice[^"]*"[^>]*>.*?<\/div>/is',
+                    '/<div[^>]*class="[^"]*updated[^"]*"[^>]*>.*?<\/div>/is',
+                    '/<div[^>]*class="[^"]*error[^"]*"[^>]*>.*?<\/div>/is',
+                    '/<div[^>]*id="[^"]*update-nag[^"]*"[^>]*>.*?<\/div>/is'
+                ];
+                
+                foreach ($patterns as $pattern) {
+                    $buffer = preg_replace($pattern, '', $buffer);
+                }
+                
+                return $buffer;
+            });
+        }, 0);
+        
+        // Final cleanup - remove any remaining notices via JavaScript
+        add_action('admin_footer', function() {
+            echo '<script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Remove all notice elements
+                    $(".notice, .notice-warning, .notice-error, .notice-success, .notice-info").remove();
+                    $(".updated, .error, .update-nag, .admin-notice").remove();
+                    $("#update-nag, #deprecation-warning").remove();
+                    $(".update-php, .php-update-nag").remove();
+                    $(".plugin-update-tr, .theme-update-message").remove();
+                    $(".update-message, .updating-message").remove();
+                    
+                    // Set up observer to remove notices that get added dynamically
+                    if (window.MutationObserver) {
+                        var observer = new MutationObserver(function(mutations) {
+                            mutations.forEach(function(mutation) {
+                                $(mutation.addedNodes).find(".notice, .updated, .error, .update-nag").remove();
+                                if ($(mutation.target).is(".notice, .updated, .error, .update-nag")) {
+                                    $(mutation.target).remove();
+                                }
+                            });
+                        });
+                        
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
+                });
+            </script>';
+        });
     }
 } 
