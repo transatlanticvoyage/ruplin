@@ -320,7 +320,14 @@ class Snefuru_Hurricane {
                                     </div>
                                 </div>
                                 
-                                <!-- Instance 4 Wrapper: Frontend Text Content -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Instance 1: Frontend Text Content -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-frontend-content-container">
                                         <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation:get all text content output on frontend</span>
@@ -376,14 +383,6 @@ class Snefuru_Hurricane {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Denyeep Column Div 2 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
-                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                
-                                <!-- Content for column 2 will go here -->
                             </div>
                             
                             <!-- Denyeep Column Div 3 -->
