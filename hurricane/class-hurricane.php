@@ -46,7 +46,7 @@ class Snefuru_Hurricane {
                 Hurricane
             </div>
             <div class="snefuru-hurricane-controls">
-                <button type="button" class="button button-primary snefuru-lightning-popup-btn">
+                <button type="button" class="button button-primary snefuru-lightning-popup-btn" onclick="window.snefuruOpenLightningPopup()">
                     ⚡ Lightning Popup
                 </button>
             </div>
@@ -57,7 +57,7 @@ class Snefuru_Hurricane {
             <div class="snefuru-popup-container">
                 <div class="snefuru-popup-header">
                     <h2 class="snefuru-popup-title">Lightning Popup</h2>
-                    <button type="button" class="snefuru-popup-close">&times;</button>
+                    <button type="button" class="snefuru-popup-close" onclick="window.snefuruCloseLightningPopup()">&times;</button>
                 </div>
                 <div class="snefuru-popup-content">
                     <!-- Future content will go here -->
@@ -96,6 +96,12 @@ class Snefuru_Hurricane {
             SNEFURU_PLUGIN_VERSION,
             true
         );
+        
+        // Add inline script to test if assets are loading
+        wp_add_inline_script('snefuru-hurricane-js', '
+            console.log("Hurricane JS loaded successfully");
+            console.log("jQuery version:", jQuery.fn.jquery);
+        ');
         
         // Localize script with AJAX URL and nonce
         wp_localize_script('snefuru-hurricane-js', 'snefuruHurricane', array(
