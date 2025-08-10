@@ -1,5 +1,98 @@
 /* Hurricane Feature Styles */
 
+/* Stellar Chamber - Above Title Bar */
+.snefuru-stellar-chamber {
+    background: #f0f0f1;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px 4px 0 0;
+    margin: 0 0 -1px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.snefuru-stellar-chamber-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.snefuru-stellar-chamber-text {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1d2327;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+}
+
+/* Tab Navigation */
+.snefuru-stellar-tabs {
+    background: #fff;
+}
+
+.snefuru-stellar-tab-navigation {
+    display: flex;
+    border-bottom: 2px solid #dcdcde;
+    padding: 0 20px;
+    background: #f6f7f7;
+}
+
+.snefuru-stellar-tab-button {
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 20px;
+    margin: 0 5px -2px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #646970;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: capitalize;
+}
+
+.snefuru-stellar-tab-button:hover {
+    color: #1d2327;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.snefuru-stellar-tab-button.active {
+    color: #0073aa;
+    border-bottom-color: #0073aa;
+    background: #fff;
+}
+
+.snefuru-stellar-tab-button:focus {
+    outline: 1px dotted #0073aa;
+    outline-offset: -1px;
+}
+
+/* Tab Content */
+.snefuru-stellar-tab-content {
+    padding: 20px;
+    min-height: 60px;
+    background: #fff;
+}
+
+.snefuru-stellar-tab-panel {
+    display: none;
+}
+
+.snefuru-stellar-tab-panel.active {
+    display: block;
+}
+
+/* Ensure it aligns with the title field width */
+@media (min-width: 600px) {
+    .snefuru-stellar-chamber {
+        max-width: calc(100% - 2px);
+    }
+}
+
+/* Block editor specific styling */
+.block-editor .snefuru-stellar-chamber {
+    margin-top: 20px;
+}
+
 .snefuru-hurricane-container {
     background: #f8f9fa;
     border: 2px solid #007cba;

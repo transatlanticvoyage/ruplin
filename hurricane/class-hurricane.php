@@ -14,6 +14,48 @@ class Snefuru_Hurricane {
     public function __construct() {
         add_action('add_meta_boxes', array($this, 'add_hurricane_metabox'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_hurricane_assets'));
+        add_action('edit_form_top', array($this, 'add_stellar_chamber'));
+    }
+    
+    /**
+     * Add Stellar Chamber element above the title bar
+     */
+    public function add_stellar_chamber($post) {
+        // Only show on post and page edit screens
+        if (!in_array($post->post_type, array('post', 'page'))) {
+            return;
+        }
+        ?>
+        <div class="snefuru-stellar-chamber">
+            <div class="snefuru-stellar-chamber-header">
+                <span class="snefuru-stellar-chamber-text">Stellar Chamber</span>
+            </div>
+            <div class="snefuru-stellar-tabs">
+                <div class="snefuru-stellar-tab-navigation">
+                    <button type="button" class="snefuru-stellar-tab-button active" data-tab="elementor">
+                        Elementor
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
+                        Gutenberg
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="other">
+                        Other
+                    </button>
+                </div>
+                <div class="snefuru-stellar-tab-content">
+                    <div class="snefuru-stellar-tab-panel active" data-panel="elementor">
+                        <!-- Elementor content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="gutenberg">
+                        <!-- Gutenberg content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="other">
+                        <!-- Other content will go here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
     }
     
     /**

@@ -42,6 +42,9 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
     function initHurricane() {
         console.log('Hurricane feature initializing...');
         
+        // Initialize Stellar Chamber tabs
+        initStellarTabs();
+        
         // Check if elements exist
         if ($('.snefuru-lightning-popup-btn').length) {
             console.log('Lightning button found');
@@ -99,6 +102,42 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         
         if (hurricaneBox.length && sideArea.length) {
             hurricaneBox.prependTo(sideArea);
+        }
+    }
+    
+    function initStellarTabs() {
+        console.log('Initializing Stellar Chamber tabs...');
+        
+        // Handle tab button clicks
+        $(document).off('click.stellar-tabs').on('click.stellar-tabs', '.snefuru-stellar-tab-button', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var tabName = $button.data('tab');
+            
+            // Don't do anything if already active
+            if ($button.hasClass('active')) {
+                return;
+            }
+            
+            console.log('Switching to tab:', tabName);
+            
+            // Remove active class from all buttons and panels
+            $('.snefuru-stellar-tab-button').removeClass('active');
+            $('.snefuru-stellar-tab-panel').removeClass('active');
+            
+            // Add active class to clicked button
+            $button.addClass('active');
+            
+            // Show the corresponding panel
+            $('.snefuru-stellar-tab-panel[data-panel="' + tabName + '"]').addClass('active');
+        });
+        
+        // Check if tabs exist
+        if ($('.snefuru-stellar-tab-button').length) {
+            console.log('Stellar tabs found:', $('.snefuru-stellar-tab-button').length);
+        } else {
+            console.log('No Stellar tabs found');
         }
     }
     
