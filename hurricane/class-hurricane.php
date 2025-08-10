@@ -677,171 +677,231 @@ class Snefuru_Hurricane {
                         <!-- KPages Schema content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="pantheon-table">
-                        <div style="padding: 20px;">
-                            <h2 style="color: #0073aa; margin-bottom: 20px; font-size: 18px;">Pantheon Table - Turtle Entity Management</h2>
-                            
-                            <!-- Quick Search -->
-                            <div style="margin-bottom: 15px;">
-                                <input type="text" id="stellar-pantheon-search" placeholder="Search descriptions..." style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 300px;">
-                                <select id="stellar-pantheon-filter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-left: 10px;">
-                                    <option value="">All Types</option>
-                                    <option value="chen">Chen Pages</option>
-                                    <option value="sitejar4">SiteJar4</option>
-                                    <option value="driggsman">Driggsman</option>
-                                    <option value="gcjar1">GCJar1</option>
-                                    <option value="nwjar1">NWJar1</option>
-                                </select>
+                        <div style="padding: 15px;">
+                            <h1 style="margin-bottom: 20px; font-size: 18px;">📋 Pantheon Table Management</h1>
+                        
+                            <!-- Control Bar (mimicking rup_locations_mar style) -->
+                            <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <button type="button" id="stellar-pantheon-process" class="button button-primary" style="font-size: 12px; padding: 8px 12px;">
+                                            🚀 Process Selected
+                                        </button>
+                                        <span id="stellar-pantheon-count" style="color: #666; font-size: 12px;">0 selected</span>
+                                    </div>
+                                    <div>
+                                        <a href="<?php echo admin_url('admin.php?page=rup_pantheon_mar'); ?>" class="button" style="font-size: 12px; padding: 6px 12px; background: #f0ad4e; color: #fff; text-decoration: none; border-color: #eea236;" target="_blank">
+                                            📋 Full Admin Page
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <!-- Search Controls (matching rup_locations_mar style) -->
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; gap: 15px; align-items: center;">
+                                        <!-- Type Filter Buttons -->
+                                        <div style="display: flex; gap: 0; border: 1px solid #ccc;">
+                                            <button class="pantheon-type-btn active" data-value="" style="border: none; padding: 8px 12px; background: #0073aa; color: white; cursor: pointer; font-size: 12px;">All</button>
+                                            <button class="pantheon-type-btn" data-value="chen" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">Chen</button>
+                                            <button class="pantheon-type-btn" data-value="sitejar4" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">SiteJar4</button>
+                                            <button class="pantheon-type-btn" data-value="driggsman" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">Driggsman</button>
+                                            <button class="pantheon-type-btn" data-value="gcjar1" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">GCJar1</button>
+                                            <button class="pantheon-type-btn" data-value="nwjar1" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">NWJar1</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Search -->
+                                    <div style="position: relative;">
+                                        <input type="text" id="stellar-pantheon-search" placeholder="Search descriptions..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 200px; font-size: 12px;">
+                                        <button id="stellar-pantheon-clear" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ffeb3b; border: none; padding: 4px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; cursor: pointer;">CL</button>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- Compact Pantheon Table -->
-                            <div style="background: white; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; max-height: 400px; overflow-y: auto;">
-                                <table class="wp-list-table widefat striped" id="stellar-pantheon-table" style="margin: 0;">
-                                    <thead>
-                                        <tr style="background: #f9f9f9;">
-                                            <th style="width: 40px; text-align: center; padding: 8px; font-size: 12px;">
-                                                <input type="checkbox" id="stellar-pantheon-select-all" style="transform: scale(0.9);">
-                                            </th>
-                                            <th style="padding: 8px; font-size: 12px; font-weight: 600;">Description</th>
-                                            <th style="width: 100px; text-align: center; padding: 8px; font-size: 12px;">Name</th>
-                                            <th style="width: 120px; text-align: center; padding: 8px; font-size: 12px;">Turtle ID</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr data-type="chen" data-description="open chen page">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-1" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open chen page</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #2271b1; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    CHEN-1
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_chen_01
-                                            </td>
-                                        </tr>
-                                        
-                                        <tr data-type="chen" data-description="open chen page">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-2" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open chen page</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #2271b1; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    CHEN-2
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_chen_02
-                                            </td>
-                                        </tr>
-                                        
-                                        <tr data-type="chen" data-description="open chen page">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-3" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open chen page</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #2271b1; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    CHEN-3
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_chen_03
-                                            </td>
-                                        </tr>
-                                        
-                                        <tr data-type="sitejar4" data-description="open /sitejar4?PARAMETER">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="sitejar4-1" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open /sitejar4?PARAMETER</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #00a32a; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    SITEJAR4
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_sitejar4_01
-                                            </td>
-                                        </tr>
-                                        
-                                        <tr data-type="driggsman" data-description="open /driggsman?PARAMETER">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="driggsman-1" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open /driggsman?PARAMETER</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #d63638; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    DRIGGSMAN
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_driggsman_01
-                                            </td>
-                                        </tr>
-                                        
-                                        <tr data-type="gcjar1" data-description="open /gcjar1?PARAMETER">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="gcjar1-1" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open /gcjar1?PARAMETER</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #dba617; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    GCJAR1
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_gcjar1_01
-                                            </td>
-                                        </tr>
-                                        
-                                        <tr data-type="nwjar1" data-description="open /nwjar1?PARAMETER">
-                                            <td style="text-align: center; padding: 6px;">
-                                                <input type="checkbox" class="stellar-pantheon-checkbox" value="nwjar1-1" style="transform: scale(0.9);">
-                                            </td>
-                                            <td style="padding: 6px; font-size: 12px;">
-                                                <strong style="color: #0073aa;">open /nwjar1?PARAMETER</strong>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px;">
-                                                <span style="background: #8b1538; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 600;">
-                                                    NWJAR1
-                                                </span>
-                                            </td>
-                                            <td style="text-align: center; padding: 6px; color: #666; font-family: monospace; font-size: 10px;">
-                                                turtle_nwjar1_01
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Action Buttons -->
-                            <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
-                                <button type="button" id="stellar-pantheon-process" class="button button-primary" style="font-size: 12px; padding: 6px 12px;">
-                                    🚀 Process Selected
-                                </button>
-                                <span id="stellar-pantheon-count" style="color: #666; font-size: 12px;">0 selected</span>
-                                <a href="<?php echo admin_url('admin.php?page=rup_pantheon_mar'); ?>" class="button" style="font-size: 12px; padding: 6px 12px; background: #f0ad4e; color: #fff; text-decoration: none; border-color: #eea236;" target="_blank">
-                                    📋 Full Admin Page
-                                </a>
+                            <!-- Main Table (matching rup_locations_mar style) -->
+                            <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                                <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                                    <table id="stellar-pantheon-table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                        <thead style="background: #f8f9fa;">
+                                            <tr>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-align: center; background: #f0f0f0; width: 40px;">
+                                                    <input type="checkbox" id="stellar-pantheon-select-all" style="width: 16px; height: 16px;">
+                                                </th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 180px; font-size: 11px;">origin_page</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; font-size: 11px;">description</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 80px; font-size: 11px;">name</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 100px; font-size: 11px;">id_code_of_turtle</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 100px; font-size: 11px;">related_entitites</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-type="chen" data-description="open chen page">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open chen page</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="chen" data-description="open chen page">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-2" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open chen page</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="chen" data-description="open chen page">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-3" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open chen page</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="sitejar4" data-description="open /sitejar4?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="sitejar4-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /sitejar4?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="driggsman" data-description="open /driggsman?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="driggsman-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /driggsman?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="gcjar1" data-description="open /gcjar1?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="gcjar1-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /gcjar1?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="nwjar1" data-description="open /nwjar1?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="nwjar1-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /nwjar1?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                             
                             <!-- Status Messages -->
-                            <div id="stellar-pantheon-messages" style="margin-top: 10px;"></div>
+                            <div id="stellar-pantheon-messages" style="margin-top: 15px;"></div>
                         </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="duplicate-kpage">
@@ -1206,15 +1266,29 @@ In the following text content I paste below, you will be seeing the following:
                 filterStellarTable();
             });
             
-            // Filter functionality
-            $('#stellar-pantheon-filter').change(function() {
+            // Type filter buttons (matching rup_locations_mar style)
+            $(document).on('click', '.pantheon-type-btn', function() {
+                $('.pantheon-type-btn').removeClass('active').css({
+                    'background': '#f9f9f9',
+                    'color': '#333'
+                });
+                $(this).addClass('active').css({
+                    'background': '#0073aa',
+                    'color': 'white'
+                });
+                filterStellarTable();
+            });
+            
+            // Clear search button
+            $('#stellar-pantheon-clear').click(function() {
+                $('#stellar-pantheon-search').val('');
                 filterStellarTable();
             });
             
             // Filter table function
             function filterStellarTable() {
                 var searchText = $('#stellar-pantheon-search').val().toLowerCase();
-                var typeFilter = $('#stellar-pantheon-filter').val();
+                var typeFilter = $('.pantheon-type-btn.active').data('value') || '';
                 
                 $('#stellar-pantheon-table tbody tr').each(function() {
                     var $row = $(this);
