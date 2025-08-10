@@ -32,7 +32,10 @@ class Snefuru_Hurricane {
             </div>
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
-                    <button type="button" class="snefuru-stellar-tab-button active" data-tab="elementor">
+                    <button type="button" class="snefuru-stellar-tab-button active" data-tab="elicitor">
+                        Elicitor
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
                         Elementor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
@@ -52,7 +55,10 @@ class Snefuru_Hurricane {
                     </button>
                 </div>
                 <div class="snefuru-stellar-tab-content">
-                    <div class="snefuru-stellar-tab-panel active" data-panel="elementor">
+                    <div class="snefuru-stellar-tab-panel active" data-panel="elicitor">
+                        <!-- Elicitor content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="elementor">
                         <?php
                         // Generate header303 content
                         $post_id = $post->ID;
