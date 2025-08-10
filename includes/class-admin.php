@@ -40,6 +40,9 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
         add_action('wp_ajax_rup_driggs_update_field', array($this, 'rup_driggs_update_field'));
         
+        // Content injection AJAX action
+        add_action('wp_ajax_snefuru_inject_content', array($this, 'snefuru_inject_content'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -5100,5 +5103,44 @@ class Snefuru_Admin {
         
         // Set flag so this only runs once
         update_option('snefuru_zen_driggs_cleaned_up', true);
+    }
+    
+    /**
+     * AJAX: Handle content injection
+     */
+    public function snefuru_inject_content() {
+        check_ajax_referer('snefuru_inject_content_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+            return;
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        $zeeprex_content = isset($_POST['zeeprex_content']) ? wp_kses_post($_POST['zeeprex_content']) : '';
+        
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+            return;
+        }
+        
+        if (empty($zeeprex_content)) {
+            wp_send_json_error('No content provided');
+            return;
+        }
+        
+        // Include the content injector class
+        require_once SNEFURU_PLUGIN_DIR . 'includes/class-elementor-content-injector.php';
+        
+        // Inject the content
+        $result = Snefuru_Elementor_Content_Injector::inject_content($post_id, $zeeprex_content);
+        
+        if ($result['success']) {
+            wp_send_json_success(array(
+                'message' => $result['message']
+            ));
+        } else {
+            wp_send_json_error($result['message']);
+        }
     }
 } 

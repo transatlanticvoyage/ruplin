@@ -186,7 +186,102 @@ class Snefuru_Hurricane {
                             <!-- Denyeep Column Div 2 -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
-                                <!-- Content for column 2 will go here -->
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Zeeprex Submit Section -->
+                                <div class="snefuru-zeeprex-section">
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">zeeprex_submit</span>
+                                    
+                                    <textarea 
+                                        id="snefuru-zeeprex-content" 
+                                        placeholder="Paste your content here. Make sure your codes are preceded by a '#' symbol (e.g., #y_hero1_heading)"
+                                        style="width: 100%; height: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 13px; margin-bottom: 10px;"
+                                    ></textarea>
+                                    
+                                    <button 
+                                        type="button" 
+                                        id="snefuru-inject-content-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="background: #800000; color: #fff; font-weight: bold; text-transform: lowercase; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 15px;"
+                                    >
+                                        run function_inject_content_2
+                                    </button>
+                                    
+                                    <div id="snefuru-inject-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                                    
+                                    <div style="background: #f5f5f5; padding: 15px; border-radius: 4px; margin-top: 15px; font-size: 12px; line-height: 1.6;">
+                                        <strong>DEVELOPER INFO:</strong> this function was originally cloned from page of<br>
+                                        https://(insertdomainhere.com)/wp-admin/admin.php?page=zurkoscreen4 on 2025__08_10<br>
+                                        it was cloned from the deprecated Zurkovich wp plugin<br>
+                                        <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
+                                        <strong>note to claude code:</strong> please make sure this function works identically when user submits content<br><br>
+                                        but the "select a page" dropdown is not needed - that's always the current page / post that the user is viewing the active screen of (the same as the post id in the url like https://8mako.ksit.me/wp-admin/post.php?post=666&action=edit)
+                                    </div>
+                                </div>
+                                
+                                <script type="text/javascript">
+                                jQuery(document).ready(function($) {
+                                    $('#snefuru-inject-content-btn').on('click', function() {
+                                        var content = $('#snefuru-zeeprex-content').val();
+                                        var postId = $(this).data('post-id');
+                                        var $btn = $(this);
+                                        var $result = $('#snefuru-inject-result');
+                                        
+                                        if (!content.trim()) {
+                                            $result.removeClass('success error').addClass('error');
+                                            $result.html('<strong>Error:</strong> Please enter content to inject.');
+                                            $result.show();
+                                            return;
+                                        }
+                                        
+                                        // Disable button and show processing
+                                        $btn.prop('disabled', true).text('processing...');
+                                        $result.hide();
+                                        
+                                        // Make AJAX call
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'snefuru_inject_content',
+                                                post_id: postId,
+                                                zeeprex_content: content,
+                                                nonce: '<?php echo wp_create_nonce('snefuru_inject_content_nonce'); ?>'
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    $result.removeClass('error').css({
+                                                        'background': '#d4edda',
+                                                        'color': '#155724',
+                                                        'border': '1px solid #c3e6cb'
+                                                    });
+                                                    $result.html('<strong>Success:</strong> ' + response.data.message);
+                                                } else {
+                                                    $result.removeClass('success').css({
+                                                        'background': '#f8d7da',
+                                                        'color': '#721c24',
+                                                        'border': '1px solid #f5c6cb'
+                                                    });
+                                                    $result.html('<strong>Error:</strong> ' + response.data);
+                                                }
+                                                $result.show();
+                                            },
+                                            error: function() {
+                                                $result.removeClass('success').css({
+                                                    'background': '#f8d7da',
+                                                    'color': '#721c24',
+                                                    'border': '1px solid #f5c6cb'
+                                                });
+                                                $result.html('<strong>Error:</strong> Failed to inject content. Please try again.');
+                                                $result.show();
+                                            },
+                                            complete: function() {
+                                                $btn.prop('disabled', false).text('run function_inject_content_2');
+                                            }
+                                        });
+                                    });
+                                });
+                                </script>
                             </div>
                             
                             <!-- Denyeep Column Div 3 -->
