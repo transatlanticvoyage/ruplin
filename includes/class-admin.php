@@ -43,6 +43,9 @@ class Snefuru_Admin {
         // Content injection AJAX action
         add_action('wp_ajax_snefuru_inject_content', array($this, 'snefuru_inject_content'));
         
+        // Page duplication AJAX action
+        add_action('wp_ajax_snefuru_duplicate_page', array($this, 'snefuru_duplicate_page'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -173,6 +176,15 @@ class Snefuru_Admin {
             'manage_options',
             'rup_location_tags_mar',
             array($this, 'rup_location_tags_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_kpages_mar',
+            'rup_kpages_mar',
+            'manage_options',
+            'rup_kpages_mar',
+            array($this, 'rup_kpages_mar_page')
         );
         
         add_submenu_page(
@@ -3713,6 +3725,18 @@ class Snefuru_Admin {
     }
     
     /**
+     * rup_kpages_mar page
+     */
+    public function rup_kpages_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        echo '<div class="wrap">';
+        echo '<h1><strong>rup_kpages_mar</strong></h1>';
+        echo '</div>';
+    }
+    
+    /**
      * rup_horse_class_page - Database Horse Class Management
      */
     public function rup_horse_class_page() {
@@ -4578,6 +4602,7 @@ class Snefuru_Admin {
             'snefuru_page_rup_driggs_mar',
             'snefuru_page_rup_service_tags_mar',
             'snefuru_page_rup_location_tags_mar',
+            'snefuru_page_rup_kpages_mar',
             'snefuru_page_rup_horse_class_page',
             'snefuru_page_document_outlook_aug9',
             'snefuru_page_dynamic_images_man',
@@ -4654,7 +4679,7 @@ class Snefuru_Admin {
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
-                'rup_driggs_mar'
+                'rup_driggs_mar', 'rup_kpages_mar'
              ]));
         
         // Check if we're on WP Pusher page
@@ -4697,7 +4722,7 @@ class Snefuru_Admin {
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
-                'rup_driggs_mar'
+                'rup_driggs_mar', 'rup_kpages_mar'
              ]));
         
         // Check if we're on WP Pusher page
@@ -5189,5 +5214,109 @@ class Snefuru_Admin {
         } else {
             wp_send_json_error($result['message']);
         }
+    }
+    
+    /**
+     * AJAX: Handle page duplication
+     */
+    public function snefuru_duplicate_page() {
+        check_ajax_referer('snefuru_duplicate_page_nonce', 'nonce');
+        
+        if (!current_user_can('edit_pages') && !current_user_can('edit_posts')) {
+            wp_send_json_error('Unauthorized access');
+            return;
+        }
+        
+        // Get the post ID from AJAX request
+        $current_post_id = 0;
+        if (isset($_POST['post_id'])) {
+            $current_post_id = intval($_POST['post_id']);
+        } else {
+            // Fallback: try other methods
+            $current_post_id = get_the_ID();
+            if (!$current_post_id) {
+                global $post;
+                if ($post && $post->ID) {
+                    $current_post_id = $post->ID;
+                }
+            }
+        }
+        
+        if (!$current_post_id) {
+            wp_send_json_error('Unable to determine current page/post ID');
+            return;
+        }
+        
+        // Get the original post
+        $original_post = get_post($current_post_id);
+        if (!$original_post) {
+            wp_send_json_error('Original page/post not found');
+            return;
+        }
+        
+        // Create the duplicate post data
+        $duplicate_post_data = array(
+            'post_title'     => 'Copy of ' . $original_post->post_title,
+            'post_content'   => $original_post->post_content,
+            'post_status'    => 'draft', // Always create as draft for safety
+            'post_type'      => $original_post->post_type,
+            'post_author'    => get_current_user_id(),
+            'post_excerpt'   => $original_post->post_excerpt,
+            'post_parent'    => $original_post->post_parent,
+            'menu_order'     => $original_post->menu_order,
+            'comment_status' => $original_post->comment_status,
+            'ping_status'    => $original_post->ping_status
+        );
+        
+        // Insert the duplicate post
+        $duplicate_post_id = wp_insert_post($duplicate_post_data, true);
+        
+        if (is_wp_error($duplicate_post_id)) {
+            wp_send_json_error('Failed to create duplicate: ' . $duplicate_post_id->get_error_message());
+            return;
+        }
+        
+        // Copy all post meta, including Elementor data
+        $post_meta = get_post_meta($current_post_id);
+        foreach ($post_meta as $meta_key => $meta_values) {
+            // Skip certain meta keys that should be unique
+            if (in_array($meta_key, array('_edit_lock', '_edit_last'))) {
+                continue;
+            }
+            
+            foreach ($meta_values as $meta_value) {
+                add_post_meta($duplicate_post_id, $meta_key, maybe_unserialize($meta_value));
+            }
+        }
+        
+        // Copy taxonomies (categories, tags, etc.)
+        $taxonomies = get_object_taxonomies($original_post->post_type);
+        foreach ($taxonomies as $taxonomy) {
+            $terms = wp_get_post_terms($current_post_id, $taxonomy, array('fields' => 'ids'));
+            if (!is_wp_error($terms) && !empty($terms)) {
+                wp_set_post_terms($duplicate_post_id, $terms, $taxonomy);
+            }
+        }
+        
+        // Clear any Elementor cache for the new post
+        if (class_exists('\\Elementor\\Plugin')) {
+            if (method_exists('\\Elementor\\Plugin::$instance->files_manager', 'clear_cache')) {
+                \\Elementor\\Plugin::$instance->files_manager->clear_cache();
+            }
+        }
+        
+        // Generate URLs for the response
+        $edit_url = admin_url('post.php?action=edit&post=' . $duplicate_post_id);
+        $view_url = get_permalink($duplicate_post_id);
+        
+        // Return success response
+        wp_send_json_success(array(
+            'message' => sprintf('Successfully created duplicate of "%s"', $original_post->post_title),
+            'duplicate_id' => $duplicate_post_id,
+            'duplicate_title' => 'Copy of ' . $original_post->post_title,
+            'edit_url' => $edit_url,
+            'view_url' => $view_url,
+            'original_title' => $original_post->post_title
+        ));
     }
 } 

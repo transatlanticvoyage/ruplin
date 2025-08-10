@@ -101,7 +101,7 @@ class Snefuru_Hurricane {
                         Pantheon Table
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="duplicate-kpage">
-                        Duplicate Kpage
+                        Duplicate Page
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="driggs">
                         Driggs
@@ -442,6 +442,12 @@ class Snefuru_Hurricane {
                                     </a>
                                 </li>
                                 <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_kpages_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_kpages_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
                                     <a href="<?php echo admin_url('admin.php?page=rup_horse_class_page'); ?>" 
                                        style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
                                         rup_horse_class_page
@@ -610,7 +616,196 @@ class Snefuru_Hurricane {
                         <!-- Pantheon Table content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="duplicate-kpage">
-                        <!-- Duplicate Kpage content will go here -->
+                        <div style="text-align: center; padding: 30px 20px;">
+                            <h2 style="color: #0073aa; margin-bottom: 25px; font-size: 20px;">Duplicate Current Page/Post</h2>
+                            
+                            <!-- Duplicate Button Container -->
+                            <div class="snefuru-duplicate-button-container" style="display: inline-flex; align-items: center; gap: 0; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0, 115, 170, 0.15); border-radius: 8px;">
+                                <button 
+                                    type="button" 
+                                    id="snefuru-duplicate-page-btn"
+                                    data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                    style="
+                                        background: linear-gradient(135deg, #0073aa 0%, #005177 100%);
+                                        color: white;
+                                        border: none;
+                                        padding: 15px 25px;
+                                        font-size: 16px;
+                                        font-weight: 600;
+                                        border-radius: 8px 0 0 8px;
+                                        cursor: pointer;
+                                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                        position: relative;
+                                        min-height: 54px;
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        letter-spacing: 0.3px;
+                                        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                                    "
+                                    onmouseover="this.style.background='linear-gradient(135deg, #005177 0%, #003a52 100%)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(0, 115, 170, 0.25)'"
+                                    onmouseout="this.style.background='linear-gradient(135deg, #0073aa 0%, #005177 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 115, 170, 0.15)'"
+                                >
+                                    <span style="font-size: 18px;">📄</span>
+                                    <span>Duplicate This WP Page/Post Now</span>
+                                </button>
+                                
+                                <button 
+                                    type="button" 
+                                    class="snefuru-copy-duplicate-text-btn" 
+                                    title="Copy button text to clipboard"
+                                    style="
+                                        background: linear-gradient(135deg, #00a32a 0%, #007a1f 100%);
+                                        color: white;
+                                        border: none;
+                                        width: 54px;
+                                        height: 54px;
+                                        border-radius: 0 8px 8px 0;
+                                        cursor: pointer;
+                                        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-size: 16px;
+                                    "
+                                    onmouseover="this.style.background='linear-gradient(135deg, #007a1f 0%, #005a17 100%)'; this.style.transform='scale(1.05)'"
+                                    onmouseout="this.style.background='linear-gradient(135deg, #00a32a 0%, #007a1f 100%)'; this.style.transform='scale(1)'"
+                                >
+                                    📋
+                                </button>
+                            </div>
+                            
+                            <!-- Status Display -->
+                            <div id="snefuru-duplicate-status" style="display: none; margin-top: 15px; padding: 15px; border-radius: 8px; max-width: 600px; margin-left: auto; margin-right: auto;"></div>
+                            
+                            <!-- Result Link -->
+                            <div id="snefuru-duplicate-result" style="display: none; margin-top: 20px; padding: 20px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                                <h3 style="color: #155724; margin-top: 0; margin-bottom: 15px;">✅ Page Duplicated Successfully!</h3>
+                                <div id="snefuru-duplicate-link-container"></div>
+                            </div>
+                        </div>
+                        
+                        <script type="text/javascript">
+                        jQuery(document).ready(function($) {
+                            // Copy button text functionality
+                            $('.snefuru-copy-duplicate-text-btn').on('click', function() {
+                                var textToCopy = 'Duplicate This WP Page/Post Now';
+                                var $btn = $(this);
+                                
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                    navigator.clipboard.writeText(textToCopy).then(function() {
+                                        $btn.html('✅');
+                                        setTimeout(function() {
+                                            $btn.html('📋');
+                                        }, 2000);
+                                        console.log('Button text copied to clipboard');
+                                    }).catch(function(err) {
+                                        console.error('Clipboard write failed:', err);
+                                    });
+                                } else {
+                                    // Fallback for older browsers
+                                    var textarea = document.createElement('textarea');
+                                    textarea.value = textToCopy;
+                                    textarea.style.position = 'fixed';
+                                    textarea.style.opacity = '0';
+                                    document.body.appendChild(textarea);
+                                    
+                                    try {
+                                        textarea.select();
+                                        textarea.setSelectionRange(0, 99999);
+                                        var successful = document.execCommand('copy');
+                                        
+                                        if (successful) {
+                                            $btn.html('✅');
+                                            setTimeout(function() {
+                                                $btn.html('📋');
+                                            }, 2000);
+                                            console.log('Button text copied using fallback method');
+                                        }
+                                    } catch (err) {
+                                        console.error('Fallback copy error:', err);
+                                    } finally {
+                                        document.body.removeChild(textarea);
+                                    }
+                                }
+                            });
+                            
+                            // Duplicate page functionality
+                            $('#snefuru-duplicate-page-btn').on('click', function() {
+                                var $btn = $(this);
+                                var $status = $('#snefuru-duplicate-status');
+                                var $result = $('#snefuru-duplicate-result');
+                                var postId = $btn.data('post-id');
+                                
+                                // Disable button and show processing
+                                $btn.prop('disabled', true);
+                                $btn.find('span:last-child').text('Duplicating...');
+                                $btn.css('cursor', 'not-allowed');
+                                
+                                // Show status message
+                                $status.removeClass('error').css({
+                                    'background': '#fff3cd',
+                                    'color': '#856404',
+                                    'border': '1px solid #ffeaa7'
+                                }).html('<strong>⏳ Processing:</strong> Saving current page and creating duplicate...').show();
+                                
+                                $result.hide();
+                                
+                                // Make AJAX call
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: 'POST',
+                                    data: {
+                                        action: 'snefuru_duplicate_page',
+                                        post_id: postId,
+                                        nonce: '<?php echo wp_create_nonce('snefuru_duplicate_page_nonce'); ?>'
+                                    },
+                                    success: function(response) {
+                                        if (response.success) {
+                                            $status.hide();
+                                            $result.show();
+                                            
+                                            var editUrl = response.data.edit_url;
+                                            var viewUrl = response.data.view_url;
+                                            var title = response.data.duplicate_title;
+                                            var postType = '<?php echo get_post_type(); ?>' || 'page';
+                                            
+                                            var linkHtml = '<div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">' +
+                                                '<a href="' + editUrl + '" class="button button-primary" target="_blank" style="text-decoration: none;">' +
+                                                '✏️ Edit New ' + (postType === 'post' ? 'Post' : 'Page') + '</a>' +
+                                                '<a href="' + viewUrl + '" class="button button-secondary" target="_blank" style="text-decoration: none;">' +
+                                                '👁️ View New ' + (postType === 'post' ? 'Post' : 'Page') + '</a>' +
+                                                '</div>' +
+                                                '<p style="margin-top: 15px; color: #155724; font-weight: 500;">New ' + (postType === 'post' ? 'post' : 'page') + ' title: <strong>"' + title + '"</strong></p>';
+                                            
+                                            $('#snefuru-duplicate-link-container').html(linkHtml);
+                                        } else {
+                                            $result.hide();
+                                            $status.removeClass('success').css({
+                                                'background': '#f8d7da',
+                                                'color': '#721c24',
+                                                'border': '1px solid #f5c6cb'
+                                            }).html('<strong>❌ Error:</strong> ' + response.data).show();
+                                        }
+                                    },
+                                    error: function() {
+                                        $result.hide();
+                                        $status.removeClass('success').css({
+                                            'background': '#f8d7da',
+                                            'color': '#721c24',
+                                            'border': '1px solid #f5c6cb'
+                                        }).html('<strong>❌ Error:</strong> Failed to duplicate page. Please try again.').show();
+                                    },
+                                    complete: function() {
+                                        // Re-enable button
+                                        $btn.prop('disabled', false);
+                                        $btn.find('span:last-child').text('Duplicate This WP Page/Post Now');
+                                        $btn.css('cursor', 'pointer');
+                                    }
+                                });
+                            });
+                        });
+                        </script>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="swipe15">
                         <!-- Swipe15 Content Container -->
