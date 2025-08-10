@@ -305,7 +305,294 @@ class Snefuru_Hurricane {
                         <!-- Other content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="driggs">
-                        <!-- Driggs content will go here -->
+                        <h2 style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">driggs field collection 1</h2>
+                        
+                        <!-- Save Button -->
+                        <div style="margin-bottom: 15px;">
+                            <button id="save-driggs-btn" class="button button-primary">Save Changes</button>
+                        </div>
+                        
+                        <!-- Driggs Fields Table -->
+                        <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                            <div style="overflow-x: auto;">
+                                <table id="driggs-stellar-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                    <thead style="background: #f8f9fa;">
+                                        <tr>
+                                            <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 250px;">Field Name</th>
+                                            <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="driggs-stellar-table-body">
+                                        <!-- Data will be loaded here via AJAX -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <script type="text/javascript">
+                        jQuery(document).ready(function($) {
+                            let driggsData = {};
+                            
+                            // Load initial driggs data
+                            loadDriggsStellarData();
+                            
+                            function loadDriggsStellarData() {
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: 'POST',
+                                    data: {
+                                        action: 'rup_driggs_get_data',
+                                        nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>'
+                                    },
+                                    success: function(response) {
+                                        if (response.success) {
+                                            driggsData = response.data;
+                                            displayDriggsStellarData();
+                                        } else {
+                                            alert('Error loading driggs data: ' + response.data);
+                                        }
+                                    },
+                                    error: function() {
+                                        alert('Error loading driggs data');
+                                    }
+                                });
+                            }
+                            
+                            function displayDriggsStellarData() {
+                                let tbody = $('#driggs-stellar-table-body');
+                                tbody.empty();
+                                
+                                // Only fields with "driggs_" in the name, in order from rup_driggs_mar page
+                                const driggsFields = [
+                                    {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
+                                    {key: 'driggs_city', label: 'driggs_city', type: 'text'},
+                                    {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
+                                    {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
+                                    {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
+                                    {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
+                                    {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
+                                    {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
+                                    {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
+                                    {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
+                                    {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
+                                    {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
+                                    {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'}
+                                ];
+                                
+                                driggsFields.forEach(function(field) {
+                                    let tr = $('<tr></tr>');
+                                    tr.hover(function() {
+                                        $(this).css('background-color', '#f9f9f9');
+                                    }, function() {
+                                        $(this).css('background-color', '');
+                                    });
+                                    
+                                    // Field name column
+                                    let fieldNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;"></td>');
+                                    fieldNameTd.text(field.label);
+                                    tr.append(fieldNameTd);
+                                    
+                                    // Value column
+                                    let valueTd = $('<td style="padding: 8px; border: 1px solid #ddd;" data-field="' + field.key + '"></td>');
+                                    let currentValue = driggsData[field.key] || '';
+                                    
+                                    if (field.type === 'boolean') {
+                                        let checked = currentValue == '1' ? 'checked' : '';
+                                        let toggleHtml = createStellarToggleSwitch(field.key, currentValue == '1');
+                                        valueTd.html(toggleHtml);
+                                    } else if (field.type === 'textarea') {
+                                        valueTd.html('<div class="stellareditable-field" data-field="' + field.key + '" data-type="textarea">' + 
+                                                   $('<div>').text(currentValue).html() + '</div>');
+                                    } else {
+                                        valueTd.html('<div class="stellareditable-field" data-field="' + field.key + '" data-type="' + field.type + '">' + 
+                                                   $('<div>').text(currentValue).html() + '</div>');
+                                    }
+                                    
+                                    tr.append(valueTd);
+                                    tbody.append(tr);
+                                });
+                                
+                                // Make fields editable
+                                makeStellarFieldsEditable();
+                                setupStellarToggleSwitches();
+                            }
+                            
+                            function createStellarToggleSwitch(fieldKey, isChecked) {
+                                return '<label class="stellar-driggs-toggle-switch" data-field="' + fieldKey + '">' +
+                                      '<input type="checkbox" ' + (isChecked ? 'checked' : '') + '>' +
+                                      '<span class="stellar-driggs-toggle-slider">' +
+                                      '<span class="stellar-driggs-toggle-knob"></span>' +
+                                      '</span>' +
+                                      '</label>';
+                            }
+                            
+                            function makeStellarFieldsEditable() {
+                                $('.stellareditable-field').off('click').on('click', function() {
+                                    let $this = $(this);
+                                    let fieldKey = $this.data('field');
+                                    let fieldType = $this.data('type');
+                                    let currentValue = $this.text();
+                                    
+                                    if ($this.find('input, textarea').length > 0) {
+                                        return; // Already editing
+                                    }
+                                    
+                                    let input;
+                                    if (fieldType === 'textarea') {
+                                        input = $('<textarea style="width: 100%; min-height: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; font-size: inherit;"></textarea>');
+                                    } else {
+                                        input = $('<input type="' + fieldType + '" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; font-size: inherit;">');
+                                    }
+                                    
+                                    input.val(currentValue);
+                                    $this.empty().append(input);
+                                    input.focus().select();
+                                    
+                                    function saveField() {
+                                        let newValue = input.val();
+                                        updateStellarDriggsField(fieldKey, newValue, function() {
+                                            $this.empty().text(newValue);
+                                            driggsData[fieldKey] = newValue;
+                                        });
+                                    }
+                                    
+                                    input.on('blur', saveField);
+                                    input.on('keydown', function(e) {
+                                        if (e.which === 13 && fieldType !== 'textarea') { // Enter key for non-textarea
+                                            saveField();
+                                        } else if (e.which === 27) { // Escape key
+                                            $this.empty().text(currentValue);
+                                        }
+                                    });
+                                });
+                            }
+                            
+                            function setupStellarToggleSwitches() {
+                                $('.stellar-driggs-toggle-switch').off('click').on('click', function(e) {
+                                    e.preventDefault();
+                                    let $label = $(this);
+                                    let $checkbox = $label.find('input[type="checkbox"]');
+                                    let fieldKey = $label.data('field');
+                                    
+                                    // Toggle the checkbox state
+                                    let newValue = !$checkbox.prop('checked');
+                                    $checkbox.prop('checked', newValue);
+                                    
+                                    // Update the database
+                                    updateStellarDriggsField(fieldKey, newValue ? '1' : '0', function() {
+                                        driggsData[fieldKey] = newValue ? '1' : '0';
+                                    });
+                                });
+                            }
+                            
+                            function updateStellarDriggsField(fieldKey, value, callback) {
+                                $.ajax({
+                                    url: ajaxurl,
+                                    type: 'POST',
+                                    data: {
+                                        action: 'rup_driggs_update_field',
+                                        nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>',
+                                        field: fieldKey,
+                                        value: value
+                                    },
+                                    success: function(response) {
+                                        if (response.success && callback) {
+                                            callback();
+                                        } else {
+                                            alert('Error saving field: ' + (response.data || 'Unknown error'));
+                                        }
+                                    },
+                                    error: function() {
+                                        alert('Error saving field');
+                                    }
+                                });
+                            }
+                            
+                            // Save button functionality
+                            $('#save-driggs-btn').on('click', function() {
+                                alert('All changes are saved automatically when you edit fields.');
+                            });
+                        });
+                        </script>
+                        
+                        <style type="text/css">
+                        /* Stellar Toggle Switch Styles */
+                        .stellar-driggs-toggle-switch {
+                            position: relative;
+                            display: inline-block;
+                            width: 60px;
+                            height: 34px;
+                            cursor: pointer;
+                        }
+                        
+                        .stellar-driggs-toggle-switch input[type="checkbox"] {
+                            opacity: 0;
+                            width: 0;
+                            height: 0;
+                        }
+                        
+                        .stellar-driggs-toggle-slider {
+                            position: absolute;
+                            cursor: pointer;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            background-color: #ccc;
+                            transition: .4s;
+                            border-radius: 34px;
+                            border: 1px solid #bbb;
+                        }
+                        
+                        .stellar-driggs-toggle-knob {
+                            position: absolute;
+                            content: "";
+                            height: 26px;
+                            width: 26px;
+                            left: 4px;
+                            bottom: 3px;
+                            background-color: white;
+                            transition: .4s;
+                            border-radius: 50%;
+                            border: 1px solid #ddd;
+                        }
+                        
+                        .stellar-driggs-toggle-switch input:checked + .stellar-driggs-toggle-slider {
+                            background-color: #2196F3;
+                            border-color: #1976D2;
+                        }
+                        
+                        .stellar-driggs-toggle-switch input:checked + .stellar-driggs-toggle-slider .stellar-driggs-toggle-knob {
+                            transform: translateX(26px);
+                            border-color: #fff;
+                        }
+                        
+                        .stellar-driggs-toggle-switch:hover .stellar-driggs-toggle-slider {
+                            background-color: #b3b3b3;
+                        }
+                        
+                        .stellar-driggs-toggle-switch input:checked:hover + .stellar-driggs-toggle-slider {
+                            background-color: #1976D2;
+                        }
+                        
+                        /* Editable field styles */
+                        .stellareditable-field {
+                            cursor: pointer;
+                            min-height: 20px;
+                            padding: 4px;
+                            border-radius: 3px;
+                            transition: background-color 0.2s;
+                        }
+                        
+                        .stellareditable-field:hover {
+                            background-color: #f0f8ff;
+                            border: 1px dashed #2196F3;
+                        }
+                        
+                        #driggs-stellar-table td {
+                            vertical-align: middle;
+                        }
+                        </style>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="services">
                         <h2 class="snefuru-kepler-title">Kepler Services</h2>
