@@ -4959,18 +4959,18 @@ class Snefuru_Admin {
             }
         }, 0);
         
-        // Hide non-WP Pusher notices via CSS
+        // Hide non-WP Pusher notices via CSS, but allow action feedback
         add_action('admin_head', function() {
             echo '<style type="text/css">
-                /* Hide all notices by default */
-                .notice:not(.wppusher-notice),
-                .notice-warning:not(.wppusher-notice),
-                .notice-error:not(.wppusher-notice),
-                .notice-success:not(.wppusher-notice),
-                .notice-info:not(.wppusher-notice),
-                .updated:not(.wppusher-notice),
-                .error:not(.wppusher-notice),
-                .update-nag:not(.wppusher-notice) {
+                /* Hide all notices by default, but allow specific ones through */
+                .notice:not(.wppusher-notice):not(.action-feedback),
+                .notice-warning:not(.wppusher-notice):not(.action-feedback),
+                .notice-error:not(.wppusher-notice):not(.action-feedback),
+                .notice-success:not(.wppusher-notice):not(.action-feedback),
+                .notice-info:not(.wppusher-notice):not(.action-feedback),
+                .updated:not(.wppusher-notice):not(.action-feedback),
+                .error:not(.wppusher-notice):not(.action-feedback),
+                .update-nag:not(.wppusher-notice):not(.action-feedback) {
                     display: none !important;
                 }
                 
@@ -4985,6 +4985,13 @@ class Snefuru_Admin {
                 .wppusher-info {
                     display: block !important;
                 }
+                
+                /* Allow action feedback notices (temporarily) */
+                .notice.action-feedback,
+                .notice-success.action-feedback,
+                .notice-error.action-feedback {
+                    display: block !important;
+                }
             </style>';
         });
         
@@ -4992,13 +4999,13 @@ class Snefuru_Admin {
         add_action('admin_footer', function() {
             echo '<script type="text/javascript">
                 jQuery(document).ready(function($) {
-                    // Function to check if notice is from WP Pusher
+                    // Function to check if notice is from WP Pusher or related to page actions
                     function isWPPusherNotice(element) {
                         var $el = $(element);
                         var text = $el.text().toLowerCase();
                         var html = $el.html().toLowerCase();
                         
-                        // Check for WP Pusher keywords
+                        // Check for WP Pusher keywords and related terms
                         var pusherKeywords = ["pusher", "wppusher", "push-to-deploy", "github", "bitbucket", "gitlab"];
                         for (var i = 0; i < pusherKeywords.length; i++) {
                             if (text.indexOf(pusherKeywords[i]) !== -1 || html.indexOf(pusherKeywords[i]) !== -1) {
@@ -5013,12 +5020,48 @@ class Snefuru_Admin {
                             return true;
                         }
                         
+                        // Allow action feedback messages (plugin update results)
+                        var actionKeywords = [
+                            "plugin successfully updated", "successfully updated", "update successful",
+                            "failed to update", "update failed", "error updating",
+                            "plugin updated", "plugin installation", "deployment",
+                            "successfully deployed", "deployment failed", "deployment successful"
+                        ];
+                        
+                        for (var i = 0; i < actionKeywords.length; i++) {
+                            if (text.indexOf(actionKeywords[i]) !== -1) {
+                                return true;
+                            }
+                        }
+                        
+                        // Allow notices that appear immediately after form submissions or button clicks
+                        // These are typically action feedback messages
+                        if ($el.hasClass("notice-success") || $el.hasClass("notice-error")) {
+                            var allowedSuccessTerms = ["updated", "success", "completed", "deployed"];
+                            var allowedErrorTerms = ["failed", "error", "could not", "unable to"];
+                            
+                            for (var i = 0; i < allowedSuccessTerms.length; i++) {
+                                if (text.indexOf(allowedSuccessTerms[i]) !== -1) {
+                                    return true;
+                                }
+                            }
+                            
+                            for (var i = 0; i < allowedErrorTerms.length; i++) {
+                                if (text.indexOf(allowedErrorTerms[i]) !== -1) {
+                                    return true;
+                                }
+                            }
+                        }
+                        
                         return false;
                     }
                     
-                    // Remove non-WP Pusher notices immediately
+                    // Process notices immediately - either remove them or mark them as allowed
                     $(".notice, .updated, .error, .update-nag").each(function() {
-                        if (!isWPPusherNotice(this)) {
+                        if (isWPPusherNotice(this)) {
+                            // Mark as allowed notice
+                            $(this).addClass("action-feedback");
+                        } else {
                             $(this).remove();
                         }
                     });
@@ -5029,13 +5072,17 @@ class Snefuru_Admin {
                             mutations.forEach(function(mutation) {
                                 $(mutation.addedNodes).each(function() {
                                     if ($(this).is(".notice, .updated, .error, .update-nag")) {
-                                        if (!isWPPusherNotice(this)) {
+                                        if (isWPPusherNotice(this)) {
+                                            $(this).addClass("action-feedback");
+                                        } else {
                                             $(this).remove();
                                         }
                                     }
                                     
                                     $(this).find(".notice, .updated, .error, .update-nag").each(function() {
-                                        if (!isWPPusherNotice(this)) {
+                                        if (isWPPusherNotice(this)) {
+                                            $(this).addClass("action-feedback");
+                                        } else {
                                             $(this).remove();
                                         }
                                     });
