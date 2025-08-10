@@ -448,6 +448,12 @@ class Snefuru_Hurricane {
                                     </a>
                                 </li>
                                 <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_duplicate_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_duplicate_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
                                     <a href="<?php echo admin_url('admin.php?page=rup_horse_class_page'); ?>" 
                                        style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
                                         rup_horse_class_page
@@ -675,6 +681,63 @@ class Snefuru_Hurricane {
                                 </button>
                             </div>
                             
+                            <!-- Go to rup_duplicate_mar Button -->
+                            <div style="margin-top: 20px; text-align: center;">
+                                <a href="<?php echo admin_url('admin.php?page=rup_duplicate_mar'); ?>" 
+                                   target="_blank"
+                                   class="snefuru-go-to-duplicate-mar-btn" 
+                                   title="Go to bulk duplication page"
+                                   style="
+                                       display: inline-flex;
+                                       align-items: center;
+                                       gap: 8px;
+                                       background: linear-gradient(135deg, #f5f5dc 0%, #e6e6cd 100%);
+                                       color: #4a4a4a;
+                                       border: 2px solid #d3d3d3;
+                                       border-radius: 8px;
+                                       padding: 12px 20px;
+                                       font-weight: 600;
+                                       text-decoration: none;
+                                       font-size: 14px;
+                                       cursor: pointer;
+                                       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                                       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                                       text-transform: none;
+                                       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                   "
+                                   onmouseover="this.style.background='linear-gradient(135deg, #f0f0d8 0%, #e0e0c8 100%)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 16px rgba(0, 0, 0, 0.15)'"
+                                   onmouseout="this.style.background='linear-gradient(135deg, #f5f5dc 0%, #e6e6cd 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)'"
+                                >
+                                    <span style="font-size: 16px;">🔗</span>
+                                    <span>go to rup_duplicate_mar -></span>
+                                </a>
+                                
+                                <button 
+                                    type="button" 
+                                    class="snefuru-copy-duplicate-mar-btn" 
+                                    title="Copy link text to clipboard"
+                                    style="
+                                        background: linear-gradient(135deg, #00a32a 0%, #007a1f 100%);
+                                        color: white;
+                                        border: none;
+                                        border-radius: 6px;
+                                        width: 32px;
+                                        height: 32px;
+                                        margin-left: 8px;
+                                        cursor: pointer;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        transition: all 0.3s ease;
+                                        box-shadow: 0 2px 6px rgba(0, 163, 42, 0.2);
+                                    "
+                                    onmouseover="this.style.background='linear-gradient(135deg, #00ba37 0%, #008a25 100%)'; this.style.transform='scale(1.05)'"
+                                    onmouseout="this.style.background='linear-gradient(135deg, #00a32a 0%, #007a1f 100%)'; this.style.transform='scale(1)'"
+                                >
+                                    📋
+                                </button>
+                            </div>
+                            
                             <!-- Status Display -->
                             <div id="snefuru-duplicate-status" style="display: none; margin-top: 15px; padding: 15px; border-radius: 8px; max-width: 600px; margin-left: auto; margin-right: auto;"></div>
                             
@@ -803,6 +866,47 @@ class Snefuru_Hurricane {
                                         $btn.css('cursor', 'pointer');
                                     }
                                 });
+                            });
+                            
+                            // Copy rup_duplicate_mar button text functionality
+                            $('.snefuru-copy-duplicate-mar-btn').on('click', function() {
+                                var textToCopy = 'go to rup_duplicate_mar ->';
+                                var $btn = $(this);
+                                
+                                if (navigator.clipboard && navigator.clipboard.writeText) {
+                                    navigator.clipboard.writeText(textToCopy).then(function() {
+                                        $btn.html('✅');
+                                        setTimeout(function() {
+                                            $btn.html('📋');
+                                        }, 2000);
+                                        console.log('rup_duplicate_mar button text copied to clipboard');
+                                    }).catch(function(err) {
+                                        console.error('Clipboard write failed:', err);
+                                    });
+                                } else {
+                                    // Fallback for older browsers
+                                    var textarea = document.createElement('textarea');
+                                    textarea.value = textToCopy;
+                                    textarea.style.position = 'fixed';
+                                    textarea.style.opacity = '0';
+                                    document.body.appendChild(textarea);
+                                    
+                                    try {
+                                        textarea.select();
+                                        textarea.setSelectionRange(0, 99999);
+                                        if (document.execCommand('copy')) {
+                                            $btn.html('✅');
+                                            setTimeout(function() {
+                                                $btn.html('📋');
+                                            }, 2000);
+                                            console.log('rup_duplicate_mar button text copied using fallback method');
+                                        }
+                                    } catch (err) {
+                                        console.error('Fallback copy error:', err);
+                                    } finally {
+                                        document.body.removeChild(textarea);
+                                    }
+                                }
                             });
                         });
                         </script>

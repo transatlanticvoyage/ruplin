@@ -46,6 +46,9 @@ class Snefuru_Admin {
         // Page duplication AJAX action - TEMPORARILY DISABLED FOR DEBUGGING
         // add_action('wp_ajax_snefuru_duplicate_page', array($this, 'snefuru_duplicate_page'));
         
+        // Bulk duplication AJAX action
+        add_action('wp_ajax_rup_duplicate_single_post', array($this, 'rup_duplicate_single_post'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -185,6 +188,15 @@ class Snefuru_Admin {
             'manage_options',
             'rup_kpages_mar',
             array($this, 'rup_kpages_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_duplicate_mar',
+            'rup_duplicate_mar',
+            'manage_options',
+            'rup_duplicate_mar',
+            array($this, 'rup_duplicate_mar_page')
         );
         
         add_submenu_page(
@@ -3737,6 +3749,459 @@ class Snefuru_Admin {
     }
     
     /**
+     * rup_duplicate_mar page - Bulk Page/Post Duplication
+     */
+    public function rup_duplicate_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION
+        $this->suppress_all_admin_notices();
+        
+        // Get all posts and pages
+        $args = array(
+            'post_type' => array('post', 'page'),
+            'post_status' => array('publish', 'draft', 'private', 'pending'),
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC'
+        );
+        $posts = get_posts($args);
+        
+        ?>
+        <div class="wrap">
+            <h1><strong>rup_duplicate_mar</strong></h1>
+            <p>Select pages/posts to duplicate. New duplicates will be created as drafts.</p>
+            
+            <!-- Search and Filter Controls -->
+            <div style="background: #f9f9f9; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 6px;">
+                <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                    <label><strong>Search:</strong></label>
+                    <input type="text" id="rup-search-posts" placeholder="Search titles..." style="padding: 6px; border: 1px solid #ddd; border-radius: 3px; width: 250px;">
+                    
+                    <label><strong>Filter Type:</strong></label>
+                    <select id="rup-filter-type" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px;">
+                        <option value="">All Types</option>
+                        <option value="page">Pages Only</option>
+                        <option value="post">Posts Only</option>
+                    </select>
+                    
+                    <label><strong>Filter Status:</strong></label>
+                    <select id="rup-filter-status" style="padding: 6px; border: 1px solid #ddd; border-radius: 3px;">
+                        <option value="">All Statuses</option>
+                        <option value="publish">Published</option>
+                        <option value="draft">Draft</option>
+                        <option value="private">Private</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    
+                    <button type="button" id="rup-clear-filters" class="button">Clear Filters</button>
+                </div>
+            </div>
+            
+            <!-- Bulk Actions -->
+            <div style="margin: 20px 0; padding: 15px; background: #fff; border: 2px solid #0073aa; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button type="button" id="rup-duplicate-selected" class="button button-primary" style="background: linear-gradient(135deg, #0073aa 0%, #005177 100%); padding: 10px 20px; font-weight: 600;">
+                        🔄 Duplicate Selected Items
+                    </button>
+                    <span id="rup-selection-count" style="color: #666; font-weight: 500;">0 items selected</span>
+                    <button type="button" id="rup-select-all" class="button" style="margin-left: auto;">Select All Visible</button>
+                    <button type="button" id="rup-deselect-all" class="button">Deselect All</button>
+                </div>
+            </div>
+            
+            <!-- Results Table -->
+            <div style="background: white; border: 1px solid #ddd; border-radius: 6px; overflow: hidden;">
+                <table class="wp-list-table widefat fixed striped" id="rup-posts-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px; text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" id="rup-select-all-checkbox" style="transform: scale(1.2);">
+                            </th>
+                            <th style="padding: 12px; font-weight: 600;">Title</th>
+                            <th style="width: 100px; text-align: center; padding: 12px;">Type</th>
+                            <th style="width: 100px; text-align: center; padding: 12px;">Status</th>
+                            <th style="width: 150px; text-align: center; padding: 12px;">Last Modified</th>
+                            <th style="width: 80px; text-align: center; padding: 12px;">ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($posts as $post): ?>
+                        <tr data-post-type="<?php echo esc_attr($post->post_type); ?>" 
+                            data-post-status="<?php echo esc_attr($post->post_status); ?>"
+                            data-post-title="<?php echo esc_attr(strtolower($post->post_title)); ?>">
+                            <td style="text-align: center; padding: 12px 8px;">
+                                <input type="checkbox" class="rup-post-checkbox" 
+                                       value="<?php echo $post->ID; ?>" 
+                                       style="transform: scale(1.2);">
+                            </td>
+                            <td style="padding: 12px;">
+                                <strong style="color: #0073aa;">
+                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" 
+                                       target="_blank" style="text-decoration: none; color: inherit;">
+                                        <?php echo esc_html($post->post_title ?: '(No Title)'); ?>
+                                    </a>
+                                </strong>
+                                <div style="color: #666; font-size: 12px; margin-top: 4px;">
+                                    <?php 
+                                    $excerpt = $post->post_excerpt ?: $post->post_content;
+                                    echo esc_html(wp_trim_words(strip_tags($excerpt), 15)); 
+                                    ?>
+                                </div>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span class="post-type-badge" style="
+                                    background: <?php echo $post->post_type === 'page' ? '#2271b1' : '#00a32a'; ?>;
+                                    color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; 
+                                    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+                                ">
+                                    <?php echo esc_html($post->post_type); ?>
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px;">
+                                <span class="post-status-badge" style="
+                                    background: <?php 
+                                        switch($post->post_status) {
+                                            case 'publish': echo '#00a32a';
+                                            case 'draft': echo '#dba617';
+                                            case 'private': echo '#8b1538';
+                                            case 'pending': echo '#d63638';
+                                            default: echo '#666';
+                                        }
+                                    ?>;
+                                    color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;
+                                    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+                                ">
+                                    <?php echo esc_html($post->post_status); ?>
+                                </span>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-size: 13px;">
+                                <?php echo esc_html(date('M j, Y', strtotime($post->post_modified))); ?>
+                            </td>
+                            <td style="text-align: center; padding: 12px; color: #666; font-family: monospace;">
+                                <?php echo $post->ID; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Status Messages -->
+            <div id="rup-status-messages" style="margin-top: 20px;"></div>
+        </div>
+        
+        <style>
+        #rup-posts-table tbody tr:hover {
+            background-color: #f0f8ff !important;
+        }
+        
+        .rup-post-checkbox:checked {
+            accent-color: #0073aa;
+        }
+        
+        #rup-posts-table tbody tr.selected {
+            background-color: #e8f4f8 !important;
+        }
+        
+        .rup-status-success {
+            background: #d1eddb; 
+            color: #155724; 
+            padding: 12px; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 6px; 
+            margin: 10px 0;
+        }
+        
+        .rup-status-error {
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 12px; 
+            border: 1px solid #f5c6cb; 
+            border-radius: 6px; 
+            margin: 10px 0;
+        }
+        
+        .rup-status-processing {
+            background: #d4edda; 
+            color: #155724; 
+            padding: 12px; 
+            border: 1px solid #c3e6cb; 
+            border-radius: 6px; 
+            margin: 10px 0;
+        }
+        </style>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            var selectedCount = 0;
+            
+            // Update selection count
+            function updateSelectionCount() {
+                selectedCount = $('.rup-post-checkbox:checked').length;
+                $('#rup-selection-count').text(selectedCount + ' items selected');
+                $('#rup-duplicate-selected').prop('disabled', selectedCount === 0);
+            }
+            
+            // Handle individual checkbox changes
+            $(document).on('change', '.rup-post-checkbox', function() {
+                var $row = $(this).closest('tr');
+                if ($(this).is(':checked')) {
+                    $row.addClass('selected');
+                } else {
+                    $row.removeClass('selected');
+                    $('#rup-select-all-checkbox').prop('checked', false);
+                }
+                updateSelectionCount();
+            });
+            
+            // Handle select all checkbox
+            $('#rup-select-all-checkbox').on('change', function() {
+                var isChecked = $(this).is(':checked');
+                $('#rup-posts-table tbody tr:visible .rup-post-checkbox').prop('checked', isChecked);
+                $('#rup-posts-table tbody tr:visible').toggleClass('selected', isChecked);
+                updateSelectionCount();
+            });
+            
+            // Select all visible button
+            $('#rup-select-all').on('click', function() {
+                $('#rup-posts-table tbody tr:visible .rup-post-checkbox').prop('checked', true);
+                $('#rup-posts-table tbody tr:visible').addClass('selected');
+                updateSelectionCount();
+            });
+            
+            // Deselect all button  
+            $('#rup-deselect-all').on('click', function() {
+                $('.rup-post-checkbox').prop('checked', false);
+                $('#rup-posts-table tbody tr').removeClass('selected');
+                $('#rup-select-all-checkbox').prop('checked', false);
+                updateSelectionCount();
+            });
+            
+            // Search functionality
+            $('#rup-search-posts').on('input', function() {
+                filterTable();
+            });
+            
+            // Filter functionality
+            $('#rup-filter-type, #rup-filter-status').on('change', function() {
+                filterTable();
+            });
+            
+            // Clear filters
+            $('#rup-clear-filters').on('click', function() {
+                $('#rup-search-posts').val('');
+                $('#rup-filter-type').val('');
+                $('#rup-filter-status').val('');
+                filterTable();
+            });
+            
+            // Filter table function
+            function filterTable() {
+                var searchText = $('#rup-search-posts').val().toLowerCase();
+                var filterType = $('#rup-filter-type').val();
+                var filterStatus = $('#rup-filter-status').val();
+                
+                $('#rup-posts-table tbody tr').each(function() {
+                    var $row = $(this);
+                    var title = $row.data('post-title');
+                    var type = $row.data('post-type');
+                    var status = $row.data('post-status');
+                    
+                    var showRow = true;
+                    
+                    // Search filter
+                    if (searchText && title.indexOf(searchText) === -1) {
+                        showRow = false;
+                    }
+                    
+                    // Type filter
+                    if (filterType && type !== filterType) {
+                        showRow = false;
+                    }
+                    
+                    // Status filter
+                    if (filterStatus && status !== filterStatus) {
+                        showRow = false;
+                    }
+                    
+                    $row.toggle(showRow);
+                });
+                
+                // Update select all checkbox state
+                updateSelectionCount();
+            }
+            
+            // Duplicate selected posts
+            $('#rup-duplicate-selected').on('click', function() {
+                var selectedPosts = [];
+                $('.rup-post-checkbox:checked').each(function() {
+                    selectedPosts.push($(this).val());
+                });
+                
+                if (selectedPosts.length === 0) {
+                    alert('Please select at least one item to duplicate.');
+                    return;
+                }
+                
+                if (!confirm('Are you sure you want to duplicate ' + selectedPosts.length + ' selected items?')) {
+                    return;
+                }
+                
+                var $button = $(this);
+                var originalText = $button.text();
+                $button.prop('disabled', true).html('🔄 Processing...');
+                
+                $('#rup-status-messages').html(
+                    '<div class="rup-status-processing">Processing duplication of ' + selectedPosts.length + ' items...</div>'
+                );
+                
+                // Process duplications via AJAX
+                duplicatePosts(selectedPosts, 0, [], []);
+                
+                function duplicatePosts(postIds, index, successes, errors) {
+                    if (index >= postIds.length) {
+                        // All done
+                        $button.prop('disabled', false).text(originalText);
+                        
+                        var html = '';
+                        if (successes.length > 0) {
+                            html += '<div class="rup-status-success">Successfully duplicated ' + successes.length + ' items:<ul>';
+                            successes.forEach(function(success) {
+                                html += '<li><strong>' + success.title + '</strong> → <a href="' + success.edit_url + '" target="_blank">Edit Copy</a></li>';
+                            });
+                            html += '</ul></div>';
+                        }
+                        
+                        if (errors.length > 0) {
+                            html += '<div class="rup-status-error">Errors occurred for ' + errors.length + ' items:<ul>';
+                            errors.forEach(function(error) {
+                                html += '<li>' + error + '</li>';
+                            });
+                            html += '</ul></div>';
+                        }
+                        
+                        $('#rup-status-messages').html(html);
+                        
+                        // Deselect all checkboxes
+                        $('#rup-deselect-all').click();
+                        
+                        return;
+                    }
+                    
+                    var postId = postIds[index];
+                    
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'rup_duplicate_single_post',
+                            post_id: postId,
+                            nonce: '<?php echo wp_create_nonce('rup_duplicate_single_nonce'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                successes.push(response.data);
+                            } else {
+                                errors.push('Post ID ' + postId + ': ' + response.data);
+                            }
+                        },
+                        error: function() {
+                            errors.push('Post ID ' + postId + ': AJAX request failed');
+                        },
+                        complete: function() {
+                            // Process next item
+                            duplicatePosts(postIds, index + 1, successes, errors);
+                        }
+                    });
+                }
+            });
+            
+            // Initialize
+            updateSelectionCount();
+        });
+        </script>
+        <?php
+    }
+    
+    /**
+     * AJAX handler for single post duplication
+     */
+    public function rup_duplicate_single_post() {
+        check_ajax_referer('rup_duplicate_single_nonce', 'nonce');
+        
+        if (!current_user_can('edit_pages') && !current_user_can('edit_posts')) {
+            wp_send_json_error('Unauthorized access');
+            return;
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+            return;
+        }
+        
+        // Get the original post
+        $original_post = get_post($post_id);
+        if (!$original_post) {
+            wp_send_json_error('Original page/post not found');
+            return;
+        }
+        
+        // Create the duplicate post data
+        $duplicate_post_data = array(
+            'post_title'     => 'Copy of ' . $original_post->post_title,
+            'post_content'   => $original_post->post_content,
+            'post_status'    => 'draft', // Always create as draft for safety
+            'post_type'      => $original_post->post_type,
+            'post_author'    => get_current_user_id(),
+            'post_excerpt'   => $original_post->post_excerpt,
+            'post_parent'    => $original_post->post_parent,
+            'menu_order'     => $original_post->menu_order,
+            'comment_status' => $original_post->comment_status,
+            'ping_status'    => $original_post->ping_status
+        );
+        
+        // Insert the duplicate post
+        $duplicate_post_id = wp_insert_post($duplicate_post_data, true);
+        
+        if (is_wp_error($duplicate_post_id)) {
+            wp_send_json_error('Failed to create duplicate: ' . $duplicate_post_id->get_error_message());
+            return;
+        }
+        
+        // Copy all post meta, including Elementor data
+        $post_meta = get_post_meta($post_id);
+        foreach ($post_meta as $meta_key => $meta_values) {
+            // Skip certain meta keys that should be unique
+            if (in_array($meta_key, array('_edit_lock', '_edit_last'))) {
+                continue;
+            }
+            
+            foreach ($meta_values as $meta_value) {
+                add_post_meta($duplicate_post_id, $meta_key, maybe_unserialize($meta_value));
+            }
+        }
+        
+        // Copy taxonomies (categories, tags, etc.)
+        $taxonomies = get_object_taxonomies($original_post->post_type);
+        foreach ($taxonomies as $taxonomy) {
+            $terms = wp_get_post_terms($post_id, $taxonomy, array('fields' => 'ids'));
+            if (!is_wp_error($terms) && !empty($terms)) {
+                wp_set_post_terms($duplicate_post_id, $terms, $taxonomy);
+            }
+        }
+        
+        // Generate URLs for the response
+        $edit_url = admin_url('post.php?action=edit&post=' . $duplicate_post_id);
+        
+        // Return success response
+        wp_send_json_success(array(
+            'title' => 'Copy of ' . $original_post->post_title,
+            'edit_url' => $edit_url,
+            'original_title' => $original_post->post_title
+        ));
+    }
+    
+    /**
      * rup_horse_class_page - Database Horse Class Management
      */
     public function rup_horse_class_page() {
@@ -4603,6 +5068,7 @@ class Snefuru_Admin {
             'snefuru_page_rup_service_tags_mar',
             'snefuru_page_rup_location_tags_mar',
             'snefuru_page_rup_kpages_mar',
+            'snefuru_page_rup_duplicate_mar',
             'snefuru_page_rup_horse_class_page',
             'snefuru_page_document_outlook_aug9',
             'snefuru_page_dynamic_images_man',
@@ -4679,7 +5145,7 @@ class Snefuru_Admin {
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
-                'rup_driggs_mar', 'rup_kpages_mar'
+                'rup_driggs_mar', 'rup_kpages_mar', 'rup_duplicate_mar'
              ]));
         
         // Check if we're on WP Pusher page
@@ -4722,7 +5188,7 @@ class Snefuru_Admin {
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
-                'rup_driggs_mar', 'rup_kpages_mar'
+                'rup_driggs_mar', 'rup_kpages_mar', 'rup_duplicate_mar'
              ]));
         
         // Check if we're on WP Pusher page
