@@ -43,8 +43,8 @@ class Snefuru_Admin {
         // Content injection AJAX action
         add_action('wp_ajax_snefuru_inject_content', array($this, 'snefuru_inject_content'));
         
-        // Page duplication AJAX action
-        add_action('wp_ajax_snefuru_duplicate_page', array($this, 'snefuru_duplicate_page'));
+        // Page duplication AJAX action - TEMPORARILY DISABLED FOR DEBUGGING
+        // add_action('wp_ajax_snefuru_duplicate_page', array($this, 'snefuru_duplicate_page'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -5220,6 +5220,11 @@ class Snefuru_Admin {
      * AJAX: Handle page duplication
      */
     public function snefuru_duplicate_page() {
+        // Temporary simple implementation to test if this method is causing the error
+        wp_send_json_error('Page duplication temporarily disabled for debugging');
+        return;
+        
+        /*
         check_ajax_referer('snefuru_duplicate_page_nonce', 'nonce');
         
         if (!current_user_can('edit_pages') && !current_user_can('edit_posts')) {
@@ -5318,5 +5323,6 @@ class Snefuru_Admin {
             'view_url' => $view_url,
             'original_title' => $original_post->post_title
         ));
+        */
     }
 } 
