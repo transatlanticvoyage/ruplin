@@ -80,6 +80,7 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gut-deployer">
                         Gut. Deployer
                     </button>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
                         Nimble
                     </button>
