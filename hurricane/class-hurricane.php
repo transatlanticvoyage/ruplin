@@ -65,6 +65,47 @@ class Snefuru_Hurricane {
                     </g>
                 </svg>
                 
+                <?php
+                // Get the sitespren_base domain for the driggsman URL
+                $sitespren_base = get_post_meta($post->ID, '_zen_sitespren.sitespren_base', true);
+                if (empty($sitespren_base)) {
+                    $sitespren_base = 'example.com'; // fallback if not set
+                }
+                $driggsman_url = 'http://localhost:3000/driggsman?activefilterchamber=daylight&sitesentered=' . urlencode($sitespren_base);
+                ?>
+                
+                <!-- Driggsman Button with Copy -->
+                <div style="display: flex; align-items: center; margin-left: 15px;">
+                    <a href="<?php echo esc_url($driggsman_url); ?>" 
+                       target="_blank" 
+                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                        open /driggsman
+                    </a>
+                    <button type="button" 
+                            class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
+                            data-copy-url="<?php echo esc_url($driggsman_url); ?>"
+                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
+                            title="Copy driggsman URL">
+                        📋
+                    </button>
+                </div>
+                
+                <!-- SiteJar Button with Copy -->
+                <div style="display: flex; align-items: center; margin-left: 15px;">
+                    <a href="#" 
+                       target="_blank" 
+                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                        open /sitejar
+                    </a>
+                    <button type="button" 
+                            class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
+                            data-copy-url="#"
+                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
+                            title="Copy sitejar URL">
+                        📋
+                    </button>
+                </div>
+                
                 <!-- Elementor Editor Button with Copy -->
                 <div style="display: flex; align-items: center; margin-left: 15px;">
                     <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=elementor'); ?>" 
