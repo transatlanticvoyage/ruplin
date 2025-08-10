@@ -4594,9 +4594,17 @@ class Snefuru_Admin {
                          in_array($screen->post_type, ['post', 'page']) ||
                          $this->is_post_editor_page();
         
+        // Check if we're on WP Pusher plugins page
+        $is_wppusher_page = (isset($_GET['page']) && $_GET['page'] === 'wppusher-plugins') ||
+                           ($screen->id === 'toplevel_page_wppusher-plugins') ||
+                           ($screen->id === 'admin_page_wppusher-plugins');
+        
         if ($is_snefuru_page || $is_editor_page) {
             // Suppress notices immediately
             $this->suppress_all_admin_notices();
+        } elseif ($is_wppusher_page) {
+            // For WP Pusher page, suppress all notices except WP Pusher's own
+            $this->suppress_all_admin_notices_except_wppusher();
         }
     }
     
@@ -4646,12 +4654,20 @@ class Snefuru_Admin {
                 'rup_driggs_mar'
              ]));
         
+        // Check if we're on WP Pusher page
+        $is_wppusher_page = isset($_GET['page']) && $_GET['page'] === 'wppusher-plugins';
+        
         // Check if we're on WordPress post/page editor
         $is_editor_page = $this->is_post_editor_page();
         
         if ($is_snefuru_page || $is_editor_page) {
             
             // Pre-emptively block all admin notice hooks
+            add_action('admin_notices', function() { 
+                ob_start(); // Start output buffering to catch any notices
+            }, 0);
+        } elseif ($is_wppusher_page) {
+            // For WP Pusher page, suppress selectively
             add_action('admin_notices', function() { 
                 ob_start(); // Start output buffering to catch any notices
             }, 0);
@@ -4680,6 +4696,9 @@ class Snefuru_Admin {
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
                 'rup_driggs_mar'
              ]));
+        
+        // Check if we're on WP Pusher page
+        $is_wppusher_page = isset($_GET['page']) && $_GET['page'] === 'wppusher-plugins';
         
         // Check if we're on a WordPress post/page editor
         $is_editor_page = $this->is_post_editor_page();
@@ -4714,6 +4733,9 @@ class Snefuru_Admin {
                     }
                 </style>';
             }, 1);
+        } elseif ($is_wppusher_page) {
+            // For WP Pusher, use selective suppression
+            $this->suppress_all_admin_notices_except_wppusher();
         }
     }
     
@@ -4875,6 +4897,153 @@ class Snefuru_Admin {
                                 wp.data.dispatch("core/notices").removeAllNotices();
                             }
                         }, 5000);
+                    }
+                });
+            </script>';
+        });
+    }
+    
+    /**
+     * Suppress all admin notices except those from WP Pusher plugin
+     * Used specifically for the WP Pusher plugins page to keep it clean while allowing its own feedback
+     */
+    private function suppress_all_admin_notices_except_wppusher() {
+        // Remove all admin notices immediately, but we'll re-add WP Pusher ones
+        add_action('admin_print_styles', function() {
+            global $wp_filter;
+            
+            // Store WP Pusher callbacks before clearing
+            $wppusher_callbacks = array();
+            $notice_hooks = array('admin_notices', 'all_admin_notices');
+            
+            foreach ($notice_hooks as $hook) {
+                if (isset($wp_filter[$hook]) && isset($wp_filter[$hook]->callbacks)) {
+                    foreach ($wp_filter[$hook]->callbacks as $priority => $callbacks) {
+                        foreach ($callbacks as $callback_id => $callback) {
+                            // Check if this is a WP Pusher callback
+                            if (is_array($callback['function'])) {
+                                $class_name = is_object($callback['function'][0]) ? 
+                                    get_class($callback['function'][0]) : 
+                                    $callback['function'][0];
+                                    
+                                if (stripos($class_name, 'pusher') !== false || 
+                                    stripos($class_name, 'wppusher') !== false) {
+                                    $wppusher_callbacks[$hook][$priority][$callback_id] = $callback;
+                                }
+                            } elseif (is_string($callback['function'])) {
+                                if (stripos($callback['function'], 'pusher') !== false || 
+                                    stripos($callback['function'], 'wppusher') !== false) {
+                                    $wppusher_callbacks[$hook][$priority][$callback_id] = $callback;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Clear all notice hooks
+            foreach ($notice_hooks as $hook) {
+                remove_all_actions($hook);
+            }
+            
+            // Re-add only WP Pusher callbacks
+            foreach ($wppusher_callbacks as $hook => $priorities) {
+                foreach ($priorities as $priority => $callbacks) {
+                    foreach ($callbacks as $callback) {
+                        add_action($hook, $callback['function'], $priority, $callback['accepted_args']);
+                    }
+                }
+            }
+        }, 0);
+        
+        // Hide non-WP Pusher notices via CSS
+        add_action('admin_head', function() {
+            echo '<style type="text/css">
+                /* Hide all notices by default */
+                .notice:not(.wppusher-notice),
+                .notice-warning:not(.wppusher-notice),
+                .notice-error:not(.wppusher-notice),
+                .notice-success:not(.wppusher-notice),
+                .notice-info:not(.wppusher-notice),
+                .updated:not(.wppusher-notice),
+                .error:not(.wppusher-notice),
+                .update-nag:not(.wppusher-notice) {
+                    display: none !important;
+                }
+                
+                /* Allow WP Pusher specific notices */
+                .notice.wppusher-notice,
+                .notice[data-plugin="wppusher"],
+                .notice[id*="wppusher"],
+                .wppusher-message,
+                .wppusher-error,
+                .wppusher-success,
+                .wppusher-warning,
+                .wppusher-info {
+                    display: block !important;
+                }
+            </style>';
+        });
+        
+        // JavaScript to dynamically filter notices
+        add_action('admin_footer', function() {
+            echo '<script type="text/javascript">
+                jQuery(document).ready(function($) {
+                    // Function to check if notice is from WP Pusher
+                    function isWPPusherNotice(element) {
+                        var $el = $(element);
+                        var text = $el.text().toLowerCase();
+                        var html = $el.html().toLowerCase();
+                        
+                        // Check for WP Pusher keywords
+                        var pusherKeywords = ["pusher", "wppusher", "push-to-deploy", "github", "bitbucket", "gitlab"];
+                        for (var i = 0; i < pusherKeywords.length; i++) {
+                            if (text.indexOf(pusherKeywords[i]) !== -1 || html.indexOf(pusherKeywords[i]) !== -1) {
+                                return true;
+                            }
+                        }
+                        
+                        // Check for WP Pusher classes or IDs
+                        if ($el.hasClass("wppusher-notice") || 
+                            $el.attr("id") && $el.attr("id").indexOf("wppusher") !== -1 ||
+                            $el.attr("data-plugin") === "wppusher") {
+                            return true;
+                        }
+                        
+                        return false;
+                    }
+                    
+                    // Remove non-WP Pusher notices immediately
+                    $(".notice, .updated, .error, .update-nag").each(function() {
+                        if (!isWPPusherNotice(this)) {
+                            $(this).remove();
+                        }
+                    });
+                    
+                    // Monitor for dynamically added notices
+                    if (typeof MutationObserver !== "undefined") {
+                        var observer = new MutationObserver(function(mutations) {
+                            mutations.forEach(function(mutation) {
+                                $(mutation.addedNodes).each(function() {
+                                    if ($(this).is(".notice, .updated, .error, .update-nag")) {
+                                        if (!isWPPusherNotice(this)) {
+                                            $(this).remove();
+                                        }
+                                    }
+                                    
+                                    $(this).find(".notice, .updated, .error, .update-nag").each(function() {
+                                        if (!isWPPusherNotice(this)) {
+                                            $(this).remove();
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                        
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true
+                        });
                     }
                 });
             </script>';
