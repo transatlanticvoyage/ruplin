@@ -90,6 +90,71 @@
     display: block;
 }
 
+/* Kepler Titles in Services and Locations tabs */
+.snefuru-kepler-title {
+    font-size: 20px !important;
+    font-weight: 700 !important; /* Explicit 700 weight for bold */
+    color: #1d2327;
+    margin: 0 0 20px 0;
+    padding: 0;
+    line-height: 1.4;
+    display: block;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+/* Ensure all bold text labels are properly weighted */
+.snefuru-stellar-chamber-text,
+.snefuru-header303-label,
+.snefuru-header303-db-mapping-label,
+.snefuru-elementor-data-label {
+    font-weight: 700 !important; /* Force bold with numeric weight */
+    font-weight: bold !important;
+}
+
+/* Header303 DB Mapping Display */
+.snefuru-header303-db-mapping-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.snefuru-header303-db-mapping-header {
+    position: relative;
+    width: 400px;
+    margin-bottom: 0;
+}
+
+.snefuru-header303-db-mapping-label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1d2327;
+    margin-bottom: 5px;
+}
+
+.snefuru-header303-db-mapping-textbox {
+    width: 400px;
+    height: 150px;
+    padding: 10px;
+    margin-top: 0;
+    border: 2px solid #007cba;
+    border-radius: 0 0 4px 4px;
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 1.5;
+    resize: none;
+    background: #f9f9f9;
+    color: #2c3338;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.snefuru-header303-db-mapping-textbox:focus {
+    outline: none;
+    border-color: #005a87;
+    background: #fff;
+}
+
 /* Header303 Display */
 .snefuru-header303-container {
     position: relative;

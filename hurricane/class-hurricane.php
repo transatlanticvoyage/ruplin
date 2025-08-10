@@ -41,6 +41,15 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="other">
                         Other
                     </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="driggs">
+                        Driggs
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="services">
+                        Services
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="locations">
+                        Locations
+                    </button>
                 </div>
                 <div class="snefuru-stellar-tab-content">
                     <div class="snefuru-stellar-tab-panel active" data-panel="elementor">
@@ -74,7 +83,25 @@ class Snefuru_Hurricane {
                                 $formatted_data = $elementor_data;
                             }
                         }
+                        
+                        // Static mapping text for header303_db_mapping
+                        $db_mapping_text = "wp_posts.ID / wp_posts.post_title / wp_posts.post_status / admin_url('post.php?post=\$ID&action=edit')\n\nDatabase field mappings:\n- Post ID: wp_posts.ID (bigint unsigned, primary key)\n- Post Title: wp_posts.post_title (text field)\n- Post Status: wp_posts.post_status (varchar, values: publish/draft/pending/private/trash/auto-draft/inherit)\n- Edit Link: Dynamically generated using WordPress admin_url() function with wp_posts.ID";
                         ?>
+                        
+                        <!-- Header303 DB Mapping Container -->
+                        <div class="snefuru-header303-db-mapping-container">
+                            <div class="snefuru-header303-db-mapping-header">
+                                <span class="snefuru-header303-db-mapping-label">header303_db_mapping</span>
+                                <button type="button" class="snefuru-copy-btn" data-target="header303-db-mapping-textbox">
+                                    Copy
+                                </button>
+                            </div>
+                            <textarea 
+                                id="header303-db-mapping-textbox" 
+                                class="snefuru-header303-db-mapping-textbox" 
+                                readonly
+                            ><?php echo esc_textarea($db_mapping_text); ?></textarea>
+                        </div>
                         
                         <!-- Header303 Container -->
                         <div class="snefuru-header303-container">
@@ -112,6 +139,17 @@ class Snefuru_Hurricane {
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="other">
                         <!-- Other content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="driggs">
+                        <!-- Driggs content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="services">
+                        <h2 class="snefuru-kepler-title">Kepler Services</h2>
+                        <!-- Services content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="locations">
+                        <h2 class="snefuru-kepler-title">Kepler Locations</h2>
+                        <!-- Locations content will go here -->
                     </div>
                 </div>
             </div>
