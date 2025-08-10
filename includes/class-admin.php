@@ -3918,15 +3918,22 @@ class Snefuru_Admin {
                         </ul>
                     </div>
                     
-                    <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 20px; border-radius: 5px; margin-top: 30px;">
-                        <h4 style="margin-top: 0; color: #856404;">⚡ NEW: Media Library Workaround</h4>
-                        <p style="color: #856404; margin-bottom: 10px;">Can't see Dynamic Tags in Elementor? We've created a workaround!</p>
-                        <ul style="line-height: 1.6; color: #856404; margin-bottom: 0;">
-                            <li><strong>When editing in Elementor:</strong> Click "Choose Image" on any Image Box element</li>
-                            <li><strong>Look for new tabs:</strong> You'll see "🚀 Zen Services" and "📍 Zen Locations" tabs</li>
-                            <li><strong>Select your zen data:</strong> Choose from your services/locations and their images</li>
-                            <li><strong>Works without Elementor Pro:</strong> Full Dynamic Tags functionality via media library</li>
-                        </ul>
+                    <div style="background: #d1ecf1; border: 1px solid #0c5460; padding: 20px; border-radius: 5px; margin-top: 30px;">
+                        <h4 style="margin-top: 0; color: #0c5460;">🔗 NEW: Gopher Dynamic Tab</h4>
+                        <p style="color: #0c5460; margin-bottom: 10px;">Can't see Dynamic Tags in Elementor? Use our new <strong>Gopher Dynamic Tab</strong>!</p>
+                        <div style="background: rgba(255,255,255,0.7); padding: 15px; border-radius: 4px; margin: 15px 0;">
+                            <h5 style="margin: 0 0 10px 0; color: #0c5460;">📋 How to Use:</h5>
+                            <ol style="line-height: 1.6; color: #0c5460; margin: 0;">
+                                <li>In Elementor, add an <strong>Image Box</strong> element</li>
+                                <li>Click <strong>"Choose Image"</strong></li>
+                                <li>In the sidebar, look for <strong>"Gopher Dynamic Tab"</strong></li>
+                                <li>Click it to open the zen data selector</li>
+                                <li>Switch between <strong>🚀 Services</strong> and <strong>📍 Locations</strong></li>
+                                <li>Click on any item to select it</li>
+                                <li>Click <strong>"Use Selected Image"</strong></li>
+                            </ol>
+                        </div>
+                        <p style="color: #0c5460; margin: 0; font-weight: 500;">✅ Works without Elementor Pro - Full Dynamic Tags functionality!</p>
                     </div>
                     
                     <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #0073aa;">
