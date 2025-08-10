@@ -68,13 +68,17 @@ class Snefuru_Hurricane {
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
                     <button type="button" class="snefuru-stellar-tab-button active" data-tab="elicitor">
-                        Elicitor
+                        Elementor Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
-                        Elementor
+                        Elementor Deployer
                     </button>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
-                        Gutenberg
+                        Gutenberg Elicitor
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="gut-deployer">
+                        Gut. Deployer
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
                         Nimble
@@ -83,7 +87,16 @@ class Snefuru_Hurricane {
                         Image Freeway
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="other">
-                        Other
+                        KenliSidebarLinks
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="kpages-schema">
+                        KPages Schema
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="pantheon-table">
+                        Pantheon Table
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="duplicate-kpage">
+                        Duplicate Kpage
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="driggs">
                         Driggs
@@ -97,30 +110,6 @@ class Snefuru_Hurricane {
                 </div>
                 <div class="snefuru-stellar-tab-content">
                     <div class="snefuru-stellar-tab-panel active" data-panel="elicitor">
-                        <!-- Column Container Wrapper -->
-                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
-                            
-                            <!-- Denyeep Column Div 1 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
-                                <!-- Column 1 content will go here -->
-                            </div>
-                            
-                            <!-- Denyeep Column Div 2 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
-                                <!-- Column 2 content will go here -->
-                            </div>
-                            
-                            <!-- Denyeep Column Div 3 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
-                                <!-- Column 3 content will go here -->
-                            </div>
-                            
-                        </div>
-                    </div>
-                    <div class="snefuru-stellar-tab-panel" data-panel="elementor">
                         <?php
                         // Generate header303 content
                         $post_id = $post->ID;
@@ -319,8 +308,35 @@ class Snefuru_Hurricane {
                             
                         </div>
                     </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="elementor">
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <!-- Column 1 content will go here -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <!-- Column 2 content will go here -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <!-- Column 3 content will go here -->
+                            </div>
+                            
+                        </div>
+                    </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="gutenberg">
-                        <!-- Gutenberg content will go here -->
+                        <!-- Gutenberg Elicitor content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="gut-deployer">
+                        <!-- Gut. Deployer content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="nimble">
                         <!-- Nimble content will go here -->
@@ -537,7 +553,19 @@ class Snefuru_Hurricane {
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="services">
                         <h2 class="snefuru-kepler-title">Kepler Services</h2>
-                        <!-- Services content will go here -->
+                        <?php
+                        // Generate the admin URL for rup_services_mar
+                        $services_url = admin_url('admin.php?page=rup_services_mar');
+                        ?>
+                        <div class="snefuru-locations-button-container">
+                            <a href="<?php echo esc_url($services_url); ?>" class="snefuru-locations-main-btn">
+                                ?page=rup_services_mar
+                            </a>
+                            <button type="button" class="snefuru-locations-copy-btn" data-copy-url="<?php echo esc_attr($services_url); ?>" title="Copy link to clipboard">
+                                📋
+                            </button>
+                        </div>
+                        <!-- Additional services content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="locations">
                         <h2 class="snefuru-kepler-title">Kepler Locations</h2>
@@ -554,6 +582,15 @@ class Snefuru_Hurricane {
                             </button>
                         </div>
                         <!-- Additional locations content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="kpages-schema">
+                        <!-- KPages Schema content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="pantheon-table">
+                        <!-- Pantheon Table content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="duplicate-kpage">
+                        <!-- Duplicate Kpage content will go here -->
                     </div>
                 </div>
             </div>
