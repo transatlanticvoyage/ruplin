@@ -64,6 +64,22 @@ class Snefuru_Hurricane {
                         </path>
                     </g>
                 </svg>
+                
+                <!-- Elementor Editor Button with Copy -->
+                <div style="display: flex; align-items: center; margin-left: 15px;">
+                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=elementor'); ?>" 
+                       target="_blank" 
+                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                        elementor editor
+                    </a>
+                    <button type="button" 
+                            class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
+                            data-copy-url="<?php echo admin_url('post.php?post=' . $post->ID . '&action=elementor'); ?>"
+                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
+                            title="Copy elementor editor URL">
+                        📋
+                    </button>
+                </div>
             </div>
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
