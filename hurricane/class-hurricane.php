@@ -73,14 +73,14 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
                         Elementor Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 44px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: stretch;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none; display: flex; align-self: stretch; min-height: 100%;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
                         Gutenberg Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gut-deployer">
                         Gut. Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 44px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: stretch;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none; display: flex; align-self: stretch; min-height: 100%;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
                         Nimble
                     </button>
@@ -158,6 +158,7 @@ class Snefuru_Hurricane {
                             <!-- Denyeep Column Div 1 -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
                                 <!-- Header303 DB Mapping Container -->
                                 <div class="snefuru-header303-db-mapping-container">
@@ -209,6 +210,27 @@ class Snefuru_Hurricane {
                             <!-- Denyeep Column Div 2 -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content for column 2 will go here -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                <!-- Content for column 3 will go here -->
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="elementor">
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
                                 <!-- Zeeprex Submit Section -->
@@ -307,33 +329,17 @@ class Snefuru_Hurricane {
                                 </script>
                             </div>
                             
-                            <!-- Denyeep Column Div 3 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
-                                <!-- Content for column 3 will go here -->
-                            </div>
-                            
-                        </div>
-                    </div>
-                    <div class="snefuru-stellar-tab-panel" data-panel="elementor">
-                        <!-- Column Container Wrapper -->
-                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
-                            
-                            <!-- Denyeep Column Div 1 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
-                                <!-- Column 1 content will go here -->
-                            </div>
-                            
                             <!-- Denyeep Column Div 2 -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 <!-- Column 2 content will go here -->
                             </div>
                             
                             <!-- Denyeep Column Div 3 -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 <!-- Column 3 content will go here -->
                             </div>
                             
