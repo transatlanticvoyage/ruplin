@@ -45,6 +45,22 @@ class Snefuru_Hurricane {
                 <div class="snefuru-stellar-tab-content">
                     <div class="snefuru-stellar-tab-panel active" data-panel="elementor">
                         <?php
+                        // Generate header303 content
+                        $post_id = $post->ID;
+                        $post_title = get_the_title($post_id);
+                        $post_status = get_post_status($post_id);
+                        $edit_link = admin_url('post.php?post=' . $post_id . '&action=edit');
+                        
+                        // Format the header303 content with two lines
+                        $header303_line1 = sprintf(
+                            'wp_posts.post_id = %d / %s / %s / %s',
+                            $post_id,
+                            $post_title,
+                            $post_status,
+                            $edit_link
+                        );
+                        $header303_content = $header303_line1 . "\nBELOW";
+                        
                         // Get Elementor data for this post
                         $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
                         $formatted_data = '';
@@ -59,6 +75,23 @@ class Snefuru_Hurricane {
                             }
                         }
                         ?>
+                        
+                        <!-- Header303 Container -->
+                        <div class="snefuru-header303-container">
+                            <div class="snefuru-header303-header">
+                                <span class="snefuru-header303-label">header303</span>
+                                <button type="button" class="snefuru-copy-btn" data-target="header303-textbox">
+                                    Copy
+                                </button>
+                            </div>
+                            <textarea 
+                                id="header303-textbox" 
+                                class="snefuru-header303-textbox" 
+                                readonly
+                            ><?php echo esc_textarea($header303_content); ?></textarea>
+                        </div>
+                        
+                        <!-- Elementor Data Container -->
                         <div class="snefuru-elementor-data-container">
                             <div class="snefuru-elementor-data-header">
                                 <span class="snefuru-elementor-data-label">_elementor_data</span>

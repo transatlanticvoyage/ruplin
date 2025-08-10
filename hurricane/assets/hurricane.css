@@ -90,6 +90,50 @@
     display: block;
 }
 
+/* Header303 Display */
+.snefuru-header303-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.snefuru-header303-header {
+    position: relative;
+    width: 400px;
+    margin-bottom: 0;
+}
+
+.snefuru-header303-label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    color: #1d2327;
+    margin-bottom: 5px;
+}
+
+.snefuru-header303-textbox {
+    width: 400px;
+    height: 100px;
+    padding: 10px;
+    margin-top: 0;
+    border: 2px solid #007cba;
+    border-radius: 0 0 4px 4px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    resize: none;
+    background: #f9f9f9;
+    color: #2c3338;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.snefuru-header303-textbox:focus {
+    outline: none;
+    border-color: #005a87;
+    background: #fff;
+}
+
 /* Elementor Data Display */
 .snefuru-elementor-data-container {
     position: relative;
