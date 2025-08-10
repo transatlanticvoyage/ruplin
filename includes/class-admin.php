@@ -3304,13 +3304,11 @@ class Snefuru_Admin {
         $this->suppress_all_admin_notices();
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'zen_driggs';
+        $table_name = $wpdb->prefix . 'zen_sitespren';
         $current_site_url = get_site_url();
         
-        // Check if zen_driggs table exists, create if not
-        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
-            $this->create_zen_driggs_table();
-        }
+        // Ensure zen_sitespren table has a record for current site
+        $this->ensure_sitespren_record();
         
         // Handle AJAX requests
         if (isset($_POST['action'])) {
@@ -3405,33 +3403,56 @@ class Snefuru_Admin {
                 let tbody = $('#table-body');
                 tbody.empty();
                 
-                // Field definitions with labels and types
+                // Field definitions in exact order requested - display actual DB field names in bold
                 const fields = [
-                    {key: 'driggs_industry', label: 'Industry', type: 'text'},
-                    {key: 'driggs_city', label: 'City', type: 'text'},
-                    {key: 'driggs_brand_name', label: 'Brand Name', type: 'text'},
-                    {key: 'driggs_site_type_purpose', label: 'Site Type/Purpose', type: 'text'},
-                    {key: 'driggs_email_1', label: 'Email', type: 'email'},
-                    {key: 'driggs_address_full', label: 'Full Address', type: 'textarea'},
-                    {key: 'driggs_phone_1', label: 'Phone', type: 'text'},
-                    {key: 'driggs_special_note_for_ai_tool', label: 'AI Tool Notes', type: 'textarea'},
-                    {key: 'driggs_phone1_platform_id', label: 'Phone Platform ID', type: 'number'},
-                    {key: 'driggs_cgig_id', label: 'CGIG ID', type: 'number'},
-                    {key: 'driggs_revenue_goal', label: 'Revenue Goal', type: 'number'},
-                    {key: 'driggs_address_species_id', label: 'Address Species ID', type: 'number'},
-                    {key: 'driggs_citations_done', label: 'Citations Done', type: 'boolean'},
-                    {key: 'is_competitor', label: 'Is Competitor', type: 'boolean'},
-                    {key: 'is_external', label: 'Is External', type: 'boolean'},
-                    {key: 'is_internal', label: 'Is Internal', type: 'boolean'},
-                    {key: 'is_ppx', label: 'Is PPX', type: 'boolean'},
-                    {key: 'is_ms', label: 'Is MS', type: 'boolean'},
-                    {key: 'is_wayback_rebuild', label: 'Is Wayback Rebuild', type: 'boolean'},
-                    {key: 'is_naked_wp_build', label: 'Is Naked WP Build', type: 'boolean'},
-                    {key: 'is_rnr', label: 'Is RnR', type: 'boolean'},
-                    {key: 'is_aff', label: 'Is Affiliate', type: 'boolean'},
-                    {key: 'is_other1', label: 'Is Other 1', type: 'boolean'},
-                    {key: 'is_other2', label: 'Is Other 2', type: 'boolean'},
-                    {key: 'is_flylocal', label: 'Is FlyLocal', type: 'boolean'}
+                    {key: 'wppma_db_only_created_at', label: 'wppma_db_only_created_at', type: 'datetime'},
+                    {key: 'wppma_db_only_updated_at', label: 'wppma_db_only_updated_at', type: 'datetime'},
+                    {key: 'created_at', label: 'created_at', type: 'datetime'},
+                    {key: 'sitespren_base', label: 'sitespren_base', type: 'text'},
+                    {key: 'true_root_domain', label: 'true_root_domain', type: 'text'},
+                    {key: 'full_subdomain', label: 'full_subdomain', type: 'text'},
+                    {key: 'webproperty_type', label: 'webproperty_type', type: 'text'},
+                    {key: 'fk_users_id', label: 'fk_users_id', type: 'text'},
+                    {key: 'updated_at', label: 'updated_at', type: 'datetime'},
+                    {key: 'wpuser1', label: 'wpuser1', type: 'text'},
+                    {key: 'wppass1', label: 'wppass1', type: 'password'},
+                    {key: 'wp_plugin_installed1', label: 'wp_plugin_installed1', type: 'boolean'},
+                    {key: 'wp_plugin_connected2', label: 'wp_plugin_connected2', type: 'boolean'},
+                    {key: 'fk_domreg_hostaccount', label: 'fk_domreg_hostaccount', type: 'text'},
+                    {key: 'is_wp_site', label: 'is_wp_site', type: 'boolean'},
+                    {key: 'id', label: 'id', type: 'text'},
+                    {key: 'wp_rest_app_pass', label: 'wp_rest_app_pass', type: 'textarea'},
+                    {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
+                    {key: 'driggs_city', label: 'driggs_city', type: 'text'},
+                    {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
+                    {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
+                    {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
+                    {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
+                    {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
+                    {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
+                    {key: 'ns_full', label: 'ns_full', type: 'text'},
+                    {key: 'ip_address', label: 'ip_address', type: 'text'},
+                    {key: 'is_starred1', label: 'is_starred1', type: 'text'},
+                    {key: 'icon_name', label: 'icon_name', type: 'text'},
+                    {key: 'icon_color', label: 'icon_color', type: 'text'},
+                    {key: 'is_bulldozer', label: 'is_bulldozer', type: 'boolean'},
+                    {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
+                    {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
+                    {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
+                    {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
+                    {key: 'is_competitor', label: 'is_competitor', type: 'boolean'},
+                    {key: 'is_external', label: 'is_external', type: 'boolean'},
+                    {key: 'is_internal', label: 'is_internal', type: 'boolean'},
+                    {key: 'is_ppx', label: 'is_ppx', type: 'boolean'},
+                    {key: 'is_ms', label: 'is_ms', type: 'boolean'},
+                    {key: 'is_wayback_rebuild', label: 'is_wayback_rebuild', type: 'boolean'},
+                    {key: 'is_naked_wp_build', label: 'is_naked_wp_build', type: 'boolean'},
+                    {key: 'is_rnr', label: 'is_rnr', type: 'boolean'},
+                    {key: 'is_aff', label: 'is_aff', type: 'boolean'},
+                    {key: 'is_other1', label: 'is_other1', type: 'boolean'},
+                    {key: 'is_other2', label: 'is_other2', type: 'boolean'},
+                    {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'},
+                    {key: 'is_flylocal', label: 'is_flylocal', type: 'boolean'}
                 ];
                 
                 fields.forEach(function(field) {
@@ -3448,8 +3469,8 @@ class Snefuru_Admin {
                     checkboxTd.append(checkbox);
                     tr.append(checkboxTd);
                     
-                    // Field name column
-                    let fieldNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; font-weight: 600; color: #23282d;"></td>');
+                    // Field name column - bold DB field names
+                    let fieldNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d; font-family: monospace;"></td>');
                     fieldNameTd.text(field.label);
                     tr.append(fieldNameTd);
                     
@@ -4072,11 +4093,12 @@ class Snefuru_Admin {
         }
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'zen_driggs';
+        $table_name = $wpdb->prefix . 'zen_sitespren';
         $current_site_url = get_site_url();
         
         try {
-            $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE site_url = %s", $current_site_url), ARRAY_A);
+            // Get the single record for this site - there should only be one row
+            $result = $wpdb->get_row("SELECT * FROM $table_name LIMIT 1", ARRAY_A);
             
             if ($wpdb->last_error) {
                 wp_send_json_error('Database error: ' . $wpdb->last_error);
@@ -4085,20 +4107,13 @@ class Snefuru_Admin {
             
             // If no record exists, create one with defaults
             if (!$result) {
-                $default_data = array(
-                    'site_url' => $current_site_url,
-                    'driggs_brand_name' => get_bloginfo('name'),
-                    'driggs_email_1' => get_option('admin_email')
-                );
-                
-                $wpdb->insert($table_name, $default_data);
-                if ($wpdb->insert_id) {
-                    $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE site_url = %s", $current_site_url), ARRAY_A);
-                }
+                $this->ensure_sitespren_record();
+                $result = $wpdb->get_row("SELECT * FROM $table_name LIMIT 1", ARRAY_A);
             }
             
             // Convert boolean values to proper format
             $boolean_fields = [
+                'wp_plugin_installed1', 'wp_plugin_connected2', 'is_wp_site', 'is_bulldozer', 
                 'driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 
                 'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 
                 'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'
@@ -4129,13 +4144,17 @@ class Snefuru_Admin {
         $field = sanitize_text_field($_POST['field']);
         $value = $_POST['value'];
         
-        // Validate field name
+        // Validate field name - all editable fields from zen_driggs table
         $allowed_fields = [
-            'driggs_industry', 'driggs_city', 'driggs_brand_name', 'driggs_site_type_purpose',
-            'driggs_email_1', 'driggs_address_full', 'driggs_phone_1', 'driggs_special_note_for_ai_tool',
-            'driggs_phone1_platform_id', 'driggs_cgig_id', 'driggs_revenue_goal', 'driggs_address_species_id',
-            'driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 'is_ppx', 'is_ms',
-            'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'
+            'created_at', 'sitespren_base', 'true_root_domain', 'full_subdomain', 'webproperty_type',
+            'fk_users_id', 'updated_at', 'wpuser1', 'wppass1', 'wp_plugin_installed1', 'wp_plugin_connected2',
+            'fk_domreg_hostaccount', 'is_wp_site', 'wp_rest_app_pass', 'driggs_industry', 'driggs_city',
+            'driggs_brand_name', 'driggs_site_type_purpose', 'driggs_email_1', 'driggs_address_full',
+            'driggs_phone_1', 'driggs_special_note_for_ai_tool', 'ns_full', 'ip_address', 'is_starred1',
+            'icon_name', 'icon_color', 'is_bulldozer', 'driggs_phone1_platform_id', 'driggs_cgig_id',
+            'driggs_revenue_goal', 'driggs_address_species_id', 'is_competitor', 'is_external', 'is_internal',
+            'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff',
+            'is_other1', 'is_other2', 'driggs_citations_done', 'is_flylocal'
         ];
         
         if (!in_array($field, $allowed_fields)) {
@@ -4145,8 +4164,9 @@ class Snefuru_Admin {
         
         // Sanitize value based on field type
         $number_fields = ['driggs_phone1_platform_id', 'driggs_cgig_id', 'driggs_revenue_goal', 'driggs_address_species_id'];
-        $boolean_fields = ['driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'];
+        $boolean_fields = ['wp_plugin_installed1', 'wp_plugin_connected2', 'is_wp_site', 'is_bulldozer', 'driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'];
         $email_fields = ['driggs_email_1'];
+        $datetime_fields = ['created_at', 'updated_at'];
         
         if (in_array($field, $number_fields)) {
             $value = $value === '' ? NULL : intval($value);
@@ -4154,20 +4174,19 @@ class Snefuru_Admin {
             $value = $value ? 1 : 0;
         } elseif (in_array($field, $email_fields)) {
             $value = $value === '' ? NULL : sanitize_email($value);
+        } elseif (in_array($field, $datetime_fields)) {
+            // Allow datetime values in MySQL format (YYYY-MM-DD HH:MM:SS)
+            $value = $value === '' ? NULL : sanitize_text_field($value);
         } else {
             $value = $value === '' ? NULL : sanitize_textarea_field($value);
         }
         
         global $wpdb;
-        $table_name = $wpdb->prefix . 'zen_driggs';
-        $current_site_url = get_site_url();
+        $table_name = $wpdb->prefix . 'zen_sitespren';
         
         try {
-            $result = $wpdb->update(
-                $table_name,
-                array($field => $value, 'updated_at' => current_time('mysql')),
-                array('site_url' => $current_site_url)
-            );
+            // Update the field in the single record (there should only be one)
+            $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET $field = %s, wppma_db_only_updated_at = %s", $value, current_time('mysql')));
             
             if ($result === false) {
                 wp_send_json_error('Database update failed: ' . $wpdb->last_error);
@@ -4763,62 +4782,30 @@ class Snefuru_Admin {
     }
     
     /**
-     * Create zen_driggs table if it doesn't exist
+     * Ensure zen_sitespren table has a record for the current site
      */
-    private function create_zen_driggs_table() {
+    private function ensure_sitespren_record() {
         global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
         
-        $charset_collate = $wpdb->get_charset_collate();
+        // Check if any record exists (there should only be one)
+        $existing_record = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
         
-        // Create zen_driggs table (site-specific driggs data)
-        $zen_driggs_table = $wpdb->prefix . 'zen_driggs';
-        $zen_driggs_sql = "CREATE TABLE $zen_driggs_table (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            site_url varchar(255) NOT NULL,
-            driggs_industry text,
-            driggs_city text,
-            driggs_brand_name text,
-            driggs_site_type_purpose text,
-            driggs_email_1 varchar(255),
-            driggs_address_full text,
-            driggs_phone_1 varchar(20),
-            driggs_special_note_for_ai_tool text,
-            driggs_phone1_platform_id int(11),
-            driggs_cgig_id int(11),
-            driggs_revenue_goal int(11),
-            driggs_address_species_id int(11),
-            driggs_citations_done tinyint(1) DEFAULT 0,
-            is_competitor tinyint(1) DEFAULT 0,
-            is_external tinyint(1) DEFAULT 0,
-            is_internal tinyint(1) DEFAULT 0,
-            is_ppx tinyint(1) DEFAULT 0,
-            is_ms tinyint(1) DEFAULT 0,
-            is_wayback_rebuild tinyint(1) DEFAULT 0,
-            is_naked_wp_build tinyint(1) DEFAULT 0,
-            is_rnr tinyint(1) DEFAULT 0,
-            is_aff tinyint(1) DEFAULT 0,
-            is_other1 tinyint(1) DEFAULT 0,
-            is_other2 tinyint(1) DEFAULT 0,
-            is_flylocal tinyint(1) DEFAULT 0,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY site_url (site_url)
-        ) $charset_collate;";
-        
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($zen_driggs_sql);
-        
-        // Create default driggs record for current site
-        $current_site_url = get_site_url();
-        $existing_driggs = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $zen_driggs_table WHERE site_url = %s", $current_site_url));
-        if ($existing_driggs == 0) {
+        if ($existing_record == 0) {
+            // Create a single default record
+            $current_site_url = get_site_url();
+            $uuid = wp_generate_uuid4();
+            
             $wpdb->insert(
-                $zen_driggs_table,
+                $table_name,
                 array(
-                    'site_url' => $current_site_url,
+                    'id' => $uuid,
+                    'sitespren_base' => parse_url($current_site_url, PHP_URL_HOST),
+                    'true_root_domain' => parse_url($current_site_url, PHP_URL_HOST),
+                    'full_subdomain' => parse_url($current_site_url, PHP_URL_HOST),
                     'driggs_brand_name' => get_bloginfo('name'),
-                    'driggs_email_1' => get_option('admin_email')
+                    'driggs_email_1' => get_option('admin_email'),
+                    'is_wp_site' => 1
                 )
             );
         }
