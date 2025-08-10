@@ -544,10 +544,13 @@ class Snefuru_Hurricane {
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
+                                <!-- Operation Redshift Label -->
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333;">operation redshift: get all text content output on frontend</span>
+                                
                                 <!-- Instance 1: Frontend Text Content -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-frontend-content-container">
-                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation redshift: get all text content output on frontend</span>
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation redshift - format 1</span>
                                         <div style="display: flex; gap: 10px; align-items: flex-start;">
                                             <textarea 
                                                 id="frontend-content-textbox" 
