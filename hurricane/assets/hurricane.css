@@ -2,38 +2,45 @@
 
 /* Stellar Chamber - Above Title Bar */
 .snefuru-stellar-chamber {
-    background: #f0f0f1;
-    border: 1px solid #c3c4c7;
-    border-radius: 4px 4px 0 0;
-    margin: 0 0 -1px 0;
+    background: #f8f9fa;
+    border: 2px solid #007cba;
+    border-radius: 8px;
+    margin: 0 0 20px 0;
     width: 100%;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 124, 186, 0.1);
+    position: relative;
 }
 
 .snefuru-stellar-chamber-header {
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
     padding: 12px 20px;
-    border-bottom: 1px solid #c3c4c7;
+    border-radius: 6px 6px 0 0;
+    border-bottom: 2px solid #005a87;
 }
 
 .snefuru-stellar-chamber-text {
     font-size: 16px;
-    font-weight: bold;
-    color: #1d2327;
+    font-weight: 600;
+    color: white;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     display: block;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* Tab Navigation */
 .snefuru-stellar-tabs {
-    background: #fff;
+    background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
 }
 
 .snefuru-stellar-tab-navigation {
     display: flex;
-    border-bottom: 2px solid #dcdcde;
-    padding: 0 20px;
-    background: #f6f7f7;
+    border-bottom: 2px solid #b8d4f1;
+    padding: 0 15px;
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .snefuru-stellar-tab-button {
@@ -44,33 +51,35 @@
     margin: 0 5px -2px 0;
     font-size: 14px;
     font-weight: 600;
-    color: #646970;
+    color: #005a87;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-transform: capitalize;
 }
 
 .snefuru-stellar-tab-button:hover {
-    color: #1d2327;
-    background: rgba(255, 255, 255, 0.5);
+    color: #007cba;
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
 }
 
 .snefuru-stellar-tab-button.active {
-    color: #0073aa;
-    border-bottom-color: #0073aa;
-    background: #fff;
+    color: #007cba;
+    border-bottom-color: #007cba;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
 }
 
 .snefuru-stellar-tab-button:focus {
-    outline: 1px dotted #0073aa;
+    outline: 1px dotted #007cba;
     outline-offset: -1px;
 }
 
 /* Tab Content */
 .snefuru-stellar-tab-content {
-    padding: 20px;
-    min-height: 60px;
-    background: #fff;
+    padding: 15px;
+    min-height: 80px;
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid rgba(184, 212, 241, 0.3);
 }
 
 .snefuru-stellar-tab-panel {
