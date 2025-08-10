@@ -129,50 +129,72 @@ class Snefuru_Hurricane {
                         $db_mapping_text = "wp_posts.ID / wp_posts.post_title / wp_posts.post_status / admin_url('post.php?post=\$ID&action=edit')\n\nDatabase field mappings:\n- Post ID: wp_posts.ID (bigint unsigned, primary key)\n- Post Title: wp_posts.post_title (text field)\n- Post Status: wp_posts.post_status (varchar, values: publish/draft/pending/private/trash/auto-draft/inherit)\n- Edit Link: Dynamically generated using WordPress admin_url() function with wp_posts.ID";
                         ?>
                         
-                        <!-- Header303 DB Mapping Container -->
-                        <div class="snefuru-header303-db-mapping-container">
-                            <div class="snefuru-header303-db-mapping-header">
-                                <span class="snefuru-header303-db-mapping-label">header303_db_mapping</span>
-                                <button type="button" class="snefuru-copy-btn" data-target="header303-db-mapping-textbox">
-                                    Copy
-                                </button>
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                
+                                <!-- Header303 DB Mapping Container -->
+                                <div class="snefuru-header303-db-mapping-container">
+                                    <div class="snefuru-header303-db-mapping-header">
+                                        <span class="snefuru-header303-db-mapping-label">header303_db_mapping</span>
+                                        <button type="button" class="snefuru-copy-btn" data-target="header303-db-mapping-textbox">
+                                            Copy
+                                        </button>
+                                    </div>
+                                    <textarea 
+                                        id="header303-db-mapping-textbox" 
+                                        class="snefuru-header303-db-mapping-textbox" 
+                                        readonly
+                                    ><?php echo esc_textarea($db_mapping_text); ?></textarea>
+                                </div>
+                                
+                                <!-- Header303 Container -->
+                                <div class="snefuru-header303-container">
+                                    <div class="snefuru-header303-header">
+                                        <span class="snefuru-header303-label">header303</span>
+                                        <button type="button" class="snefuru-copy-btn" data-target="header303-textbox">
+                                            Copy
+                                        </button>
+                                    </div>
+                                    <textarea 
+                                        id="header303-textbox" 
+                                        class="snefuru-header303-textbox" 
+                                        readonly
+                                    ><?php echo esc_textarea($header303_content); ?></textarea>
+                                </div>
+                                
+                                <!-- Elementor Data Container -->
+                                <div class="snefuru-elementor-data-container">
+                                    <div class="snefuru-elementor-data-header">
+                                        <span class="snefuru-elementor-data-label">_elementor_data</span>
+                                        <button type="button" class="snefuru-copy-btn" data-target="elementor-data-textbox">
+                                            Copy
+                                        </button>
+                                    </div>
+                                    <textarea 
+                                        id="elementor-data-textbox" 
+                                        class="snefuru-elementor-data-textbox" 
+                                        readonly
+                                        placeholder="No Elementor data found for this page"
+                                    ><?php echo esc_textarea($formatted_data); ?></textarea>
+                                </div>
                             </div>
-                            <textarea 
-                                id="header303-db-mapping-textbox" 
-                                class="snefuru-header303-db-mapping-textbox" 
-                                readonly
-                            ><?php echo esc_textarea($db_mapping_text); ?></textarea>
-                        </div>
-                        
-                        <!-- Header303 Container -->
-                        <div class="snefuru-header303-container">
-                            <div class="snefuru-header303-header">
-                                <span class="snefuru-header303-label">header303</span>
-                                <button type="button" class="snefuru-copy-btn" data-target="header303-textbox">
-                                    Copy
-                                </button>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <!-- Content for column 2 will go here -->
                             </div>
-                            <textarea 
-                                id="header303-textbox" 
-                                class="snefuru-header303-textbox" 
-                                readonly
-                            ><?php echo esc_textarea($header303_content); ?></textarea>
-                        </div>
-                        
-                        <!-- Elementor Data Container -->
-                        <div class="snefuru-elementor-data-container">
-                            <div class="snefuru-elementor-data-header">
-                                <span class="snefuru-elementor-data-label">_elementor_data</span>
-                                <button type="button" class="snefuru-copy-btn" data-target="elementor-data-textbox">
-                                    Copy
-                                </button>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <!-- Content for column 3 will go here -->
                             </div>
-                            <textarea 
-                                id="elementor-data-textbox" 
-                                class="snefuru-elementor-data-textbox" 
-                                readonly
-                                placeholder="No Elementor data found for this page"
-                            ><?php echo esc_textarea($formatted_data); ?></textarea>
+                            
                         </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="gutenberg">
