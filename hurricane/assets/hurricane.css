@@ -42,6 +42,113 @@
     margin: 0;
 }
 
+/* Hurricane Controls */
+.snefuru-hurricane-controls {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.snefuru-lightning-popup-btn {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    border: 2px solid #ff9800;
+    color: #333;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.snefuru-lightning-popup-btn:hover {
+    background: linear-gradient(135deg, #ffca28 0%, #ffa726 100%);
+    border-color: #ffa726;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+}
+
+.snefuru-lightning-popup-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
+}
+
+/* Lightning Popup Styles */
+.snefuru-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.snefuru-popup-container {
+    background: #fff;
+    width: 90%;
+    max-width: 1200px;
+    height: 90%;
+    max-height: 800px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.snefuru-popup-header {
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #005a87;
+}
+
+.snefuru-popup-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.snefuru-popup-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.snefuru-popup-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.snefuru-popup-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #f9f9f9;
+}
+
+/* Prevent body scroll when popup is open */
+body.snefuru-popup-open {
+    overflow: hidden;
+}
+
 /* Responsive adjustments */
 @media (max-width: 782px) {
     .snefuru-hurricane-container {
@@ -51,5 +158,32 @@
     .snefuru-hurricane-content {
         font-size: 14px;
         padding: 8px 0;
+    }
+    
+    .snefuru-hurricane-controls {
+        margin-top: 12px;
+    }
+    
+    .snefuru-lightning-popup-btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    .snefuru-popup-container {
+        width: 95%;
+        height: 95%;
+        border-radius: 8px;
+    }
+    
+    .snefuru-popup-header {
+        padding: 15px;
+    }
+    
+    .snefuru-popup-title {
+        font-size: 14px;
+    }
+    
+    .snefuru-popup-content {
+        padding: 15px;
     }
 }

@@ -45,6 +45,24 @@ class Snefuru_Hurricane {
             <div class="snefuru-hurricane-content">
                 Hurricane
             </div>
+            <div class="snefuru-hurricane-controls">
+                <button type="button" class="button button-primary snefuru-lightning-popup-btn">
+                    ⚡ Lightning Popup
+                </button>
+            </div>
+        </div>
+        
+        <!-- Lightning Popup Modal -->
+        <div id="snefuru-lightning-popup" class="snefuru-popup-overlay" style="display: none;">
+            <div class="snefuru-popup-container">
+                <div class="snefuru-popup-header">
+                    <h2 class="snefuru-popup-title">Lightning Popup</h2>
+                    <button type="button" class="snefuru-popup-close">&times;</button>
+                </div>
+                <div class="snefuru-popup-content">
+                    <!-- Future content will go here -->
+                </div>
+            </div>
         </div>
         <?php
     }
