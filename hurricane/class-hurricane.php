@@ -15,6 +15,7 @@ class Snefuru_Hurricane {
         add_action('add_meta_boxes', array($this, 'add_hurricane_metabox'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_hurricane_assets'));
         add_action('edit_form_top', array($this, 'add_stellar_chamber'));
+        add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
     }
     
     /**
@@ -136,6 +137,7 @@ class Snefuru_Hurricane {
                 break;
                 
             case 'icon-box':
+            case 'image-box':
                 $parts = array();
                 if (!empty($settings['title_text'])) {
                     $parts[] = strip_tags($settings['title_text']);
@@ -216,6 +218,31 @@ class Snefuru_Hurricane {
         }
         
         return $text_content;
+    }
+    
+    /**
+     * AJAX handler to refresh redshift data
+     */
+    public function ajax_refresh_redshift_data() {
+        // Verify nonce for security
+        if (!wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Extract fresh data
+        $frontend_text_content = $this->extract_elementor_frontend_text($post_id);
+        
+        // Limit length for display if too long
+        if (strlen($frontend_text_content) > 10000) {
+            $frontend_text_content = substr($frontend_text_content, 0, 10000) . "\n\n... [Content truncated at 10,000 characters]";
+        }
+        
+        wp_send_json_success(array('content' => $frontend_text_content));
     }
     
     /**
@@ -545,7 +572,15 @@ class Snefuru_Hurricane {
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
                                 <!-- Operation Redshift Label -->
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #333;">operation redshift: get all text content output on frontend</span>
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #333;">operation redshift: get all text content output on frontend</span>
+                                
+                                <!-- Refresh Button -->
+                                <button type="button" 
+                                        id="refresh-redshift-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    refresh redshift data
+                                </button>
                                 
                                 <!-- Instance 1: Frontend Text Content -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
@@ -1646,6 +1681,9 @@ In the following text content I paste below, you will be seeing the following:
                 </div>
             </div>
         </div>
+        
+        <!-- Hidden nonce field for AJAX security -->
+        <input type="hidden" id="hurricane-nonce" value="<?php echo wp_create_nonce('hurricane_nonce'); ?>" />
         
         <script type="text/javascript">
         jQuery(document).ready(function($) {

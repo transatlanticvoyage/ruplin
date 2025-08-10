@@ -224,6 +224,45 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             }
         });
         
+        // Handle refresh redshift data button clicks
+        $(document).off('click.refresh-redshift').on('click.refresh-redshift', '#refresh-redshift-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var postId = $button.data('post-id');
+            var originalText = $button.text();
+            
+            // Disable button and show loading
+            $button.prop('disabled', true).text('refreshing...');
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'refresh_redshift_data',
+                    post_id: postId,
+                    nonce: $('#hurricane-nonce').val() || '<?php echo wp_create_nonce("hurricane_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success && response.data.content) {
+                        $('#frontend-content-textbox').val(response.data.content);
+                        console.log('Redshift data refreshed successfully');
+                    } else {
+                        console.error('Failed to refresh redshift data:', response.data);
+                        alert('Failed to refresh redshift data: ' + (response.data || 'Unknown error'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error refreshing redshift data:', error);
+                    alert('Error refreshing redshift data: ' + error);
+                },
+                complete: function() {
+                    // Re-enable button
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
         // Handle copy button clicks for locations URL
         $(document).off('click.locations-copy-btn').on('click.locations-copy-btn', '.snefuru-locations-copy-btn', function(e) {
             e.preventDefault();
