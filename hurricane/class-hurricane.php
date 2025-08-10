@@ -547,7 +547,7 @@ class Snefuru_Hurricane {
                                 <!-- Instance 1: Frontend Text Content -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-frontend-content-container">
-                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation:get all text content output on frontend</span>
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation redshift: get all text content output on frontend</span>
                                         <div style="display: flex; gap: 10px; align-items: flex-start;">
                                             <textarea 
                                                 id="frontend-content-textbox" 
