@@ -36,6 +36,20 @@
     overflow: hidden;
 }
 
+/* Tab Separator */
+.snefuru-stellar-tab-separator {
+    width: 4px !important;
+    background: #000 !important;
+    height: 44px !important;
+    margin: 0 5px !important;
+    border-radius: 2px !important;
+    pointer-events: none !important;
+    display: inline-block !important;
+    align-self: stretch !important;
+    flex-shrink: 0 !important;
+    vertical-align: middle !important;
+}
+
 .snefuru-stellar-tab-navigation {
     display: flex;
     border-bottom: 2px solid #b8d4f1;

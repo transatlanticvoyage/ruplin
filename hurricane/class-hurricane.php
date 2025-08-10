@@ -73,14 +73,14 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
                         Elementor Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 44px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: stretch;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
                         Gutenberg Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gut-deployer">
                         Gut. Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 44px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: stretch;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
                         Nimble
                     </button>
@@ -107,6 +107,12 @@ class Snefuru_Hurricane {
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="locations">
                         Locations
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="swipe15">
+                        swipe15
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="gbp">
+                        GBP
                     </button>
                 </div>
                 <div class="snefuru-stellar-tab-content">
@@ -592,6 +598,32 @@ class Snefuru_Hurricane {
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="duplicate-kpage">
                         <!-- Duplicate Kpage content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="swipe15">
+                        <!-- Swipe15 Content Container -->
+                        <div class="snefuru-header303-db-mapping-container">
+                            <div class="snefuru-header303-db-mapping-header">
+                                <span class="snefuru-header303-db-mapping-label">swipe15 content</span>
+                                <button type="button" class="snefuru-copy-btn" data-target="swipe15-textbox">
+                                    Copy
+                                </button>
+                            </div>
+                            <textarea 
+                                id="swipe15-textbox" 
+                                class="snefuru-header303-db-mapping-textbox" 
+                                readonly
+                            >———————————————————————
+SPECIAL NOTE TO THE AI MODEL I'M CHATTING WITH:
+
+In the following text content I paste below, you will be seeing the following:
+
+(INSERT DESCRIPTION HERE)
+
+———————————————————————</textarea>
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="gbp">
+                        <!-- GBP content will go here -->
                     </div>
                 </div>
             </div>
