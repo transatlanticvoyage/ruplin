@@ -5,6 +5,13 @@ class Snefuru_Admin {
     public function __construct() {
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'init_settings'));
+        
+        // Early admin notice suppression for all snefuruplin pages
+        add_action('current_screen', array($this, 'maybe_suppress_admin_notices'), 1);
+        add_action('admin_init', array($this, 'early_notice_suppression'), 1);
+        
+        // Ultra-early suppression that runs on plugins_loaded
+        add_action('plugins_loaded', array($this, 'ultra_early_notice_suppression'), 999);
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         add_action('wp_ajax_snefuru_test_connection', array($this, 'test_api_connection'));
         add_action('wp_ajax_snefuru_sync_now', array($this, 'manual_sync'));
@@ -3983,6 +3990,126 @@ class Snefuru_Admin {
             </div>
         </div>
         <?php
+    }
+    
+    /**
+     * Check if we're on a snefuruplin admin page and suppress notices early
+     * This runs on 'current_screen' hook which is early enough to catch most notices
+     */
+    public function maybe_suppress_admin_notices() {
+        $screen = get_current_screen();
+        
+        if (!$screen) {
+            return;
+        }
+        
+        // List of our plugin pages that need notice suppression
+        $snefuruplin_pages = array(
+            'toplevel_page_snefuru',
+            'snefuru_page_snefuru_settings', 
+            'snefuru_page_snefuru_logs',
+            'snefuru_page_screen4_manage',
+            'snefuru_page_bespoke_css_editor',
+            'snefuru_page_dublish_logs',
+            'snefuru_page_rup_locations_mar',
+            'snefuru_page_rup_services_mar',
+            'snefuru_page_rup_service_tags_mar',
+            'snefuru_page_rup_location_tags_mar',
+            'snefuru_page_rup_horse_class_page',
+            'snefuru_page_document_outlook_aug9',
+            'snefuru_page_dynamic_images_man',
+            'snefuru_page_kenli_sidebar_links'
+        );
+        
+        // Check if current screen is one of our plugin pages
+        if (in_array($screen->id, $snefuruplin_pages) || 
+            (isset($_GET['page']) && strpos($_GET['page'], 'rup_') === 0) ||
+            (isset($_GET['page']) && $_GET['page'] === 'snefuru')) {
+            
+            // Suppress notices immediately
+            $this->suppress_all_admin_notices();
+        }
+    }
+    
+    /**
+     * Ultra-early notice suppression that runs on plugins_loaded
+     * This catches notices from other plugins that load early
+     */
+    public function ultra_early_notice_suppression() {
+        // Only run in admin area
+        if (!is_admin()) {
+            return;
+        }
+        
+        // Check if we're going to a snefuruplin page
+        if (isset($_GET['page']) && 
+            (strpos($_GET['page'], 'rup_') === 0 || 
+             $_GET['page'] === 'snefuru' ||
+             strpos($_GET['page'], 'snefuru_') === 0 ||
+             in_array($_GET['page'], [
+                'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
+                'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
+                'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page'
+             ]))) {
+            
+            // Pre-emptively block all admin notice hooks
+            add_action('admin_notices', function() { 
+                ob_start(); // Start output buffering to catch any notices
+            }, 0);
+            
+            add_action('admin_print_footer_scripts', function() {
+                if (ob_get_level()) {
+                    ob_end_clean(); // Discard any buffered notices
+                }
+            }, 999);
+        }
+    }
+    
+    /**
+     * Very early notice suppression that runs on admin_init
+     * This catches notices that are added before current_screen hook
+     */
+    public function early_notice_suppression() {
+        // Check if we're on a snefuruplin page via $_GET parameter
+        if (isset($_GET['page']) && 
+            (strpos($_GET['page'], 'rup_') === 0 || 
+             $_GET['page'] === 'snefuru' ||
+             strpos($_GET['page'], 'snefuru_') === 0 ||
+             in_array($_GET['page'], [
+                'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
+                'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
+                'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page'
+             ]))) {
+            
+            // Immediate notice suppression
+            remove_all_actions('admin_notices');
+            remove_all_actions('all_admin_notices');
+            remove_all_actions('network_admin_notices');
+            
+            // Add our suppression hooks very early
+            add_action('admin_notices', '__return_false', 1);
+            add_action('all_admin_notices', '__return_false', 1);
+            add_action('network_admin_notices', '__return_false', 1);
+            
+            // Also suppress via CSS as backup
+            add_action('admin_head', function() {
+                echo '<style type="text/css">
+                    .notice, .notice-warning, .notice-error, .notice-success, .notice-info,
+                    .updated, .error, .update-nag, .admin-notice,
+                    div.notice, div.updated, div.error, div.update-nag,
+                    .wrap > .notice, .wrap > .updated, .wrap > .error,
+                    #adminmenu + .notice, #adminmenu + .updated, #adminmenu + .error,
+                    .update-php, .php-update-nag,
+                    .plugin-update-tr, .theme-update-message,
+                    .update-message, .updating-message,
+                    #update-nag, #deprecation-warning,
+                    .update-core-php, .notice-alt,
+                    .activated, .deactivated {
+                        display: none !important;
+                    }
+                </style>';
+            }, 1);
+        }
     }
     
     /**
