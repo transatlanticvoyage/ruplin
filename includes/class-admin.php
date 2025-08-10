@@ -4021,14 +4021,47 @@ class Snefuru_Admin {
             'snefuru_page_kenli_sidebar_links'
         );
         
-        // Check if current screen is one of our plugin pages
-        if (in_array($screen->id, $snefuruplin_pages) || 
+        // Check if current screen is one of our plugin pages OR a post/page editor
+        $is_snefuru_page = in_array($screen->id, $snefuruplin_pages) || 
             (isset($_GET['page']) && strpos($_GET['page'], 'rup_') === 0) ||
-            (isset($_GET['page']) && $_GET['page'] === 'snefuru')) {
-            
+            (isset($_GET['page']) && $_GET['page'] === 'snefuru');
+        
+        // Check if we're on a WordPress post/page editor screen
+        $is_editor_page = ($screen->base === 'post' && $screen->action === 'add') ||
+                         ($screen->base === 'post' && isset($_GET['action']) && $_GET['action'] === 'edit') ||
+                         ($screen->id === 'post') ||
+                         ($screen->id === 'page') ||
+                         in_array($screen->post_type, ['post', 'page']) ||
+                         $this->is_post_editor_page();
+        
+        if ($is_snefuru_page || $is_editor_page) {
             // Suppress notices immediately
             $this->suppress_all_admin_notices();
         }
+    }
+    
+    /**
+     * Check if current page is a WordPress post/page editor
+     */
+    private function is_post_editor_page() {
+        global $pagenow;
+        
+        // Check for post editor pages
+        if (in_array($pagenow, ['post.php', 'post-new.php'])) {
+            return true;
+        }
+        
+        // Additional check via URL parameters
+        if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['post'])) {
+            return true;
+        }
+        
+        // Check for new post creation
+        if ($pagenow === 'post-new.php') {
+            return true;
+        }
+        
+        return false;
     }
     
     /**
@@ -4041,8 +4074,8 @@ class Snefuru_Admin {
             return;
         }
         
-        // Check if we're going to a snefuruplin page
-        if (isset($_GET['page']) && 
+        // Check if we're going to a snefuruplin page OR a post/page editor
+        $is_snefuru_page = isset($_GET['page']) && 
             (strpos($_GET['page'], 'rup_') === 0 || 
              $_GET['page'] === 'snefuru' ||
              strpos($_GET['page'], 'snefuru_') === 0 ||
@@ -4050,7 +4083,12 @@ class Snefuru_Admin {
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page'
-             ]))) {
+             ]));
+        
+        // Check if we're on WordPress post/page editor
+        $is_editor_page = $this->is_post_editor_page();
+        
+        if ($is_snefuru_page || $is_editor_page) {
             
             // Pre-emptively block all admin notice hooks
             add_action('admin_notices', function() { 
@@ -4071,7 +4109,7 @@ class Snefuru_Admin {
      */
     public function early_notice_suppression() {
         // Check if we're on a snefuruplin page via $_GET parameter
-        if (isset($_GET['page']) && 
+        $is_snefuru_page = isset($_GET['page']) && 
             (strpos($_GET['page'], 'rup_') === 0 || 
              $_GET['page'] === 'snefuru' ||
              strpos($_GET['page'], 'snefuru_') === 0 ||
@@ -4079,7 +4117,12 @@ class Snefuru_Admin {
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page'
-             ]))) {
+             ]));
+        
+        // Check if we're on a WordPress post/page editor
+        $is_editor_page = $this->is_post_editor_page();
+        
+        if ($is_snefuru_page || $is_editor_page) {
             
             // Immediate notice suppression
             remove_all_actions('admin_notices');
@@ -4156,6 +4199,22 @@ class Snefuru_Admin {
                 .activated, .deactivated {
                     display: none !important;
                 }
+                
+                /* Post/Page editor specific notice suppression */
+                .edit-post-header .components-notice-list,
+                .edit-post-layout .components-notice,
+                .edit-post-sidebar .components-notice,
+                .components-snackbar-list,
+                .components-notice-list .components-notice,
+                .interface-interface-skeleton__notices,
+                .edit-post-notices,
+                .block-editor-warning,
+                .components-notice.is-warning,
+                .components-notice.is-error,
+                .components-notice.is-success,
+                .components-notice.is-info {
+                    display: none !important;
+                }
             </style>';
         });
         
@@ -4213,8 +4272,21 @@ class Snefuru_Admin {
                     if (window.MutationObserver) {
                         var observer = new MutationObserver(function(mutations) {
                             mutations.forEach(function(mutation) {
+                                // Remove classic WordPress notices
                                 $(mutation.addedNodes).find(".notice, .updated, .error, .update-nag").remove();
                                 if ($(mutation.target).is(".notice, .updated, .error, .update-nag")) {
+                                    $(mutation.target).remove();
+                                }
+                                
+                                // Remove Gutenberg/Block editor notices
+                                $(mutation.addedNodes).find(".components-notice, .components-snackbar, .block-editor-warning").remove();
+                                if ($(mutation.target).is(".components-notice, .components-snackbar, .block-editor-warning")) {
+                                    $(mutation.target).remove();
+                                }
+                                
+                                // Remove notice lists and containers
+                                $(mutation.addedNodes).find(".components-notice-list, .interface-interface-skeleton__notices").remove();
+                                if ($(mutation.target).is(".components-notice-list, .interface-interface-skeleton__notices")) {
                                     $(mutation.target).remove();
                                 }
                             });
@@ -4224,6 +4296,23 @@ class Snefuru_Admin {
                             childList: true,
                             subtree: true
                         });
+                    }
+                    
+                    // Gutenberg/Block Editor specific notice removal
+                    if (typeof wp !== "undefined" && wp.data) {
+                        // Remove notices from WordPress data stores
+                        setTimeout(function() {
+                            if (wp.data.dispatch && wp.data.dispatch("core/notices")) {
+                                wp.data.dispatch("core/notices").removeAllNotices();
+                            }
+                        }, 1000);
+                        
+                        // Continuously remove notices
+                        setInterval(function() {
+                            if (wp.data.dispatch && wp.data.dispatch("core/notices")) {
+                                wp.data.dispatch("core/notices").removeAllNotices();
+                            }
+                        }, 5000);
                     }
                 });
             </script>';
