@@ -169,7 +169,7 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         });
         
         // Handle copy button clicks for textboxes
-        $(document).off('click.copy-btn').on('click.copy-btn', '.snefuru-copy-btn', function(e) {
+        $(document).off('click.copy-btn').on('click.copy-btn', '.snefuru-copy-btn, .snefuru-copy-btn-right', function(e) {
             e.preventDefault();
             
             var $button = $(this);

@@ -211,7 +211,7 @@ class Snefuru_Hurricane {
                                 <!-- Instance 2 Wrapper: Header303 -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-header303-container">
-                                        <span class="snefuru-header303-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303</span>
+                                        <span class="snefuru-header303-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303_filled</span>
                                         <div style="display: flex; gap: 10px; align-items: flex-start;">
                                             <textarea 
                                                 id="header303-textbox" 
