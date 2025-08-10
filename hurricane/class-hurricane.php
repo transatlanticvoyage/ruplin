@@ -66,10 +66,12 @@ class Snefuru_Hurricane {
                 </svg>
                 
                 <?php
-                // Get the sitespren_base domain for the driggsman URL from the single-row table
+                // Get the sitespren_base domain from the single-row zen_sitespren table
                 global $wpdb;
-                $sitespren_base_result = $wpdb->get_var("SELECT sitespren_base FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
-                $sitespren_base = !empty($sitespren_base_result) ? $sitespren_base_result : 'example.com';
+                $sitespren_base = $wpdb->get_var("SELECT sitespren_base FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
+                if (empty($sitespren_base)) {
+                    $sitespren_base = 'example.com'; // fallback if no data found
+                }
                 $driggsman_url = 'http://localhost:3000/driggsman?activefilterchamber=daylight&sitesentered=' . urlencode($sitespren_base);
                 ?>
                 
