@@ -3372,6 +3372,42 @@ class Snefuru_Admin {
             </div>
         </div>
         
+        <style type="text/css">
+        /* Toggle Switch Styles */
+        .driggs-toggle-switch {
+            cursor: pointer !important;
+        }
+        
+        .driggs-toggle-switch input[type="checkbox"]:focus + .driggs-toggle-slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+        
+        .driggs-toggle-slider {
+            pointer-events: none;
+        }
+        
+        .driggs-toggle-knob {
+            pointer-events: none;
+        }
+        
+        /* Ensure table cells are properly styled */
+        #driggs-table td {
+            vertical-align: middle;
+        }
+        
+        #driggs-table td[data-field] {
+            min-height: 30px;
+        }
+        
+        #driggs-table textarea,
+        #driggs-table input[type="text"],
+        #driggs-table input[type="email"],
+        #driggs-table input[type="number"] {
+            font-family: inherit;
+            font-size: 14px;
+        }
+        </style>
+        
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             let currentData = {};
@@ -3503,22 +3539,37 @@ class Snefuru_Admin {
             
             function createToggleSwitch(fieldKey, isChecked) {
                 let toggleContainer = $('<div style="display: flex; align-items: center;"></div>');
-                let toggleSwitch = $('<label style="position: relative; display: inline-block; width: 50px; height: 24px;"><input type="checkbox" style="opacity: 0; width: 0; height: 0;"><span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;"></span></label>');
-                let checkbox = toggleSwitch.find('input');
-                let slider = toggleSwitch.find('span');
+                
+                // Create the toggle switch with a unique ID
+                let switchId = 'toggle-' + fieldKey;
+                let toggleSwitch = $('<label class="driggs-toggle-switch" for="' + switchId + '" style="position: relative; display: inline-block; width: 50px; height: 24px; cursor: pointer;"></label>');
+                let checkbox = $('<input type="checkbox" id="' + switchId + '" style="position: absolute; opacity: 0; width: 0; height: 0;">');
+                let slider = $('<span class="driggs-toggle-slider" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: ' + (isChecked ? '#2196F3' : '#ccc') + '; transition: .4s; border-radius: 24px;"></span>');
+                let knob = $('<span class="driggs-toggle-knob" style="position: absolute; content: \'\'; height: 18px; width: 18px; left: ' + (isChecked ? '26px' : '3px') + '; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
                 
                 checkbox.prop('checked', isChecked);
-                if (isChecked) {
-                    slider.css('background-color', '#2196F3');
-                    slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 26px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
-                } else {
-                    slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
-                }
+                slider.append(knob);
+                toggleSwitch.append(checkbox).append(slider);
                 
-                checkbox.change(function() {
-                    updateField(fieldKey, this.checked ? 1 : 0);
-                    currentData[fieldKey] = this.checked ? 1 : 0;
+                // Handle checkbox change
+                checkbox.on('change', function() {
+                    let checked = this.checked;
+                    
+                    // Update visual state
+                    slider.css('background-color', checked ? '#2196F3' : '#ccc');
+                    knob.css('left', checked ? '26px' : '3px');
+                    
+                    // Update field in database
+                    updateField(fieldKey, checked ? 1 : 0);
+                    currentData[fieldKey] = checked ? 1 : 0;
                     hasChanges = true;
+                });
+                
+                // Also handle label click to ensure responsiveness
+                toggleSwitch.on('click', function(e) {
+                    if (e.target.tagName !== 'INPUT') {
+                        checkbox.prop('checked', !checkbox.prop('checked')).trigger('change');
+                    }
                 });
                 
                 toggleContainer.append(toggleSwitch);
@@ -3580,6 +3631,8 @@ class Snefuru_Admin {
             }
             
             function updateField(fieldKey, value) {
+                console.log('Updating field:', fieldKey, 'with value:', value);
+                
                 $.ajax({
                     url: ajaxurl,
                     type: 'POST',
@@ -3590,12 +3643,16 @@ class Snefuru_Admin {
                         value: value
                     },
                     success: function(response) {
-                        if (!response.success) {
+                        if (response.success) {
+                            console.log('Field updated successfully:', fieldKey);
+                        } else {
+                            console.error('Error updating field:', response.data);
                             alert('Error updating field: ' + (response.data || 'Unknown error'));
                         }
                     },
-                    error: function() {
-                        alert('Error updating field');
+                    error: function(xhr, status, error) {
+                        console.error('AJAX error:', status, error);
+                        alert('Error updating field: ' + error);
                     }
                 });
             }
@@ -4188,8 +4245,48 @@ class Snefuru_Admin {
         $table_name = $wpdb->prefix . 'zen_sitespren';
         
         try {
-            // Update the field in the single record (there should only be one)
-            $result = $wpdb->query($wpdb->prepare("UPDATE $table_name SET $field = %s, wppma_db_only_updated_at = %s", $value, current_time('mysql')));
+            // Build the update query dynamically based on field type
+            $format = '%s'; // Default format for strings
+            
+            if (in_array($field, $number_fields) || in_array($field, $boolean_fields)) {
+                $format = '%d'; // Use integer format for numbers and booleans
+            }
+            
+            // Use update method which is safer for dynamic field names
+            $update_data = array(
+                $field => $value,
+                'wppma_db_only_updated_at' => current_time('mysql')
+            );
+            
+            $update_formats = array(
+                $format,
+                '%s'
+            );
+            
+            // Update the single record - we update all rows since there should only be one
+            // First check if there's a record
+            $has_record = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
+            
+            if ($has_record == 0) {
+                // No record exists, create one first
+                $this->ensure_sitespren_record();
+            }
+            
+            // Now update - using 1=1 condition to update all rows
+            $sql = $wpdb->prepare(
+                "UPDATE $table_name SET `$field` = $format, `wppma_db_only_updated_at` = %s WHERE 1=1",
+                $value,
+                current_time('mysql')
+            );
+            
+            $result = $wpdb->query($sql);
+            
+            // If no rows were updated but also no error, it might mean the value was already the same
+            if ($result === 0 && !$wpdb->last_error) {
+                // Still consider it a success if no error occurred
+                wp_send_json_success('Field value unchanged or already up to date');
+                return;
+            }
             
             if ($result === false) {
                 wp_send_json_error('Database update failed: ' . $wpdb->last_error);
