@@ -139,6 +139,15 @@ class Snefuru_Hurricane {
                         📋
                     </button>
                 </div>
+                
+                <!-- Live Frontend Screen Button -->
+                <div style="display: flex; align-items: center; margin-left: 15px;">
+                    <a href="<?php echo esc_url(get_permalink($post->ID)); ?>" 
+                       target="_blank" 
+                       style="background: #0073aa; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                        livefrontend screen
+                    </a>
+                </div>
             </div>
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
@@ -1433,6 +1442,19 @@ In the following text content I paste below, you will be seeing the following:
 (INSERT DESCRIPTION HERE)
 
 ———————————————————————</textarea>
+                        </div>
+                        
+                        <!-- Separator Line -->
+                        <hr style="margin: 30px 0; border: 0; border-top: 2px solid #333;">
+                        
+                        <!-- Quick Stats Section -->
+                        <div class="snefuru-quick-stats-container" style="margin-top: 20px;">
+                            <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #333;">Quick Stats For This Kpage</h3>
+                            
+                            <!-- Content area left blank for now -->
+                            <div class="snefuru-quick-stats-content" style="min-height: 100px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+                                <!-- Stats content will be added here in the future -->
+                            </div>
                         </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="gbp">
