@@ -164,70 +164,82 @@ class Snefuru_Hurricane {
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
-                                <!-- Copy All Instances Container -->
-                                <div class="snefuru-copy-all-instances-container" style="margin-bottom: 20px;">
-                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">copy all instances</span>
-                                    <div style="position: relative; display: inline-block;">
-                                        <button type="button" class="snefuru-copy-btn" data-target="copy-all-instances-textbox" style="margin-bottom: 5px;">
-                                            Copy
-                                        </button>
+                                <!-- Replete Instance Wrapper -->
+                                <div class="snefuru-replete-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 20px;">
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">replete_instance</span>
+                                    <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                    
+                                    <!-- Copy All Instances Container -->
+                                    <div class="snefuru-copy-all-instances-container">
+                                        <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">copy all instances</span>
+                                        <div style="position: relative; display: inline-block;">
+                                            <button type="button" class="snefuru-copy-btn" data-target="copy-all-instances-textbox" style="margin-bottom: 5px;">
+                                                Copy
+                                            </button>
+                                            <textarea 
+                                                id="copy-all-instances-textbox" 
+                                                class="snefuru-header303-db-mapping-textbox" 
+                                                readonly
+                                                style="height: 200px;"
+                                            ><?php 
+                                            // Combine all three instances into one text
+                                            $all_instances_text = $db_mapping_text . "\n\n———————————————————————\n\n" . $header303_content . "\n\n———————————————————————\n\n" . $formatted_data;
+                                            echo esc_textarea($all_instances_text); 
+                                            ?></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 1 Wrapper: Header303 DB Mapping -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-header303-db-mapping-container">
+                                        <div class="snefuru-header303-db-mapping-header">
+                                            <span class="snefuru-header303-db-mapping-label">header303_db_mapping</span>
+                                            <button type="button" class="snefuru-copy-btn" data-target="header303-db-mapping-textbox">
+                                                Copy
+                                            </button>
+                                        </div>
                                         <textarea 
-                                            id="copy-all-instances-textbox" 
+                                            id="header303-db-mapping-textbox" 
                                             class="snefuru-header303-db-mapping-textbox" 
                                             readonly
-                                            style="height: 200px;"
-                                        ><?php 
-                                        // Combine all three instances into one text
-                                        $all_instances_text = $db_mapping_text . "\n\n———————————————————————\n\n" . $header303_content . "\n\n———————————————————————\n\n" . $formatted_data;
-                                        echo esc_textarea($all_instances_text); 
-                                        ?></textarea>
+                                        ><?php echo esc_textarea($db_mapping_text); ?></textarea>
                                     </div>
                                 </div>
                                 
-                                <!-- Header303 DB Mapping Container -->
-                                <div class="snefuru-header303-db-mapping-container">
-                                    <div class="snefuru-header303-db-mapping-header">
-                                        <span class="snefuru-header303-db-mapping-label">header303_db_mapping</span>
-                                        <button type="button" class="snefuru-copy-btn" data-target="header303-db-mapping-textbox">
-                                            Copy
-                                        </button>
+                                <!-- Instance 2 Wrapper: Header303 -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-header303-container">
+                                        <div class="snefuru-header303-header">
+                                            <span class="snefuru-header303-label">header303</span>
+                                            <button type="button" class="snefuru-copy-btn" data-target="header303-textbox">
+                                                Copy
+                                            </button>
+                                        </div>
+                                        <textarea 
+                                            id="header303-textbox" 
+                                            class="snefuru-header303-textbox" 
+                                            readonly
+                                        ><?php echo esc_textarea($header303_content); ?></textarea>
                                     </div>
-                                    <textarea 
-                                        id="header303-db-mapping-textbox" 
-                                        class="snefuru-header303-db-mapping-textbox" 
-                                        readonly
-                                    ><?php echo esc_textarea($db_mapping_text); ?></textarea>
                                 </div>
                                 
-                                <!-- Header303 Container -->
-                                <div class="snefuru-header303-container">
-                                    <div class="snefuru-header303-header">
-                                        <span class="snefuru-header303-label">header303</span>
-                                        <button type="button" class="snefuru-copy-btn" data-target="header303-textbox">
-                                            Copy
-                                        </button>
+                                <!-- Instance 3 Wrapper: Elementor Data -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-elementor-data-container">
+                                        <div class="snefuru-elementor-data-header">
+                                            <span class="snefuru-elementor-data-label">_elementor_data</span>
+                                            <button type="button" class="snefuru-copy-btn" data-target="elementor-data-textbox">
+                                                Copy
+                                            </button>
+                                        </div>
+                                        <textarea 
+                                            id="elementor-data-textbox" 
+                                            class="snefuru-elementor-data-textbox" 
+                                            readonly
+                                            placeholder="No Elementor data found for this page"
+                                        ><?php echo esc_textarea($formatted_data); ?></textarea>
                                     </div>
-                                    <textarea 
-                                        id="header303-textbox" 
-                                        class="snefuru-header303-textbox" 
-                                        readonly
-                                    ><?php echo esc_textarea($header303_content); ?></textarea>
-                                </div>
-                                
-                                <!-- Elementor Data Container -->
-                                <div class="snefuru-elementor-data-container">
-                                    <div class="snefuru-elementor-data-header">
-                                        <span class="snefuru-elementor-data-label">_elementor_data</span>
-                                        <button type="button" class="snefuru-copy-btn" data-target="elementor-data-textbox">
-                                            Copy
-                                        </button>
-                                    </div>
-                                    <textarea 
-                                        id="elementor-data-textbox" 
-                                        class="snefuru-elementor-data-textbox" 
-                                        readonly
-                                        placeholder="No Elementor data found for this page"
-                                    ><?php echo esc_textarea($formatted_data); ?></textarea>
                                 </div>
                             </div>
                             
