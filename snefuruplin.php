@@ -57,6 +57,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-media-workaround.php';
+        require_once SNEFURU_PLUGIN_PATH . 'hurricane/class-hurricane.php';
     }
     
     private function init_hooks() {
@@ -83,6 +84,9 @@ class SnefuruPlugin {
         
         // Initialize media library workaround (always load for potential Elementor use)
         new Zen_Elementor_Media_Workaround();
+        
+        // Initialize Hurricane feature
+        new Snefuru_Hurricane();
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
