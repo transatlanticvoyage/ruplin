@@ -36,6 +36,10 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_services_create', array($this, 'rup_services_create'));
         add_action('wp_ajax_rup_services_get_image_url', array($this, 'rup_services_get_image_url'));
         
+        // Driggs management AJAX actions
+        add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
+        add_action('wp_ajax_rup_driggs_update_field', array($this, 'rup_driggs_update_field'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
     }
@@ -136,6 +140,15 @@ class Snefuru_Admin {
             'manage_options',
             'rup_services_mar',
             array($this, 'rup_services_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rup_driggs_mar',
+            'rup_driggs_mar',
+            'manage_options',
+            'rup_driggs_mar',
+            array($this, 'rup_driggs_mar_page')
         );
         
         add_submenu_page(
@@ -3284,6 +3297,309 @@ class Snefuru_Admin {
     }
     
     /**
+     * rup_driggs_mar page - Driggs Management (Vertical Field Editor)
+     */
+    public function rup_driggs_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_driggs';
+        $current_site_url = get_site_url();
+        
+        // Handle AJAX requests
+        if (isset($_POST['action'])) {
+            $this->handle_driggs_ajax();
+            return;
+        }
+        
+        ?>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">🎯 Driggs Site Manager</h1>
+                
+                <!-- Control Bar -->
+                <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Current Site:</strong> <?php echo esc_html($current_site_url); ?>
+                        </div>
+                        <div>
+                            <button id="save-all-btn" class="button button-primary">Save All Changes</button>
+                            <button id="reset-btn" class="button button-secondary">Reset to Defaults</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Vertical Field Table -->
+                <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                    <div style="overflow-x: auto;">
+                        <table id="driggs-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <thead style="background: #f8f9fa;">
+                                <tr>
+                                    <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f0f0f0; width: 50px;">
+                                        <input type="checkbox" id="select-all" style="width: 20px; height: 20px;">
+                                    </th>
+                                    <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 250px;">Field Name</th>
+                                    <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Data will be loaded here via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 5px;">
+                    <p><strong>Instructions:</strong></p>
+                    <ul>
+                        <li>Click on any value to edit it inline</li>
+                        <li>Toggle switches control boolean fields</li>
+                        <li>Changes are saved automatically when you click out of a field</li>
+                        <li>Use "Save All Changes" to force save all modifications</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            let currentData = {};
+            let hasChanges = false;
+            
+            // Load initial data
+            loadDriggsData();
+            
+            function loadDriggsData() {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_driggs_get_data',
+                        nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            currentData = response.data;
+                            displayData();
+                        } else {
+                            alert('Error loading driggs data: ' + response.data);
+                        }
+                    },
+                    error: function() {
+                        alert('Error loading driggs data');
+                    }
+                });
+            }
+            
+            function displayData() {
+                let tbody = $('#table-body');
+                tbody.empty();
+                
+                // Field definitions with labels and types
+                const fields = [
+                    {key: 'driggs_industry', label: 'Industry', type: 'text'},
+                    {key: 'driggs_city', label: 'City', type: 'text'},
+                    {key: 'driggs_brand_name', label: 'Brand Name', type: 'text'},
+                    {key: 'driggs_site_type_purpose', label: 'Site Type/Purpose', type: 'text'},
+                    {key: 'driggs_email_1', label: 'Email', type: 'email'},
+                    {key: 'driggs_address_full', label: 'Full Address', type: 'textarea'},
+                    {key: 'driggs_phone_1', label: 'Phone', type: 'text'},
+                    {key: 'driggs_special_note_for_ai_tool', label: 'AI Tool Notes', type: 'textarea'},
+                    {key: 'driggs_phone1_platform_id', label: 'Phone Platform ID', type: 'number'},
+                    {key: 'driggs_cgig_id', label: 'CGIG ID', type: 'number'},
+                    {key: 'driggs_revenue_goal', label: 'Revenue Goal', type: 'number'},
+                    {key: 'driggs_address_species_id', label: 'Address Species ID', type: 'number'},
+                    {key: 'driggs_citations_done', label: 'Citations Done', type: 'boolean'},
+                    {key: 'is_competitor', label: 'Is Competitor', type: 'boolean'},
+                    {key: 'is_external', label: 'Is External', type: 'boolean'},
+                    {key: 'is_internal', label: 'Is Internal', type: 'boolean'},
+                    {key: 'is_ppx', label: 'Is PPX', type: 'boolean'},
+                    {key: 'is_ms', label: 'Is MS', type: 'boolean'},
+                    {key: 'is_wayback_rebuild', label: 'Is Wayback Rebuild', type: 'boolean'},
+                    {key: 'is_naked_wp_build', label: 'Is Naked WP Build', type: 'boolean'},
+                    {key: 'is_rnr', label: 'Is RnR', type: 'boolean'},
+                    {key: 'is_aff', label: 'Is Affiliate', type: 'boolean'},
+                    {key: 'is_other1', label: 'Is Other 1', type: 'boolean'},
+                    {key: 'is_other2', label: 'Is Other 2', type: 'boolean'},
+                    {key: 'is_flylocal', label: 'Is FlyLocal', type: 'boolean'}
+                ];
+                
+                fields.forEach(function(field) {
+                    let tr = $('<tr style="cursor: pointer;"></tr>');
+                    tr.hover(function() {
+                        $(this).css('background-color', '#f9f9f9');
+                    }, function() {
+                        $(this).css('background-color', '');
+                    });
+                    
+                    // Checkbox column
+                    let checkboxTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: center;"></td>');
+                    let checkbox = $('<input type="checkbox" style="width: 20px; height: 20px;" data-field="' + field.key + '">');
+                    checkboxTd.append(checkbox);
+                    tr.append(checkboxTd);
+                    
+                    // Field name column
+                    let fieldNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; font-weight: 600; color: #23282d;"></td>');
+                    fieldNameTd.text(field.label);
+                    tr.append(fieldNameTd);
+                    
+                    // Value column
+                    let valueTd = $('<td style="padding: 8px; border: 1px solid #ddd;"></td>');
+                    let value = currentData[field.key] || '';
+                    
+                    if (field.type === 'boolean') {
+                        // Toggle switch for boolean fields
+                        let toggleSwitch = createToggleSwitch(field.key, value == 1);
+                        valueTd.append(toggleSwitch);
+                    } else {
+                        // Text field for other types
+                        valueTd.text(value);
+                        valueTd.attr('data-field', field.key);
+                        valueTd.attr('data-type', field.type);
+                        valueTd.css('cursor', 'text');
+                        valueTd.click(function() {
+                            startInlineEdit($(this), value, field.key, field.type);
+                        });
+                    }
+                    
+                    tr.append(valueTd);
+                    tbody.append(tr);
+                });
+            }
+            
+            function createToggleSwitch(fieldKey, isChecked) {
+                let toggleContainer = $('<div style="display: flex; align-items: center;"></div>');
+                let toggleSwitch = $('<label style="position: relative; display: inline-block; width: 50px; height: 24px;"><input type="checkbox" style="opacity: 0; width: 0; height: 0;"><span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;"></span></label>');
+                let checkbox = toggleSwitch.find('input');
+                let slider = toggleSwitch.find('span');
+                
+                checkbox.prop('checked', isChecked);
+                if (isChecked) {
+                    slider.css('background-color', '#2196F3');
+                    slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 26px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
+                } else {
+                    slider.append('<span style="position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;"></span>');
+                }
+                
+                checkbox.change(function() {
+                    updateField(fieldKey, this.checked ? 1 : 0);
+                    currentData[fieldKey] = this.checked ? 1 : 0;
+                    hasChanges = true;
+                });
+                
+                toggleContainer.append(toggleSwitch);
+                return toggleContainer;
+            }
+            
+            function startInlineEdit(cell, currentValue, fieldKey, fieldType) {
+                if (cell.find('input, textarea').length > 0) return; // Already editing
+                
+                let input;
+                if (fieldType === 'textarea') {
+                    input = $('<textarea style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff; min-height: 60px; resize: vertical;"></textarea>');
+                } else {
+                    input = $('<input type="' + (fieldType === 'email' ? 'email' : fieldType === 'number' ? 'number' : 'text') + '" style="width: 100%; padding: 4px; border: 1px solid #0073aa; background: #fff;">');
+                }
+                
+                input.val(currentValue);
+                cell.empty().append(input);
+                input.focus().select();
+                
+                input.keydown(function(e) {
+                    if (e.key === 'Enter' && fieldType !== 'textarea') {
+                        e.preventDefault();
+                        saveInlineEdit(cell, input, fieldKey, fieldType);
+                    } else if (e.key === 'Escape') {
+                        cancelInlineEdit(cell, currentValue);
+                    }
+                });
+                
+                input.blur(function() {
+                    saveInlineEdit(cell, input, fieldKey, fieldType);
+                });
+            }
+            
+            function saveInlineEdit(cell, input, fieldKey, fieldType) {
+                let newValue = input.val();
+                updateField(fieldKey, newValue);
+                currentData[fieldKey] = newValue;
+                
+                // Display the new value
+                let displayValue = newValue;
+                if (fieldType === 'textarea' && newValue.length > 100) {
+                    displayValue = newValue.substring(0, 100) + '...';
+                    cell.attr('title', newValue);
+                }
+                
+                cell.empty().text(displayValue);
+                cell.css('cursor', 'text');
+                cell.click(function() {
+                    startInlineEdit($(this), newValue, fieldKey, fieldType);
+                });
+                
+                hasChanges = true;
+            }
+            
+            function cancelInlineEdit(cell, originalValue) {
+                cell.empty().text(originalValue);
+                cell.css('cursor', 'text');
+            }
+            
+            function updateField(fieldKey, value) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_driggs_update_field',
+                        nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>',
+                        field: fieldKey,
+                        value: value
+                    },
+                    success: function(response) {
+                        if (!response.success) {
+                            alert('Error updating field: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function() {
+                        alert('Error updating field');
+                    }
+                });
+            }
+            
+            // Save All button
+            $('#save-all-btn').click(function() {
+                if (hasChanges) {
+                    alert('All changes have been saved automatically.');
+                    hasChanges = false;
+                } else {
+                    alert('No changes to save.');
+                }
+            });
+            
+            // Reset button
+            $('#reset-btn').click(function() {
+                if (confirm('Reset all fields to default values? This cannot be undone.')) {
+                    // Implement reset functionality
+                    location.reload();
+                }
+            });
+            
+            // Select all checkbox
+            $('#select-all').change(function() {
+                $('input[data-field]').prop('checked', this.checked);
+            });
+        });
+        </script>
+        
+        <?php
+    }
+    
+    /**
      * rup_service_tags_mar page
      */
     public function rup_service_tags_mar_page() {
@@ -3741,6 +4057,125 @@ class Snefuru_Admin {
     }
     
     /**
+     * AJAX: Get driggs data for current site
+     */
+    public function rup_driggs_get_data() {
+        check_ajax_referer('rup_driggs_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_driggs';
+        $current_site_url = get_site_url();
+        
+        try {
+            $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE site_url = %s", $current_site_url), ARRAY_A);
+            
+            if ($wpdb->last_error) {
+                wp_send_json_error('Database error: ' . $wpdb->last_error);
+                return;
+            }
+            
+            // If no record exists, create one with defaults
+            if (!$result) {
+                $default_data = array(
+                    'site_url' => $current_site_url,
+                    'driggs_brand_name' => get_bloginfo('name'),
+                    'driggs_email_1' => get_option('admin_email')
+                );
+                
+                $wpdb->insert($table_name, $default_data);
+                if ($wpdb->insert_id) {
+                    $result = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE site_url = %s", $current_site_url), ARRAY_A);
+                }
+            }
+            
+            // Convert boolean values to proper format
+            $boolean_fields = [
+                'driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 
+                'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 
+                'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'
+            ];
+            
+            foreach ($boolean_fields as $field) {
+                if (isset($result[$field])) {
+                    $result[$field] = (int) $result[$field];
+                }
+            }
+            
+            wp_send_json_success($result);
+        } catch (Exception $e) {
+            wp_send_json_error('Error loading driggs data: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Update driggs field
+     */
+    public function rup_driggs_update_field() {
+        check_ajax_referer('rup_driggs_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        $field = sanitize_text_field($_POST['field']);
+        $value = $_POST['value'];
+        
+        // Validate field name
+        $allowed_fields = [
+            'driggs_industry', 'driggs_city', 'driggs_brand_name', 'driggs_site_type_purpose',
+            'driggs_email_1', 'driggs_address_full', 'driggs_phone_1', 'driggs_special_note_for_ai_tool',
+            'driggs_phone1_platform_id', 'driggs_cgig_id', 'driggs_revenue_goal', 'driggs_address_species_id',
+            'driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 'is_ppx', 'is_ms',
+            'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'
+        ];
+        
+        if (!in_array($field, $allowed_fields)) {
+            wp_send_json_error('Invalid field name');
+            return;
+        }
+        
+        // Sanitize value based on field type
+        $number_fields = ['driggs_phone1_platform_id', 'driggs_cgig_id', 'driggs_revenue_goal', 'driggs_address_species_id'];
+        $boolean_fields = ['driggs_citations_done', 'is_competitor', 'is_external', 'is_internal', 'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'];
+        $email_fields = ['driggs_email_1'];
+        
+        if (in_array($field, $number_fields)) {
+            $value = $value === '' ? NULL : intval($value);
+        } elseif (in_array($field, $boolean_fields)) {
+            $value = $value ? 1 : 0;
+        } elseif (in_array($field, $email_fields)) {
+            $value = $value === '' ? NULL : sanitize_email($value);
+        } else {
+            $value = $value === '' ? NULL : sanitize_textarea_field($value);
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_driggs';
+        $current_site_url = get_site_url();
+        
+        try {
+            $result = $wpdb->update(
+                $table_name,
+                array($field => $value, 'updated_at' => current_time('mysql')),
+                array('site_url' => $current_site_url)
+            );
+            
+            if ($result === false) {
+                wp_send_json_error('Database update failed: ' . $wpdb->last_error);
+                return;
+            }
+            
+            wp_send_json_success('Field updated successfully');
+        } catch (Exception $e) {
+            wp_send_json_error('Error updating field: ' . $e->getMessage());
+        }
+    }
+    
+    /**
      * document_outlook_aug9 page - Documentation
      */
     public function document_outlook_aug9_page() {
@@ -4013,6 +4448,7 @@ class Snefuru_Admin {
             'snefuru_page_dublish_logs',
             'snefuru_page_rup_locations_mar',
             'snefuru_page_rup_services_mar',
+            'snefuru_page_rup_driggs_mar',
             'snefuru_page_rup_service_tags_mar',
             'snefuru_page_rup_location_tags_mar',
             'snefuru_page_rup_horse_class_page',
@@ -4082,7 +4518,8 @@ class Snefuru_Admin {
              in_array($_GET['page'], [
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
-                'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page'
+                'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
+                'rup_driggs_mar'
              ]));
         
         // Check if we're on WordPress post/page editor
@@ -4116,7 +4553,8 @@ class Snefuru_Admin {
              in_array($_GET['page'], [
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
-                'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page'
+                'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
+                'rup_driggs_mar'
              ]));
         
         // Check if we're on a WordPress post/page editor
