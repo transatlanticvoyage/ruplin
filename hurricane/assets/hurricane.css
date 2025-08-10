@@ -40,14 +40,14 @@
 .snefuru-stellar-tab-separator {
     width: 4px !important;
     background: #000 !important;
-    height: 100% !important;
+    height: 50px !important;
     margin: 0 5px !important;
     border-radius: 2px !important;
     pointer-events: none !important;
-    display: flex !important;
-    align-self: stretch !important;
+    display: inline-block !important;
+    align-self: center !important;
     flex-shrink: 0 !important;
-    min-height: 100% !important;
+    vertical-align: middle !important;
 }
 
 .snefuru-stellar-tab-navigation {

@@ -73,17 +73,21 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
                         Elementor Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none; display: flex; align-self: stretch; min-height: 100%;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 50px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: center; vertical-align: middle;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
                         Gutenberg Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gut-deployer">
                         Gut. Deployer
                     </button>
-                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 100%; margin: 0 5px; border-radius: 2px; pointer-events: none; display: flex; align-self: stretch; min-height: 100%;"></div>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 50px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: center; vertical-align: middle;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
-                        Nimble
+                        Nimble Elicitor
                     </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble-deployer">
+                        Nimble Deployer
+                    </button>
+                    <div class="snefuru-stellar-tab-separator" style="width: 4px; background: #000; height: 50px; margin: 0 5px; border-radius: 2px; pointer-events: none; display: inline-block; align-self: center; vertical-align: middle;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="image-freeway">
                         Image Freeway
                     </button>
@@ -352,7 +356,10 @@ class Snefuru_Hurricane {
                         <!-- Gut. Deployer content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="nimble">
-                        <!-- Nimble content will go here -->
+                        <!-- Nimble Elicitor content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="nimble-deployer">
+                        <!-- Nimble Deployer content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="image-freeway">
                         <!-- Image Freeway content will go here -->
