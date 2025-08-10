@@ -172,20 +172,20 @@ class Snefuru_Hurricane {
                                     <!-- Copy All Instances Container -->
                                     <div class="snefuru-copy-all-instances-container">
                                         <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">copy all instances</span>
-                                        <div style="position: relative; display: inline-block;">
-                                            <button type="button" class="snefuru-copy-btn" data-target="copy-all-instances-textbox" style="margin-bottom: 5px;">
-                                                Copy
-                                            </button>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
                                             <textarea 
                                                 id="copy-all-instances-textbox" 
                                                 class="snefuru-header303-db-mapping-textbox" 
                                                 readonly
-                                                style="height: 200px;"
+                                                style="height: 200px; flex: 1;"
                                             ><?php 
                                             // Combine all three instances into one text
                                             $all_instances_text = $db_mapping_text . "\n\n———————————————————————\n\n" . $header303_content . "\n\n———————————————————————\n\n" . $formatted_data;
                                             echo esc_textarea($all_instances_text); 
                                             ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="copy-all-instances-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -193,52 +193,55 @@ class Snefuru_Hurricane {
                                 <!-- Instance 1 Wrapper: Header303 DB Mapping -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-header303-db-mapping-container">
-                                        <div class="snefuru-header303-db-mapping-header">
-                                            <span class="snefuru-header303-db-mapping-label">header303_db_mapping</span>
-                                            <button type="button" class="snefuru-copy-btn" data-target="header303-db-mapping-textbox">
+                                        <span class="snefuru-header303-db-mapping-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303_db_mapping</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="header303-db-mapping-textbox" 
+                                                class="snefuru-header303-db-mapping-textbox" 
+                                                readonly
+                                                style="flex: 1;"
+                                            ><?php echo esc_textarea($db_mapping_text); ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="header303-db-mapping-textbox" style="height: 150px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
                                                 Copy
                                             </button>
                                         </div>
-                                        <textarea 
-                                            id="header303-db-mapping-textbox" 
-                                            class="snefuru-header303-db-mapping-textbox" 
-                                            readonly
-                                        ><?php echo esc_textarea($db_mapping_text); ?></textarea>
                                     </div>
                                 </div>
                                 
                                 <!-- Instance 2 Wrapper: Header303 -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-header303-container">
-                                        <div class="snefuru-header303-header">
-                                            <span class="snefuru-header303-label">header303</span>
-                                            <button type="button" class="snefuru-copy-btn" data-target="header303-textbox">
+                                        <span class="snefuru-header303-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="header303-textbox" 
+                                                class="snefuru-header303-textbox" 
+                                                readonly
+                                                style="flex: 1;"
+                                            ><?php echo esc_textarea($header303_content); ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="header303-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
                                                 Copy
                                             </button>
                                         </div>
-                                        <textarea 
-                                            id="header303-textbox" 
-                                            class="snefuru-header303-textbox" 
-                                            readonly
-                                        ><?php echo esc_textarea($header303_content); ?></textarea>
                                     </div>
                                 </div>
                                 
                                 <!-- Instance 3 Wrapper: Elementor Data -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-elementor-data-container">
-                                        <div class="snefuru-elementor-data-header">
-                                            <span class="snefuru-elementor-data-label">_elementor_data</span>
-                                            <button type="button" class="snefuru-copy-btn" data-target="elementor-data-textbox">
+                                        <span class="snefuru-elementor-data-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">_elementor_data</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="elementor-data-textbox" 
+                                                class="snefuru-elementor-data-textbox" 
+                                                readonly
+                                                placeholder="No Elementor data found for this page"
+                                                style="flex: 1;"
+                                            ><?php echo esc_textarea($formatted_data); ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="elementor-data-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
                                                 Copy
                                             </button>
                                         </div>
-                                        <textarea 
-                                            id="elementor-data-textbox" 
-                                            class="snefuru-elementor-data-textbox" 
-                                            readonly
-                                            placeholder="No Elementor data found for this page"
-                                        ><?php echo esc_textarea($formatted_data); ?></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -696,20 +699,8 @@ class Snefuru_Hurricane {
                                     </div>
                                 </div>
                                 
-                                <!-- Search Controls (matching rup_locations_mar style) -->
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="display: flex; gap: 15px; align-items: center;">
-                                        <!-- Type Filter Buttons -->
-                                        <div style="display: flex; gap: 0; border: 1px solid #ccc;">
-                                            <button class="pantheon-type-btn active" data-value="" style="border: none; padding: 8px 12px; background: #0073aa; color: white; cursor: pointer; font-size: 12px;">All</button>
-                                            <button class="pantheon-type-btn" data-value="chen" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">Chen</button>
-                                            <button class="pantheon-type-btn" data-value="sitejar4" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">SiteJar4</button>
-                                            <button class="pantheon-type-btn" data-value="driggsman" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">Driggsman</button>
-                                            <button class="pantheon-type-btn" data-value="gcjar1" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">GCJar1</button>
-                                            <button class="pantheon-type-btn" data-value="nwjar1" style="border: none; padding: 8px 12px; background: #f9f9f9; cursor: pointer; font-size: 12px; border-left: 1px solid #ccc;">NWJar1</button>
-                                        </div>
-                                    </div>
-                                    
+                                <!-- Search Controls -->
+                                <div style="display: flex; justify-content: flex-end; align-items: center;">
                                     <!-- Search -->
                                     <div style="position: relative;">
                                         <input type="text" id="stellar-pantheon-search" placeholder="Search descriptions..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 200px; font-size: 12px;">
@@ -1266,19 +1257,6 @@ In the following text content I paste below, you will be seeing the following:
                 filterStellarTable();
             });
             
-            // Type filter buttons (matching rup_locations_mar style)
-            $(document).on('click', '.pantheon-type-btn', function() {
-                $('.pantheon-type-btn').removeClass('active').css({
-                    'background': '#f9f9f9',
-                    'color': '#333'
-                });
-                $(this).addClass('active').css({
-                    'background': '#0073aa',
-                    'color': 'white'
-                });
-                filterStellarTable();
-            });
-            
             // Clear search button
             $('#stellar-pantheon-clear').click(function() {
                 $('#stellar-pantheon-search').val('');
@@ -1288,17 +1266,14 @@ In the following text content I paste below, you will be seeing the following:
             // Filter table function
             function filterStellarTable() {
                 var searchText = $('#stellar-pantheon-search').val().toLowerCase();
-                var typeFilter = $('.pantheon-type-btn.active').data('value') || '';
                 
                 $('#stellar-pantheon-table tbody tr').each(function() {
                     var $row = $(this);
                     var description = $row.attr('data-description').toLowerCase();
-                    var type = $row.attr('data-type');
                     
                     var matchesSearch = searchText === '' || description.includes(searchText);
-                    var matchesType = typeFilter === '' || type === typeFilter;
                     
-                    if (matchesSearch && matchesType) {
+                    if (matchesSearch) {
                         $row.show();
                     } else {
                         $row.hide();
