@@ -94,6 +94,9 @@ class SnefuruPlugin {
     }
     
     public function activate() {
+        // Clean up any mistakenly created zen_driggs table
+        $this->cleanup_unwanted_tables();
+        
         // Create database tables if needed
         $this->create_tables();
         
@@ -240,6 +243,22 @@ class SnefuruPlugin {
                     'styling_end_url' => $default_url
                 )
             );
+        }
+    }
+    
+    /**
+     * Clean up any unwanted tables that should not exist
+     */
+    private function cleanup_unwanted_tables() {
+        global $wpdb;
+        
+        // Remove zen_driggs table if it exists (this table should never have existed)
+        $zen_driggs_table = $wpdb->prefix . 'zen_driggs';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$zen_driggs_table'") == $zen_driggs_table;
+        
+        if ($table_exists) {
+            $wpdb->query("DROP TABLE IF EXISTS $zen_driggs_table");
+            error_log('Snefuru: Removed unwanted zen_driggs table during activation');
         }
     }
 }

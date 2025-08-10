@@ -42,6 +42,9 @@ class Snefuru_Admin {
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
+        
+        // One-time cleanup on admin_init
+        add_action('admin_init', array($this, 'one_time_cleanup_zen_driggs'), 1);
     }
     
     /**
@@ -4144,7 +4147,7 @@ class Snefuru_Admin {
         $field = sanitize_text_field($_POST['field']);
         $value = $_POST['value'];
         
-        // Validate field name - all editable fields from zen_driggs table
+        // Validate field name - all editable fields from zen_sitespren table
         $allowed_fields = [
             'created_at', 'sitespren_base', 'true_root_domain', 'full_subdomain', 'webproperty_type',
             'fk_users_id', 'updated_at', 'wpuser1', 'wppass1', 'wp_plugin_installed1', 'wp_plugin_connected2',
@@ -4809,5 +4812,27 @@ class Snefuru_Admin {
                 )
             );
         }
+    }
+    
+    /**
+     * One-time cleanup of zen_driggs table - runs once then sets flag to never run again
+     */
+    public function one_time_cleanup_zen_driggs() {
+        // Check if cleanup has already been done
+        if (get_option('snefuru_zen_driggs_cleaned_up', false)) {
+            return;
+        }
+        
+        global $wpdb;
+        $zen_driggs_table = $wpdb->prefix . 'zen_driggs';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$zen_driggs_table'") == $zen_driggs_table;
+        
+        if ($table_exists) {
+            $wpdb->query("DROP TABLE IF EXISTS $zen_driggs_table");
+            error_log('Snefuru: One-time cleanup - Removed unwanted zen_driggs table');
+        }
+        
+        // Set flag so this only runs once
+        update_option('snefuru_zen_driggs_cleaned_up', true);
     }
 } 
