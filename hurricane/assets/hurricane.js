@@ -161,6 +161,11 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             
             // Show the corresponding panel
             $('.snefuru-stellar-tab-panel[data-panel="' + tabName + '"]').addClass('active');
+            
+            // Initialize driggs tab when it's first activated
+            if (tabName === 'driggs' && $('#driggs-stellar-data').attr('data-initialized') === 'false') {
+                initDriggsTab();
+            }
         });
         
         // Handle copy button clicks for textboxes
@@ -256,6 +261,205 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         } else {
             console.log('No Stellar tabs found');
         }
+    }
+    
+    /**
+     * Initialize the Driggs tab functionality
+     * Separated from main template for better maintainability
+     */
+    function initDriggsTab() {
+        console.log('Initializing driggs tab...');
+        
+        var driggsData = {};
+        var nonce = $('#driggs-stellar-data').data('nonce');
+        
+        // Mark as initialized
+        $('#driggs-stellar-data').attr('data-initialized', 'true');
+        
+        // Load initial driggs data
+        loadDriggsStellarData();
+        
+        function loadDriggsStellarData() {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'rup_driggs_get_data',
+                    nonce: nonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        driggsData = response.data;
+                        displayDriggsStellarData();
+                        console.log('Driggs data loaded successfully');
+                    } else {
+                        console.error('Error loading driggs data:', response.data);
+                        alert('Error loading driggs data: ' + response.data);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error loading driggs data:', error);
+                    alert('Error loading driggs data: ' + error);
+                }
+            });
+        }
+        
+        function displayDriggsStellarData() {
+            var tbody = $('#driggs-stellar-table-body');
+            tbody.empty();
+            
+            // Only fields with "driggs_" in the name, in order from rup_driggs_mar page
+            var driggsFields = [
+                {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
+                {key: 'driggs_city', label: 'driggs_city', type: 'text'},
+                {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
+                {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
+                {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
+                {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
+                {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
+                {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
+                {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
+                {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
+                {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
+                {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
+                {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'}
+            ];
+            
+            driggsFields.forEach(function(field) {
+                var tr = $('<tr></tr>');
+                tr.hover(function() {
+                    $(this).css('background-color', '#f9f9f9');
+                }, function() {
+                    $(this).css('background-color', '');
+                });
+                
+                // Field name column
+                var fieldNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;"></td>');
+                fieldNameTd.text(field.label);
+                tr.append(fieldNameTd);
+                
+                // Value column
+                var valueTd = $('<td style="padding: 8px; border: 1px solid #ddd;" data-field="' + field.key + '"></td>');
+                var currentValue = driggsData[field.key] || '';
+                
+                if (field.type === 'boolean') {
+                    var toggleHtml = createStellarToggleSwitch(field.key, currentValue == '1');
+                    valueTd.html(toggleHtml);
+                } else if (field.type === 'textarea') {
+                    valueTd.html('<div class="stellareditable-field" data-field="' + field.key + '" data-type="textarea">' + 
+                               $('<div>').text(currentValue).html() + '</div>');
+                } else {
+                    valueTd.html('<div class="stellareditable-field" data-field="' + field.key + '" data-type="' + field.type + '">' + 
+                               $('<div>').text(currentValue).html() + '</div>');
+                }
+                
+                tr.append(valueTd);
+                tbody.append(tr);
+            });
+            
+            // Make fields editable
+            makeStellarFieldsEditable();
+            setupStellarToggleSwitches();
+        }
+        
+        function createStellarToggleSwitch(fieldKey, isChecked) {
+            return '<label class="stellar-driggs-toggle-switch" data-field="' + fieldKey + '">' +
+                  '<input type="checkbox" ' + (isChecked ? 'checked' : '') + '>' +
+                  '<span class="stellar-driggs-toggle-slider">' +
+                  '<span class="stellar-driggs-toggle-knob"></span>' +
+                  '</span>' +
+                  '</label>';
+        }
+        
+        function makeStellarFieldsEditable() {
+            $(document).off('click.stellar-editable').on('click.stellar-editable', '.stellareditable-field', function() {
+                var $this = $(this);
+                var fieldKey = $this.data('field');
+                var fieldType = $this.data('type');
+                var currentValue = $this.text();
+                
+                if ($this.find('input, textarea').length > 0) {
+                    return; // Already editing
+                }
+                
+                var input;
+                if (fieldType === 'textarea') {
+                    input = $('<textarea style="width: 100%; min-height: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; font-size: inherit;"></textarea>');
+                } else {
+                    input = $('<input type="' + fieldType + '" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; font-size: inherit;">');
+                }
+                
+                input.val(currentValue);
+                $this.empty().append(input);
+                input.focus().select();
+                
+                function saveField() {
+                    var newValue = input.val();
+                    updateStellarDriggsField(fieldKey, newValue, function() {
+                        $this.empty().text(newValue);
+                        driggsData[fieldKey] = newValue;
+                    });
+                }
+                
+                input.on('blur', saveField);
+                input.on('keydown', function(e) {
+                    if (e.which === 13 && fieldType !== 'textarea') { // Enter key for non-textarea
+                        saveField();
+                    } else if (e.which === 27) { // Escape key
+                        $this.empty().text(currentValue);
+                    }
+                });
+            });
+        }
+        
+        function setupStellarToggleSwitches() {
+            $(document).off('click.stellar-toggle').on('click.stellar-toggle', '.stellar-driggs-toggle-switch', function(e) {
+                e.preventDefault();
+                var $label = $(this);
+                var $checkbox = $label.find('input[type="checkbox"]');
+                var fieldKey = $label.data('field');
+                
+                // Toggle the checkbox state
+                var newValue = !$checkbox.prop('checked');
+                $checkbox.prop('checked', newValue);
+                
+                // Update the database
+                updateStellarDriggsField(fieldKey, newValue ? '1' : '0', function() {
+                    driggsData[fieldKey] = newValue ? '1' : '0';
+                });
+            });
+        }
+        
+        function updateStellarDriggsField(fieldKey, value, callback) {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'rup_driggs_update_field',
+                    nonce: nonce,
+                    field: fieldKey,
+                    value: value
+                },
+                success: function(response) {
+                    if (response.success && callback) {
+                        callback();
+                        console.log('Field updated successfully:', fieldKey, '=', value);
+                    } else {
+                        console.error('Error saving field:', response.data);
+                        alert('Error saving field: ' + (response.data || 'Unknown error'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error saving field:', error);
+                    alert('Error saving field: ' + error);
+                }
+            });
+        }
+        
+        // Save button functionality
+        $(document).off('click.driggs-save').on('click.driggs-save', '#save-driggs-btn', function() {
+            alert('All changes are saved automatically when you edit fields.');
+        });
     }
     
 })(jQuery);

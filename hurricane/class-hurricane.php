@@ -79,6 +79,9 @@ class Snefuru_Hurricane {
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
                         Nimble
                     </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="image-freeway">
+                        Image Freeway
+                    </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="other">
                         Other
                     </button>
@@ -94,7 +97,28 @@ class Snefuru_Hurricane {
                 </div>
                 <div class="snefuru-stellar-tab-content">
                     <div class="snefuru-stellar-tab-panel active" data-panel="elicitor">
-                        <!-- Elicitor content will go here -->
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <!-- Column 1 content will go here -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <!-- Column 2 content will go here -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <!-- Column 3 content will go here -->
+                            </div>
+                            
+                        </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="elementor">
                         <?php
@@ -301,8 +325,106 @@ class Snefuru_Hurricane {
                     <div class="snefuru-stellar-tab-panel" data-panel="nimble">
                         <!-- Nimble content will go here -->
                     </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="image-freeway">
+                        <!-- Image Freeway content will go here -->
+                    </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="other">
-                        <!-- Other content will go here -->
+                        <h2 style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">Snefuruplin Admin Links</h2>
+                        
+                        <div style="background: white; border: 1px solid #ddd; border-radius: 5px; padding: 20px;">
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-kenli-sidebar-links'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        KenliSidebarLinks
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-settings'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Settings
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-logs'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Logs
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-dublish-logs'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Dublish Logs
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-screen4-manage'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        screen 4 - manage
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuruplin-bespoke-css-1'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        CSS Editor
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_locations_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_locations_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_services_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_services_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_driggs_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_driggs_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_service_tags_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_service_tags_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_location_tags_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_location_tags_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_horse_class_page'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_horse_class_page
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=document_outlook_aug9'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        document_outlook_aug9
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=dynamic_images_man'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        dynamic_images_man
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="driggs">
                         <h2 style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">driggs field collection 1</h2>
@@ -329,191 +451,10 @@ class Snefuru_Hurricane {
                             </div>
                         </div>
                         
-                        <script type="text/javascript">
-                        jQuery(document).ready(function($) {
-                            let driggsData = {};
-                            
-                            // Load initial driggs data
-                            loadDriggsStellarData();
-                            
-                            function loadDriggsStellarData() {
-                                $.ajax({
-                                    url: ajaxurl,
-                                    type: 'POST',
-                                    data: {
-                                        action: 'rup_driggs_get_data',
-                                        nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>'
-                                    },
-                                    success: function(response) {
-                                        if (response.success) {
-                                            driggsData = response.data;
-                                            displayDriggsStellarData();
-                                        } else {
-                                            alert('Error loading driggs data: ' + response.data);
-                                        }
-                                    },
-                                    error: function() {
-                                        alert('Error loading driggs data');
-                                    }
-                                });
-                            }
-                            
-                            function displayDriggsStellarData() {
-                                let tbody = $('#driggs-stellar-table-body');
-                                tbody.empty();
-                                
-                                // Only fields with "driggs_" in the name, in order from rup_driggs_mar page
-                                const driggsFields = [
-                                    {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
-                                    {key: 'driggs_city', label: 'driggs_city', type: 'text'},
-                                    {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
-                                    {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
-                                    {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
-                                    {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
-                                    {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
-                                    {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
-                                    {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
-                                    {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
-                                    {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
-                                    {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
-                                    {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'}
-                                ];
-                                
-                                driggsFields.forEach(function(field) {
-                                    let tr = $('<tr></tr>');
-                                    tr.hover(function() {
-                                        $(this).css('background-color', '#f9f9f9');
-                                    }, function() {
-                                        $(this).css('background-color', '');
-                                    });
-                                    
-                                    // Field name column
-                                    let fieldNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;"></td>');
-                                    fieldNameTd.text(field.label);
-                                    tr.append(fieldNameTd);
-                                    
-                                    // Value column
-                                    let valueTd = $('<td style="padding: 8px; border: 1px solid #ddd;" data-field="' + field.key + '"></td>');
-                                    let currentValue = driggsData[field.key] || '';
-                                    
-                                    if (field.type === 'boolean') {
-                                        let checked = currentValue == '1' ? 'checked' : '';
-                                        let toggleHtml = createStellarToggleSwitch(field.key, currentValue == '1');
-                                        valueTd.html(toggleHtml);
-                                    } else if (field.type === 'textarea') {
-                                        valueTd.html('<div class="stellareditable-field" data-field="' + field.key + '" data-type="textarea">' + 
-                                                   $('<div>').text(currentValue).html() + '</div>');
-                                    } else {
-                                        valueTd.html('<div class="stellareditable-field" data-field="' + field.key + '" data-type="' + field.type + '">' + 
-                                                   $('<div>').text(currentValue).html() + '</div>');
-                                    }
-                                    
-                                    tr.append(valueTd);
-                                    tbody.append(tr);
-                                });
-                                
-                                // Make fields editable
-                                makeStellarFieldsEditable();
-                                setupStellarToggleSwitches();
-                            }
-                            
-                            function createStellarToggleSwitch(fieldKey, isChecked) {
-                                return '<label class="stellar-driggs-toggle-switch" data-field="' + fieldKey + '">' +
-                                      '<input type="checkbox" ' + (isChecked ? 'checked' : '') + '>' +
-                                      '<span class="stellar-driggs-toggle-slider">' +
-                                      '<span class="stellar-driggs-toggle-knob"></span>' +
-                                      '</span>' +
-                                      '</label>';
-                            }
-                            
-                            function makeStellarFieldsEditable() {
-                                $('.stellareditable-field').off('click').on('click', function() {
-                                    let $this = $(this);
-                                    let fieldKey = $this.data('field');
-                                    let fieldType = $this.data('type');
-                                    let currentValue = $this.text();
-                                    
-                                    if ($this.find('input, textarea').length > 0) {
-                                        return; // Already editing
-                                    }
-                                    
-                                    let input;
-                                    if (fieldType === 'textarea') {
-                                        input = $('<textarea style="width: 100%; min-height: 60px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; font-size: inherit;"></textarea>');
-                                    } else {
-                                        input = $('<input type="' + fieldType + '" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: inherit; font-size: inherit;">');
-                                    }
-                                    
-                                    input.val(currentValue);
-                                    $this.empty().append(input);
-                                    input.focus().select();
-                                    
-                                    function saveField() {
-                                        let newValue = input.val();
-                                        updateStellarDriggsField(fieldKey, newValue, function() {
-                                            $this.empty().text(newValue);
-                                            driggsData[fieldKey] = newValue;
-                                        });
-                                    }
-                                    
-                                    input.on('blur', saveField);
-                                    input.on('keydown', function(e) {
-                                        if (e.which === 13 && fieldType !== 'textarea') { // Enter key for non-textarea
-                                            saveField();
-                                        } else if (e.which === 27) { // Escape key
-                                            $this.empty().text(currentValue);
-                                        }
-                                    });
-                                });
-                            }
-                            
-                            function setupStellarToggleSwitches() {
-                                $('.stellar-driggs-toggle-switch').off('click').on('click', function(e) {
-                                    e.preventDefault();
-                                    let $label = $(this);
-                                    let $checkbox = $label.find('input[type="checkbox"]');
-                                    let fieldKey = $label.data('field');
-                                    
-                                    // Toggle the checkbox state
-                                    let newValue = !$checkbox.prop('checked');
-                                    $checkbox.prop('checked', newValue);
-                                    
-                                    // Update the database
-                                    updateStellarDriggsField(fieldKey, newValue ? '1' : '0', function() {
-                                        driggsData[fieldKey] = newValue ? '1' : '0';
-                                    });
-                                });
-                            }
-                            
-                            function updateStellarDriggsField(fieldKey, value, callback) {
-                                $.ajax({
-                                    url: ajaxurl,
-                                    type: 'POST',
-                                    data: {
-                                        action: 'rup_driggs_update_field',
-                                        nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>',
-                                        field: fieldKey,
-                                        value: value
-                                    },
-                                    success: function(response) {
-                                        if (response.success && callback) {
-                                            callback();
-                                        } else {
-                                            alert('Error saving field: ' + (response.data || 'Unknown error'));
-                                        }
-                                    },
-                                    error: function() {
-                                        alert('Error saving field');
-                                    }
-                                });
-                            }
-                            
-                            // Save button functionality
-                            $('#save-driggs-btn').on('click', function() {
-                                alert('All changes are saved automatically when you edit fields.');
-                            });
-                        });
-                        </script>
+                        <div id="driggs-stellar-data" 
+                             data-nonce="<?php echo wp_create_nonce('rup_driggs_nonce'); ?>"
+                             data-initialized="false">
+                        </div>
                         
                         <style type="text/css">
                         /* Stellar Toggle Switch Styles */

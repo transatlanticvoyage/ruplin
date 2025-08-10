@@ -587,6 +587,18 @@ body.snefuru-popup-open {
     overflow: hidden;
 }
 
+/* Other Tab Admin Links Styling */
+.snefuru-stellar-tab-panel[data-panel="other"] a:hover {
+    background: #0073aa !important;
+    color: white !important;
+    transform: translateX(2px);
+}
+
+.snefuru-stellar-tab-panel[data-panel="other"] a:active {
+    transform: translateX(0px);
+    background: #005a87 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 782px) {
     .snefuru-hurricane-container {
