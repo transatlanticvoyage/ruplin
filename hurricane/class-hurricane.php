@@ -164,6 +164,26 @@ class Snefuru_Hurricane {
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
+                                <!-- Copy All Instances Container -->
+                                <div class="snefuru-copy-all-instances-container" style="margin-bottom: 20px;">
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">copy all instances</span>
+                                    <div style="position: relative; display: inline-block;">
+                                        <button type="button" class="snefuru-copy-btn" data-target="copy-all-instances-textbox" style="margin-bottom: 5px;">
+                                            Copy
+                                        </button>
+                                        <textarea 
+                                            id="copy-all-instances-textbox" 
+                                            class="snefuru-header303-db-mapping-textbox" 
+                                            readonly
+                                            style="height: 200px;"
+                                        ><?php 
+                                        // Combine all three instances into one text
+                                        $all_instances_text = $db_mapping_text . "\n\n———————————————————————\n\n" . $header303_content . "\n\n———————————————————————\n\n" . $formatted_data;
+                                        echo esc_textarea($all_instances_text); 
+                                        ?></textarea>
+                                    </div>
+                                </div>
+                                
                                 <!-- Header303 DB Mapping Container -->
                                 <div class="snefuru-header303-db-mapping-container">
                                     <div class="snefuru-header303-db-mapping-header">
