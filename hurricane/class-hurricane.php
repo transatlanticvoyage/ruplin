@@ -27,11 +27,11 @@ class Snefuru_Hurricane {
         }
         ?>
         <div class="snefuru-stellar-chamber">
-            <div class="snefuru-stellar-chamber-header">
+            <div class="snefuru-stellar-chamber-header" style="display: flex; align-items: center; justify-content: flex-start;">
                 <span class="snefuru-stellar-chamber-text">Stellar Chamber</span>
-                <svg class="snefuru-rocket-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" style="display: inline-block; vertical-align: middle; margin-left: 10px; transform: rotate(-30deg);">
+                <svg class="snefuru-rocket-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" style="display: inline-block; margin-left: 10px; transform: rotate(-30deg) scaleX(-1);">
                     <!-- Rocket body -->
-                    <path d="M50 10 Q60 20 60 40 L60 55 Q50 65 40 55 L40 40 Q40 20 50 10" fill="#ff6b6b" stroke="#333" stroke-width="2"/>
+                    <path d="M50 10 Q60 20 60 40 L60 55 Q50 65 40 55 L40 40 Q40 20 50 10" fill="white" stroke="#333" stroke-width="2"/>
                     <!-- Rocket tip -->
                     <path d="M50 10 Q55 5 50 0 Q45 5 50 10" fill="#333"/>
                     <!-- Rocket window -->
@@ -75,6 +75,9 @@ class Snefuru_Hurricane {
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
                         Gutenberg
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="nimble">
+                        Nimble
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="other">
                         Other
@@ -294,6 +297,9 @@ class Snefuru_Hurricane {
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="gutenberg">
                         <!-- Gutenberg content will go here -->
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="nimble">
+                        <!-- Nimble content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="other">
                         <!-- Other content will go here -->
