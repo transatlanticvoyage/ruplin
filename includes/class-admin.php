@@ -210,6 +210,9 @@ class Snefuru_Admin {
      * KenliSidebarLinks placeholder page (non-functional)
      */
     public function kenli_sidebar_links_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         echo '<div class="wrap">';
         echo '<h1>KenliSidebarLinks</h1>';
         echo '<p>This is a placeholder menu item.</p>';
@@ -220,6 +223,9 @@ class Snefuru_Admin {
      * Main admin dashboard page
      */
     public function admin_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         $api_client = new Snefuru_API_Client();
         $data_collector = new Snefuru_Data_Collector();
         
@@ -306,6 +312,9 @@ class Snefuru_Admin {
      * Settings page
      */
     public function settings_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Handle upload settings form submission
         if (isset($_POST['submit_upload_settings'])) {
             check_admin_referer('snefuru_upload_settings_nonce');
@@ -668,6 +677,9 @@ class Snefuru_Admin {
      * Logs page
      */
     public function logs_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         global $wpdb;
         $table_name = $wpdb->prefix . 'snefuru_logs';
         
@@ -1132,6 +1144,8 @@ class Snefuru_Admin {
      * Screen 4 - Manage page
      */
     public function screen4_manage_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
         // Handle form submission
         if (isset($_POST['submit'])) {
             check_admin_referer('snefuru_screen4_manage_nonce');
@@ -1178,6 +1192,9 @@ class Snefuru_Admin {
      * Bespoke CSS Editor page
      */
     public function bespoke_css_editor_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         global $wpdb;
         $styling_table = $wpdb->prefix . 'snefuruplin_styling';
         
@@ -1434,6 +1451,9 @@ class Snefuru_Admin {
      * Dublish logs page
      */
     public function dublish_logs_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Get Dublish API instance to fetch logs
         $dublish_api = new Snefuru_Dublish_API();
         $logs = $dublish_api->get_dublish_logs(100);
@@ -2387,6 +2407,9 @@ class Snefuru_Admin {
         global $wpdb;
         $table_name = $wpdb->prefix . 'zen_services';
         
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Handle AJAX requests
         if (isset($_POST['action'])) {
             $this->handle_services_ajax();
@@ -3257,6 +3280,9 @@ class Snefuru_Admin {
      * rup_service_tags_mar page
      */
     public function rup_service_tags_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         echo '<div class="wrap">';
         echo '<h1><strong>rup_service_tags_mar</strong></h1>';
         echo '</div>';
@@ -3266,6 +3292,9 @@ class Snefuru_Admin {
      * rup_location_tags_mar page
      */
     public function rup_location_tags_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         echo '<div class="wrap">';
         echo '<h1><strong>rup_location_tags_mar</strong></h1>';
         echo '</div>';
@@ -3275,6 +3304,9 @@ class Snefuru_Admin {
      * rup_horse_class_page - Database Horse Class Management
      */
     public function rup_horse_class_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         echo '<div class="wrap">';
         echo '<h1>Database Horse Class Management</h1>';
         echo '<div class="card" style="max-width: 600px;">';
@@ -3705,6 +3737,9 @@ class Snefuru_Admin {
      * document_outlook_aug9 page - Documentation
      */
     public function document_outlook_aug9_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         ?>
         <div class="wrap" style="margin: 0; padding: 0;">
             <!-- Allow space for WordPress notices -->
@@ -3789,6 +3824,9 @@ class Snefuru_Admin {
      * dynamic_images_man page - Dynamic Images Management Documentation
      */
     public function dynamic_images_man_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Check if Elementor is active
         $elementor_active = is_plugin_active('elementor/elementor.php') || did_action('elementor/loaded');
         
