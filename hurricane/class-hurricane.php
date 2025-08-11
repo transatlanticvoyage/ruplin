@@ -256,7 +256,10 @@ class Snefuru_Hurricane {
         ?>
         <div class="snefuru-stellar-chamber">
             <div class="snefuru-stellar-chamber-header" style="display: flex; align-items: center; justify-content: flex-start;">
-                <span class="snefuru-stellar-chamber-text">Stellar Chamber</span>
+                <div style="display: flex; flex-direction: column;">
+                    <span class="snefuru-stellar-chamber-text">Stellar Chamber</span>
+                    <span style="color: white; font-size: 16px; font-weight: bold;">top_bar_area</span>
+                </div>
                 <svg class="snefuru-rocket-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" style="display: inline-block; margin-left: 10px; transform: rotate(-30deg) scaleX(-1);">
                     <!-- Rocket body -->
                     <path d="M50 10 Q60 20 60 40 L60 55 Q50 65 40 55 L40 40 Q40 20 50 10" fill="white" stroke="#333" stroke-width="2"/>
@@ -408,8 +411,12 @@ class Snefuru_Hurricane {
                     </button>
                     <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="image-freeway">
-                        Image Freeway
+                        Image Elicitor
                     </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="image-deployer">
+                        Image Deployer
+                    </button>
+                    <div class="snefuru-stellar-tab-separator"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="other">
                         KenliSidebarLinks
                     </button>
@@ -851,6 +858,35 @@ class Snefuru_Hurricane {
                         </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="image-freeway">
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content area left blank for now -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content area left blank for now -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content area left blank for now -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="image-deployer">
                         <!-- Column Container Wrapper -->
                         <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
                             
