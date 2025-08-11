@@ -81,6 +81,11 @@ class Snefuru_Orbit_Mar_Admin {
         if (isset($_POST['run_operation201_direct']) && wp_verify_nonce($_POST['direct_nonce'], 'orbit_mar_direct_nonce')) {
             $this->run_operation201_direct();
         }
+        
+        // Handle clear and repopulate
+        if (isset($_POST['clear_and_repopulate']) && wp_verify_nonce($_POST['direct_nonce'], 'orbit_mar_direct_nonce')) {
+            $this->clear_and_repopulate();
+        }
         ?>
         <div class="wrap orbit-mar-admin">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
@@ -103,6 +108,13 @@ class Snefuru_Orbit_Mar_Admin {
                         <?php wp_nonce_field('orbit_mar_direct_nonce', 'direct_nonce'); ?>
                         <button type="submit" class="button" style="background: green; color: white; padding: 8px 12px;">
                             DIRECT OP201
+                        </button>
+                    </form>
+                    <form method="post" style="display: inline;">
+                        <input type="hidden" name="clear_and_repopulate" value="1">
+                        <?php wp_nonce_field('orbit_mar_direct_nonce', 'direct_nonce'); ?>
+                        <button type="submit" class="button" style="background: red; color: white; padding: 8px 12px;" onclick="return confirm('This will delete all orbitpost records and recreate them. Are you sure?');">
+                            CLEAR & FIX
                         </button>
                     </form>
                 </div>
@@ -684,6 +696,82 @@ class Snefuru_Orbit_Mar_Admin {
         } catch (Exception $e) {
             echo '<div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; margin: 10px 0; border-radius: 5px;">';
             echo '<strong>❌ Operation201 Direct Failed:</strong> ' . $e->getMessage();
+            echo '</div>';
+        }
+    }
+    
+    /**
+     * Clear all orbitpost records and repopulate correctly
+     */
+    private function clear_and_repopulate() {
+        global $wpdb;
+        
+        try {
+            echo '<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 10px 0; border-radius: 5px;">';
+            echo '<strong>🧹 Clearing and Repopulating Orbitposts...</strong><br><br>';
+            
+            // Clear all existing records
+            $deleted = $wpdb->query("DELETE FROM {$this->table_name}");
+            echo "Deleted {$deleted} existing records.<br><br>";
+            
+            // Get ALL WordPress posts and pages
+            $query = "
+                SELECT ID, post_title, post_type, post_status
+                FROM {$wpdb->posts}
+                WHERE post_type IN ('post', 'page')
+                AND post_status NOT IN ('trash', 'auto-draft')
+                ORDER BY ID ASC
+            ";
+            
+            $posts = $wpdb->get_results($query);
+            echo "Found " . count($posts) . " WordPress posts to process.<br><br>";
+            
+            if (!empty($posts)) {
+                $created_count = 0;
+                $errors = array();
+                
+                foreach ($posts as $post) {
+                    // Ensure we're inserting correct data types
+                    $result = $wpdb->insert(
+                        $this->table_name,
+                        array(
+                            'rel_wp_post_id' => (int)$post->ID,  // Explicitly cast to integer
+                            'redshift_datum' => "Auto-created for {$post->post_type}: {$post->post_title}"
+                        ),
+                        array(
+                            '%d',  // rel_wp_post_id as integer
+                            '%s'   // redshift_datum as string
+                        )
+                    );
+                    
+                    if ($result !== false) {
+                        $created_count++;
+                        echo "✅ Created orbitpost for {$post->post_type} ID {$post->ID}: {$post->post_title}<br>";
+                    } else {
+                        $errors[] = "Failed to create orbitpost for {$post->post_type} ID {$post->ID}: {$post->post_title}";
+                        echo "❌ Failed to create orbitpost for {$post->post_type} ID {$post->ID}<br>";
+                    }
+                }
+                
+                echo "<br><strong>📊 Final Results:</strong><br>";
+                echo "✅ Successfully created: {$created_count} records<br>";
+                echo "❌ Errors: " . count($errors) . "<br>";
+                
+                if (!empty($errors)) {
+                    echo "<br><strong>Error details:</strong><br>";
+                    foreach ($errors as $error) {
+                        echo "• {$error}<br>";
+                    }
+                }
+                
+                echo "<br>🔄 <strong>Please refresh the page to see the updated table.</strong>";
+            }
+            
+            echo '</div>';
+            
+        } catch (Exception $e) {
+            echo '<div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; margin: 10px 0; border-radius: 5px;">';
+            echo '<strong>❌ Clear and Repopulate Failed:</strong> ' . $e->getMessage();
             echo '</div>';
         }
     }
