@@ -7285,7 +7285,7 @@ class Snefuru_Admin {
         $this->suppress_all_admin_notices();
         
         // Handle AJAX requests
-        if (isset($_POST['action'])) {
+        if (isset($_POST['action']) && in_array($_POST['action'], ['create_new_post', 'update_post_field', 'create', 'edit'])) {
             $this->handle_beamraymar_ajax();
             return;
         }
@@ -8221,41 +8221,43 @@ class Snefuru_Admin {
                     }
                     
                     function saveFieldToServer(postId, field, value) {
-                        $.post(ajaxurl || window.location.href, {
+                        $.post('<?php echo admin_url('admin.php?page=beamraymar'); ?>', {
                             action: 'update_post_field',
                             post_id: postId,
                             field: field,
                             value: value,
                             nonce: '<?php echo wp_create_nonce('beamraymar_nonce'); ?>'
-                        }).fail(function() {
+                        }).fail(function(xhr, status, error) {
+                            console.log('Save failed:', xhr.responseText);
                             alert('Failed to save changes. Please try again.');
                         });
                     }
                     
                     function createNewInline(postType) {
-                        const newPost = {
-                            post_type: postType,
-                            post_title: '',
-                            post_content: '',
-                            post_status: 'draft'
-                        };
-                        
-                        $.post(ajaxurl || window.location.href, {
+                        $.post('<?php echo admin_url('admin.php?page=beamraymar'); ?>', {
                             action: 'create_new_post',
                             post_type: postType,
                             nonce: '<?php echo wp_create_nonce('beamraymar_nonce'); ?>'
                         }).done(function(response) {
-                            const data = JSON.parse(response);
-                            if (data.success) {
-                                // Add new post to beginning of data array
-                                allData.unshift(data.post);
-                                filterData();
-                                currentPage = 1;
-                                updateTable();
-                            } else {
+                            console.log('Server response:', response);
+                            try {
+                                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                                if (data.success) {
+                                    // Add new post to beginning of data array
+                                    allData.unshift(data.post);
+                                    filterData();
+                                    currentPage = 1;
+                                    updateTable();
+                                } else {
+                                    alert('Failed to create new ' + postType + ': ' + (data.message || 'Unknown error'));
+                                }
+                            } catch (e) {
+                                console.error('JSON parse error:', e);
+                                console.log('Raw response:', response);
                                 alert('Failed to create new ' + postType + '. Please try again.');
                             }
-                        }).fail(function() {
+                        }).fail(function(xhr, status, error) {
+                            console.log('Request failed:', xhr.responseText);
                             alert('Failed to create new ' + postType + '. Please try again.');
                         });
                     }
@@ -8285,19 +8287,26 @@ class Snefuru_Admin {
                         const formData = new FormData($('#beamraymar-modal-form')[0]);
                         formData.append('nonce', '<?php echo wp_create_nonce('beamraymar_nonce'); ?>');
                         
-                        $.post(ajaxurl || window.location.href, formData, {
+                        $.post('<?php echo admin_url('admin.php?page=beamraymar'); ?>', formData, {
                             processData: false,
                             contentType: false
                         }).done(function(response) {
-                            const data = JSON.parse(response);
-                            if (data.success) {
-                                closeModal();
-                                // Refresh data
-                                location.reload();
-                            } else {
+                            console.log('Modal save response:', response);
+                            try {
+                                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                                if (data.success) {
+                                    closeModal();
+                                    // Refresh data
+                                    location.reload();
+                                } else {
+                                    alert('Failed to save: ' + (data.message || 'Unknown error'));
+                                }
+                            } catch (e) {
+                                console.error('JSON parse error:', e);
                                 alert('Failed to save. Please try again.');
                             }
-                        }).fail(function() {
+                        }).fail(function(xhr, status, error) {
+                            console.log('Modal save failed:', xhr.responseText);
                             alert('Failed to save. Please try again.');
                         });
                     }
@@ -8412,8 +8421,9 @@ class Snefuru_Admin {
      */
     private function handle_beamraymar_ajax() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
-            wp_die('Security check failed');
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            echo json_encode(array('success' => false, 'message' => 'Security check failed'));
+            wp_die();
         }
         
         $action = sanitize_text_field($_POST['action']);
@@ -8441,10 +8451,15 @@ class Snefuru_Admin {
      * AJAX handler for creating new post inline
      */
     private function ajax_create_new_post() {
+        if (!isset($_POST['post_type'])) {
+            echo json_encode(array('success' => false, 'message' => 'Post type not provided'));
+            wp_die();
+        }
+        
         $post_type = sanitize_text_field($_POST['post_type']);
         
         if (!in_array($post_type, array('post', 'page'))) {
-            echo json_encode(array('success' => false, 'message' => 'Invalid post type'));
+            echo json_encode(array('success' => false, 'message' => 'Invalid post type: ' . $post_type));
             wp_die();
         }
         
