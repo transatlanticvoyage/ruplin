@@ -3387,6 +3387,7 @@ class Snefuru_Admin {
                                     </th>
                                     <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 250px;">Field Name</th>
                                     <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">Value</th>
+                                    <th style="padding: 0; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 20px;">stuff3</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body">
@@ -3442,6 +3443,26 @@ class Snefuru_Admin {
             font-family: inherit;
             font-size: 14px;
         }
+        
+        /* Roaring Div Styles */
+        .roaring_div {
+            width: 20px;
+            height: 100%;
+            border: 1px solid gray;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: default;
+            user-select: none;
+        }
+        
+        /* Ensure stuff3 column cells have no padding */
+        #driggs-table td.stuff3-cell {
+            padding: 0 !important;
+            width: 20px !important;
+        }
         </style>
         
         <script type="text/javascript">
@@ -3480,6 +3501,7 @@ class Snefuru_Admin {
                 
                 // Field definitions in exact order requested - display actual DB field names in bold
                 const fields = [
+                    {key: 'wppma_id', label: 'wppma_id', type: 'number'},
                     {key: 'wppma_db_only_created_at', label: 'wppma_db_only_created_at', type: 'datetime'},
                     {key: 'wppma_db_only_updated_at', label: 'wppma_db_only_updated_at', type: 'datetime'},
                     {key: 'created_at', label: 'created_at', type: 'datetime'},
@@ -3569,6 +3591,13 @@ class Snefuru_Admin {
                     }
                     
                     tr.append(valueTd);
+                    
+                    // Add stuff3 column with roaring_div
+                    let stuff3Td = $('<td class="stuff3-cell" style="padding: 0; border: 1px solid #ddd; width: 20px;"></td>');
+                    let roaring_div = $('<div class="roaring_div">R</div>');
+                    stuff3Td.append(roaring_div);
+                    tr.append(stuff3Td);
+                    
                     tbody.append(tr);
                 });
             }

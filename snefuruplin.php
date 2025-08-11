@@ -176,6 +176,7 @@ class SnefuruPlugin {
         $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
         $zen_sitespren_sql = "CREATE TABLE $zen_sitespren_table (
             id varchar(36) NOT NULL,
+            wppma_id BIGINT UNSIGNED AUTO_INCREMENT UNIQUE,
             wppma_db_only_created_at datetime DEFAULT CURRENT_TIMESTAMP,
             wppma_db_only_updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             created_at datetime DEFAULT NULL,
