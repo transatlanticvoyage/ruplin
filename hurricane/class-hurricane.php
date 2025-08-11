@@ -999,6 +999,28 @@ class Snefuru_Hurricane {
                                             style="background: #00a32a; border-color: #00a32a; padding: 8px 16px; font-size: 14px;">
                                         Save
                                     </button>
+                                    
+                                    <!-- Tebnar2 with Param Button -->
+                                    <div style="margin-top: 10px;">
+                                        <?php if ($existing_hudson_id): ?>
+                                            <a href="http://localhost:3000/bin34/tebnar2?batchid=<?php echo urlencode($existing_hudson_id); ?>" 
+                                               target="_blank" 
+                                               id="tebnar2-param-btn"
+                                               class="button" 
+                                               style="display: inline-block; padding: 8px 16px; background: #f0ad4e; color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 500; border-color: #eea236;">
+                                                go to /tebnar2 with param set
+                                            </a>
+                                        <?php else: ?>
+                                            <button type="button" 
+                                                    id="tebnar2-param-btn"
+                                                    class="button" 
+                                                    disabled
+                                                    style="padding: 8px 16px; background: #ccc; color: #666; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: not-allowed;"
+                                                    title="Save a Hudson ImgPlanBatch ID first to enable this button">
+                                                go to /tebnar2 with param set
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                                 
                                 <script>
@@ -1034,6 +1056,11 @@ class Snefuru_Hurricane {
                                             success: function(response) {
                                                 if (response.success) {
                                                     alert('Hudson ImgPlanBatch ID saved successfully!');
+                                                    
+                                                    // Update the tebnar2 param button
+                                                    var newUrl = 'http://localhost:3000/bin34/tebnar2?batchid=' + encodeURIComponent(hudsonId);
+                                                    var buttonHtml = '<a href="' + newUrl + '" target="_blank" id="tebnar2-param-btn" class="button" style="display: inline-block; padding: 8px 16px; background: #f0ad4e; color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 500; border-color: #eea236;">go to /tebnar2 with param set</a>';
+                                                    $('#tebnar2-param-btn').parent().html(buttonHtml);
                                                 } else {
                                                     alert('Error saving ID: ' + (response.data || 'Unknown error'));
                                                 }
