@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.5.0';
+    const DB_VERSION = '1.6.0';
     
     /**
      * Option name for storing database version
@@ -67,10 +67,12 @@ class Ruplin_WP_Database_Horse_Class {
                 rel_wp_post_id BIGINT(20) UNSIGNED,
                 redshift_datum TEXT,
                 rover_datum JSON,
+                hudson_imgplanbatch_id VARCHAR(36),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),
-                KEY rel_wp_post_id (rel_wp_post_id)
+                KEY rel_wp_post_id (rel_wp_post_id),
+                KEY hudson_imgplanbatch_id (hudson_imgplanbatch_id)
             ) $charset_collate;";
             
             // Use dbDelta to create/update tables

@@ -43,6 +43,9 @@ class Snefuru_Admin {
         // Sitespren export AJAX action
         add_action('wp_ajax_export_sitespren', array($this, 'handle_sitespren_export'));
         
+        // Hudson ImgPlanBatch ID save AJAX action
+        add_action('wp_ajax_save_hudson_imgplanbatch_id', array($this, 'save_hudson_imgplanbatch_id'));
+        
         // Content injection AJAX action
         add_action('wp_ajax_snefuru_inject_content', array($this, 'snefuru_inject_content'));
         
@@ -5512,6 +5515,79 @@ class Snefuru_Admin {
             
         } catch (Exception $e) {
             wp_send_json_error('Export failed: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Save Hudson ImgPlanBatch ID to zen_orbitposts table
+     */
+    public function save_hudson_imgplanbatch_id() {
+        check_ajax_referer('hurricane_nonce', 'nonce');
+        
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $hudson_id = isset($_POST['hudson_id']) ? sanitize_text_field($_POST['hudson_id']) : '';
+        
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        if (empty($hudson_id)) {
+            wp_send_json_error('Hudson ID is required');
+        }
+        
+        // Validate UUID format
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $hudson_id)) {
+            wp_send_json_error('Invalid UUID format');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_orbitposts';
+        
+        try {
+            // Check if a record exists for this post_id
+            $existing_record = $wpdb->get_row($wpdb->prepare(
+                "SELECT orbitpost_id FROM $table_name WHERE rel_wp_post_id = %d",
+                $post_id
+            ));
+            
+            if ($existing_record) {
+                // Update existing record
+                $result = $wpdb->update(
+                    $table_name,
+                    array(
+                        'hudson_imgplanbatch_id' => $hudson_id,
+                        'updated_at' => current_time('mysql')
+                    ),
+                    array('rel_wp_post_id' => $post_id),
+                    array('%s', '%s'),
+                    array('%d')
+                );
+            } else {
+                // Insert new record
+                $result = $wpdb->insert(
+                    $table_name,
+                    array(
+                        'rel_wp_post_id' => $post_id,
+                        'hudson_imgplanbatch_id' => $hudson_id,
+                        'created_at' => current_time('mysql'),
+                        'updated_at' => current_time('mysql')
+                    ),
+                    array('%d', '%s', '%s', '%s')
+                );
+            }
+            
+            if ($result === false) {
+                wp_send_json_error('Database error: ' . $wpdb->last_error);
+            }
+            
+            wp_send_json_success('Hudson ImgPlanBatch ID saved successfully');
+            
+        } catch (Exception $e) {
+            wp_send_json_error('Error saving Hudson ID: ' . $e->getMessage());
         }
     }
     

@@ -968,7 +968,85 @@ class Snefuru_Hurricane {
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
-                                <!-- Content area left blank for now -->
+                                <!-- Tebnar2 Raw Button -->
+                                <a href="http://localhost:3000/bin34/tebnar2" target="_blank" class="button" style="display: inline-block; padding: 8px 16px; background: #0073aa; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 500;">
+                                    go to /tebnar2 raw
+                                </a>
+                                
+                                <!-- Hudson ImgPlanBatch ID Section -->
+                                <div style="margin-top: 20px;">
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">_zen_orbitposts.hudson_imgplanbatch_id</span>
+                                    
+                                    <?php
+                                    // Get existing hudson_imgplanbatch_id for this post
+                                    global $wpdb;
+                                    $table_name = $wpdb->prefix . 'zen_orbitposts';
+                                    $existing_hudson_id = $wpdb->get_var($wpdb->prepare(
+                                        "SELECT hudson_imgplanbatch_id FROM $table_name WHERE rel_wp_post_id = %d",
+                                        $post->ID
+                                    ));
+                                    ?>
+                                    <input type="text" 
+                                           id="hudson-imgplanbatch-id" 
+                                           value="<?php echo esc_attr($existing_hudson_id); ?>"
+                                           placeholder="79f1a2d4-ec7e-4f3a-a896-d2e4d0e2d3ba"
+                                           style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 14px; margin-bottom: 10px;"
+                                           maxlength="36">
+                                    
+                                    <button type="button" 
+                                            id="save-hudson-imgplanbatch-btn"
+                                            class="button button-primary"
+                                            style="background: #00a32a; border-color: #00a32a; padding: 8px 16px; font-size: 14px;">
+                                        Save
+                                    </button>
+                                </div>
+                                
+                                <script>
+                                jQuery(document).ready(function($) {
+                                    $('#save-hudson-imgplanbatch-btn').on('click', function() {
+                                        var $btn = $(this);
+                                        var hudsonId = $('#hudson-imgplanbatch-id').val().trim();
+                                        var postId = <?php echo intval($post->ID); ?>;
+                                        
+                                        if (!hudsonId) {
+                                            alert('Please enter a Hudson ImgPlanBatch ID');
+                                            return;
+                                        }
+                                        
+                                        // Basic UUID validation
+                                        var uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+                                        if (!uuidRegex.test(hudsonId)) {
+                                            alert('Please enter a valid UUID format (e.g., 79f1a2d4-ec7e-4f3a-a896-d2e4d0e2d3ba)');
+                                            return;
+                                        }
+                                        
+                                        $btn.prop('disabled', true).text('Saving...');
+                                        
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'save_hudson_imgplanbatch_id',
+                                                post_id: postId,
+                                                hudson_id: hudsonId,
+                                                nonce: $('#hurricane-nonce').val()
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    alert('Hudson ImgPlanBatch ID saved successfully!');
+                                                } else {
+                                                    alert('Error saving ID: ' + (response.data || 'Unknown error'));
+                                                }
+                                                $btn.prop('disabled', false).text('Save');
+                                            },
+                                            error: function() {
+                                                alert('AJAX error occurred');
+                                                $btn.prop('disabled', false).text('Save');
+                                            }
+                                        });
+                                    });
+                                });
+                                </script>
                             </div>
                             
                             <!-- Denyeep Column Div 2 -->
