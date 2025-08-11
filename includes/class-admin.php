@@ -3463,6 +3463,22 @@ class Snefuru_Admin {
             padding: 0 !important;
             width: 20px !important;
         }
+        
+        /* Read-only field styling */
+        .driggs-readonly-field {
+            background-color: #f9f9f9 !important;
+            color: #666 !important;
+            font-style: italic !important;
+            cursor: default !important;
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            pointer-events: auto !important;
+        }
+        
+        .driggs-readonly-field:hover {
+            background-color: #f9f9f9 !important;
+        }
         </style>
         
         <script type="text/javascript">
@@ -3579,8 +3595,19 @@ class Snefuru_Admin {
                         // Toggle switch for boolean fields
                         let toggleSwitch = createToggleSwitch(field.key, value == 1);
                         valueTd.append(toggleSwitch);
+                    } else if (field.key === 'wppma_id' || field.key === 'id' || field.type === 'datetime') {
+                        // Read-only fields (ID fields and datetime fields)
+                        valueTd.text(value);
+                        valueTd.css('color', '#666');
+                        valueTd.css('font-style', 'italic');
+                        valueTd.css('cursor', 'default');
+                        valueTd.css('user-select', 'text');
+                        valueTd.css('-webkit-user-select', 'text');
+                        valueTd.css('-moz-user-select', 'text');
+                        valueTd.addClass('driggs-readonly-field');
+                        valueTd.attr('title', 'This field is read-only (can select text but not edit)');
                     } else {
-                        // Text field for other types
+                        // Editable text fields
                         valueTd.text(value);
                         valueTd.attr('data-field', field.key);
                         valueTd.attr('data-type', field.type);
@@ -3643,6 +3670,11 @@ class Snefuru_Admin {
             
             function startInlineEdit(cell, currentValue, fieldKey, fieldType) {
                 if (cell.find('input, textarea').length > 0) return; // Already editing
+                
+                // Prevent editing of read-only fields
+                if (fieldKey === 'wppma_id' || fieldKey === 'id' || fieldType === 'datetime') {
+                    return;
+                }
                 
                 let input;
                 if (fieldType === 'textarea') {
