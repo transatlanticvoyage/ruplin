@@ -58,6 +58,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-media-workaround.php';
         require_once SNEFURU_PLUGIN_PATH . 'hurricane/class-hurricane.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-orbit-mar-admin.php';
     }
     
     private function init_hooks() {

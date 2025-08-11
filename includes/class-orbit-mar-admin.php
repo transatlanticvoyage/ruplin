@@ -1,0 +1,370 @@
+<?php
+/**
+ * Orbit Mar Admin Page
+ * Manages the zen_orbitposts table with robust UI table grid
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class Snefuru_Orbit_Mar_Admin {
+    
+    private $table_name;
+    private $items_per_page = 100;
+    
+    public function __construct() {
+        global $wpdb;
+        $this->table_name = $wpdb->prefix . 'zen_orbitposts';
+        
+        add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_assets'));
+        
+        // AJAX handlers
+        add_action('wp_ajax_orbit_mar_get_data', array($this, 'ajax_get_data'));
+        add_action('wp_ajax_orbit_mar_save_row', array($this, 'ajax_save_row'));
+        add_action('wp_ajax_orbit_mar_create_row', array($this, 'ajax_create_row'));
+        add_action('wp_ajax_orbit_mar_delete_rows', array($this, 'ajax_delete_rows'));
+    }
+    
+    /**
+     * Add admin menu page
+     */
+    public function add_admin_menu() {
+        add_menu_page(
+            'Orbit Mar',
+            'Orbit Mar',
+            'manage_options',
+            'rup_orbit_mar',
+            array($this, 'render_admin_page'),
+            'dashicons-database',
+            30
+        );
+    }
+    
+    /**
+     * Enqueue assets for the admin page
+     */
+    public function enqueue_assets($hook) {
+        if ($hook !== 'toplevel_page_rup_orbit_mar') {
+            return;
+        }
+        
+        wp_enqueue_style(
+            'orbit-mar-admin',
+            SNEFURU_PLUGIN_URL . 'assets/orbit-mar-admin.css',
+            array(),
+            SNEFURU_PLUGIN_VERSION
+        );
+        
+        wp_enqueue_script(
+            'orbit-mar-admin',
+            SNEFURU_PLUGIN_URL . 'assets/orbit-mar-admin.js',
+            array('jquery'),
+            SNEFURU_PLUGIN_VERSION,
+            true
+        );
+        
+        wp_localize_script('orbit-mar-admin', 'orbitMarAjax', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('orbit_mar_nonce')
+        ));
+    }
+    
+    /**
+     * Render the admin page
+     */
+    public function render_admin_page() {
+        ?>
+        <div class="wrap orbit-mar-admin">
+            <h1>Orbit Mar - Database Management</h1>
+            
+            <!-- Nubra Tableface Kite -->
+            <div class="nubra-tableface-kite">
+                <span style="font-weight: bold; color: #666; font-size: 12px;">NUBRA-TABLEFACE-KITE: Orbit Posts Grid Interface v1.0</span>
+            </div>
+            
+            <!-- Top Controls Section -->
+            <div class="orbit-mar-controls-top">
+                <!-- Left Side Controls -->
+                <div class="orbit-mar-controls-left">
+                    <!-- Action Buttons -->
+                    <div class="orbit-mar-action-buttons">
+                        <button id="orbit-create-inline" class="button button-primary">Create New (Inline)</button>
+                        <button id="orbit-create-popup" class="button button-primary">Create New (Popup)</button>
+                        <button id="orbit-delete-selected" class="button button-secondary">Delete Selected</button>
+                    </div>
+                    
+                    <!-- Pagination Controls Top -->
+                    <div class="orbit-mar-pagination-wrapper">
+                        <div class="orbit-mar-pagination-controls">
+                            <div class="orbit-mar-per-page">
+                                <span>Show:</span>
+                                <div class="orbit-mar-button-group">
+                                    <button data-perpage="10">10</button>
+                                    <button data-perpage="20">20</button>
+                                    <button data-perpage="50">50</button>
+                                    <button data-perpage="100" class="active">100</button>
+                                    <button data-perpage="200">200</button>
+                                    <button data-perpage="500">500</button>
+                                    <button data-perpage="all">All</button>
+                                </div>
+                            </div>
+                            
+                            <div class="orbit-mar-page-nav">
+                                <span>Page:</span>
+                                <div class="orbit-mar-button-group page-numbers">
+                                    <!-- Dynamically populated -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Box -->
+                        <div class="orbit-mar-search">
+                            <input type="text" id="orbit-search" placeholder="Search..." />
+                            <button id="orbit-clear-search" class="orbit-clear-btn">CL</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Table Grid -->
+            <div class="orbit-mar-table-wrapper">
+                <table id="orbit-mar-table" class="orbit-mar-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-column">
+                                <div class="checkbox-cell">
+                                    <input type="checkbox" id="orbit-select-all" />
+                                </div>
+                            </th>
+                            <th>orbitpost_id</th>
+                            <th>redshift_datum</th>
+                            <th>created_at</th>
+                            <th>updated_at</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Bottom Pagination Controls -->
+            <div class="orbit-mar-controls-bottom">
+                <div class="orbit-mar-controls-left">
+                    <div class="orbit-mar-pagination-wrapper">
+                        <div class="orbit-mar-pagination-controls">
+                            <div class="orbit-mar-per-page">
+                                <span>Show:</span>
+                                <div class="orbit-mar-button-group bottom-per-page">
+                                    <button data-perpage="10">10</button>
+                                    <button data-perpage="20">20</button>
+                                    <button data-perpage="50">50</button>
+                                    <button data-perpage="100" class="active">100</button>
+                                    <button data-perpage="200">200</button>
+                                    <button data-perpage="500">500</button>
+                                    <button data-perpage="all">All</button>
+                                </div>
+                            </div>
+                            
+                            <div class="orbit-mar-page-nav">
+                                <span>Page:</span>
+                                <div class="orbit-mar-button-group page-numbers-bottom">
+                                    <!-- Dynamically populated -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Box Bottom -->
+                        <div class="orbit-mar-search">
+                            <input type="text" id="orbit-search-bottom" placeholder="Search..." />
+                            <button id="orbit-clear-search-bottom" class="orbit-clear-btn">CL</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Popup Modal for Create/Edit -->
+            <div id="orbit-popup-modal" class="orbit-modal" style="display: none;">
+                <div class="orbit-modal-content">
+                    <div class="orbit-modal-header">
+                        <h2>Edit Orbit Post</h2>
+                        <span class="orbit-modal-close">&times;</span>
+                    </div>
+                    <div class="orbit-modal-body">
+                        <form id="orbit-popup-form">
+                            <input type="hidden" id="popup-orbitpost-id" />
+                            
+                            <div class="orbit-form-group">
+                                <label for="popup-redshift-datum">Redshift Datum:</label>
+                                <textarea id="popup-redshift-datum" rows="10"></textarea>
+                            </div>
+                            
+                            <div class="orbit-form-group">
+                                <label>Created At:</label>
+                                <span id="popup-created-at">-</span>
+                            </div>
+                            
+                            <div class="orbit-form-group">
+                                <label>Updated At:</label>
+                                <span id="popup-updated-at">-</span>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="orbit-modal-footer">
+                        <button id="orbit-popup-save" class="button button-primary">Save</button>
+                        <button id="orbit-popup-cancel" class="button">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+    
+    /**
+     * AJAX handler to get table data
+     */
+    public function ajax_get_data() {
+        check_ajax_referer('orbit_mar_nonce', 'nonce');
+        
+        global $wpdb;
+        
+        $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+        $per_page = isset($_POST['per_page']) ? $_POST['per_page'] : 100;
+        $search = isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '';
+        
+        // Build WHERE clause
+        $where = '';
+        if (!empty($search)) {
+            $where = $wpdb->prepare(" WHERE redshift_datum LIKE %s", '%' . $wpdb->esc_like($search) . '%');
+        }
+        
+        // Get total count
+        $total = $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}" . $where);
+        
+        // Calculate pagination
+        if ($per_page === 'all') {
+            $limit = '';
+            $total_pages = 1;
+        } else {
+            $per_page = intval($per_page);
+            $offset = ($page - 1) * $per_page;
+            $limit = $wpdb->prepare(" LIMIT %d OFFSET %d", $per_page, $offset);
+            $total_pages = ceil($total / $per_page);
+        }
+        
+        // Get data
+        $query = "SELECT * FROM {$this->table_name}" . $where . " ORDER BY orbitpost_id DESC" . $limit;
+        $results = $wpdb->get_results($query, ARRAY_A);
+        
+        wp_send_json_success(array(
+            'data' => $results,
+            'total' => $total,
+            'total_pages' => $total_pages,
+            'current_page' => $page
+        ));
+    }
+    
+    /**
+     * AJAX handler to save a row
+     */
+    public function ajax_save_row() {
+        check_ajax_referer('orbit_mar_nonce', 'nonce');
+        
+        global $wpdb;
+        
+        $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+        $field = isset($_POST['field']) ? sanitize_key($_POST['field']) : '';
+        $value = isset($_POST['value']) ? wp_unslash($_POST['value']) : '';
+        
+        if (!$id || !$field) {
+            wp_send_json_error('Invalid parameters');
+        }
+        
+        // Only allow editing of redshift_datum field
+        if ($field !== 'redshift_datum') {
+            wp_send_json_error('Field not editable');
+        }
+        
+        $result = $wpdb->update(
+            $this->table_name,
+            array($field => $value),
+            array('orbitpost_id' => $id)
+        );
+        
+        if ($result === false) {
+            wp_send_json_error('Update failed');
+        }
+        
+        // Get updated row
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$this->table_name} WHERE orbitpost_id = %d",
+            $id
+        ), ARRAY_A);
+        
+        wp_send_json_success($row);
+    }
+    
+    /**
+     * AJAX handler to create a new row
+     */
+    public function ajax_create_row() {
+        check_ajax_referer('orbit_mar_nonce', 'nonce');
+        
+        global $wpdb;
+        
+        $redshift_datum = isset($_POST['redshift_datum']) ? wp_unslash($_POST['redshift_datum']) : '';
+        
+        $result = $wpdb->insert(
+            $this->table_name,
+            array('redshift_datum' => $redshift_datum)
+        );
+        
+        if ($result === false) {
+            wp_send_json_error('Insert failed');
+        }
+        
+        $new_id = $wpdb->insert_id;
+        
+        // Get the new row
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$this->table_name} WHERE orbitpost_id = %d",
+            $new_id
+        ), ARRAY_A);
+        
+        wp_send_json_success($row);
+    }
+    
+    /**
+     * AJAX handler to delete selected rows
+     */
+    public function ajax_delete_rows() {
+        check_ajax_referer('orbit_mar_nonce', 'nonce');
+        
+        global $wpdb;
+        
+        $ids = isset($_POST['ids']) ? array_map('intval', $_POST['ids']) : array();
+        
+        if (empty($ids)) {
+            wp_send_json_error('No rows selected');
+        }
+        
+        $placeholders = implode(',', array_fill(0, count($ids), '%d'));
+        $query = $wpdb->prepare(
+            "DELETE FROM {$this->table_name} WHERE orbitpost_id IN ($placeholders)",
+            $ids
+        );
+        
+        $result = $wpdb->query($query);
+        
+        if ($result === false) {
+            wp_send_json_error('Delete failed');
+        }
+        
+        wp_send_json_success(array('deleted' => $result));
+    }
+}
+
+// Initialize
+new Snefuru_Orbit_Mar_Admin();

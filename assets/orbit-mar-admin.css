@@ -1,0 +1,432 @@
+/**
+ * Orbit Mar Admin Styles
+ * Robust UI Table Grid System
+ */
+
+/* Main Container */
+.orbit-mar-admin {
+    padding: 20px;
+    max-width: 100%;
+}
+
+/* Nubra Tableface Kite */
+.nubra-tableface-kite {
+    margin: 10px 0 15px 0;
+    padding: 8px 12px;
+    background: #f9f9f9;
+    border-left: 4px solid #007cba;
+}
+
+/* Controls Section */
+.orbit-mar-controls-top,
+.orbit-mar-controls-bottom {
+    margin: 15px 0;
+}
+
+.orbit-mar-controls-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Action Buttons */
+.orbit-mar-action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Pagination Wrapper */
+.orbit-mar-pagination-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+}
+
+/* Pagination Controls */
+.orbit-mar-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.orbit-mar-per-page,
+.orbit-mar-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.orbit-mar-per-page span,
+.orbit-mar-page-nav span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Button Groups */
+.orbit-mar-button-group {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.orbit-mar-button-group button {
+    background: #fff;
+    border: none;
+    border-right: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    min-width: 40px;
+}
+
+.orbit-mar-button-group button:last-child {
+    border-right: none;
+}
+
+.orbit-mar-button-group button:hover {
+    background: #f0f0f0;
+}
+
+.orbit-mar-button-group button.active {
+    background: #007cba;
+    color: white;
+}
+
+.orbit-mar-button-group button:first-child {
+    border-radius: 3px 0 0 3px;
+}
+
+.orbit-mar-button-group button:last-child {
+    border-radius: 0 3px 3px 0;
+}
+
+/* Remove rounded corners for middle buttons */
+.orbit-mar-button-group button:not(:first-child):not(:last-child) {
+    border-radius: 0;
+}
+
+/* Search Box */
+.orbit-mar-search {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.orbit-mar-search input {
+    width: 200px;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 3px 0 0 3px;
+    font-size: 14px;
+}
+
+.orbit-clear-btn {
+    background: #ffeb3b;
+    border: 1px solid #ffc107;
+    border-left: none;
+    padding: 8px 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 0 3px 3px 0;
+    transition: background-color 0.2s;
+}
+
+.orbit-clear-btn:hover {
+    background: #ffc107;
+}
+
+/* Table Wrapper */
+.orbit-mar-table-wrapper {
+    margin: 20px 0;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    overflow: hidden;
+    background: white;
+}
+
+/* Main Table */
+.orbit-mar-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.orbit-mar-table thead {
+    background: #f5f5f5;
+}
+
+.orbit-mar-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 2px solid #ddd;
+    text-transform: lowercase;
+}
+
+.orbit-mar-table tbody tr {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.orbit-mar-table tbody tr:hover {
+    background: #f9f9f9;
+}
+
+.orbit-mar-table tbody tr.new-row {
+    background: #fffde7;
+}
+
+.orbit-mar-table td {
+    padding: 10px 15px;
+}
+
+/* Checkbox Column */
+.checkbox-column {
+    width: 50px;
+    text-align: center !important;
+}
+
+.checkbox-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.checkbox-cell input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Editable Cells */
+.orbit-mar-table td.editable {
+    cursor: text;
+    position: relative;
+}
+
+.orbit-mar-table td.editable:hover {
+    background: #f0f8ff;
+}
+
+.orbit-mar-table td.editing {
+    padding: 0;
+}
+
+.orbit-mar-table td.editing input,
+.orbit-mar-table td.editing textarea {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #007cba;
+    font-size: 14px;
+    font-family: inherit;
+    background: white;
+}
+
+.orbit-mar-table td.editing textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+/* ID Column - Not Editable */
+.orbit-mar-table td:nth-child(2) {
+    color: #666;
+    font-weight: 600;
+}
+
+/* Timestamp Columns - Not Editable */
+.orbit-mar-table td:nth-child(4),
+.orbit-mar-table td:nth-child(5) {
+    color: #888;
+    font-size: 13px;
+}
+
+/* Modal Styles */
+.orbit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.orbit-modal-content {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+}
+
+.orbit-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.orbit-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.orbit-modal-close {
+    font-size: 30px;
+    cursor: pointer;
+    color: #999;
+    line-height: 20px;
+}
+
+.orbit-modal-close:hover {
+    color: #333;
+}
+
+.orbit-modal-body {
+    padding: 20px;
+}
+
+.orbit-form-group {
+    margin-bottom: 20px;
+}
+
+.orbit-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.orbit-form-group input,
+.orbit-form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.orbit-form-group textarea {
+    resize: vertical;
+    font-family: monospace;
+}
+
+.orbit-modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Loading State */
+.orbit-mar-table.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Empty State */
+.orbit-empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.orbit-empty-state h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .orbit-mar-controls-left {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .orbit-mar-pagination-wrapper {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .orbit-mar-search {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
+
+/* WordPress Admin Compatibility */
+.orbit-mar-admin .button {
+    text-decoration: none;
+}
+
+.orbit-mar-admin h1 {
+    margin-bottom: 15px;
+}
+
+/* Selection Highlight */
+.orbit-mar-table tr.selected {
+    background: #e8f5ff !important;
+}
+
+/* Toggle Switch Styles (for future boolean fields) */
+.orbit-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.orbit-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.orbit-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+}
+
+.orbit-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+.orbit-toggle-switch input:checked + .orbit-toggle-slider {
+    background-color: #007cba;
+}
+
+.orbit-toggle-switch input:checked + .orbit-toggle-slider:before {
+    transform: translateX(26px);
+}
