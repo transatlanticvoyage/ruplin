@@ -201,6 +201,7 @@ class SnefuruPlugin {
             driggs_address_full text,
             driggs_phone_1 text,
             driggs_special_note_for_ai_tool text,
+            driggs_logo_url text,
             ns_full text,
             ip_address text,
             is_starred1 text,

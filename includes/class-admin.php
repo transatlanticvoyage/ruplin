@@ -3577,6 +3577,7 @@ class Snefuru_Admin {
                     {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
                     {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
                     {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
+                    {key: 'driggs_logo_url', label: 'driggs_logo_url', type: 'logo_url'},
                     {key: 'ns_full', label: 'ns_full', type: 'text'},
                     {key: 'ip_address', label: 'ip_address', type: 'text'},
                     {key: 'is_starred1', label: 'is_starred1', type: 'text'},
@@ -3640,6 +3641,56 @@ class Snefuru_Admin {
                         valueTd.css('-moz-user-select', 'text');
                         valueTd.addClass('driggs-readonly-field');
                         valueTd.attr('title', 'This field is read-only (can select text but not edit)');
+                    } else if (field.type === 'logo_url') {
+                        // Special handling for logo URL with image preview
+                        let logoContainer = $('<div style="display: flex; flex-direction: column; width: 100%; height: 100%;"></div>');
+                        
+                        // Editable text input for URL
+                        let urlInput = $('<input type="text" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px; margin-bottom: 5px; font-size: 12px;">');
+                        urlInput.val(value || '');
+                        urlInput.attr('data-field', field.key);
+                        
+                        // Image preview container
+                        let imagePreview = $('<div style="width: 100%; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #eee; border-radius: 3px; background: #f9f9f9;"></div>');
+                        
+                        // Function to update image preview
+                        function updateImagePreview(url) {
+                            if (url && url.trim() !== '') {
+                                let img = $('<img style="max-width: 100%; max-height: 38px; object-fit: contain;">');
+                                img.attr('src', url);
+                                img.on('load', function() {
+                                    imagePreview.html(img);
+                                });
+                                img.on('error', function() {
+                                    imagePreview.html('<span style="color: #999; font-size: 11px;">Invalid image URL</span>');
+                                });
+                            } else {
+                                imagePreview.html('<span style="color: #ccc; font-size: 11px;">No logo URL</span>');
+                            }
+                        }
+                        
+                        // Update preview on input change
+                        urlInput.on('input', function() {
+                            let newUrl = $(this).val();
+                            updateImagePreview(newUrl);
+                        });
+                        
+                        // Save on blur
+                        urlInput.on('blur', function() {
+                            let newValue = $(this).val();
+                            if (newValue !== value) {
+                                updateField(field.key, newValue);
+                                currentData[field.key] = newValue;
+                                hasChanges = true;
+                            }
+                        });
+                        
+                        // Initialize with current value
+                        updateImagePreview(value);
+                        
+                        logoContainer.append(urlInput).append(imagePreview);
+                        valueTd.append(logoContainer);
+                        valueTd.css('padding', '6px');
                     } else {
                         // Editable text fields
                         valueTd.text(value);
@@ -5395,6 +5446,7 @@ class Snefuru_Admin {
             $table_name = $wpdb->prefix . 'zen_sitespren';
             $wppma_id = isset($_POST['wppma_id']) ? intval($_POST['wppma_id']) : 1;
             $formats = isset($_POST['formats']) ? $_POST['formats'] : array();
+            $transpose = isset($_POST['transpose']) ? sanitize_text_field($_POST['transpose']) : 'no';
             
             if (empty($formats)) {
                 wp_send_json_error('No formats selected');
@@ -5424,11 +5476,11 @@ class Snefuru_Admin {
                 
                 switch ($format) {
                     case 'csv':
-                        $this->export_to_csv($row, $filepath);
+                        $this->export_to_csv($row, $filepath, $transpose);
                         break;
                     case 'xlsx':
                     case 'xls':
-                        $this->export_to_excel($row, $filepath, $format);
+                        $this->export_to_excel($row, $filepath, $format, $transpose);
                         break;
                     case 'sql':
                         $this->export_to_sql($row, $filepath, $table_name);
@@ -5466,21 +5518,257 @@ class Snefuru_Admin {
     /**
      * Export data to CSV format
      */
-    private function export_to_csv($data, $filepath) {
+    private function export_to_csv($data, $filepath, $transpose = 'no') {
         $fp = fopen($filepath, 'w');
-        fputcsv($fp, array_keys($data)); // Headers
-        fputcsv($fp, array_values($data)); // Data
+        
+        if ($transpose === 'yes') {
+            // Transpose: First column = field names, second column = values
+            foreach ($data as $key => $value) {
+                fputcsv($fp, array($key, $value));
+            }
+        } else {
+            // Normal: Headers row, then data row
+            fputcsv($fp, array_keys($data)); // Headers
+            fputcsv($fp, array_values($data)); // Data
+        }
+        
         fclose($fp);
     }
     
     /**
      * Export data to Excel format
      */
-    private function export_to_excel($data, $filepath, $format) {
-        // Simple Excel export - create tab-delimited text that Excel can open
-        $content = implode("\t", array_keys($data)) . "\n";
-        $content .= implode("\t", array_values($data));
-        file_put_contents($filepath, $content);
+    private function export_to_excel($data, $filepath, $format, $transpose = 'no') {
+        if ($format === 'xlsx') {
+            // Create a proper XLSX file using XML structure
+            $this->create_xlsx_file($data, $filepath, $transpose);
+        } else {
+            // For XLS, create a simple HTML table that Excel can import
+            $this->create_xls_html($data, $filepath, $transpose);
+        }
+    }
+    
+    /**
+     * Create a proper XLSX file with minimal XML structure
+     */
+    private function create_xlsx_file($data, $filepath, $transpose = 'no') {
+        // Create temporary directory for XLSX components
+        $temp_dir = sys_get_temp_dir() . '/xlsx_' . uniqid();
+        mkdir($temp_dir);
+        mkdir($temp_dir . '/_rels');
+        mkdir($temp_dir . '/docProps');
+        mkdir($temp_dir . '/xl');
+        mkdir($temp_dir . '/xl/_rels');
+        mkdir($temp_dir . '/xl/worksheets');
+        
+        // Create [Content_Types].xml
+        file_put_contents($temp_dir . '/[Content_Types].xml', 
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' .
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' .
+            '<Default Extension="xml" ContentType="application/xml"/>' .
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' .
+            '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' .
+            '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>' .
+            '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>' .
+            '</Types>');
+        
+        // Create _rels/.rels
+        file_put_contents($temp_dir . '/_rels/.rels',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' .
+            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>' .
+            '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>' .
+            '</Relationships>');
+        
+        // Create docProps/app.xml
+        file_put_contents($temp_dir . '/docProps/app.xml',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties">' .
+            '<Application>Snefuruplin</Application>' .
+            '</Properties>');
+        
+        // Create docProps/core.xml
+        file_put_contents($temp_dir . '/docProps/core.xml',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties">' .
+            '<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Snefuruplin</dc:creator>' .
+            '<dcterms:created xmlns:dcterms="http://purl.org/dc/terms/" xsi:type="dcterms:W3CDTF" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' . date('c') . '</dcterms:created>' .
+            '</cp:coreProperties>');
+        
+        // Create xl/_rels/workbook.xml.rels
+        file_put_contents($temp_dir . '/xl/_rels/workbook.xml.rels',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' .
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' .
+            '</Relationships>');
+        
+        // Create xl/workbook.xml
+        file_put_contents($temp_dir . '/xl/workbook.xml',
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+            '<sheets><sheet name="Sitespren Data" sheetId="1" r:id="rId1" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/></sheets>' .
+            '</workbook>');
+        
+        // Create worksheet data
+        $worksheet_xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' .
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' .
+            '<sheetData>';
+        
+        if ($transpose === 'yes') {
+            // Transpose mode: Each row contains field name and value
+            $row = 1;
+            foreach ($data as $key => $value) {
+                $worksheet_xml .= '<row r="' . $row . '">';
+                
+                // Field name in column A
+                $cell_ref_a = 'A' . $row;
+                $worksheet_xml .= '<c r="' . $cell_ref_a . '" t="inlineStr"><is><t>' . htmlspecialchars($key) . '</t></is></c>';
+                
+                // Field value in column B
+                $cell_ref_b = 'B' . $row;
+                $worksheet_xml .= '<c r="' . $cell_ref_b . '" t="inlineStr"><is><t>' . htmlspecialchars($value) . '</t></is></c>';
+                
+                $worksheet_xml .= '</row>';
+                $row++;
+            }
+        } else {
+            // Normal mode: Header row then data row
+            
+            // Add header row
+            $worksheet_xml .= '<row r="1">';
+            $col = 1;
+            foreach (array_keys($data) as $header) {
+                $cell_ref = $this->excel_column_name($col) . '1';
+                $worksheet_xml .= '<c r="' . $cell_ref . '" t="inlineStr"><is><t>' . htmlspecialchars($header) . '</t></is></c>';
+                $col++;
+            }
+            $worksheet_xml .= '</row>';
+            
+            // Add data row
+            $worksheet_xml .= '<row r="2">';
+            $col = 1;
+            foreach (array_values($data) as $value) {
+                $cell_ref = $this->excel_column_name($col) . '2';
+                $worksheet_xml .= '<c r="' . $cell_ref . '" t="inlineStr"><is><t>' . htmlspecialchars($value) . '</t></is></c>';
+                $col++;
+            }
+            $worksheet_xml .= '</row>';
+        }
+        
+        $worksheet_xml .= '</sheetData></worksheet>';
+        
+        file_put_contents($temp_dir . '/xl/worksheets/sheet1.xml', $worksheet_xml);
+        
+        // Create ZIP file
+        $this->create_zip_archive($temp_dir, $filepath);
+        
+        // Clean up temp directory
+        $this->recursive_rmdir($temp_dir);
+    }
+    
+    /**
+     * Create XLS file as HTML table (Excel can import this)
+     */
+    private function create_xls_html($data, $filepath, $transpose = 'no') {
+        $html = '<html><head><meta charset="UTF-8"></head><body>' .
+                '<table border="1">';
+        
+        if ($transpose === 'yes') {
+            // Transpose mode: Each row contains field name and value
+            foreach ($data as $key => $value) {
+                $html .= '<tr><td><strong>' . htmlspecialchars($key) . '</strong></td><td>' . htmlspecialchars($value) . '</td></tr>';
+            }
+        } else {
+            // Normal mode: Header row then data row
+            $html .= '<tr>';
+            
+            // Headers
+            foreach (array_keys($data) as $header) {
+                $html .= '<th>' . htmlspecialchars($header) . '</th>';
+            }
+            $html .= '</tr><tr>';
+            
+            // Data
+            foreach (array_values($data) as $value) {
+                $html .= '<td>' . htmlspecialchars($value) . '</td>';
+            }
+            $html .= '</tr>';
+        }
+        
+        $html .= '</table></body></html>';
+        
+        file_put_contents($filepath, $html);
+    }
+    
+    /**
+     * Convert column number to Excel column name (A, B, C, ..., AA, AB, etc.)
+     */
+    private function excel_column_name($col) {
+        $name = '';
+        while ($col > 0) {
+            $col--;
+            $name = chr($col % 26 + 65) . $name;
+            $col = intval($col / 26);
+        }
+        return $name;
+    }
+    
+    /**
+     * Create ZIP archive from directory
+     */
+    private function create_zip_archive($source_dir, $output_file) {
+        if (class_exists('ZipArchive')) {
+            $zip = new ZipArchive();
+            if ($zip->open($output_file, ZipArchive::CREATE) === TRUE) {
+                $this->add_dir_to_zip($zip, $source_dir, '');
+                $zip->close();
+            }
+        } else {
+            // Fallback: use system zip command if available
+            $output_dir = dirname($output_file);
+            $output_name = basename($output_file);
+            exec("cd '$source_dir' && zip -r '$output_file' .", $output, $return_code);
+        }
+    }
+    
+    /**
+     * Add directory contents to ZIP archive recursively
+     */
+    private function add_dir_to_zip($zip, $dir, $prefix) {
+        $files = scandir($dir);
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') continue;
+            $filepath = $dir . '/' . $file;
+            $zippath = $prefix . $file;
+            if (is_dir($filepath)) {
+                $zip->addEmptyDir($zippath);
+                $this->add_dir_to_zip($zip, $filepath, $zippath . '/');
+            } else {
+                $zip->addFile($filepath, $zippath);
+            }
+        }
+    }
+    
+    /**
+     * Recursively remove directory
+     */
+    private function recursive_rmdir($dir) {
+        if (is_dir($dir)) {
+            $files = scandir($dir);
+            foreach ($files as $file) {
+                if ($file !== '.' && $file !== '..') {
+                    $filepath = $dir . '/' . $file;
+                    if (is_dir($filepath)) {
+                        $this->recursive_rmdir($filepath);
+                    } else {
+                        unlink($filepath);
+                    }
+                }
+            }
+            rmdir($dir);
+        }
     }
     
     /**
@@ -5837,6 +6125,34 @@ class Snefuru_Admin {
                     </table>
                 </div>
                 
+                <!-- Transpose Option Table -->
+                <div style="margin-top: 20px; background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                    <table id="transpose-options-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f0f0f0; width: 50px;">
+                                    <!-- No select all checkbox for transpose -->
+                                </th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;"><strong>transpose</strong></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="radio" class="transpose-radio" name="transpose-option" value="yes" style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">yes transpose</td>
+                            </tr>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="radio" class="transpose-radio" name="transpose-option" value="no" checked style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">do not transpose</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
                 <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 5px;">
                     <p><strong>Instructions:</strong></p>
                     <ul>
@@ -5882,7 +6198,10 @@ class Snefuru_Admin {
                     return;
                 }
                 
-                if (!confirm('Export sitespren row where wppma_id = 1 in formats: ' + selectedFormats.join(', ') + '?')) {
+                // Get transpose option
+                var transposeOption = $('.transpose-radio:checked').val();
+                
+                if (!confirm('Export sitespren row where wppma_id = 1 in formats: ' + selectedFormats.join(', ') + ' (transpose: ' + transposeOption + ')?')) {
                     return;
                 }
                 
@@ -5896,6 +6215,7 @@ class Snefuru_Admin {
                     data: {
                         action: 'export_sitespren',
                         formats: selectedFormats,
+                        transpose: transposeOption,
                         wppma_id: 1,
                         nonce: '<?php echo wp_create_nonce('sitespren_export_nonce'); ?>'
                     },

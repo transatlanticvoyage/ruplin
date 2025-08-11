@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.4.0';
+    const DB_VERSION = '1.5.0';
     
     /**
      * Option name for storing database version
