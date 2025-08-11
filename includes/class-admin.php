@@ -7320,6 +7320,25 @@ class Snefuru_Admin {
                     gap: 24px;
                 }
                 
+                .beamray_banner1 {
+                    background: black;
+                    color: white;
+                    font-size: 18px;
+                    font-weight: bold;
+                    padding: 8px 12px;
+                    border: 1px solid gray;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    white-space: nowrap;
+                }
+                
+                .beamray-logo {
+                    width: 20px;
+                    height: 20px;
+                    display: inline-block;
+                }
+                
                 .beamraymar-controls-right {
                     display: flex;
                     align-items: center;
@@ -7740,6 +7759,16 @@ class Snefuru_Admin {
             <!-- Top Controls -->
             <div class="beamraymar-top-controls">
                 <div class="beamraymar-controls-left">
+                    <div class="beamray_banner1">
+                        <svg class="beamray-logo" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.18L18.18 8 12 11.82 5.82 8 12 4.18zM6 9.42l5 2.5v8.16l-5-2.5V9.42zm12 0v8.16l-5 2.5v-8.16l5-2.5z"/>
+                            <circle cx="12" cy="8" r="1.5" fill="white"/>
+                            <line x1="12" y1="8" x2="12" y2="16" stroke="white" stroke-width="1" opacity="0.6"/>
+                            <line x1="8" y1="10" x2="16" y2="14" stroke="white" stroke-width="0.5" opacity="0.4"/>
+                            <line x1="16" y1="10" x2="8" y2="14" stroke="white" stroke-width="0.5" opacity="0.4"/>
+                        </svg>
+                        BeamRay Table
+                    </div>
                     <div class="beamraymar-info-text">
                         <span id="beamraymar-results-info">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
                     </div>
