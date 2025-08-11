@@ -296,6 +296,18 @@ class Snefuru_Hurricane {
                     </g>
                 </svg>
                 
+                <!-- Driggs Revenue Goal Display -->
+                <div style="display: flex; align-items: center; margin-left: 20px;">
+                    <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">driggs_revenue_goal</span>
+                    <span style="color: white; font-size: 16px; font-weight: bold;">
+                        <?php 
+                        global $wpdb;
+                        $driggs_revenue = $wpdb->get_var("SELECT driggs_revenue_goal FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
+                        echo '$' . esc_html($driggs_revenue ? number_format($driggs_revenue, 0) : '0');
+                        ?>
+                    </span>
+                </div>
+                
                 <?php
                 // Get the sitespren_base domain from the single-row zen_sitespren table
                 global $wpdb;
@@ -866,7 +878,27 @@ class Snefuru_Hurricane {
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
-                                <!-- Content area left blank for now -->
+                                <!-- Operation Rover Instance Wrapper -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-rover-container">
+                                        <span class="snefuru-rover-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation rover: get all image grains from page and display in json</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="rover-images-textbox" 
+                                                class="snefuru-rover-textbox" 
+                                                readonly
+                                                placeholder="Image data will be displayed here in JSON format"
+                                                style="flex: 1; height: 200px; padding: 10px; border: 2px solid #e0e5eb; border-radius: 4px; font-family: monospace; font-size: 12px; line-height: 1.4; resize: vertical;"
+                                            ></textarea>
+                                            <button type="button" 
+                                                    class="snefuru-copy-btn-right" 
+                                                    data-target="rover-images-textbox" 
+                                                    style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- Denyeep Column Div 2 -->
