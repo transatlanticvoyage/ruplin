@@ -347,6 +347,22 @@ class Snefuru_Hurricane {
                 $sitejar4_url = 'http://localhost:3000/sitejar4?sitesentered=' . urlencode($sitespren_base);
                 ?>
                 
+                <!-- Pendulum Screen Button with Copy -->
+                <div style="display: flex; align-items: center; margin-left: 15px;">
+                    <a href="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" 
+                       target="_blank" 
+                       style="background: #000000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                        pendulum screen
+                    </a>
+                    <button type="button" 
+                            class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
+                            data-copy-url="<?php echo esc_url((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>"
+                            style="background: #000000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
+                            title="Copy current page URL">
+                        📋
+                    </button>
+                </div>
+                
                 <!-- Driggsman Button with Copy -->
                 <div style="display: flex; align-items: center; margin-left: 15px;">
                     <a href="<?php echo esc_url($driggsman_url); ?>" 
@@ -391,22 +407,6 @@ class Snefuru_Hurricane {
                             data-copy-url="<?php echo admin_url('post.php?post=' . $post->ID . '&action=elementor'); ?>"
                             style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
                             title="Copy elementor editor URL">
-                        📋
-                    </button>
-                </div>
-                
-                <!-- Pendulum Screen Button with Copy -->
-                <div style="display: flex; align-items: center; margin-left: 15px;">
-                    <a href="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" 
-                       target="_blank" 
-                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
-                        pendulum screen
-                    </a>
-                    <button type="button" 
-                            class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
-                            data-copy-url="<?php echo esc_url((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']); ?>"
-                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
-                            title="Copy current page URL">
                         📋
                     </button>
                 </div>
