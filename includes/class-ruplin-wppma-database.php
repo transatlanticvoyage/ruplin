@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.0.0';
+    const DB_VERSION = '1.1.0';
     
     /**
      * Option name for storing database version
@@ -60,19 +60,32 @@ class Ruplin_WP_Database_Horse_Class {
                 PRIMARY KEY (location_id)
             ) $charset_collate;";
             
+            // Create zen_orbitposts table
+            $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+            $orbitposts_sql = "CREATE TABLE $orbitposts_table (
+                orbitpost_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                redshift_datum TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (orbitpost_id)
+            ) $charset_collate;";
+            
             // Use dbDelta to create/update tables
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             
             // Log the SQL for debugging
             error_log('Snefuru: Creating services table with SQL: ' . $services_sql);
             error_log('Snefuru: Creating locations table with SQL: ' . $locations_sql);
+            error_log('Snefuru: Creating orbitposts table with SQL: ' . $orbitposts_sql);
             
             $services_result = dbDelta($services_sql);
             $locations_result = dbDelta($locations_sql);
+            $orbitposts_result = dbDelta($orbitposts_sql);
             
             // Log dbDelta results
             error_log('Snefuru: Services table dbDelta result: ' . print_r($services_result, true));
             error_log('Snefuru: Locations table dbDelta result: ' . print_r($locations_result, true));
+            error_log('Snefuru: Orbitposts table dbDelta result: ' . print_r($orbitposts_result, true));
             
             // Update database version
             update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
@@ -80,12 +93,14 @@ class Ruplin_WP_Database_Horse_Class {
             // Verify tables were created
             $services_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'") == $services_table;
             $locations_exists = $wpdb->get_var("SHOW TABLES LIKE '$locations_table'") == $locations_table;
+            $orbitposts_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
             
             // Log verification results
             error_log('Snefuru: Services table exists: ' . ($services_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Locations table exists: ' . ($locations_exists ? 'YES' : 'NO'));
+            error_log('Snefuru: Orbitposts table exists: ' . ($orbitposts_exists ? 'YES' : 'NO'));
             
-            if ($services_exists && $locations_exists) {
+            if ($services_exists && $locations_exists && $orbitposts_exists) {
                 error_log('Snefuru: Zen tables created/updated successfully');
                 return true;
             } else {

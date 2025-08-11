@@ -433,7 +433,7 @@ class Snefuru_Hurricane {
                         KenliSidebarLinks
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="kpages-schema">
-                        KPages Schema
+                        Asteroid Support
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="pantheon-table">
                         Pantheon Table
@@ -1199,7 +1199,48 @@ class Snefuru_Hurricane {
                         <!-- Additional locations content will go here -->
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="kpages-schema">
-                        <!-- KPages Schema content will go here -->
+                        <!-- Asteroid Support Content -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Asteroid Support Content -->
+                                <div class="snefuru-asteroid-container" style="margin-bottom: 20px;">
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px; text-transform: lowercase;">asteroid support</span>
+                                    
+                                    <textarea 
+                                        id="asteroid-support-textbox" 
+                                        readonly
+                                        style="width: 100%; height: 120px; padding: 10px; border: 2px solid #e0e5eb; border-radius: 4px; font-family: monospace; font-size: 14px; line-height: 1.6; resize: vertical; background: #f9f9f9;"
+                                    >k_
+g_
+w_
+y_</textarea>
+                                    
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-top: 15px; color: #333;">NoteToSelfKyle:database integration needed</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content area left blank for now -->
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content area left blank for now -->
+                            </div>
+                            
+                        </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="pantheon-table">
                         <div style="padding: 15px;">
