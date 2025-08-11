@@ -259,6 +259,15 @@ class Snefuru_Admin {
             'rup_sitespren_export',
             array($this, 'rup_sitespren_export_page')
         );
+        
+        add_submenu_page(
+            'snefuru',
+            'beamraymar',
+            'beamraymar',
+            'manage_options',
+            'beamraymar',
+            array($this, 'beamraymar_page')
+        );
     }
     
     /**
@@ -7237,6 +7246,7 @@ class Snefuru_Admin {
             array('title' => 'document_outlook_aug9', 'slug' => 'document_outlook_aug9'),
             array('title' => 'dynamic_images_man', 'slug' => 'dynamic_images_man'),
             array('title' => 'Sitespren Export', 'slug' => 'rup_sitespren_export'),
+            array('title' => 'beamraymar', 'slug' => 'beamraymar'),
         );
         
         // Add the separate menu pages
@@ -7265,5 +7275,18 @@ class Snefuru_Admin {
         }
         
         return $pages;
+    }
+    
+    /**
+     * Beamraymar admin page
+     */
+    public function beamraymar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION
+        $this->suppress_all_admin_notices();
+        
+        echo '<div class="wrap">';
+        echo '<h1><strong>beamraymar</strong></h1>';
+        echo '<p>This page is currently blank and ready for development.</p>';
+        echo '</div>';
     }
 } 
