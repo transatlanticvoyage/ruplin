@@ -1054,6 +1054,12 @@ class Snefuru_Hurricane {
                                         dynamic_images_man
                                     </a>
                                 </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_orbit_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_orbit_mar
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
