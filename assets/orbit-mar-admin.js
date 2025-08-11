@@ -222,13 +222,15 @@
             deleteSelectedRows();
         });
         
-        // Operation201 button
-        $('#operation201-btn').on('click', function() {
+        // Operation201 button - use document delegation for safety
+        $(document).on('click', '#operation201-btn', function() {
+            console.log('Operation201 button clicked');
             executeOperation201();
         });
         
         // Copy operation201 button text
-        $('#copy-operation201-btn').on('click', function() {
+        $(document).on('click', '#copy-operation201-btn', function() {
+            console.log('Copy button clicked');
             copyOperation201Text();
         });
         
@@ -576,13 +578,26 @@
     
     // Execute Operation201
     function executeOperation201() {
-        if (!confirm('Are you sure you want to run Operation201?\n\nThis will create orbitpost records for all published WordPress posts and pages that don\'t already have one.')) {
+        console.log('executeOperation201 function called');
+        
+        if (!confirm('Are you sure you want to run Operation201?\n\nThis will create orbitpost records for ALL WordPress posts and pages (including drafts) that don\'t already have one.')) {
+            console.log('User cancelled operation');
             return;
         }
         
         var $button = $('#operation201-btn');
+        if ($button.length === 0) {
+            console.error('Operation201 button not found');
+            alert('Error: Button not found');
+            return;
+        }
+        
         var originalText = $button.text();
         $button.prop('disabled', true).text('Running Operation201...');
+        
+        console.log('Sending AJAX request...');
+        console.log('URL:', orbitMarAjax.ajaxurl);
+        console.log('Nonce:', orbitMarAjax.nonce);
         
         $.ajax({
             url: orbitMarAjax.ajaxurl,
@@ -592,18 +607,23 @@
                 nonce: orbitMarAjax.nonce
             },
             success: function(response) {
+                console.log('AJAX Success Response:', response);
                 if (response.success) {
                     alert('Operation201 Results:\n\n' + response.data.message);
                     // Refresh the table to show new records
+                    console.log('Refreshing table data...');
                     loadTableData();
                 } else {
-                    alert('Operation201 failed: ' + response.data);
+                    alert('Operation201 failed: ' + (response.data || 'Unknown error'));
                 }
             },
-            error: function() {
-                alert('Error executing Operation201');
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', status, error);
+                console.error('Response Text:', xhr.responseText);
+                alert('Error executing Operation201: ' + error);
             },
             complete: function() {
+                console.log('AJAX request completed');
                 $button.prop('disabled', false).text(originalText);
             }
         });

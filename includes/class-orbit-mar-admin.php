@@ -388,27 +388,30 @@ class Snefuru_Orbit_Mar_Admin {
      * AJAX handler for operation201 - populate orbitposts for missing wp_posts
      */
     public function ajax_operation201() {
+        error_log('Operation201: Starting operation');
         check_ajax_referer('orbit_mar_nonce', 'nonce');
         
         global $wpdb;
         
         try {
-            // Get all published posts and pages that don't already have an orbitpost record
+            error_log('Operation201: Executing query to find missing posts');
+            // Get ALL posts and pages that don't already have an orbitpost record
             $query = "
                 SELECT p.ID, p.post_title, p.post_type, p.post_status
                 FROM {$wpdb->posts} p
                 LEFT JOIN {$this->table_name} o ON p.ID = o.rel_wp_post_id
-                WHERE p.post_status = 'publish'
-                AND p.post_type IN ('post', 'page')
+                WHERE p.post_type IN ('post', 'page')
+                AND p.post_status NOT IN ('trash', 'auto-draft')
                 AND o.rel_wp_post_id IS NULL
                 ORDER BY p.ID ASC
             ";
             
             $missing_posts = $wpdb->get_results($query);
+            error_log('Operation201: Found ' . count($missing_posts) . ' missing posts');
             
             if (empty($missing_posts)) {
                 wp_send_json_success(array(
-                    'message' => 'No missing posts found. All published posts and pages already have orbitpost records.',
+                    'message' => 'No missing posts found. All posts and pages (including drafts) already have orbitpost records.',
                     'created' => 0
                 ));
             }
@@ -427,12 +430,14 @@ class Snefuru_Orbit_Mar_Admin {
                 
                 if ($result !== false) {
                     $created_count++;
+                    error_log("Operation201: Created orbitpost for {$post->post_type} ID {$post->ID}");
                 } else {
                     $errors[] = "Failed to create orbitpost for {$post->post_type} ID {$post->ID}: {$post->post_title}";
+                    error_log("Operation201: Failed to create orbitpost for {$post->post_type} ID {$post->ID}");
                 }
             }
             
-            $message = "Operation201 completed successfully. Created {$created_count} orbitpost records for missing wp_posts.";
+            $message = "Operation201 completed successfully. Created {$created_count} orbitpost records for missing wp_posts (including drafts).";
             if (!empty($errors)) {
                 $message .= " Errors: " . implode('; ', $errors);
             }
