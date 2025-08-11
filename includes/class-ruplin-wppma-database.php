@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.2.0';
+    const DB_VERSION = '1.3.0';
     
     /**
      * Option name for storing database version
@@ -66,6 +66,7 @@ class Ruplin_WP_Database_Horse_Class {
                 orbitpost_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
                 rel_wp_post_id BIGINT(20) UNSIGNED,
                 redshift_datum TEXT,
+                rover_datum JSON,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),

@@ -67,7 +67,7 @@
         
         if (data.length === 0) {
             $tbody.append(
-                '<tr><td colspan="6" class="orbit-empty-state">' +
+                '<tr><td colspan="8" class="orbit-empty-state">' +
                 '<h3>No records found</h3>' +
                 '<p>Create a new record to get started.</p>' +
                 '</td></tr>'
@@ -97,10 +97,34 @@
                 '</td>'
             );
             
+            // wp_posts.post_title cell (not editable - joined data)
+            $tr.append(
+                '<td>' +
+                escapeHtml(row.wp_post_title || 'No matching post') +
+                '</td>'
+            );
+            
             // Redshift datum cell (editable)
             $tr.append(
                 '<td class="editable" data-field="redshift_datum">' +
                 escapeHtml(row.redshift_datum || '') +
+                '</td>'
+            );
+            
+            // Rover datum cell (editable JSON)
+            var roverDisplay = row.rover_datum || '{}';
+            if (row.rover_datum) {
+                try {
+                    // Try to pretty-print JSON for display
+                    var parsed = JSON.parse(row.rover_datum);
+                    roverDisplay = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    roverDisplay = row.rover_datum;
+                }
+            }
+            $tr.append(
+                '<td class="editable json-field" data-field="rover_datum">' +
+                escapeHtml(roverDisplay) +
                 '</td>'
             );
             
@@ -275,9 +299,33 @@
         var field = $cell.data('field');
         var rowId = $cell.closest('tr').data('id');
         
+        // Validate JSON for rover_datum field
+        if (field === 'rover_datum' && newValue.trim() !== '') {
+            try {
+                JSON.parse(newValue);
+            } catch (e) {
+                alert('Invalid JSON format. Please check your syntax.');
+                $cell.removeClass('editing');
+                $cell.text(oldValue);
+                return;
+            }
+        }
+        
         // Remove editing state
         $cell.removeClass('editing');
-        $cell.text(newValue);
+        
+        // Format JSON display if it's the rover_datum field
+        if (field === 'rover_datum' && newValue.trim() !== '') {
+            try {
+                var parsed = JSON.parse(newValue);
+                var formatted = JSON.stringify(parsed, null, 2);
+                $cell.html('<pre style="margin: 0; font-family: inherit;">' + escapeHtml(formatted) + '</pre>');
+            } catch (e) {
+                $cell.text(newValue);
+            }
+        } else {
+            $cell.text(newValue);
+        }
         
         // Save to database
         $.ajax({
@@ -352,10 +400,32 @@
                         '</td>'
                     );
                     $tr.append(
+                        '<td>' +
+                        escapeHtml(row.wp_post_title || 'No matching post') +
+                        '</td>'
+                    );
+                    $tr.append(
                         '<td class="editable" data-field="redshift_datum">' +
                         escapeHtml(row.redshift_datum || '') +
                         '</td>'
                     );
+                    
+                    // Rover datum cell (editable JSON)
+                    var roverDisplay = row.rover_datum || '{}';
+                    if (row.rover_datum) {
+                        try {
+                            var parsed = JSON.parse(row.rover_datum);
+                            roverDisplay = JSON.stringify(parsed, null, 2);
+                        } catch (e) {
+                            roverDisplay = row.rover_datum;
+                        }
+                    }
+                    $tr.append(
+                        '<td class="editable json-field" data-field="rover_datum">' +
+                        escapeHtml(roverDisplay) +
+                        '</td>'
+                    );
+                    
                     $tr.append('<td>' + formatDate(row.created_at) + '</td>');
                     $tr.append('<td>' + formatDate(row.updated_at) + '</td>');
                     

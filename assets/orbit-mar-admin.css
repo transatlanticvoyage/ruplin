@@ -385,6 +385,26 @@
     background: #e8f5ff !important;
 }
 
+/* JSON Field Styles */
+.orbit-mar-table td.json-field {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 12px;
+    max-width: 300px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.orbit-mar-table td.json-field:hover {
+    background: #f8f9ff;
+}
+
+.orbit-mar-table td.json-field.editing textarea {
+    font-family: 'Courier New', Consolas, monospace;
+    font-size: 12px;
+    min-height: 100px;
+    white-space: pre;
+}
+
 /* Toggle Switch Styles (for future boolean fields) */
 .orbit-toggle-switch {
     position: relative;

@@ -197,7 +197,9 @@ class Snefuru_Orbit_Mar_Admin {
                             </th>
                             <th>orbitpost_id</th>
                             <th>rel_wp_post_id</th>
+                            <th>wp_posts.post_title</th>
                             <th>redshift_datum</th>
+                            <th>rover_datum</th>
                             <th>created_at</th>
                             <th>updated_at</th>
                         </tr>
@@ -390,11 +392,19 @@ class Snefuru_Orbit_Mar_Admin {
         // Build WHERE clause
         $where = '';
         if (!empty($search)) {
-            $where = $wpdb->prepare(" WHERE redshift_datum LIKE %s", '%' . $wpdb->esc_like($search) . '%');
+            $where = $wpdb->prepare(" WHERE o.redshift_datum LIKE %s OR p.post_title LIKE %s", 
+                '%' . $wpdb->esc_like($search) . '%',
+                '%' . $wpdb->esc_like($search) . '%'
+            );
         }
         
-        // Get total count
-        $total = $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}" . $where);
+        // Get total count with JOIN
+        $count_query = "
+            SELECT COUNT(*) 
+            FROM {$this->table_name} o
+            LEFT JOIN {$wpdb->posts} p ON o.rel_wp_post_id = p.ID
+        " . $where;
+        $total = $wpdb->get_var($count_query);
         
         // Calculate pagination
         if ($per_page === 'all') {
@@ -407,8 +417,14 @@ class Snefuru_Orbit_Mar_Admin {
             $total_pages = ceil($total / $per_page);
         }
         
-        // Get data
-        $query = "SELECT * FROM {$this->table_name}" . $where . " ORDER BY orbitpost_id DESC" . $limit;
+        // Get data with JOIN to wp_posts table
+        $query = "
+            SELECT 
+                o.*,
+                p.post_title as wp_post_title
+            FROM {$this->table_name} o
+            LEFT JOIN {$wpdb->posts} p ON o.rel_wp_post_id = p.ID
+        " . $where . " ORDER BY o.orbitpost_id DESC" . $limit;
         $results = $wpdb->get_results($query, ARRAY_A);
         
         wp_send_json_success(array(
@@ -436,9 +452,20 @@ class Snefuru_Orbit_Mar_Admin {
         }
         
         // Only allow editing of specific fields
-        $allowed_fields = array('redshift_datum', 'rel_wp_post_id');
+        $allowed_fields = array('redshift_datum', 'rel_wp_post_id', 'rover_datum');
         if (!in_array($field, $allowed_fields)) {
             wp_send_json_error('Field not editable');
+        }
+        
+        // Special handling for JSON field
+        if ($field === 'rover_datum') {
+            // Validate JSON format
+            if (!empty($value)) {
+                $decoded = json_decode($value);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    wp_send_json_error('Invalid JSON format');
+                }
+            }
         }
         
         $result = $wpdb->update(
@@ -470,10 +497,18 @@ class Snefuru_Orbit_Mar_Admin {
         
         $redshift_datum = isset($_POST['redshift_datum']) ? wp_unslash($_POST['redshift_datum']) : '';
         $rel_wp_post_id = isset($_POST['rel_wp_post_id']) ? intval($_POST['rel_wp_post_id']) : null;
+        $rover_datum = isset($_POST['rover_datum']) ? wp_unslash($_POST['rover_datum']) : null;
         
         $insert_data = array('redshift_datum' => $redshift_datum);
         if ($rel_wp_post_id) {
             $insert_data['rel_wp_post_id'] = $rel_wp_post_id;
+        }
+        if ($rover_datum) {
+            // Validate JSON format
+            $decoded = json_decode($rover_datum);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $insert_data['rover_datum'] = $rover_datum;
+            }
         }
         
         $result = $wpdb->insert(
