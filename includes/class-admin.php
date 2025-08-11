@@ -7278,15 +7278,1268 @@ class Snefuru_Admin {
     }
     
     /**
-     * Beamraymar admin page
+     * Beamraymar admin page - WordPress Posts & Pages Manager
      */
     public function beamraymar_page() {
         // AGGRESSIVE NOTICE SUPPRESSION
         $this->suppress_all_admin_notices();
         
-        echo '<div class="wrap">';
-        echo '<h1><strong>beamraymar</strong></h1>';
-        echo '<p>This page is currently blank and ready for development.</p>';
-        echo '</div>';
+        // Handle AJAX requests
+        if (isset($_POST['action'])) {
+            $this->handle_beamraymar_ajax();
+            return;
+        }
+        
+        // Get posts and pages data
+        $posts_pages = $this->get_posts_and_pages_data();
+        
+        ?>
+        <div class="wrap beamraymar-wrapper">
+            <style>
+                /* Beamraymar Custom Styles - Mimicking FileJar Design */
+                .beamraymar-wrapper {
+                    background: white;
+                    padding: 0;
+                    margin: 0 0 0 -20px;
+                }
+                
+                .beamraymar-top-controls {
+                    background-color: white;
+                    border-bottom: 1px solid #ddd;
+                    padding: 12px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-wrap: wrap;
+                    gap: 16px;
+                }
+                
+                .beamraymar-controls-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 24px;
+                }
+                
+                .beamraymar-controls-right {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                
+                .beamraymar-info-text {
+                    font-size: 14px;
+                    color: #666;
+                }
+                
+                .beamraymar-pagination-controls {
+                    display: flex;
+                    align-items: center;
+                }
+                
+                .beamraymar-pagination-bar {
+                    display: flex;
+                }
+                
+                .beamraymar-pagination-btn {
+                    padding: 10px 12px;
+                    font-size: 14px;
+                    border: 1px solid #ddd;
+                    background: white;
+                    cursor: pointer;
+                    margin-right: -1px;
+                    text-decoration: none;
+                    color: #333;
+                    transition: background-color 0.2s;
+                }
+                
+                .beamraymar-pagination-btn:hover {
+                    background-color: #f5f5f5;
+                }
+                
+                .beamraymar-pagination-btn.active {
+                    background-color: #0073aa;
+                    color: white;
+                }
+                
+                .beamraymar-pagination-btn:first-child {
+                    border-top-left-radius: 4px;
+                    border-bottom-left-radius: 4px;
+                }
+                
+                .beamraymar-pagination-btn:last-child {
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+                
+                .beamraymar-pagination-divider {
+                    width: 1px;
+                    height: 20px;
+                    background: #ddd;
+                    margin: 0 12px;
+                }
+                
+                .beamraymar-search-container {
+                    position: relative;
+                }
+                
+                .beamraymar-search-input {
+                    width: 320px;
+                    padding: 8px 40px 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }
+                
+                .beamraymar-clear-btn {
+                    position: absolute;
+                    right: 6px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: #ffd700;
+                    color: black;
+                    border: none;
+                    padding: 4px 8px;
+                    border-radius: 2px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    cursor: pointer;
+                }
+                
+                .beamraymar-clear-btn:hover {
+                    background: #ffed4e;
+                }
+                
+                .beamraymar-create-buttons {
+                    display: flex;
+                    gap: 8px;
+                }
+                
+                .beamraymar-create-btn {
+                    padding: 8px 16px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    text-decoration: none;
+                    transition: all 0.2s;
+                }
+                
+                .beamraymar-create-inline-post {
+                    background: #16a085;
+                    color: white;
+                }
+                
+                .beamraymar-create-inline-post:hover {
+                    background: #138d75;
+                }
+                
+                .beamraymar-create-inline-page {
+                    background: #2980b9;
+                    color: white;
+                }
+                
+                .beamraymar-create-inline-page:hover {
+                    background: #2471a3;
+                }
+                
+                .beamraymar-create-popup {
+                    background: #8e44ad;
+                    color: white;
+                }
+                
+                .beamraymar-create-popup:hover {
+                    background: #7d3c98;
+                }
+                
+                .beamraymar-nubra-kite {
+                    background: #f39c12;
+                    color: black;
+                    padding: 6px 12px;
+                    border: 1px solid black;
+                    border-radius: 3px;
+                    font-size: 12px;
+                    font-weight: bold;
+                }
+                
+                .beamraymar-table-container {
+                    background: white;
+                    overflow: hidden;
+                }
+                
+                .beamraymar-table-scroll {
+                    overflow-x: auto;
+                }
+                
+                .beamraymar-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    border: 1px solid #ddd;
+                    min-width: 1600px;
+                }
+                
+                .beamraymar-table thead {
+                    background: #f8f9fa;
+                }
+                
+                .beamraymar-table th,
+                .beamraymar-table td {
+                    border: 1px solid #ddd;
+                    padding: 8px 12px;
+                    text-align: left;
+                    font-size: 14px;
+                }
+                
+                .beamraymar-table th {
+                    font-weight: bold;
+                    font-size: 12px;
+                    text-transform: lowercase;
+                    cursor: pointer;
+                    position: relative;
+                }
+                
+                .beamraymar-table th:hover {
+                    background: #e9ecef;
+                }
+                
+                .beamraymar-table tbody tr:hover {
+                    background: #f8f9fa;
+                }
+                
+                .beamraymar-checkbox-cell {
+                    width: 40px;
+                    text-align: center;
+                    cursor: pointer;
+                }
+                
+                .beamraymar-checkbox {
+                    width: 20px;
+                    height: 20px;
+                    cursor: pointer;
+                }
+                
+                .beamraymar-editable-cell {
+                    cursor: pointer;
+                    min-height: 20px;
+                    word-wrap: break-word;
+                    overflow-wrap: break-word;
+                }
+                
+                .beamraymar-editable-cell:hover {
+                    background: #f0f8ff;
+                    outline: 1px solid #cce7ff;
+                }
+                
+                .beamraymar-editing-input {
+                    width: 100%;
+                    padding: 4px 6px;
+                    border: 2px solid #0073aa;
+                    border-radius: 3px;
+                    font-size: 14px;
+                    background: white;
+                }
+                
+                .beamraymar-editing-textarea {
+                    width: 100%;
+                    padding: 4px 6px;
+                    border: 2px solid #0073aa;
+                    border-radius: 3px;
+                    font-size: 14px;
+                    background: white;
+                    resize: none;
+                    min-height: 60px;
+                }
+                
+                .beamraymar-toggle-switch {
+                    width: 48px;
+                    height: 24px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    position: relative;
+                    display: inline-block;
+                }
+                
+                .beamraymar-toggle-switch.on {
+                    background: #16a085;
+                }
+                
+                .beamraymar-toggle-switch.off {
+                    background: #bdc3c7;
+                }
+                
+                .beamraymar-toggle-handle {
+                    width: 20px;
+                    height: 20px;
+                    background: white;
+                    border-radius: 50%;
+                    position: absolute;
+                    top: 2px;
+                    transition: transform 0.3s;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                }
+                
+                .beamraymar-toggle-switch.on .beamraymar-toggle-handle {
+                    transform: translateX(24px);
+                }
+                
+                .beamraymar-toggle-switch.off .beamraymar-toggle-handle {
+                    transform: translateX(2px);
+                }
+                
+                .beamraymar-sort-indicator {
+                    margin-left: 8px;
+                    color: #666;
+                }
+                
+                .beamraymar-loading {
+                    text-align: center;
+                    padding: 40px;
+                    font-size: 16px;
+                    color: #666;
+                }
+                
+                /* Bottom controls */
+                .beamraymar-bottom-controls {
+                    background-color: white;
+                    border-top: 1px solid #ddd;
+                    padding: 12px 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                
+                /* Modal styles */
+                .beamraymar-modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 999999;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                }
+                
+                .beamraymar-modal.active {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .beamraymar-modal-content {
+                    background: white;
+                    padding: 30px;
+                    border-radius: 6px;
+                    max-width: 800px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                }
+                
+                .beamraymar-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 20px;
+                    border-bottom: 1px solid #ddd;
+                    padding-bottom: 15px;
+                }
+                
+                .beamraymar-modal-title {
+                    font-size: 20px;
+                    font-weight: bold;
+                    margin: 0;
+                }
+                
+                .beamraymar-modal-close {
+                    font-size: 24px;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #666;
+                }
+                
+                .beamraymar-modal-close:hover {
+                    color: #333;
+                }
+                
+                .beamraymar-form-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 20px;
+                    margin-bottom: 20px;
+                }
+                
+                .beamraymar-form-field {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .beamraymar-form-field.full-width {
+                    grid-column: 1 / -1;
+                }
+                
+                .beamraymar-form-label {
+                    font-weight: 600;
+                    margin-bottom: 6px;
+                    color: #333;
+                }
+                
+                .beamraymar-form-input,
+                .beamraymar-form-textarea,
+                .beamraymar-form-select {
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                }
+                
+                .beamraymar-form-textarea {
+                    min-height: 100px;
+                    resize: vertical;
+                }
+                
+                .beamraymar-modal-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 12px;
+                    margin-top: 24px;
+                }
+                
+                .beamraymar-modal-btn {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+                
+                .beamraymar-modal-btn.primary {
+                    background: #0073aa;
+                    color: white;
+                }
+                
+                .beamraymar-modal-btn.primary:hover {
+                    background: #005a87;
+                }
+                
+                .beamraymar-modal-btn.secondary {
+                    background: #f1f1f1;
+                    color: #333;
+                    border: 1px solid #ddd;
+                }
+                
+                .beamraymar-modal-btn.secondary:hover {
+                    background: #e0e0e0;
+                }
+            </style>
+
+            <!-- Top Controls -->
+            <div class="beamraymar-top-controls">
+                <div class="beamraymar-controls-left">
+                    <div class="beamraymar-info-text">
+                        <span id="beamraymar-results-info">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
+                    </div>
+                    
+                    <div class="beamraymar-pagination-controls">
+                        <div class="beamraymar-pagination-bar" id="beamraymar-per-page-bar">
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="10">10</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="20">20</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="50">50</a>
+                            <a href="#" class="beamraymar-pagination-btn active" data-per-page="100">100</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="200">200</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="500">500</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="all">All</a>
+                        </div>
+                        
+                        <div class="beamraymar-pagination-divider"></div>
+                        
+                        <div class="beamraymar-pagination-bar" id="beamraymar-page-bar">
+                            <a href="#" class="beamraymar-pagination-btn" data-page="first">First</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-page="prev">Prev</a>
+                            <a href="#" class="beamraymar-pagination-btn active" data-page="1">1</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-page="next">Next</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-page="last">Last</a>
+                        </div>
+                    </div>
+                    
+                    <div class="beamraymar-search-container">
+                        <input type="text" id="beamraymar-search" class="beamraymar-search-input" placeholder="Search all fields...">
+                        <button class="beamraymar-clear-btn" id="beamraymar-clear">CL</button>
+                    </div>
+                </div>
+                
+                <div class="beamraymar-controls-right">
+                    <div class="beamraymar-create-buttons">
+                        <button class="beamraymar-create-btn beamraymar-create-inline-post" id="create-post-inline">Create New (Inline)</button>
+                        <button class="beamraymar-create-btn beamraymar-create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
+                        <button class="beamraymar-create-btn beamraymar-create-popup" id="create-popup">Create New (Popup)</button>
+                    </div>
+                    <div class="beamraymar-nubra-kite">nubra-tableface-kite</div>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="beamraymar-table-container">
+                <div class="beamraymar-table-scroll">
+                    <table class="beamraymar-table" id="beamraymar-table">
+                        <thead>
+                            <tr>
+                                <th class="beamraymar-checkbox-cell">
+                                    <input type="checkbox" class="beamraymar-checkbox" id="select-all">
+                                </th>
+                                <th data-field="ID" data-type="integer">id</th>
+                                <th data-field="post_title" data-type="text">post_title</th>
+                                <th data-field="post_content" data-type="longtext">post_content</th>
+                                <th data-field="post_type" data-type="text">post_type</th>
+                                <th data-field="post_status" data-type="text">post_status</th>
+                                <th data-field="post_name" data-type="text">post_name</th>
+                                <th data-field="post_date" data-type="datetime">post_date</th>
+                                <th data-field="post_modified" data-type="datetime">post_modified</th>
+                                <th data-field="post_author" data-type="integer">post_author</th>
+                                <th data-field="post_parent" data-type="integer">post_parent</th>
+                                <th data-field="menu_order" data-type="integer">menu_order</th>
+                                <th data-field="comment_status" data-type="text">comment_status</th>
+                                <th data-field="ping_status" data-type="text">ping_status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="beamraymar-tbody">
+                            <?php $this->render_beamraymar_table_rows($posts_pages); ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bottom Controls -->
+            <div class="beamraymar-bottom-controls">
+                <div class="beamraymar-controls-left">
+                    <div class="beamraymar-info-text">
+                        <span id="beamraymar-results-info-bottom">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
+                    </div>
+                    
+                    <div class="beamraymar-pagination-controls">
+                        <div class="beamraymar-pagination-bar" id="beamraymar-per-page-bar-bottom">
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="10">10</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="20">20</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="50">50</a>
+                            <a href="#" class="beamraymar-pagination-btn active" data-per-page="100">100</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="200">200</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="500">500</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-per-page="all">All</a>
+                        </div>
+                        
+                        <div class="beamraymar-pagination-divider"></div>
+                        
+                        <div class="beamraymar-pagination-bar" id="beamraymar-page-bar-bottom">
+                            <a href="#" class="beamraymar-pagination-btn" data-page="first">First</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-page="prev">Prev</a>
+                            <a href="#" class="beamraymar-pagination-btn active" data-page="1">1</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-page="next">Next</a>
+                            <a href="#" class="beamraymar-pagination-btn" data-page="last">Last</a>
+                        </div>
+                    </div>
+                    
+                    <div class="beamraymar-search-container">
+                        <input type="text" id="beamraymar-search-bottom" class="beamraymar-search-input" placeholder="Search all fields...">
+                        <button class="beamraymar-clear-btn" id="beamraymar-clear-bottom">CL</button>
+                    </div>
+                </div>
+                <div></div>
+            </div>
+
+            <!-- Create/Edit Modal -->
+            <div id="beamraymar-modal" class="beamraymar-modal">
+                <div class="beamraymar-modal-content">
+                    <div class="beamraymar-modal-header">
+                        <h2 class="beamraymar-modal-title" id="beamraymar-modal-title">Create New Post/Page</h2>
+                        <button class="beamraymar-modal-close" id="beamraymar-modal-close">&times;</button>
+                    </div>
+                    
+                    <form id="beamraymar-modal-form">
+                        <input type="hidden" id="modal-post-id" name="post_id">
+                        <input type="hidden" id="modal-action" name="action" value="create">
+                        
+                        <div class="beamraymar-form-grid">
+                            <div class="beamraymar-form-field">
+                                <label class="beamraymar-form-label">Post Type</label>
+                                <select id="modal-post-type" name="post_type" class="beamraymar-form-select">
+                                    <option value="post">Post</option>
+                                    <option value="page">Page</option>
+                                </select>
+                            </div>
+                            
+                            <div class="beamraymar-form-field">
+                                <label class="beamraymar-form-label">Status</label>
+                                <select id="modal-post-status" name="post_status" class="beamraymar-form-select">
+                                    <option value="draft">Draft</option>
+                                    <option value="publish">Published</option>
+                                    <option value="private">Private</option>
+                                </select>
+                            </div>
+                            
+                            <div class="beamraymar-form-field full-width">
+                                <label class="beamraymar-form-label">Title</label>
+                                <input type="text" id="modal-post-title" name="post_title" class="beamraymar-form-input">
+                            </div>
+                            
+                            <div class="beamraymar-form-field full-width">
+                                <label class="beamraymar-form-label">Content</label>
+                                <textarea id="modal-post-content" name="post_content" class="beamraymar-form-textarea"></textarea>
+                            </div>
+                            
+                            <div class="beamraymar-form-field">
+                                <label class="beamraymar-form-label">Slug</label>
+                                <input type="text" id="modal-post-name" name="post_name" class="beamraymar-form-input">
+                            </div>
+                            
+                            <div class="beamraymar-form-field">
+                                <label class="beamraymar-form-label">Parent ID</label>
+                                <input type="number" id="modal-post-parent" name="post_parent" class="beamraymar-form-input" value="0">
+                            </div>
+                        </div>
+                        
+                        <div class="beamraymar-modal-actions">
+                            <button type="button" class="beamraymar-modal-btn secondary" id="beamraymar-modal-cancel">Cancel</button>
+                            <button type="submit" class="beamraymar-modal-btn primary" id="beamraymar-modal-save">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                // Beamraymar JavaScript functionality
+                (function($) {
+                    'use strict';
+                    
+                    let currentPage = 1;
+                    let itemsPerPage = 100;
+                    let currentSearch = '';
+                    let allData = <?php echo json_encode($posts_pages); ?>;
+                    let filteredData = [...allData];
+                    let selectedRows = new Set();
+                    let editingCell = null;
+                    
+                    // Initialize page
+                    $(document).ready(function() {
+                        initializeEventHandlers();
+                        updateTable();
+                    });
+                    
+                    function initializeEventHandlers() {
+                        // Pagination controls
+                        $('.beamraymar-pagination-btn').on('click', function(e) {
+                            e.preventDefault();
+                            const $this = $(this);
+                            
+                            if ($this.data('per-page')) {
+                                // Per page selection
+                                const perPage = $this.data('per-page');
+                                itemsPerPage = perPage === 'all' ? filteredData.length : parseInt(perPage);
+                                currentPage = 1;
+                                
+                                $this.siblings('.beamraymar-pagination-btn').removeClass('active');
+                                $this.addClass('active');
+                                
+                                // Update both top and bottom bars
+                                $('[data-per-page="' + perPage + '"]').addClass('active').siblings().removeClass('active');
+                            } else if ($this.data('page')) {
+                                // Page navigation
+                                const pageAction = $this.data('page');
+                                const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                                
+                                switch(pageAction) {
+                                    case 'first':
+                                        currentPage = 1;
+                                        break;
+                                    case 'prev':
+                                        if (currentPage > 1) currentPage--;
+                                        break;
+                                    case 'next':
+                                        if (currentPage < totalPages) currentPage++;
+                                        break;
+                                    case 'last':
+                                        currentPage = totalPages;
+                                        break;
+                                    default:
+                                        if (!isNaN(pageAction)) {
+                                            currentPage = parseInt(pageAction);
+                                        }
+                                }
+                            }
+                            
+                            updateTable();
+                        });
+                        
+                        // Search functionality
+                        $('#beamraymar-search, #beamraymar-search-bottom').on('input', function() {
+                            currentSearch = $(this).val().toLowerCase();
+                            $('#beamraymar-search, #beamraymar-search-bottom').val(currentSearch);
+                            currentPage = 1;
+                            filterData();
+                            updateTable();
+                        });
+                        
+                        // Clear search
+                        $('#beamraymar-clear, #beamraymar-clear-bottom').on('click', function() {
+                            $('#beamraymar-search, #beamraymar-search-bottom').val('');
+                            currentSearch = '';
+                            filterData();
+                            updateTable();
+                        });
+                        
+                        // Create buttons
+                        $('#create-post-inline').on('click', function() {
+                            createNewInline('post');
+                        });
+                        
+                        $('#create-page-inline').on('click', function() {
+                            createNewInline('page');
+                        });
+                        
+                        $('#create-popup').on('click', function() {
+                            openModal('create');
+                        });
+                        
+                        // Select all checkbox
+                        $('#select-all').on('change', function() {
+                            const isChecked = $(this).is(':checked');
+                            $('.row-checkbox').prop('checked', isChecked);
+                            
+                            if (isChecked) {
+                                $('.row-checkbox').each(function() {
+                                    selectedRows.add(parseInt($(this).val()));
+                                });
+                            } else {
+                                selectedRows.clear();
+                            }
+                        });
+                        
+                        // Modal handlers
+                        $('#beamraymar-modal-close, #beamraymar-modal-cancel').on('click', function() {
+                            closeModal();
+                        });
+                        
+                        $('#beamraymar-modal').on('click', function(e) {
+                            if (e.target === this) {
+                                closeModal();
+                            }
+                        });
+                        
+                        $('#beamraymar-modal-form').on('submit', function(e) {
+                            e.preventDefault();
+                            saveModalData();
+                        });
+                        
+                        // Table column sorting
+                        $('.beamraymar-table th[data-field]').on('click', function() {
+                            const field = $(this).data('field');
+                            sortData(field);
+                            updateTable();
+                        });
+                    }
+                    
+                    function filterData() {
+                        if (!currentSearch) {
+                            filteredData = [...allData];
+                            return;
+                        }
+                        
+                        filteredData = allData.filter(item => {
+                            return Object.values(item).some(value => {
+                                if (value === null || value === undefined) return false;
+                                return value.toString().toLowerCase().includes(currentSearch);
+                            });
+                        });
+                    }
+                    
+                    function updateTable() {
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const endIndex = itemsPerPage === filteredData.length ? filteredData.length : startIndex + itemsPerPage;
+                        const pageData = filteredData.slice(startIndex, endIndex);
+                        
+                        // Update table rows
+                        renderTableRows(pageData);
+                        
+                        // Update info text
+                        const infoText = `${startIndex + 1}-${Math.min(endIndex, filteredData.length)} of ${filteredData.length} posts/pages`;
+                        $('#beamraymar-results-info, #beamraymar-results-info-bottom').text(infoText);
+                        
+                        // Update pagination buttons
+                        updatePaginationButtons();
+                        
+                        // Reattach event handlers for new rows
+                        attachRowEventHandlers();
+                    }
+                    
+                    function renderTableRows(data) {
+                        let html = '';
+                        
+                        data.forEach(item => {
+                            html += `<tr data-id="${item.ID}">
+                                <td class="beamraymar-checkbox-cell">
+                                    <input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}">
+                                </td>
+                                <td class="readonly-cell">${item.ID}</td>
+                                <td class="beamraymar-editable-cell" data-field="post_title" data-type="text">${item.post_title || ''}</td>
+                                <td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext">${truncateText(item.post_content || '', 100)}</td>
+                                <td class="readonly-cell">${item.post_type}</td>
+                                <td class="beamraymar-editable-cell" data-field="post_status" data-type="select">${item.post_status}</td>
+                                <td class="beamraymar-editable-cell" data-field="post_name" data-type="text">${item.post_name || ''}</td>
+                                <td class="readonly-cell">${formatDate(item.post_date)}</td>
+                                <td class="readonly-cell">${formatDate(item.post_modified)}</td>
+                                <td class="beamraymar-editable-cell" data-field="post_author" data-type="integer">${item.post_author}</td>
+                                <td class="beamraymar-editable-cell" data-field="post_parent" data-type="integer">${item.post_parent || '0'}</td>
+                                <td class="beamraymar-editable-cell" data-field="menu_order" data-type="integer">${item.menu_order || '0'}</td>
+                                <td class="beamraymar-editable-cell" data-field="comment_status" data-type="select">${item.comment_status}</td>
+                                <td class="beamraymar-editable-cell" data-field="ping_status" data-type="select">${item.ping_status}</td>
+                            </tr>`;
+                        });
+                        
+                        $('#beamraymar-tbody').html(html);
+                    }
+                    
+                    function attachRowEventHandlers() {
+                        // Row checkbox handling
+                        $('.row-checkbox').on('change', function() {
+                            const id = parseInt($(this).val());
+                            if ($(this).is(':checked')) {
+                                selectedRows.add(id);
+                            } else {
+                                selectedRows.delete(id);
+                            }
+                        });
+                        
+                        // Inline editing
+                        $('.beamraymar-editable-cell').on('click', function() {
+                            if (editingCell) return; // Don't start new edit if already editing
+                            
+                            const $cell = $(this);
+                            const field = $cell.data('field');
+                            const type = $cell.data('type');
+                            const currentValue = $cell.text().trim();
+                            const postId = $cell.closest('tr').data('id');
+                            
+                            startInlineEdit($cell, field, type, currentValue, postId);
+                        });
+                    }
+                    
+                    function startInlineEdit($cell, field, type, currentValue, postId) {
+                        editingCell = { $cell, field, type, postId, originalValue: currentValue };
+                        
+                        let input;
+                        if (type === 'longtext') {
+                            input = $(`<textarea class="beamraymar-editing-textarea">${currentValue}</textarea>`);
+                        } else if (type === 'select') {
+                            let options = '';
+                            if (field === 'post_status') {
+                                options = '<option value="draft">draft</option><option value="publish">publish</option><option value="private">private</option>';
+                            } else if (field === 'comment_status' || field === 'ping_status') {
+                                options = '<option value="open">open</option><option value="closed">closed</option>';
+                            }
+                            input = $(`<select class="beamraymar-editing-input">${options}</select>`);
+                            input.val(currentValue);
+                        } else {
+                            input = $(`<input type="text" class="beamraymar-editing-input" value="${currentValue}">`);
+                        }
+                        
+                        $cell.html(input);
+                        input.focus();
+                        
+                        // Handle save on blur or Enter key
+                        input.on('blur', function() {
+                            saveInlineEdit();
+                        });
+                        
+                        input.on('keydown', function(e) {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                saveInlineEdit();
+                            } else if (e.key === 'Escape') {
+                                cancelInlineEdit();
+                            }
+                        });
+                    }
+                    
+                    function saveInlineEdit() {
+                        if (!editingCell) return;
+                        
+                        const $input = editingCell.$cell.find('input, textarea, select');
+                        const newValue = $input.val();
+                        
+                        // Update UI immediately
+                        editingCell.$cell.text(newValue);
+                        
+                        // Update data
+                        const itemIndex = allData.findIndex(item => item.ID == editingCell.postId);
+                        if (itemIndex !== -1) {
+                            allData[itemIndex][editingCell.field] = newValue;
+                        }
+                        
+                        // Save to server
+                        saveFieldToServer(editingCell.postId, editingCell.field, newValue);
+                        
+                        editingCell = null;
+                    }
+                    
+                    function cancelInlineEdit() {
+                        if (!editingCell) return;
+                        
+                        editingCell.$cell.text(editingCell.originalValue);
+                        editingCell = null;
+                    }
+                    
+                    function saveFieldToServer(postId, field, value) {
+                        $.post(ajaxurl || window.location.href, {
+                            action: 'update_post_field',
+                            post_id: postId,
+                            field: field,
+                            value: value,
+                            nonce: '<?php echo wp_create_nonce('beamraymar_nonce'); ?>'
+                        }).fail(function() {
+                            alert('Failed to save changes. Please try again.');
+                        });
+                    }
+                    
+                    function createNewInline(postType) {
+                        const newPost = {
+                            post_type: postType,
+                            post_title: '',
+                            post_content: '',
+                            post_status: 'draft'
+                        };
+                        
+                        $.post(ajaxurl || window.location.href, {
+                            action: 'create_new_post',
+                            post_type: postType,
+                            nonce: '<?php echo wp_create_nonce('beamraymar_nonce'); ?>'
+                        }).done(function(response) {
+                            const data = JSON.parse(response);
+                            if (data.success) {
+                                // Add new post to beginning of data array
+                                allData.unshift(data.post);
+                                filterData();
+                                currentPage = 1;
+                                updateTable();
+                            } else {
+                                alert('Failed to create new ' + postType + '. Please try again.');
+                            }
+                        }).fail(function() {
+                            alert('Failed to create new ' + postType + '. Please try again.');
+                        });
+                    }
+                    
+                    function openModal(mode, postData = null) {
+                        if (mode === 'create') {
+                            $('#beamraymar-modal-title').text('Create New Post/Page');
+                            $('#modal-action').val('create');
+                            $('#beamraymar-modal-form')[0].reset();
+                        } else {
+                            $('#beamraymar-modal-title').text('Edit Post/Page');
+                            $('#modal-action').val('edit');
+                            // Populate form with post data
+                            Object.keys(postData).forEach(key => {
+                                $(`#modal-${key}`).val(postData[key]);
+                            });
+                        }
+                        
+                        $('#beamraymar-modal').addClass('active');
+                    }
+                    
+                    function closeModal() {
+                        $('#beamraymar-modal').removeClass('active');
+                    }
+                    
+                    function saveModalData() {
+                        const formData = new FormData($('#beamraymar-modal-form')[0]);
+                        formData.append('nonce', '<?php echo wp_create_nonce('beamraymar_nonce'); ?>');
+                        
+                        $.post(ajaxurl || window.location.href, formData, {
+                            processData: false,
+                            contentType: false
+                        }).done(function(response) {
+                            const data = JSON.parse(response);
+                            if (data.success) {
+                                closeModal();
+                                // Refresh data
+                                location.reload();
+                            } else {
+                                alert('Failed to save. Please try again.');
+                            }
+                        }).fail(function() {
+                            alert('Failed to save. Please try again.');
+                        });
+                    }
+                    
+                    function updatePaginationButtons() {
+                        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                        
+                        // Update page number buttons (simplified for demo)
+                        $('.beamraymar-pagination-btn[data-page]').each(function() {
+                            const $btn = $(this);
+                            const page = $btn.data('page');
+                            
+                            if (page === 'first' || page === 'prev') {
+                                $btn.toggleClass('disabled', currentPage <= 1);
+                            } else if (page === 'next' || page === 'last') {
+                                $btn.toggleClass('disabled', currentPage >= totalPages);
+                            } else if (!isNaN(page)) {
+                                $btn.removeClass('active');
+                                if (parseInt(page) === currentPage) {
+                                    $btn.addClass('active');
+                                }
+                            }
+                        });
+                    }
+                    
+                    function sortData(field) {
+                        // Simple sorting implementation
+                        filteredData.sort((a, b) => {
+                            const aVal = a[field] || '';
+                            const bVal = b[field] || '';
+                            return aVal.toString().localeCompare(bVal.toString());
+                        });
+                    }
+                    
+                    // Utility functions
+                    function truncateText(text, length) {
+                        if (!text) return '';
+                        return text.length > length ? text.substring(0, length) + '...' : text;
+                    }
+                    
+                    function formatDate(dateString) {
+                        if (!dateString) return '';
+                        return new Date(dateString).toLocaleString();
+                    }
+                    
+                })(jQuery);
+            </script>
+        </div>
+        <?php
+    }
+    
+    /**
+     * Get posts and pages data for beamraymar table
+     */
+    private function get_posts_and_pages_data() {
+        global $wpdb;
+        
+        $results = $wpdb->get_results(
+            "SELECT ID, post_title, post_content, post_type, post_status, post_name, 
+                    post_date, post_modified, post_author, post_parent, menu_order, 
+                    comment_status, ping_status 
+             FROM {$wpdb->posts} 
+             WHERE post_type IN ('post', 'page') 
+             AND post_status NOT IN ('trash', 'auto-draft') 
+             ORDER BY post_modified DESC",
+            ARRAY_A
+        );
+        
+        return $results ? $results : array();
+    }
+    
+    /**
+     * Render table rows for beamraymar table
+     */
+    private function render_beamraymar_table_rows($posts_pages) {
+        if (empty($posts_pages)) {
+            echo '<tr><td colspan="14" style="text-align: center; padding: 40px;">No posts or pages found.</td></tr>';
+            return;
+        }
+        
+        $count = 0;
+        foreach ($posts_pages as $item) {
+            if ($count >= 100) break; // Default pagination limit
+            
+            $content_preview = wp_trim_words($item['post_content'], 15, '...');
+            
+            echo '<tr data-id="' . esc_attr($item['ID']) . '">';
+            echo '<td class="beamraymar-checkbox-cell">';
+            echo '<input type="checkbox" class="beamraymar-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '">';
+            echo '</td>';
+            echo '<td class="readonly-cell">' . esc_html($item['ID']) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_title" data-type="text">' . esc_html($item['post_title']) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext">' . esc_html($content_preview) . '</td>';
+            echo '<td class="readonly-cell">' . esc_html($item['post_type']) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_status" data-type="select">' . esc_html($item['post_status']) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_name" data-type="text">' . esc_html($item['post_name']) . '</td>';
+            echo '<td class="readonly-cell">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</td>';
+            echo '<td class="readonly-cell">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_author" data-type="integer">' . esc_html($item['post_author']) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_parent" data-type="integer">' . esc_html($item['post_parent'] ?: '0') . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="menu_order" data-type="integer">' . esc_html($item['menu_order'] ?: '0') . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="comment_status" data-type="select">' . esc_html($item['comment_status']) . '</td>';
+            echo '<td class="beamraymar-editable-cell" data-field="ping_status" data-type="select">' . esc_html($item['ping_status']) . '</td>';
+            echo '</tr>';
+            
+            $count++;
+        }
+    }
+    
+    /**
+     * Handle AJAX requests for beamraymar page
+     */
+    private function handle_beamraymar_ajax() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $action = sanitize_text_field($_POST['action']);
+        
+        switch ($action) {
+            case 'create_new_post':
+                $this->ajax_create_new_post();
+                break;
+                
+            case 'update_post_field':
+                $this->ajax_update_post_field();
+                break;
+                
+            case 'create':
+            case 'edit':
+                $this->ajax_create_or_edit_post();
+                break;
+                
+            default:
+                wp_die('Invalid action');
+        }
+    }
+    
+    /**
+     * AJAX handler for creating new post inline
+     */
+    private function ajax_create_new_post() {
+        $post_type = sanitize_text_field($_POST['post_type']);
+        
+        if (!in_array($post_type, array('post', 'page'))) {
+            echo json_encode(array('success' => false, 'message' => 'Invalid post type'));
+            wp_die();
+        }
+        
+        $post_data = array(
+            'post_type' => $post_type,
+            'post_title' => '',
+            'post_content' => '',
+            'post_status' => 'draft',
+            'post_author' => get_current_user_id()
+        );
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (is_wp_error($post_id)) {
+            echo json_encode(array('success' => false, 'message' => $post_id->get_error_message()));
+            wp_die();
+        }
+        
+        // Get the created post data
+        $post = get_post($post_id, ARRAY_A);
+        $response_data = array(
+            'ID' => $post['ID'],
+            'post_title' => $post['post_title'],
+            'post_content' => $post['post_content'],
+            'post_type' => $post['post_type'],
+            'post_status' => $post['post_status'],
+            'post_name' => $post['post_name'],
+            'post_date' => $post['post_date'],
+            'post_modified' => $post['post_modified'],
+            'post_author' => $post['post_author'],
+            'post_parent' => $post['post_parent'],
+            'menu_order' => $post['menu_order'],
+            'comment_status' => $post['comment_status'],
+            'ping_status' => $post['ping_status']
+        );
+        
+        echo json_encode(array('success' => true, 'post' => $response_data));
+        wp_die();
+    }
+    
+    /**
+     * AJAX handler for updating post field inline
+     */
+    private function ajax_update_post_field() {
+        $post_id = intval($_POST['post_id']);
+        $field = sanitize_text_field($_POST['field']);
+        $value = $_POST['value']; // Don't sanitize yet, depends on field type
+        
+        // Validate post exists
+        if (!get_post($post_id)) {
+            echo json_encode(array('success' => false, 'message' => 'Post not found'));
+            wp_die();
+        }
+        
+        // Sanitize value based on field type
+        switch ($field) {
+            case 'post_title':
+            case 'post_name':
+                $value = sanitize_text_field($value);
+                break;
+            case 'post_content':
+                $value = wp_kses_post($value);
+                break;
+            case 'post_status':
+                $value = in_array($value, array('draft', 'publish', 'private')) ? $value : 'draft';
+                break;
+            case 'comment_status':
+            case 'ping_status':
+                $value = in_array($value, array('open', 'closed')) ? $value : 'closed';
+                break;
+            case 'post_author':
+            case 'post_parent':
+            case 'menu_order':
+                $value = intval($value);
+                break;
+            default:
+                echo json_encode(array('success' => false, 'message' => 'Invalid field'));
+                wp_die();
+        }
+        
+        $update_data = array(
+            'ID' => $post_id,
+            $field => $value
+        );
+        
+        $result = wp_update_post($update_data);
+        
+        if (is_wp_error($result)) {
+            echo json_encode(array('success' => false, 'message' => $result->get_error_message()));
+            wp_die();
+        }
+        
+        echo json_encode(array('success' => true));
+        wp_die();
+    }
+    
+    /**
+     * AJAX handler for create/edit post via modal
+     */
+    private function ajax_create_or_edit_post() {
+        $action = sanitize_text_field($_POST['action']);
+        $post_data = array(
+            'post_type' => sanitize_text_field($_POST['post_type']),
+            'post_title' => sanitize_text_field($_POST['post_title']),
+            'post_content' => wp_kses_post($_POST['post_content']),
+            'post_status' => sanitize_text_field($_POST['post_status']),
+            'post_name' => sanitize_title($_POST['post_name']),
+            'post_parent' => intval($_POST['post_parent'])
+        );
+        
+        if ($action === 'edit') {
+            $post_data['ID'] = intval($_POST['post_id']);
+            $result = wp_update_post($post_data);
+        } else {
+            $post_data['post_author'] = get_current_user_id();
+            $result = wp_insert_post($post_data);
+        }
+        
+        if (is_wp_error($result)) {
+            echo json_encode(array('success' => false, 'message' => $result->get_error_message()));
+            wp_die();
+        }
+        
+        echo json_encode(array('success' => true, 'post_id' => $result));
+        wp_die();
     }
 } 
