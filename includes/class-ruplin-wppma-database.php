@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.1.0';
+    const DB_VERSION = '1.2.0';
     
     /**
      * Option name for storing database version
@@ -64,10 +64,12 @@ class Ruplin_WP_Database_Horse_Class {
             $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
             $orbitposts_sql = "CREATE TABLE $orbitposts_table (
                 orbitpost_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                rel_wp_post_id BIGINT(20) UNSIGNED,
                 redshift_datum TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (orbitpost_id)
+                PRIMARY KEY (orbitpost_id),
+                KEY rel_wp_post_id (rel_wp_post_id)
             ) $charset_collate;";
             
             // Use dbDelta to create/update tables

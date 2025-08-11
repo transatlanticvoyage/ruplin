@@ -25,6 +25,7 @@ class Snefuru_Orbit_Mar_Admin {
         add_action('wp_ajax_orbit_mar_save_row', array($this, 'ajax_save_row'));
         add_action('wp_ajax_orbit_mar_create_row', array($this, 'ajax_create_row'));
         add_action('wp_ajax_orbit_mar_delete_rows', array($this, 'ajax_delete_rows'));
+        add_action('wp_ajax_orbit_mar_operation201', array($this, 'ajax_operation201'));
     }
     
     /**
@@ -77,7 +78,17 @@ class Snefuru_Orbit_Mar_Admin {
     public function render_admin_page() {
         ?>
         <div class="wrap orbit-mar-admin">
-            <h1>Orbit Mar - Database Management</h1>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <h1 style="margin: 0;">Orbit Mar - Database Management</h1>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="operation201-btn" class="button" style="background: maroon; color: white; font-weight: bold; font-size: 16px; padding: 12px 20px; border: none; cursor: pointer;">
+                        operation201 - populate _orbitposts db table for any missing wp_posts
+                    </button>
+                    <button id="copy-operation201-btn" class="button" style="background: #666; color: white; padding: 12px 15px; border: none; cursor: pointer;" title="Copy button text">
+                        📋
+                    </button>
+                </div>
+            </div>
             
             <!-- Nubra Tableface Kite -->
             <div class="nubra-tableface-kite">
@@ -139,6 +150,7 @@ class Snefuru_Orbit_Mar_Admin {
                                 </div>
                             </th>
                             <th>orbitpost_id</th>
+                            <th>rel_wp_post_id</th>
                             <th>redshift_datum</th>
                             <th>created_at</th>
                             <th>updated_at</th>
@@ -282,8 +294,9 @@ class Snefuru_Orbit_Mar_Admin {
             wp_send_json_error('Invalid parameters');
         }
         
-        // Only allow editing of redshift_datum field
-        if ($field !== 'redshift_datum') {
+        // Only allow editing of specific fields
+        $allowed_fields = array('redshift_datum', 'rel_wp_post_id');
+        if (!in_array($field, $allowed_fields)) {
             wp_send_json_error('Field not editable');
         }
         
@@ -315,10 +328,16 @@ class Snefuru_Orbit_Mar_Admin {
         global $wpdb;
         
         $redshift_datum = isset($_POST['redshift_datum']) ? wp_unslash($_POST['redshift_datum']) : '';
+        $rel_wp_post_id = isset($_POST['rel_wp_post_id']) ? intval($_POST['rel_wp_post_id']) : null;
+        
+        $insert_data = array('redshift_datum' => $redshift_datum);
+        if ($rel_wp_post_id) {
+            $insert_data['rel_wp_post_id'] = $rel_wp_post_id;
+        }
         
         $result = $wpdb->insert(
             $this->table_name,
-            array('redshift_datum' => $redshift_datum)
+            $insert_data
         );
         
         if ($result === false) {
@@ -363,6 +382,71 @@ class Snefuru_Orbit_Mar_Admin {
         }
         
         wp_send_json_success(array('deleted' => $result));
+    }
+    
+    /**
+     * AJAX handler for operation201 - populate orbitposts for missing wp_posts
+     */
+    public function ajax_operation201() {
+        check_ajax_referer('orbit_mar_nonce', 'nonce');
+        
+        global $wpdb;
+        
+        try {
+            // Get all published posts and pages that don't already have an orbitpost record
+            $query = "
+                SELECT p.ID, p.post_title, p.post_type, p.post_status
+                FROM {$wpdb->posts} p
+                LEFT JOIN {$this->table_name} o ON p.ID = o.rel_wp_post_id
+                WHERE p.post_status = 'publish'
+                AND p.post_type IN ('post', 'page')
+                AND o.rel_wp_post_id IS NULL
+                ORDER BY p.ID ASC
+            ";
+            
+            $missing_posts = $wpdb->get_results($query);
+            
+            if (empty($missing_posts)) {
+                wp_send_json_success(array(
+                    'message' => 'No missing posts found. All published posts and pages already have orbitpost records.',
+                    'created' => 0
+                ));
+            }
+            
+            $created_count = 0;
+            $errors = array();
+            
+            foreach ($missing_posts as $post) {
+                $result = $wpdb->insert(
+                    $this->table_name,
+                    array(
+                        'rel_wp_post_id' => $post->ID,
+                        'redshift_datum' => "Auto-created for {$post->post_type}: {$post->post_title}"
+                    )
+                );
+                
+                if ($result !== false) {
+                    $created_count++;
+                } else {
+                    $errors[] = "Failed to create orbitpost for {$post->post_type} ID {$post->ID}: {$post->post_title}";
+                }
+            }
+            
+            $message = "Operation201 completed successfully. Created {$created_count} orbitpost records for missing wp_posts.";
+            if (!empty($errors)) {
+                $message .= " Errors: " . implode('; ', $errors);
+            }
+            
+            wp_send_json_success(array(
+                'message' => $message,
+                'created' => $created_count,
+                'total_processed' => count($missing_posts),
+                'errors' => $errors
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error('Operation201 failed: ' . $e->getMessage());
+        }
     }
 }
 

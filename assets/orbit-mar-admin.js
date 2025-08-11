@@ -65,7 +65,7 @@
         
         if (data.length === 0) {
             $tbody.append(
-                '<tr><td colspan="5" class="orbit-empty-state">' +
+                '<tr><td colspan="6" class="orbit-empty-state">' +
                 '<h3>No records found</h3>' +
                 '<p>Create a new record to get started.</p>' +
                 '</td></tr>'
@@ -87,6 +87,13 @@
             
             // ID cell (not editable)
             $tr.append('<td>' + row.orbitpost_id + '</td>');
+            
+            // rel_wp_post_id cell (editable)
+            $tr.append(
+                '<td class="editable" data-field="rel_wp_post_id">' +
+                (row.rel_wp_post_id || '') +
+                '</td>'
+            );
             
             // Redshift datum cell (editable)
             $tr.append(
@@ -215,6 +222,16 @@
             deleteSelectedRows();
         });
         
+        // Operation201 button
+        $('#operation201-btn').on('click', function() {
+            executeOperation201();
+        });
+        
+        // Copy operation201 button text
+        $('#copy-operation201-btn').on('click', function() {
+            copyOperation201Text();
+        });
+        
         // Modal controls
         $('.orbit-modal-close, #orbit-popup-cancel').on('click', function() {
             closePopupModal();
@@ -325,6 +342,11 @@
                     );
                     
                     $tr.append('<td>' + row.orbitpost_id + '</td>');
+                    $tr.append(
+                        '<td class="editable" data-field="rel_wp_post_id">' +
+                        (row.rel_wp_post_id || '') +
+                        '</td>'
+                    );
                     $tr.append(
                         '<td class="editable" data-field="redshift_datum">' +
                         escapeHtml(row.redshift_datum || '') +
@@ -550,6 +572,91 @@
                 func.apply(context, args);
             }, wait);
         };
+    }
+    
+    // Execute Operation201
+    function executeOperation201() {
+        if (!confirm('Are you sure you want to run Operation201?\n\nThis will create orbitpost records for all published WordPress posts and pages that don\'t already have one.')) {
+            return;
+        }
+        
+        var $button = $('#operation201-btn');
+        var originalText = $button.text();
+        $button.prop('disabled', true).text('Running Operation201...');
+        
+        $.ajax({
+            url: orbitMarAjax.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'orbit_mar_operation201',
+                nonce: orbitMarAjax.nonce
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('Operation201 Results:\n\n' + response.data.message);
+                    // Refresh the table to show new records
+                    loadTableData();
+                } else {
+                    alert('Operation201 failed: ' + response.data);
+                }
+            },
+            error: function() {
+                alert('Error executing Operation201');
+            },
+            complete: function() {
+                $button.prop('disabled', false).text(originalText);
+            }
+        });
+    }
+    
+    // Copy Operation201 text to clipboard
+    function copyOperation201Text() {
+        var text = 'operation201 - populate _orbitposts db table for any missing wp_posts';
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Visual feedback
+                var $button = $('#copy-operation201-btn');
+                var originalText = $button.text();
+                $button.text('✓').css('background', 'green');
+                
+                setTimeout(function() {
+                    $button.text(originalText).css('background', '#666');
+                }, 1000);
+            }).catch(function() {
+                fallbackCopyText(text);
+            });
+        } else {
+            fallbackCopyText(text);
+        }
+    }
+    
+    // Fallback copy method for older browsers
+    function fallbackCopyText(text) {
+        var textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            // Visual feedback
+            var $button = $('#copy-operation201-btn');
+            var originalText = $button.text();
+            $button.text('✓').css('background', 'green');
+            
+            setTimeout(function() {
+                $button.text(originalText).css('background', '#666');
+            }, 1000);
+        } catch (err) {
+            alert('Copy failed. Please manually copy: ' + text);
+        }
+        
+        document.body.removeChild(textArea);
     }
     
 })(jQuery);
