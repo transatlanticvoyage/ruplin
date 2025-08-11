@@ -26,6 +26,7 @@ class Snefuru_Orbit_Mar_Admin {
         add_action('wp_ajax_orbit_mar_create_row', array($this, 'ajax_create_row'));
         add_action('wp_ajax_orbit_mar_delete_rows', array($this, 'ajax_delete_rows'));
         add_action('wp_ajax_orbit_mar_operation201', array($this, 'ajax_operation201'));
+        add_action('wp_ajax_orbit_mar_debug', array($this, 'ajax_debug'));
     }
     
     /**
@@ -81,11 +82,17 @@ class Snefuru_Orbit_Mar_Admin {
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                 <h1 style="margin: 0;">Orbit Mar - Database Management</h1>
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="operation201-btn" class="button" style="background: maroon; color: white; font-weight: bold; font-size: 16px; padding: 12px 20px; border: none; cursor: pointer;">
+                    <button id="operation201-btn" class="button" style="background: maroon; color: white; font-weight: bold; font-size: 16px; padding: 12px 20px; border: none; cursor: pointer;" onclick="testOperation201();">
                         operation201 - populate _orbitposts db table for any missing wp_posts
                     </button>
                     <button id="copy-operation201-btn" class="button" style="background: #666; color: white; padding: 12px 15px; border: none; cursor: pointer;" title="Copy button text">
                         📋
+                    </button>
+                    <button id="test-btn" class="button" style="background: blue; color: white; padding: 8px 12px;" onclick="alert('Test button works!');">
+                        TEST
+                    </button>
+                    <button id="debug-btn" class="button" style="background: orange; color: white; padding: 8px 12px;" onclick="debugDatabase();">
+                        DEBUG DB
                     </button>
                 </div>
             </div>
@@ -231,6 +238,91 @@ class Snefuru_Orbit_Mar_Admin {
                 </div>
             </div>
         </div>
+        
+        <script type="text/javascript">
+        // Global function for direct onclick access
+        function testOperation201() {
+            console.log('testOperation201 called directly');
+            
+            if (!confirm('Are you sure you want to run Operation201?\\n\\nThis will create orbitpost records for ALL WordPress posts and pages (including drafts) that don\\'t already have one.')) {
+                return;
+            }
+            
+            var button = document.getElementById('operation201-btn');
+            var originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Running Operation201...';
+            
+            // Use fetch API as backup
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'orbit_mar_operation201',
+                    nonce: '<?php echo wp_create_nonce('orbit_mar_nonce'); ?>'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Operation201 response:', data);
+                if (data.success) {
+                    alert('Operation201 Results:\\n\\n' + data.data.message);
+                    // Reload the page to refresh table
+                    location.reload();
+                } else {
+                    alert('Operation201 failed: ' + (data.data || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error executing Operation201: ' + error);
+            })
+            .finally(() => {
+                button.disabled = false;
+                button.textContent = originalText;
+            });
+        }
+        
+        // Debug database function
+        function debugDatabase() {
+            console.log('debugDatabase called');
+            
+            fetch(ajaxurl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    action: 'orbit_mar_debug',
+                    nonce: '<?php echo wp_create_nonce('orbit_mar_nonce'); ?>'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Debug response:', data);
+                if (data.success) {
+                    var info = data.data;
+                    var message = 'DATABASE DEBUG INFO:\\n\\n';
+                    message += 'Table Name: ' + info.table_name + '\\n';
+                    message += 'Table Exists: ' + (info.table_exists ? 'YES' : 'NO') + '\\n';
+                    if (info.table_exists) {
+                        message += 'Row Count: ' + info.row_count + '\\n';
+                        message += 'Columns: ' + info.columns.length + '\\n';
+                    }
+                    message += 'WordPress Posts Count: ' + info.wp_posts_count + '\\n';
+                    alert(message);
+                } else {
+                    alert('Debug failed: ' + data.data);
+                }
+            })
+            .catch(error => {
+                console.error('Debug error:', error);
+                alert('Debug error: ' + error);
+            });
+        }
+        </script>
         <?php
     }
     
@@ -452,6 +544,42 @@ class Snefuru_Orbit_Mar_Admin {
         } catch (Exception $e) {
             wp_send_json_error('Operation201 failed: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Debug function to check database status
+     */
+    public function ajax_debug() {
+        check_ajax_referer('orbit_mar_nonce', 'nonce');
+        
+        global $wpdb;
+        
+        $debug_info = array();
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$this->table_name}'") == $this->table_name;
+        $debug_info['table_exists'] = $table_exists;
+        $debug_info['table_name'] = $this->table_name;
+        
+        if ($table_exists) {
+            // Get table structure
+            $columns = $wpdb->get_results("DESCRIBE {$this->table_name}");
+            $debug_info['columns'] = $columns;
+            
+            // Get row count
+            $row_count = $wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}");
+            $debug_info['row_count'] = $row_count;
+            
+            // Get sample rows
+            $sample_rows = $wpdb->get_results("SELECT * FROM {$this->table_name} LIMIT 5");
+            $debug_info['sample_rows'] = $sample_rows;
+        }
+        
+        // Get WordPress posts count
+        $wp_posts_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type IN ('post', 'page') AND post_status NOT IN ('trash', 'auto-draft')");
+        $debug_info['wp_posts_count'] = $wp_posts_count;
+        
+        wp_send_json_success($debug_info);
     }
 }
 

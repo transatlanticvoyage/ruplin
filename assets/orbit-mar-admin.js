@@ -15,6 +15,8 @@
     
     // Initialize on document ready
     $(document).ready(function() {
+        console.log('Orbit Mar Admin JS loaded successfully');
+        console.log('orbitMarAjax object:', orbitMarAjax);
         initializeOrbitMar();
     });
     
