@@ -3392,6 +3392,11 @@ class Snefuru_Admin {
                             <strong>Current Site:</strong> <?php echo esc_html($current_site_url); ?>
                         </div>
                         <div>
+                            <a href="<?php echo admin_url('admin.php?page=rup_sitespren_export'); ?>" 
+                               class="button button-secondary" 
+                               style="background: #0073aa; color: white; border-color: #0073aa; margin-right: 10px;">
+                                export at rup_sitespren_mar
+                            </a>
                             <button id="save-all-btn" class="button button-primary">Save All Changes</button>
                             <button id="reset-btn" class="button button-secondary">Reset to Defaults</button>
                         </div>
@@ -5382,6 +5387,7 @@ class Snefuru_Admin {
             $generated_files = array();
             $upload_dir = wp_upload_dir();
             $export_dir = $upload_dir['basedir'] . '/sitespren_exports';
+            $export_url = $upload_dir['baseurl'] . '/sitespren_exports';
             
             // Create export directory if it doesn't exist
             if (!is_dir($export_dir)) {
@@ -5391,6 +5397,7 @@ class Snefuru_Admin {
             foreach ($formats as $format) {
                 $filename = 'sitespren_' . $wppma_id . '_' . date('Y-m-d_H-i-s') . '.' . $format;
                 $filepath = $export_dir . '/' . $filename;
+                $fileurl = $export_url . '/' . $filename;
                 
                 switch ($format) {
                     case 'csv':
@@ -5411,7 +5418,11 @@ class Snefuru_Admin {
                 }
                 
                 if (file_exists($filepath)) {
-                    $generated_files[] = $filename;
+                    $generated_files[] = array(
+                        'filename' => $filename,
+                        'url' => $fileurl,
+                        'format' => $format
+                    );
                 }
             }
             
@@ -5421,8 +5432,7 @@ class Snefuru_Admin {
             
             wp_send_json_success(array(
                 'message' => 'Export completed successfully',
-                'files' => $generated_files,
-                'download_url' => $upload_dir['baseurl'] . '/sitespren_exports/'
+                'files' => $generated_files
             ));
             
         } catch (Exception $e) {
@@ -5868,7 +5878,59 @@ class Snefuru_Admin {
                     },
                     success: function(response) {
                         if (response.success) {
-                            alert('Export completed successfully!\\n\\nGenerated files:\\n' + response.data.files.join('\\n'));
+                            // Function to download a file using fetch for better reliability
+                            function downloadFileWithFetch(fileInfo, index) {
+                                setTimeout(function() {
+                                    // Try fetch first for better cross-browser support
+                                    fetch(fileInfo.url)
+                                        .then(function(response) {
+                                            return response.blob();
+                                        })
+                                        .then(function(blob) {
+                                            // Create blob URL and download
+                                            var blobUrl = window.URL.createObjectURL(blob);
+                                            var link = document.createElement('a');
+                                            link.href = blobUrl;
+                                            link.download = fileInfo.filename;
+                                            link.style.display = 'none';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            
+                                            // Clean up blob URL
+                                            setTimeout(function() {
+                                                window.URL.revokeObjectURL(blobUrl);
+                                            }, 100);
+                                        })
+                                        .catch(function(error) {
+                                            console.error('Fetch download failed:', error);
+                                            // Fallback to direct link method
+                                            var link = document.createElement('a');
+                                            link.href = fileInfo.url;
+                                            link.download = fileInfo.filename;
+                                            link.target = '_blank';
+                                            link.style.display = 'none';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                        });
+                                }, index * 700); // Stagger downloads by 700ms to avoid browser blocking
+                            }
+                            
+                            // Download each file
+                            response.data.files.forEach(function(file, index) {
+                                downloadFileWithFetch(file, index);
+                            });
+                            
+                            // Show success message
+                            var fileList = response.data.files.map(function(f) { 
+                                return '• ' + f.filename; 
+                            }).join('\\n');
+                            
+                            // Delay alert to ensure downloads start
+                            setTimeout(function() {
+                                alert('✅ Export completed!\\n\\nFiles are downloading:\\n' + fileList + '\\n\\nCheck your Downloads folder.');
+                            }, 100);
                         } else {
                             alert('Export failed: ' + response.data);
                         }
