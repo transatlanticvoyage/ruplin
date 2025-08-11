@@ -77,6 +77,10 @@ class Snefuru_Orbit_Mar_Admin {
      * Render the admin page
      */
     public function render_admin_page() {
+        // Handle direct operation201 form submission
+        if (isset($_POST['run_operation201_direct']) && wp_verify_nonce($_POST['direct_nonce'], 'orbit_mar_direct_nonce')) {
+            $this->run_operation201_direct();
+        }
         ?>
         <div class="wrap orbit-mar-admin">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
@@ -94,12 +98,35 @@ class Snefuru_Orbit_Mar_Admin {
                     <button id="debug-btn" class="button" style="background: orange; color: white; padding: 8px 12px;" onclick="debugDatabase();">
                         DEBUG DB
                     </button>
+                    <form method="post" style="display: inline;">
+                        <input type="hidden" name="run_operation201_direct" value="1">
+                        <?php wp_nonce_field('orbit_mar_direct_nonce', 'direct_nonce'); ?>
+                        <button type="submit" class="button" style="background: green; color: white; padding: 8px 12px;">
+                            DIRECT OP201
+                        </button>
+                    </form>
                 </div>
             </div>
             
             <!-- Nubra Tableface Kite -->
             <div class="nubra-tableface-kite">
                 <span style="font-weight: bold; color: #666; font-size: 12px;">NUBRA-TABLEFACE-KITE: Orbit Posts Grid Interface v1.0</span>
+            </div>
+            
+            <!-- Debug Info Panel -->
+            <?php
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'zen_orbitposts';
+            $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") == $table_name;
+            $row_count = $table_exists ? $wpdb->get_var("SELECT COUNT(*) FROM $table_name") : 0;
+            $wp_posts_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type IN ('post', 'page') AND post_status NOT IN ('trash', 'auto-draft')");
+            ?>
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px 0; border-radius: 5px;">
+                <strong>🔍 Debug Info:</strong>
+                Table: <?php echo $table_name; ?> | 
+                Exists: <?php echo $table_exists ? '✅ YES' : '❌ NO'; ?> | 
+                Rows: <?php echo $row_count; ?> | 
+                WP Posts: <?php echo $wp_posts_count; ?>
             </div>
             
             <!-- Top Controls Section -->
@@ -240,9 +267,14 @@ class Snefuru_Orbit_Mar_Admin {
         </div>
         
         <script type="text/javascript">
+        // Define ajaxurl for WordPress admin
+        var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+        console.log('ajaxurl defined as:', ajaxurl);
+        
         // Global function for direct onclick access
         function testOperation201() {
             console.log('testOperation201 called directly');
+            alert('testOperation201 function called - checking AJAX...');
             
             if (!confirm('Are you sure you want to run Operation201?\\n\\nThis will create orbitpost records for ALL WordPress posts and pages (including drafts) that don\\'t already have one.')) {
                 return;
@@ -252,6 +284,8 @@ class Snefuru_Orbit_Mar_Admin {
             var originalText = button.textContent;
             button.disabled = true;
             button.textContent = 'Running Operation201...';
+            
+            console.log('About to make fetch request to:', ajaxurl);
             
             // Use fetch API as backup
             fetch(ajaxurl, {
@@ -288,6 +322,9 @@ class Snefuru_Orbit_Mar_Admin {
         // Debug database function
         function debugDatabase() {
             console.log('debugDatabase called');
+            alert('debugDatabase function called - checking AJAX...');
+            
+            console.log('About to make debug fetch request to:', ajaxurl);
             
             fetch(ajaxurl, {
                 method: 'POST',
@@ -580,6 +617,75 @@ class Snefuru_Orbit_Mar_Admin {
         $debug_info['wp_posts_count'] = $wp_posts_count;
         
         wp_send_json_success($debug_info);
+    }
+    
+    /**
+     * Direct operation201 without AJAX
+     */
+    private function run_operation201_direct() {
+        global $wpdb;
+        
+        try {
+            echo '<div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; margin: 10px 0; border-radius: 5px;">';
+            echo '<strong>🚀 Running Operation201 Directly...</strong><br><br>';
+            
+            // Get ALL posts and pages that don't already have an orbitpost record
+            $query = "
+                SELECT p.ID, p.post_title, p.post_type, p.post_status
+                FROM {$wpdb->posts} p
+                LEFT JOIN {$this->table_name} o ON p.ID = o.rel_wp_post_id
+                WHERE p.post_type IN ('post', 'page')
+                AND p.post_status NOT IN ('trash', 'auto-draft')
+                AND o.rel_wp_post_id IS NULL
+                ORDER BY p.ID ASC
+            ";
+            
+            $missing_posts = $wpdb->get_results($query);
+            echo "Found " . count($missing_posts) . " missing posts to process.<br><br>";
+            
+            if (empty($missing_posts)) {
+                echo '✅ No missing posts found. All posts and pages already have orbitpost records.';
+            } else {
+                $created_count = 0;
+                $errors = array();
+                
+                foreach ($missing_posts as $post) {
+                    $result = $wpdb->insert(
+                        $this->table_name,
+                        array(
+                            'rel_wp_post_id' => $post->ID,
+                            'redshift_datum' => "Auto-created for {$post->post_type}: {$post->post_title}"
+                        )
+                    );
+                    
+                    if ($result !== false) {
+                        $created_count++;
+                        echo "✅ Created orbitpost for {$post->post_type} ID {$post->ID}: {$post->post_title}<br>";
+                    } else {
+                        $errors[] = "Failed to create orbitpost for {$post->post_type} ID {$post->ID}: {$post->post_title}";
+                        echo "❌ Failed to create orbitpost for {$post->post_type} ID {$post->ID}<br>";
+                    }
+                }
+                
+                echo "<br><strong>📊 Results:</strong><br>";
+                echo "Created: {$created_count} records<br>";
+                echo "Errors: " . count($errors) . "<br>";
+                
+                if (!empty($errors)) {
+                    echo "<br><strong>Error details:</strong><br>";
+                    foreach ($errors as $error) {
+                        echo "• {$error}<br>";
+                    }
+                }
+            }
+            
+            echo '</div>';
+            
+        } catch (Exception $e) {
+            echo '<div style="background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; margin: 10px 0; border-radius: 5px;">';
+            echo '<strong>❌ Operation201 Direct Failed:</strong> ' . $e->getMessage();
+            echo '</div>';
+        }
     }
 }
 
