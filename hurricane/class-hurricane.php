@@ -426,7 +426,20 @@ class Snefuru_Hurricane {
                         📋
                     </button>
                 </div>
+                
+                <!-- Minimize/Expand Button -->
+                <div style="margin-left: 15px; border: 1px solid rgba(255,255,255,0.3); border-radius: 4px; background: rgba(0,0,0,0.1); display: inline-flex; align-items: center; justify-content: center;">
+                    <button type="button" 
+                            id="stellar-minimize-btn"
+                            style="background: transparent; color: white; border: none; padding: 8px 10px; cursor: pointer; font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;"
+                            title="Minimize/Expand Stellar Chamber">
+                        <span id="stellar-minimize-arrow" style="display: inline-block; transition: transform 0.3s ease;">▼</span>
+                    </button>
+                </div>
             </div>
+            
+            <!-- Collapsible Content Container -->
+            <div id="stellar-collapsible-content" style="transition: all 0.3s ease;">
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
                     <button type="button" class="snefuru-stellar-tab-button active" data-tab="elicitor">
@@ -1086,6 +1099,12 @@ class Snefuru_Hurricane {
                                     <a href="<?php echo admin_url('admin.php?page=rup_orbit_mar'); ?>" 
                                        style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
                                         rup_orbit_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_sitespren_export'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #4CAF50; border-radius: 4px; text-decoration: none; color: #fff; transition: background 0.2s;">
+                                        📊 Sitespren Export
                                     </a>
                                 </li>
                             </ul>
@@ -1833,12 +1852,33 @@ In the following text content I paste below, you will be seeing the following:
                 </div>
             </div>
         </div>
+        </div> <!-- End of stellar-collapsible-content -->
         
         <!-- Hidden nonce field for AJAX security -->
         <input type="hidden" id="hurricane-nonce" value="<?php echo wp_create_nonce('hurricane_nonce'); ?>" />
         
         <script type="text/javascript">
         jQuery(document).ready(function($) {
+            // Minimize/Expand Stellar Chamber functionality
+            var isStellarMinimized = false;
+            
+            $('#stellar-minimize-btn').on('click', function() {
+                var $content = $('#stellar-collapsible-content');
+                var $arrow = $('#stellar-minimize-arrow');
+                
+                if (isStellarMinimized) {
+                    // Expand
+                    $content.slideDown(300);
+                    $arrow.css('transform', 'rotate(0deg)');
+                    isStellarMinimized = false;
+                } else {
+                    // Minimize
+                    $content.slideUp(300);
+                    $arrow.css('transform', 'rotate(-90deg)');
+                    isStellarMinimized = true;
+                }
+            });
+            
             // Stellar Chamber Pantheon Table functionality
             var stellarSelectedCount = 0;
             

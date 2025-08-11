@@ -40,6 +40,9 @@ class Zen_Shortcodes {
         // Utility shortcodes
         add_shortcode('zen_pinned_services', array($this, 'render_pinned_services'));
         add_shortcode('zen_pinned_locations', array($this, 'render_pinned_locations'));
+        
+        // Sitespren shortcode
+        add_shortcode('sitespren', array($this, 'render_sitespren'));
     }
     
     /**
@@ -485,5 +488,106 @@ class Zen_Shortcodes {
         if ($location->country && $location->country !== 'US') $address_parts[] = $location->country;
         
         return implode(', ', $address_parts);
+    }
+    
+    /**
+     * Render sitespren data
+     * Usage: [sitespren wppma_id="1" field="driggs_phone_1"]
+     */
+    public function render_sitespren($atts) {
+        global $wpdb;
+        
+        $atts = shortcode_atts(array(
+            'wppma_id' => '',
+            'field' => '',
+            'default' => '', // Default value if field is empty
+            'format' => '', // Optional formatting (e.g., 'phone', 'currency', 'date')
+            'class' => ''
+        ), $atts, 'sitespren');
+        
+        // Validate required parameters
+        if (empty($atts['wppma_id'])) {
+            return '<span class="sitespren-error">Sitespren wppma_id is required.</span>';
+        }
+        
+        if (empty($atts['field'])) {
+            return '<span class="sitespren-error">Sitespren field is required.</span>';
+        }
+        
+        // Get the sitespren record
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        $sitespren = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE wppma_id = %d",
+            intval($atts['wppma_id'])
+        ));
+        
+        if (!$sitespren) {
+            return !empty($atts['default']) ? esc_html($atts['default']) : '<span class="sitespren-not-found">Sitespren record not found.</span>';
+        }
+        
+        // Check if field exists
+        if (!property_exists($sitespren, $atts['field'])) {
+            return !empty($atts['default']) ? esc_html($atts['default']) : '<span class="sitespren-no-field">Field not found.</span>';
+        }
+        
+        // Get the field value
+        $value = $sitespren->{$atts['field']};
+        
+        // Return default if value is empty
+        if (empty($value) && !empty($atts['default'])) {
+            $value = $atts['default'];
+        }
+        
+        // Apply formatting if specified
+        if (!empty($atts['format'])) {
+            $value = $this->format_sitespren_value($value, $atts['format']);
+        }
+        
+        // Return the formatted value
+        $class = !empty($atts['class']) ? ' class="' . esc_attr($atts['class']) . '"' : '';
+        return '<span' . $class . '>' . esc_html($value) . '</span>';
+    }
+    
+    /**
+     * Format sitespren value based on type
+     */
+    private function format_sitespren_value($value, $format) {
+        switch ($format) {
+            case 'phone':
+                // Format phone number (assuming US format)
+                $cleaned = preg_replace('/[^0-9]/', '', $value);
+                if (strlen($cleaned) === 10) {
+                    return sprintf('(%s) %s-%s', 
+                        substr($cleaned, 0, 3),
+                        substr($cleaned, 3, 3),
+                        substr($cleaned, 6, 4)
+                    );
+                }
+                break;
+                
+            case 'currency':
+                // Format as currency
+                if (is_numeric($value)) {
+                    return '$' . number_format((float)$value, 2);
+                }
+                break;
+                
+            case 'date':
+                // Format date
+                $timestamp = strtotime($value);
+                if ($timestamp !== false) {
+                    return date('F j, Y', $timestamp);
+                }
+                break;
+                
+            case 'url':
+                // Ensure URL has protocol
+                if (!preg_match('/^https?:\/\//', $value)) {
+                    return 'https://' . $value;
+                }
+                break;
+        }
+        
+        return $value;
     }
 }

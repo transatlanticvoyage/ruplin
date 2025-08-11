@@ -40,6 +40,9 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
         add_action('wp_ajax_rup_driggs_update_field', array($this, 'rup_driggs_update_field'));
         
+        // Sitespren export AJAX action
+        add_action('wp_ajax_export_sitespren', array($this, 'handle_sitespren_export'));
+        
         // Content injection AJAX action
         add_action('wp_ajax_snefuru_inject_content', array($this, 'snefuru_inject_content'));
         
@@ -68,6 +71,16 @@ class Snefuru_Admin {
             array($this, 'admin_page'),
             'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'),
             30
+        );
+        
+        // Add Cockpit as the first submenu item
+        add_submenu_page(
+            'snefuru',
+            'Cockpit - rup_kenli_mar',
+            'Cockpit - rup_kenli_mar',
+            'manage_options',
+            'rup_kenli_mar',
+            array($this, 'rup_kenli_mar_page')
         );
         
         // Add KenliSidebarLinks as a non-clickable label
@@ -233,6 +246,15 @@ class Snefuru_Admin {
             'manage_options',
             'dynamic_images_man',
             array($this, 'dynamic_images_man_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Sitespren Export',
+            'Sitespren Export',
+            'manage_options',
+            'rup_sitespren_export',
+            array($this, 'rup_sitespren_export_page')
         );
     }
     
@@ -3619,9 +3641,40 @@ class Snefuru_Admin {
                     
                     tr.append(valueTd);
                     
-                    // Add stuff3 column with roaring_div
+                    // Add stuff3 column with roaring_div as shortcode copy button
                     let stuff3Td = $('<td class="stuff3-cell" style="padding: 0; border: 1px solid #ddd; width: 20px;"></td>');
                     let roaring_div = $('<div class="roaring_div">R</div>');
+                    
+                    // Add click handler to copy shortcode
+                    roaring_div.css('cursor', 'pointer');
+                    roaring_div.attr('title', 'Copy shortcode for ' + field.label);
+                    roaring_div.on('click', function() {
+                        // Get the wppma_id from the current row
+                        let wppmaId = currentRecord.wppma_id || '1'; // Default to 1 if not found
+                        let shortcode = '[sitespren wppma_id="' + wppmaId + '" field="' + field.key + '"]';
+                        
+                        // Copy to clipboard
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(shortcode).then(function() {
+                                // Visual feedback - change background color temporarily
+                                let originalBg = roaring_div.css('background-color');
+                                roaring_div.css('background-color', '#4CAF50');
+                                roaring_div.text('✓');
+                                
+                                setTimeout(function() {
+                                    roaring_div.css('background-color', originalBg);
+                                    roaring_div.text('R');
+                                }, 1000);
+                            }).catch(function() {
+                                // Fallback method
+                                copyShortcodeToClipboardFallback(shortcode, roaring_div);
+                            });
+                        } else {
+                            // Fallback for older browsers
+                            copyShortcodeToClipboardFallback(shortcode, roaring_div);
+                        }
+                    });
+                    
                     stuff3Td.append(roaring_div);
                     tr.append(stuff3Td);
                     
@@ -3666,6 +3719,41 @@ class Snefuru_Admin {
                 
                 toggleContainer.append(toggleSwitch);
                 return toggleContainer;
+            }
+            
+            // Fallback function for copying shortcode to clipboard
+            function copyShortcodeToClipboardFallback(shortcode, element) {
+                // Create temporary textarea
+                let tempTextarea = $('<textarea>');
+                tempTextarea.val(shortcode);
+                tempTextarea.css({
+                    position: 'fixed',
+                    left: '-9999px',
+                    top: '-9999px'
+                });
+                $('body').append(tempTextarea);
+                
+                // Select and copy
+                tempTextarea[0].select();
+                tempTextarea[0].setSelectionRange(0, 99999); // For mobile devices
+                
+                try {
+                    document.execCommand('copy');
+                    // Visual feedback
+                    let originalBg = element.css('background-color');
+                    element.css('background-color', '#4CAF50');
+                    element.text('✓');
+                    
+                    setTimeout(function() {
+                        element.css('background-color', originalBg);
+                        element.text('R');
+                    }, 1000);
+                } catch (err) {
+                    alert('Failed to copy shortcode. Please copy manually: ' + shortcode);
+                }
+                
+                // Remove temporary textarea
+                tempTextarea.remove();
             }
             
             function startInlineEdit(cell, currentValue, fieldKey, fieldType) {
@@ -5265,6 +5353,132 @@ class Snefuru_Admin {
     }
     
     /**
+     * Handle sitespren export AJAX request
+     */
+    public function handle_sitespren_export() {
+        check_ajax_referer('sitespren_export_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'zen_sitespren';
+            $wppma_id = isset($_POST['wppma_id']) ? intval($_POST['wppma_id']) : 1;
+            $formats = isset($_POST['formats']) ? $_POST['formats'] : array();
+            
+            if (empty($formats)) {
+                wp_send_json_error('No formats selected');
+            }
+            
+            // Get the sitespren row data
+            $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE wppma_id = %d", $wppma_id), ARRAY_A);
+            
+            if (!$row) {
+                wp_send_json_error('No sitespren record found with wppma_id = ' . $wppma_id);
+            }
+            
+            $generated_files = array();
+            $upload_dir = wp_upload_dir();
+            $export_dir = $upload_dir['basedir'] . '/sitespren_exports';
+            
+            // Create export directory if it doesn't exist
+            if (!is_dir($export_dir)) {
+                wp_mkdir_p($export_dir);
+            }
+            
+            foreach ($formats as $format) {
+                $filename = 'sitespren_' . $wppma_id . '_' . date('Y-m-d_H-i-s') . '.' . $format;
+                $filepath = $export_dir . '/' . $filename;
+                
+                switch ($format) {
+                    case 'csv':
+                        $this->export_to_csv($row, $filepath);
+                        break;
+                    case 'xlsx':
+                    case 'xls':
+                        $this->export_to_excel($row, $filepath, $format);
+                        break;
+                    case 'sql':
+                        $this->export_to_sql($row, $filepath, $table_name);
+                        break;
+                    case 'md':
+                        $this->export_to_markdown($row, $filepath);
+                        break;
+                    default:
+                        continue 2;
+                }
+                
+                if (file_exists($filepath)) {
+                    $generated_files[] = $filename;
+                }
+            }
+            
+            if (empty($generated_files)) {
+                wp_send_json_error('Failed to generate export files');
+            }
+            
+            wp_send_json_success(array(
+                'message' => 'Export completed successfully',
+                'files' => $generated_files,
+                'download_url' => $upload_dir['baseurl'] . '/sitespren_exports/'
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error('Export failed: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Export data to CSV format
+     */
+    private function export_to_csv($data, $filepath) {
+        $fp = fopen($filepath, 'w');
+        fputcsv($fp, array_keys($data)); // Headers
+        fputcsv($fp, array_values($data)); // Data
+        fclose($fp);
+    }
+    
+    /**
+     * Export data to Excel format
+     */
+    private function export_to_excel($data, $filepath, $format) {
+        // Simple Excel export - create tab-delimited text that Excel can open
+        $content = implode("\t", array_keys($data)) . "\n";
+        $content .= implode("\t", array_values($data));
+        file_put_contents($filepath, $content);
+    }
+    
+    /**
+     * Export data to SQL format
+     */
+    private function export_to_sql($data, $filepath, $table_name) {
+        $columns = implode(', ', array_map(function($col) { return "`$col`"; }, array_keys($data)));
+        $values = implode(', ', array_map(function($val) { 
+            return "'" . addslashes($val) . "'"; 
+        }, array_values($data)));
+        
+        $sql = "INSERT INTO `$table_name` ($columns) VALUES ($values);";
+        file_put_contents($filepath, $sql);
+    }
+    
+    /**
+     * Export data to Markdown format
+     */
+    private function export_to_markdown($data, $filepath) {
+        $content = "# Sitespren Export\n\n";
+        $content .= "| Field | Value |\n";
+        $content .= "|-------|-------|\n";
+        
+        foreach ($data as $key => $value) {
+            $content .= "| `$key` | " . str_replace('|', '\\|', $value) . " |\n";
+        }
+        
+        file_put_contents($filepath, $content);
+    }
+    
+    /**
      * document_outlook_aug9 page - Documentation
      */
     public function document_outlook_aug9_page() {
@@ -5517,6 +5731,162 @@ class Snefuru_Admin {
     }
     
     /**
+     * rup_sitespren_export page - Export Sitespren Data
+     */
+    public function rup_sitespren_export_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        // Handle AJAX requests
+        if (isset($_POST['action']) && $_POST['action'] === 'export_sitespren') {
+            $this->handle_sitespren_export();
+            return;
+        }
+        
+        ?>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">📊 Sitespren Export</h1>
+                
+                <!-- Export Button -->
+                <div style="margin-bottom: 20px;">
+                    <button id="export-sitespren-btn" class="button button-primary" style="background: #4CAF50; border-color: #4CAF50; font-size: 16px; padding: 12px 20px;">
+                        📤 Export 1 Sitespren Row
+                    </button>
+                </div>
+                
+                <!-- Export Format Selection Table -->
+                <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                    <table id="export-formats-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f0f0f0; width: 50px;">
+                                    <input type="checkbox" id="select-all-formats" style="width: 20px; height: 20px;">
+                                </th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">File Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="checkbox" class="format-checkbox" value="xlsx" style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">xlsx</td>
+                            </tr>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="checkbox" class="format-checkbox" value="xls" style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">xls</td>
+                            </tr>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="checkbox" class="format-checkbox" value="csv" style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">csv</td>
+                            </tr>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="checkbox" class="format-checkbox" value="sql" style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">sql</td>
+                            </tr>
+                            <tr style="cursor: pointer;" onmouseover="this.style.backgroundColor='#f9f9f9'" onmouseout="this.style.backgroundColor=''">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <input type="checkbox" class="format-checkbox" value="md" style="width: 20px; height: 20px;">
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold; color: #23282d;">md</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 5px;">
+                    <p><strong>Instructions:</strong></p>
+                    <ul>
+                        <li>Select one or more file formats using the checkboxes</li>
+                        <li>Click "Export 1 Sitespren Row" to export data for wppma_id = 1</li>
+                        <li>Files will be generated and downloaded automatically</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            // Select all functionality
+            $('#select-all-formats').on('change', function() {
+                var isChecked = $(this).is(':checked');
+                $('.format-checkbox').prop('checked', isChecked);
+            });
+            
+            // Individual checkbox handling
+            $('.format-checkbox').on('change', function() {
+                var totalCheckboxes = $('.format-checkbox').length;
+                var checkedCheckboxes = $('.format-checkbox:checked').length;
+                
+                if (checkedCheckboxes === 0) {
+                    $('#select-all-formats').prop('checked', false).prop('indeterminate', false);
+                } else if (checkedCheckboxes === totalCheckboxes) {
+                    $('#select-all-formats').prop('checked', true).prop('indeterminate', false);
+                } else {
+                    $('#select-all-formats').prop('checked', false).prop('indeterminate', true);
+                }
+            });
+            
+            // Export button click
+            $('#export-sitespren-btn').on('click', function() {
+                var selectedFormats = [];
+                $('.format-checkbox:checked').each(function() {
+                    selectedFormats.push($(this).val());
+                });
+                
+                if (selectedFormats.length === 0) {
+                    alert('Please select at least one file format.');
+                    return;
+                }
+                
+                if (!confirm('Export sitespren row where wppma_id = 1 in formats: ' + selectedFormats.join(', ') + '?')) {
+                    return;
+                }
+                
+                var $button = $(this);
+                var originalText = $button.text();
+                $button.prop('disabled', true).text('🔄 Exporting...');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'export_sitespren',
+                        formats: selectedFormats,
+                        wppma_id: 1,
+                        nonce: '<?php echo wp_create_nonce('sitespren_export_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Export completed successfully!\\n\\nGenerated files:\\n' + response.data.files.join('\\n'));
+                        } else {
+                            alert('Export failed: ' + response.data);
+                        }
+                    },
+                    error: function() {
+                        alert('Error occurred during export');
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false).text(originalText);
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+    
+    /**
      * Check if we're on a snefuruplin admin page and suppress notices early
      * This runs on 'current_screen' hook which is early enough to catch most notices
      */
@@ -5545,6 +5915,7 @@ class Snefuru_Admin {
             'snefuru_page_rup_horse_class_page',
             'snefuru_page_document_outlook_aug9',
             'snefuru_page_dynamic_images_man',
+            'snefuru_page_rup_sitespren_export',
             'snefuru_page_kenli_sidebar_links'
         );
         
@@ -6263,5 +6634,155 @@ class Snefuru_Admin {
             'original_title' => $original_post->post_title
         ));
         */
+    }
+    
+    /**
+     * Kenli Mar page - shows all admin pages in the ruplin plugin
+     */
+    public function rup_kenli_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION
+        $this->suppress_all_admin_notices();
+        
+        // Get all admin pages from this plugin
+        $admin_pages = $this->get_all_admin_pages();
+        ?>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">🔗 Kenli Mar - Ruplin Plugin Pages Manager</h1>
+                
+                <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                    <table id="kenli-mar-table" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f0f0f0; width: 80px;">ID</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f8f9fa; width: 200px;">Page Name</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f8f9fa; width: 250px;">Page Slug</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f8f9fa;">Full URL</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f8f9fa; width: 150px;">Type</th>
+                                <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-align: left; background: #f8f9fa; width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $row_id = 1;
+                            foreach ($admin_pages as $page) : 
+                                $alternating_bg = ($row_id % 2 == 0) ? '#f9f9f9' : 'white';
+                            ?>
+                            <tr style="background: <?php echo $alternating_bg; ?>;" onmouseover="this.style.backgroundColor='#e8f4fd'" onmouseout="this.style.backgroundColor='<?php echo $alternating_bg; ?>'">
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #666;">
+                                    <?php echo $row_id; ?>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">
+                                    <?php echo esc_html($page['title']); ?>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; font-family: monospace; background: #f8f8f8;">
+                                    <?php echo esc_html($page['slug']); ?>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <a href="<?php echo esc_url($page['url']); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace; font-size: 12px;" target="_blank">
+                                        <?php echo esc_html($page['url']); ?>
+                                    </a>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <span style="background: <?php echo $page['type'] === 'menu' ? '#4CAF50' : '#2196F3'; ?>; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; text-transform: uppercase;">
+                                        <?php echo esc_html($page['type']); ?>
+                                    </span>
+                                </td>
+                                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
+                                    <a href="<?php echo esc_url($page['url']); ?>" class="button button-small" style="background: #0073aa; color: white; text-decoration: none; padding: 4px 8px; border-radius: 3px; font-size: 11px;" target="_blank">
+                                        Open →
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php 
+                            $row_id++;
+                            endforeach; 
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #f0f8ff; border: 1px solid #b3d9ff; border-radius: 5px;">
+                    <h3 style="margin: 0 0 10px 0; color: #0066cc;">📋 Page Summary</h3>
+                    <p style="margin: 0; color: #333;">
+                        Total Pages: <strong><?php echo count($admin_pages); ?></strong> | 
+                        Menu Pages: <strong><?php echo count(array_filter($admin_pages, function($p) { return $p['type'] === 'menu'; })); ?></strong> | 
+                        Submenu Pages: <strong><?php echo count(array_filter($admin_pages, function($p) { return $p['type'] === 'submenu'; })); ?></strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <style>
+        .kenli-mar-table tbody tr:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .kenli-mar-table a:hover {
+            text-decoration: underline !important;
+        }
+        </style>
+        <?php
+    }
+    
+    /**
+     * Get all admin pages from this plugin
+     */
+    private function get_all_admin_pages() {
+        $pages = array();
+        
+        // Define all the submenu pages from this plugin
+        $submenu_pages = array(
+            array('title' => 'Cockpit - rup_kenli_mar', 'slug' => 'rup_kenli_mar'),
+            array('title' => 'KenliSidebarLinks', 'slug' => 'snefuru-kenli-sidebar-links'),
+            array('title' => 'Dashboard', 'slug' => 'snefuru'),
+            array('title' => 'Settings', 'slug' => 'snefuru-settings'),
+            array('title' => 'Logs', 'slug' => 'snefuru-logs'),
+            array('title' => 'Dublish Logs', 'slug' => 'snefuru-dublish-logs'),
+            array('title' => 'screen 4 - manage', 'slug' => 'snefuru-screen4-manage'),
+            array('title' => 'Bespoke CSS Editor', 'slug' => 'snefuruplin-bespoke-css-1'),
+            array('title' => 'rup_locations_mar', 'slug' => 'rup_locations_mar'),
+            array('title' => 'rup_services_mar', 'slug' => 'rup_services_mar'),
+            array('title' => 'rup_driggs_mar', 'slug' => 'rup_driggs_mar'),
+            array('title' => 'rup_service_tags_mar', 'slug' => 'rup_service_tags_mar'),
+            array('title' => 'rup_location_tags_mar', 'slug' => 'rup_location_tags_mar'),
+            array('title' => 'rup_kpages_mar', 'slug' => 'rup_kpages_mar'),
+            array('title' => 'rup_duplicate_mar', 'slug' => 'rup_duplicate_mar'),
+            array('title' => 'rup_pantheon_mar', 'slug' => 'rup_pantheon_mar'),
+            array('title' => 'rup_horse_class_page', 'slug' => 'rup_horse_class_page'),
+            array('title' => 'document_outlook_aug9', 'slug' => 'document_outlook_aug9'),
+            array('title' => 'dynamic_images_man', 'slug' => 'dynamic_images_man'),
+            array('title' => 'Sitespren Export', 'slug' => 'rup_sitespren_export'),
+        );
+        
+        // Add the separate menu pages
+        $menu_pages = array(
+            array('title' => 'Orbit Mar', 'slug' => 'rup_orbit_mar'),
+        );
+        
+        // Process submenu pages
+        foreach ($submenu_pages as $page) {
+            $pages[] = array(
+                'title' => $page['title'],
+                'slug' => $page['slug'],
+                'url' => admin_url('admin.php?page=' . $page['slug']),
+                'type' => 'submenu'
+            );
+        }
+        
+        // Process menu pages
+        foreach ($menu_pages as $page) {
+            $pages[] = array(
+                'title' => $page['title'],
+                'slug' => $page['slug'],
+                'url' => admin_url('admin.php?page=' . $page['slug']),
+                'type' => 'menu'
+            );
+        }
+        
+        return $pages;
     }
 } 
