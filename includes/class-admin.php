@@ -3481,8 +3481,15 @@ class Snefuru_Admin {
             justify-content: center;
             font-size: 12px;
             font-weight: bold;
-            cursor: default;
+            cursor: pointer;
             user-select: none;
+            background-color: #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        
+        .roaring_div:hover {
+            background-color: #e0e0e0;
+            border-color: #666;
         }
         
         /* Ensure stuff3 column cells have no padding */
@@ -3654,13 +3661,19 @@ class Snefuru_Admin {
                     roaring_div.css('cursor', 'pointer');
                     roaring_div.attr('title', 'Copy shortcode for ' + field.label);
                     roaring_div.on('click', function() {
-                        // Get the wppma_id from the current row
-                        let wppmaId = currentRecord.wppma_id || '1'; // Default to 1 if not found
+                        console.log('R button clicked for field:', field.key);
+                        console.log('Current data:', currentData);
+                        
+                        // Get the wppma_id from the current data
+                        let wppmaId = currentData.wppma_id || '1'; // Default to 1 if not found
                         let shortcode = '[sitespren wppma_id="' + wppmaId + '" field="' + field.key + '"]';
+                        
+                        console.log('Generated shortcode:', shortcode);
                         
                         // Copy to clipboard
                         if (navigator.clipboard && navigator.clipboard.writeText) {
                             navigator.clipboard.writeText(shortcode).then(function() {
+                                console.log('Clipboard copy successful');
                                 // Visual feedback - change background color temporarily
                                 let originalBg = roaring_div.css('background-color');
                                 roaring_div.css('background-color', '#4CAF50');
@@ -3670,11 +3683,13 @@ class Snefuru_Admin {
                                     roaring_div.css('background-color', originalBg);
                                     roaring_div.text('R');
                                 }, 1000);
-                            }).catch(function() {
+                            }).catch(function(error) {
+                                console.error('Clipboard copy failed:', error);
                                 // Fallback method
                                 copyShortcodeToClipboardFallback(shortcode, roaring_div);
                             });
                         } else {
+                            console.log('Using fallback clipboard method');
                             // Fallback for older browsers
                             copyShortcodeToClipboardFallback(shortcode, roaring_div);
                         }
@@ -3743,18 +3758,26 @@ class Snefuru_Admin {
                 tempTextarea[0].setSelectionRange(0, 99999); // For mobile devices
                 
                 try {
-                    document.execCommand('copy');
-                    // Visual feedback
-                    let originalBg = element.css('background-color');
-                    element.css('background-color', '#4CAF50');
-                    element.text('✓');
+                    let success = document.execCommand('copy');
+                    console.log('Document.execCommand copy result:', success);
                     
-                    setTimeout(function() {
-                        element.css('background-color', originalBg);
-                        element.text('R');
-                    }, 1000);
+                    if (success) {
+                        // Visual feedback
+                        let originalBg = element.css('background-color');
+                        element.css('background-color', '#4CAF50');
+                        element.text('✓');
+                        
+                        setTimeout(function() {
+                            element.css('background-color', originalBg);
+                            element.text('R');
+                        }, 1000);
+                        console.log('Shortcode copied successfully (fallback method):', shortcode);
+                    } else {
+                        throw new Error('Copy command failed');
+                    }
                 } catch (err) {
-                    alert('Failed to copy shortcode. Please copy manually: ' + shortcode);
+                    console.error('Fallback copy failed:', err);
+                    alert('Shortcode: ' + shortcode + '\n\nCopy failed. The shortcode is shown above - please copy it manually.');
                 }
                 
                 // Remove temporary textarea
