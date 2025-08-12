@@ -285,7 +285,24 @@ class Snefuru_Hurricane {
                 </div>
                 
                 <div style="display: flex; flex-direction: column;">
-                    <span class="snefuru-stellar-chamber-text">Stellar Chamber</span>
+                    <div class="beamray_banner1">
+                        <svg class="stellar-galactic-logo" viewBox="0 0 24 24" fill="currentColor">
+                            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="0.5" fill="none"/>
+                            <circle cx="12" cy="12" r="6" stroke="white" stroke-width="0.5" fill="none"/>
+                            <circle cx="12" cy="12" r="2" fill="white"/>
+                            <g stroke="white" stroke-width="0.3" fill="none">
+                                <path d="M2,12 Q6,8 12,12 Q18,16 22,12"/>
+                                <path d="M12,2 Q8,6 12,12 Q16,18 12,22"/>
+                                <path d="M4.9,4.9 Q8.5,8.5 12,12 Q15.5,15.5 19.1,19.1"/>
+                                <path d="M19.1,4.9 Q15.5,8.5 12,12 Q8.5,15.5 4.9,19.1"/>
+                            </g>
+                            <circle cx="6" cy="8" r="0.8" fill="white" opacity="0.8"/>
+                            <circle cx="18" cy="6" r="0.6" fill="white" opacity="0.6"/>
+                            <circle cx="16" cy="16" r="0.7" fill="white" opacity="0.7"/>
+                            <circle cx="8" cy="18" r="0.5" fill="white" opacity="0.5"/>
+                        </svg>
+                        Stellar Chamber
+                    </div>
                     <span style="color: white; font-size: 16px; font-weight: bold;">top_bar_area</span>
                 </div>
                 <svg class="snefuru-rocket-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" style="display: inline-block; margin-left: 10px; transform: rotate(-30deg) scaleX(-1);">

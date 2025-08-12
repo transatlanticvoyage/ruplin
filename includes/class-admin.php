@@ -297,6 +297,7 @@ class Snefuru_Admin {
         }
         
         wp_enqueue_style('snefuru-admin', SNEFURU_PLUGIN_URL . 'assets/css/admin.css', array(), SNEFURU_PLUGIN_VERSION);
+        wp_enqueue_style('sddx-240-ruplin-screens-css', SNEFURU_PLUGIN_URL . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css', array(), SNEFURU_PLUGIN_VERSION);
         wp_enqueue_script('snefuru-admin', SNEFURU_PLUGIN_URL . 'assets/js/admin.js', array('jquery'), SNEFURU_PLUGIN_VERSION, true);
         
         wp_localize_script('snefuru-admin', 'snefuru_ajax', array(
@@ -8064,7 +8065,7 @@ class Snefuru_Admin {
                                 <th data-field="ID" data-type="integer"><div class="tcell_inner_wrapper_div">id</div></th>
                                 <th data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">post_title</div></th>
                                 <th data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">post_content</div></th>
-                                <th data-field="_elementor_data" data-type="text"><div class="tcell_inner_wrapper_div">_elementor_data</div></th>
+                                <th data-field="_elementor_data" data-type="text"><div class="tcell_inner_wrapper_div"><strong>meta_key:_elementor_data</strong></div></th>
                                 <th data-field="post_type" data-type="text"><div class="tcell_inner_wrapper_div">post_type</div></th>
                                 <th data-field="post_status" data-type="text"><div class="tcell_inner_wrapper_div">post_status</div></th>
                                 <th data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">post_name</div></th>
