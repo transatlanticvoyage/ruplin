@@ -7802,6 +7802,50 @@ class Snefuru_Admin {
                     border-top-right-radius: 4px;
                     border-bottom-right-radius: 4px;
                 }
+                
+                /* Filter button bars */
+                .beamraymar-filter-controls {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 8px;
+                    margin-left: 15px;
+                }
+                
+                .beamraymar-filter-bar {
+                    display: flex;
+                }
+                
+                .beamraymar-filter-btn {
+                    padding: 10px 12px;
+                    font-size: 14px;
+                    border: 1px solid #ddd;
+                    background: white;
+                    cursor: pointer;
+                    margin-right: -1px;
+                    text-decoration: none;
+                    color: #333;
+                    transition: background-color 0.2s;
+                }
+                
+                .beamraymar-filter-btn:hover {
+                    background-color: #f5f5f5;
+                }
+                
+                .beamraymar-filter-btn.active {
+                    background-color: #0073aa;
+                    color: white;
+                }
+                
+                .beamraymar-filter-btn:first-child {
+                    border-top-left-radius: 4px;
+                    border-bottom-left-radius: 4px;
+                }
+                
+                .beamraymar-filter-btn:last-child {
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
             </style>
 
             <!-- Top Controls -->
@@ -7870,6 +7914,19 @@ class Snefuru_Admin {
                             <a href="#" class="beamraymar-column-pagination-btn active" data-column-nav="1">1</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="next">Next</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="last">Last</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Controls -->
+                    <div class="beamraymar-filter-controls">
+                        <div class="beamraymar-filter-bar" id="beamraymar-post-type-filter">
+                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_type" data-filter-value="page">Page</a>
+                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_type" data-filter-value="post">Post</a>
+                        </div>
+                        
+                        <div class="beamraymar-filter-bar" id="beamraymar-post-status-filter">
+                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_status" data-filter-value="publish">Published</a>
+                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_status" data-filter-value="draft">Draft</a>
                         </div>
                     </div>
                 </div>
@@ -8093,6 +8150,20 @@ class Snefuru_Admin {
                             }
                         });
                         
+                        // Filter button controls
+                        $('.beamraymar-filter-btn').on('click', function(e) {
+                            e.preventDefault();
+                            const $this = $(this);
+                            
+                            // Toggle active state
+                            $this.toggleClass('active');
+                            
+                            // Reset to page 1 and apply filters
+                            currentPage = 1;
+                            filterData();
+                            updateTable();
+                        });
+                        
                         // Search functionality
                         $('#beamraymar-search, #beamraymar-search-bottom').on('input', function() {
                             currentSearch = $(this).val().toLowerCase();
@@ -8162,16 +8233,37 @@ class Snefuru_Admin {
                     }
                     
                     function filterData() {
-                        if (!currentSearch) {
-                            filteredData = [...allData];
-                            return;
-                        }
-                        
                         filteredData = allData.filter(item => {
-                            return Object.values(item).some(value => {
-                                if (value === null || value === undefined) return false;
-                                return value.toString().toLowerCase().includes(currentSearch);
-                            });
+                            // Apply search filter
+                            let matchesSearch = true;
+                            if (currentSearch) {
+                                matchesSearch = Object.values(item).some(value => {
+                                    if (value === null || value === undefined) return false;
+                                    return value.toString().toLowerCase().includes(currentSearch);
+                                });
+                            }
+                            
+                            // Apply post type filter
+                            let matchesPostType = true;
+                            const activePostTypes = $('.beamraymar-filter-btn[data-filter-type="post_type"].active');
+                            if (activePostTypes.length > 0) {
+                                const activeValues = activePostTypes.map(function() {
+                                    return $(this).data('filter-value');
+                                }).get();
+                                matchesPostType = activeValues.includes(item.post_type);
+                            }
+                            
+                            // Apply post status filter
+                            let matchesPostStatus = true;
+                            const activePostStatuses = $('.beamraymar-filter-btn[data-filter-type="post_status"].active');
+                            if (activePostStatuses.length > 0) {
+                                const activeValues = activePostStatuses.map(function() {
+                                    return $(this).data('filter-value');
+                                }).get();
+                                matchesPostStatus = activeValues.includes(item.post_status);
+                            }
+                            
+                            return matchesSearch && matchesPostType && matchesPostStatus;
                         });
                     }
                     
