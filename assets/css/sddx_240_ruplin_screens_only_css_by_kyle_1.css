@@ -30,3 +30,21 @@ BeamRayMar Table Column Class Names (fact_ prefix convention):
 22. fact_zen_orbitposts_created_at - zen_orbitposts created_at column
 23. fact_zen_orbitposts_updated_at - zen_orbitposts updated_at column
 */
+
+
+———————————————————————
+switch from fact_ to column_ like:
+
+column_zen_orbitposts_redshift_datum
+
+———————————————————————
+
+row_obtain_db_table
+row_obtain_db_column
+
+
+
+
+
+
+

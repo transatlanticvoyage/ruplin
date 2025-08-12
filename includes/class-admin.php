@@ -8012,7 +8012,7 @@ class Snefuru_Admin {
                     justify-content: center;
                     font-size: 10px;
                     cursor: pointer;
-                    margin-left: 2px;
+                    margin-right: 2px;
                     border-radius: 2px;
                 }
                 
@@ -8669,7 +8669,7 @@ class Snefuru_Admin {
                                 <td class="beamraymar-checkbox-cell fact_checkbox">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
-                                <td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a><a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}</div></td>
+                                <td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a></div></td>
                                 <td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
                                 <td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
@@ -9138,12 +9138,12 @@ class Snefuru_Admin {
             
             echo '<td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div">';
             echo '<a href="' . esc_url($admin_edit_url) . '" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>';
-            echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a>';
             if ($is_elementor) {
                 echo '<a href="' . esc_url($elementor_edit_url) . '" target="_blank" class="beamraymar-elementor-btn">E</a>';
             } else {
                 echo '<span class="beamraymar-elementor-btn disabled">E</span>';
             }
+            echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a>';
             echo '</div></td>';
             echo '<td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
