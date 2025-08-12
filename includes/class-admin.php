@@ -9728,10 +9728,13 @@ class Snefuru_Admin {
                     height: 600px;
                     font-family: 'Courier New', monospace;
                     font-size: 14px;
+                    line-height: 1.6;
+                    letter-spacing: 0.5px;
                     border: 1px solid #ddd;
                     border-radius: 4px;
                     padding: 15px;
-                    background: #f9f9f9;
+                    background: #000000;
+                    color: #ffffff;
                     resize: vertical;
                 }
                 
