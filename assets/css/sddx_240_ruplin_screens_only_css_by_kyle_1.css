@@ -4,6 +4,8 @@
 /* This file stores customizations for Ruplin plugin admin pages */
 /* This CSS is only loaded on Ruplin plugin pages, not on native WP admin pages */
 
+/* BeamRayMar Table Class: utg_beamray */
+
 /*
 BeamRayMar Table Column Class Names (fact_ prefix convention):
 1. fact_checkbox - Checkbox column (no DB equivalent)
@@ -33,14 +35,24 @@ BeamRayMar Table Column Class Names (fact_ prefix convention):
 
 
 ———————————————————————
-switch from fact_ to column_ like:
+
+please
+switch the classes we have on beamraymar page from fact_  prefix to column_ prefix like:
 
 column_zen_orbitposts_redshift_datum
 
 ———————————————————————
 
+then please do this next task
+
+for the 2 header rows that we have in the ui table grid at beamraymar, give every <th> in each respective row, this respective class name:
+
 row_obtain_db_table
 row_obtain_db_column
+
+please note that these classes must go on every <th> in the row (even if its a checkbox or other misc type of ui column that doesnt have a direct db column corresponding to it)
+
+
 
 
 

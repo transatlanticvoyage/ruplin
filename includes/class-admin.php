@@ -8127,7 +8127,7 @@ class Snefuru_Admin {
             <!-- Table Container -->
             <div class="beamraymar-table-container">
                 <div class="beamraymar-table-scroll">
-                    <table class="beamraymar-table" id="beamraymar-table">
+                    <table class="beamraymar-table utg_beamray" id="beamraymar-table">
                         <thead>
                             <tr>
                                 <th class="column_checkbox row_obtain_db_table"><div class="tcell_inner_wrapper_div"></div></th>
