@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.6.0';
+    const DB_VERSION = '1.7.0';
     
     /**
      * Option name for storing database version
@@ -68,6 +68,10 @@ class Ruplin_WP_Database_Horse_Class {
                 redshift_datum TEXT,
                 rover_datum JSON,
                 hudson_imgplanbatch_id VARCHAR(36),
+                is_pinned BOOLEAN DEFAULT FALSE,
+                is_flagged BOOLEAN DEFAULT FALSE,
+                is_starred BOOLEAN DEFAULT FALSE,
+                is_squared BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),

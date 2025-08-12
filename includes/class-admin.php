@@ -64,6 +64,9 @@ class Snefuru_Admin {
         // AJAX handler for cssmar CSS file save
         add_action('wp_ajax_cssmar_save_css', array($this, 'cssmar_save_css'));
         
+        // AJAX handler for zen_orbitposts field update
+        add_action('wp_ajax_beamraymar_update_zen_orbitpost_field', array($this, 'beamraymar_update_zen_orbitpost_field'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -8028,6 +8031,31 @@ class Snefuru_Admin {
                     cursor: not-allowed;
                     pointer-events: none;
                 }
+                
+                /* Icon button styling */
+                .beamray-icon-btn {
+                    display: inline-block;
+                    font-size: 16px;
+                    cursor: pointer;
+                    padding: 2px;
+                    opacity: 0.3;
+                    transition: all 0.2s ease;
+                    user-select: none;
+                }
+                
+                .beamray-icon-btn:hover {
+                    opacity: 0.7;
+                    transform: scale(1.1);
+                }
+                
+                .beamray-icon-btn.active {
+                    opacity: 1.0;
+                }
+                
+                .beamray-icon-btn.active:hover {
+                    opacity: 1.0;
+                    transform: scale(1.2);
+                }
             </style>
 
             <!-- Top Controls -->
@@ -8151,6 +8179,10 @@ class Snefuru_Admin {
                                 <th class="column_zen_orbitposts_redshift_datum row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                                 <th class="column_zen_orbitposts_rover_datum row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                                 <th class="column_zen_orbitposts_hudson_imgplanbatch_id row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_is_pinned row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_is_flagged row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_is_starred row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_is_squared row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                                 <th class="column_zen_orbitposts_created_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                                 <th class="column_zen_orbitposts_updated_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                             </tr>
@@ -8178,6 +8210,10 @@ class Snefuru_Admin {
                                 <th data-field="redshift_datum" data-type="text" class="column_zen_orbitposts_redshift_datum row_obtain_db_column"><div class="tcell_inner_wrapper_div">redshift_datum</div></th>
                                 <th data-field="rover_datum" data-type="text" class="column_zen_orbitposts_rover_datum row_obtain_db_column"><div class="tcell_inner_wrapper_div">rover_datum</div></th>
                                 <th data-field="hudson_imgplanbatch_id" data-type="integer" class="column_zen_orbitposts_hudson_imgplanbatch_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">hudson_imgplanbatch_id</div></th>
+                                <th data-field="is_pinned" data-type="boolean" class="column_zen_orbitposts_is_pinned row_obtain_db_column"><div class="tcell_inner_wrapper_div">is_pinned</div></th>
+                                <th data-field="is_flagged" data-type="boolean" class="column_zen_orbitposts_is_flagged row_obtain_db_column"><div class="tcell_inner_wrapper_div">is_flagged</div></th>
+                                <th data-field="is_starred" data-type="boolean" class="column_zen_orbitposts_is_starred row_obtain_db_column"><div class="tcell_inner_wrapper_div">is_starred</div></th>
+                                <th data-field="is_squared" data-type="boolean" class="column_zen_orbitposts_is_squared row_obtain_db_column"><div class="tcell_inner_wrapper_div">is_squared</div></th>
                                 <th data-field="created_at" data-type="datetime" class="column_zen_orbitposts_created_at row_obtain_db_column"><div class="tcell_inner_wrapper_div">created_at</div></th>
                                 <th data-field="updated_at" data-type="datetime" class="column_zen_orbitposts_updated_at row_obtain_db_column"><div class="tcell_inner_wrapper_div">updated_at</div></th>
                             </tr>
@@ -8329,6 +8365,7 @@ class Snefuru_Admin {
                         initializeEventHandlers();
                         updateTable();
                         updateColumnVisibility(); // Initialize column pagination
+                        initializeIconButtons(); // Initialize icon button states
                     });
                     
                     function initializeEventHandlers() {
@@ -8689,12 +8726,19 @@ class Snefuru_Admin {
                                 <td class="readonly-cell column_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">${item.redshift_datum || ''}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">${item.rover_datum || ''}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">${item.hudson_imgplanbatch_id || ''}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_pinned"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_pinned" data-post-id="${item.ID}" data-value="${item.is_pinned || 0}">📌</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_flagged"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_flagged" data-post-id="${item.ID}" data-value="${item.is_flagged || 0}">🚩</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_starred"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_starred" data-post-id="${item.ID}" data-value="${item.is_starred || 0}">⭐</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_squared"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_squared" data-post-id="${item.ID}" data-value="${item.is_squared || 0}">⬜</span></div></td>
                                 <td class="readonly-cell column_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">${formatDate(item.created_at)}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">${formatDate(item.updated_at)}</div></td>
                             </tr>`;
                         });
                         
                         $('#beamraymar-tbody').html(html);
+                        
+                        // Initialize icon button states
+                        initializeIconButtons();
                     }
                     
                     function attachRowEventHandlers() {
@@ -8719,6 +8763,18 @@ class Snefuru_Admin {
                             const postId = $cell.closest('tr').data('id');
                             
                             startInlineEdit($cell, field, type, currentValue, postId);
+                        });
+                        
+                        // Icon button handling
+                        $('.beamray-icon-btn').on('click', function() {
+                            const $icon = $(this);
+                            const field = $icon.data('field');
+                            const postId = $icon.data('post-id');
+                            const currentValue = parseInt($icon.data('value'));
+                            const newValue = currentValue ? 0 : 1;
+                            
+                            // Update zen_orbitposts field
+                            updateZenOrbitpostField(postId, field, newValue, $icon);
                         });
                     }
                     
@@ -8948,6 +9004,55 @@ class Snefuru_Admin {
                         return lineCount + ' lines';
                     }
                     
+                    // Icon button functions
+                    function initializeIconButtons() {
+                        $('.beamray-icon-btn').each(function() {
+                            const $icon = $(this);
+                            const value = parseInt($icon.data('value'));
+                            if (value) {
+                                $icon.addClass('active');
+                            } else {
+                                $icon.removeClass('active');
+                            }
+                        });
+                    }
+                    
+                    function updateZenOrbitpostField(postId, field, newValue, $icon) {
+                        // Show loading state
+                        $icon.css('opacity', '0.5');
+                        
+                        $.ajax({
+                            url: ajaxurl,
+                            method: 'POST',
+                            data: {
+                                action: 'beamraymar_update_zen_orbitpost_field',
+                                post_id: postId,
+                                field: field,
+                                value: newValue,
+                                nonce: beamraymarAjax.nonce
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // Update the icon state
+                                    $icon.data('value', newValue);
+                                    if (newValue) {
+                                        $icon.addClass('active');
+                                    } else {
+                                        $icon.removeClass('active');
+                                    }
+                                    $icon.css('opacity', '');
+                                } else {
+                                    alert('Error updating field: ' + (response.data || 'Unknown error'));
+                                    $icon.css('opacity', '');
+                                }
+                            },
+                            error: function() {
+                                alert('Error updating field');
+                                $icon.css('opacity', '');
+                            }
+                        });
+                    }
+                    
                     // Elementor data editor functions
                     function openElementorEditor(postId) {
                         currentElementorEditPostId = postId;
@@ -9094,7 +9199,7 @@ class Snefuru_Admin {
      */
     private function render_beamraymar_table_rows($posts_pages) {
         if (empty($posts_pages)) {
-            echo '<tr><td colspan="23" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
+            echo '<tr><td colspan="27" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
             return;
         }
         
@@ -9177,6 +9282,10 @@ class Snefuru_Admin {
             echo '<td class="readonly-cell column_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['redshift_datum'] ?: '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['rover_datum'] ?: '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['hudson_imgplanbatch_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_pinned"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_pinned" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_pinned'] ?: 0) . '">📌</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_flagged"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_flagged" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_flagged'] ?: 0) . '">🚩</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_starred"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_starred" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_starred'] ?: 0) . '">⭐</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_squared"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_squared" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_squared'] ?: 0) . '">⬜</span></div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['created_at'] ? date('Y-m-d H:i:s', strtotime($item['created_at'])) : '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['updated_at'] ? date('Y-m-d H:i:s', strtotime($item['updated_at'])) : '') . '</div></td>';
             echo '</tr>';
@@ -9218,6 +9327,78 @@ class Snefuru_Admin {
         } else {
             update_post_meta($post_id, '_elementor_data', $new_elementor_data);
             wp_send_json_success('Elementor data updated successfully');
+        }
+    }
+    
+    /**
+     * AJAX handler for updating zen_orbitposts boolean fields
+     */
+    public function beamraymar_update_zen_orbitpost_field() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+        
+        // Get and validate post ID
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+            return;
+        }
+        
+        // Get and validate field name
+        $field = isset($_POST['field']) ? sanitize_text_field($_POST['field']) : '';
+        $allowed_fields = array('is_pinned', 'is_flagged', 'is_starred', 'is_squared');
+        if (!in_array($field, $allowed_fields)) {
+            wp_send_json_error('Invalid field name');
+            return;
+        }
+        
+        // Get and validate value
+        $value = isset($_POST['value']) ? intval($_POST['value']) : 0;
+        $value = $value ? 1 : 0; // Ensure boolean 0 or 1
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if record exists
+        $existing_record = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing_record) {
+            // Update existing record
+            $result = $wpdb->update(
+                $table_name,
+                array($field => $value),
+                array('rel_wp_post_id' => $post_id),
+                array('%d'),
+                array('%d')
+            );
+        } else {
+            // Create new record
+            $result = $wpdb->insert(
+                $table_name,
+                array(
+                    'rel_wp_post_id' => $post_id,
+                    $field => $value
+                ),
+                array('%d', '%d')
+            );
+        }
+        
+        if ($result !== false) {
+            wp_send_json_success('Field updated successfully');
+        } else {
+            wp_send_json_error('Database update failed');
         }
     }
     
