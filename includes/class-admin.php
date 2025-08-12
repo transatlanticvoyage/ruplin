@@ -8032,6 +8032,23 @@ class Snefuru_Admin {
                     <table class="beamraymar-table" id="beamraymar-table">
                         <thead>
                             <tr>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                            </tr>
+                            <tr class="beamraymar-main-header-row">
                                 <th class="beamraymar-checkbox-cell">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox" id="select-all"></div>
                                 </th>
