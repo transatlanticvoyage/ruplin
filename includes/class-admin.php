@@ -58,6 +58,9 @@ class Snefuru_Admin {
         // AJAX handler for beamraymar post content update
         add_action('wp_ajax_beamraymar_update_post_content', array($this, 'beamraymar_update_post_content'));
         
+        // AJAX handler for beamraymar elementor data update
+        add_action('wp_ajax_beamraymar_update_elementor_data', array($this, 'beamraymar_update_elementor_data'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -8163,6 +8166,18 @@ class Snefuru_Admin {
                 </div>
             </div>
 
+            <!-- Elementor Data Editor Modal -->
+            <div id="beamraymar-elementor-editor-modal" class="beamraymar-content-editor-modal">
+                <div class="beamraymar-content-editor-content">
+                    <div class="beamraymar-content-editor-header">_elementor_data</div>
+                    <textarea id="beamraymar-elementor-editor-textarea" class="beamraymar-content-editor-textarea"></textarea>
+                    <div class="beamraymar-content-editor-actions">
+                        <button type="button" class="beamraymar-content-editor-btn cancel" id="beamraymar-elementor-editor-cancel">Cancel</button>
+                        <button type="button" class="beamraymar-content-editor-btn save" id="beamraymar-elementor-editor-save">Save</button>
+                    </div>
+                </div>
+            </div>
+
             <script>
                 // Beamraymar JavaScript functionality
                 (function($) {
@@ -8176,6 +8191,7 @@ class Snefuru_Admin {
                     let selectedRows = new Set();
                     let editingCell = null;
                     let currentContentEditPostId = null;
+                    let currentElementorEditPostId = null;
                     
                     // Initialize page
                     $(document).ready(function() {
@@ -8333,7 +8349,13 @@ class Snefuru_Admin {
                         $(document).on('click', '.beamraymar-content-edit-btn', function(e) {
                             e.stopPropagation();
                             const postId = $(this).data('post-id');
-                            openContentEditor(postId);
+                            const editorType = $(this).data('editor-type');
+                            
+                            if (editorType === 'elementor') {
+                                openElementorEditor(postId);
+                            } else {
+                                openContentEditor(postId);
+                            }
                         });
                         
                         $('#beamraymar-content-editor-cancel').on('click', function() {
@@ -8342,6 +8364,15 @@ class Snefuru_Admin {
                         
                         $('#beamraymar-content-editor-save').on('click', function() {
                             saveContentEditor();
+                        });
+                        
+                        // Elementor data editor handlers
+                        $('#beamraymar-elementor-editor-cancel').on('click', function() {
+                            closeElementorEditor();
+                        });
+                        
+                        $('#beamraymar-elementor-editor-save').on('click', function() {
+                            saveElementorEditor();
                         });
                         
                         // Table column sorting
@@ -8483,7 +8514,7 @@ class Snefuru_Admin {
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
-                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}</div></td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}" data-editor-type="elementor">ED</button></div></td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
@@ -8751,6 +8782,61 @@ class Snefuru_Admin {
                         return lineCount + ' lines';
                     }
                     
+                    // Elementor data editor functions
+                    function openElementorEditor(postId) {
+                        currentElementorEditPostId = postId;
+                        const post = allData.find(item => item.ID == postId);
+                        
+                        if (post) {
+                            $('#beamraymar-elementor-editor-textarea').val(post._elementor_data || '');
+                            $('#beamraymar-elementor-editor-modal').addClass('active');
+                        }
+                    }
+                    
+                    function closeElementorEditor() {
+                        $('#beamraymar-elementor-editor-modal').removeClass('active');
+                        $('#beamraymar-elementor-editor-textarea').val('');
+                        currentElementorEditPostId = null;
+                    }
+                    
+                    function saveElementorEditor() {
+                        if (!currentElementorEditPostId) return;
+                        
+                        const newElementorData = $('#beamraymar-elementor-editor-textarea').val();
+                        
+                        // Send AJAX request to save
+                        $.ajax({
+                            url: ajaxurl,
+                            type: 'POST',
+                            data: {
+                                action: 'beamraymar_update_elementor_data',
+                                post_id: currentElementorEditPostId,
+                                elementor_data: newElementorData,
+                                nonce: '<?php echo wp_create_nonce('beamraymar_nonce'); ?>'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // Update local data
+                                    const post = allData.find(item => item.ID == currentElementorEditPostId);
+                                    if (post) {
+                                        post._elementor_data = newElementorData;
+                                    }
+                                    
+                                    // Refresh table
+                                    updateTable();
+                                    
+                                    // Close editor
+                                    closeElementorEditor();
+                                } else {
+                                    alert('Failed to save: ' + (response.data || 'Unknown error'));
+                                }
+                            },
+                            error: function() {
+                                alert('Failed to save elementor data');
+                            }
+                        });
+                    }
+                    
                     // Post content editor functions
                     function openContentEditor(postId) {
                         currentContentEditPostId = postId;
@@ -8879,7 +8965,7 @@ class Snefuru_Admin {
                     $elementor_display = $line_count . ' lines';
                 }
             }
-            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '</div></td>';
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '" data-editor-type="elementor">ED</button></div></td>';
             
             echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
@@ -8894,6 +8980,42 @@ class Snefuru_Admin {
             echo '</tr>';
             
             $count++;
+        }
+    }
+    
+    /**
+     * AJAX handler for updating elementor data from beamraymar editor
+     */
+    public function beamraymar_update_elementor_data() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+        
+        // Get and validate post ID
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+            return;
+        }
+        
+        // Get new elementor data
+        $new_elementor_data = isset($_POST['elementor_data']) ? $_POST['elementor_data'] : '';
+        
+        // Update the post meta
+        if ($new_elementor_data === '' || $new_elementor_data === null) {
+            delete_post_meta($post_id, '_elementor_data');
+            wp_send_json_success('Elementor data cleared');
+        } else {
+            update_post_meta($post_id, '_elementor_data', $new_elementor_data);
+            wp_send_json_success('Elementor data updated successfully');
         }
     }
     
