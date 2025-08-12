@@ -8003,7 +8003,7 @@ class Snefuru_Admin {
                 .beamraymar-elementor-btn {
                     width: 20px;
                     height: 20px;
-                    background: #0073aa;
+                    background: #800020;
                     color: white;
                     border: none;
                     text-decoration: none;
@@ -8017,7 +8017,7 @@ class Snefuru_Admin {
                 }
                 
                 .beamraymar-elementor-btn:hover {
-                    background: #005a87;
+                    background: #5c0016;
                     color: white;
                     text-decoration: none;
                 }
