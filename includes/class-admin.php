@@ -8675,7 +8675,7 @@ class Snefuru_Admin {
                                 <td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
                                 <td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}" data-editor-type="elementor">ED</button></div></td>
                                 <td class="readonly-cell column_wp_posts_post_type"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status === 'publish' ? '<strong>' + item.post_status + '</strong>' : item.post_status}</div></td>
                                 <td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
                                 <td class="readonly-cell column_wp_posts_post_date"><div class="tcell_inner_wrapper_div">${formatDate(item.post_date)}</div></td>
                                 <td class="readonly-cell column_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">${formatDate(item.post_modified)}</div></td>
@@ -9162,7 +9162,8 @@ class Snefuru_Admin {
             echo '<td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '" data-editor-type="elementor">ED</button></div></td>';
             
             echo '<td class="readonly-cell column_wp_posts_post_type"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
+            $status_display = $item['post_status'] === 'publish' ? '<strong>' . esc_html($item['post_status']) . '</strong>' : esc_html($item['post_status']);
+            echo '<td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . $status_display . '</div></td>';
             echo '<td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
             echo '<td class="readonly-cell column_wp_posts_post_date"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</div></td>';
             echo '<td class="readonly-cell column_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</div></td>';
@@ -9449,11 +9450,18 @@ class Snefuru_Admin {
             }
         }
         
-        // Get CSS file content
+        // Get CSS file content for first tab
         $css_file_path = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
         $css_content = '';
         if (file_exists($css_file_path)) {
             $css_content = file_get_contents($css_file_path);
+        }
+        
+        // Get CSS file content for second tab
+        $css_file_path_2 = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_250_beamray_table_grid_1.css';
+        $css_content_2 = '';
+        if (file_exists($css_file_path_2)) {
+            $css_content_2 = file_get_contents($css_file_path_2);
         }
         
         // Construct full URL
@@ -9558,7 +9566,7 @@ class Snefuru_Admin {
             <!-- Tabs -->
             <div class="cssmar-tabs">
                 <div class="cssmar-tab active" data-tab="sddx-240">SDDX - 240</div>
-                <div class="cssmar-tab" data-tab="tab2">tab2</div>
+                <div class="cssmar-tab" data-tab="sddx-250">SDDX - 250</div>
                 <div class="cssmar-tab" data-tab="tab3">tab3</div>
                 <div class="cssmar-tab" data-tab="tab4">tab4</div>
                 <div class="cssmar-tab" data-tab="tab5">tab5</div>
@@ -9584,6 +9592,17 @@ class Snefuru_Admin {
             </div>
             
             <script>
+                const tabData = {
+                    'sddx-240': {
+                        content: <?php echo json_encode($css_content); ?>,
+                        url: '<?php echo esc_js($full_url); ?>'
+                    },
+                    'sddx-250': {
+                        content: <?php echo json_encode($css_content_2); ?>,
+                        url: '<?php echo esc_js('https://' . $sitespren_base . '/' . str_replace(home_url('/'), '', SNEFURU_PLUGIN_URL . 'assets/css/sddx_250_beamray_table_grid_1.css')); ?>'
+                    }
+                };
+                
                 function copyUrlToClipboard() {
                     const urlInput = document.querySelector('.cssmar-url-input');
                     urlInput.select();
@@ -9659,16 +9678,23 @@ class Snefuru_Admin {
                     });
                 }
                 
-                // Tab functionality (currently only SDDX-240 is functional)
+                // Tab functionality
                 document.querySelectorAll('.cssmar-tab').forEach(tab => {
                     tab.addEventListener('click', function() {
-                        if (this.dataset.tab !== 'sddx-240') {
+                        const tabKey = this.dataset.tab;
+                        
+                        if (!tabData[tabKey]) {
                             alert('This tab is not yet implemented.');
                             return;
                         }
                         
+                        // Update active tab
                         document.querySelectorAll('.cssmar-tab').forEach(t => t.classList.remove('active'));
                         this.classList.add('active');
+                        
+                        // Update content and URL
+                        document.getElementById('cssmar-editor').value = tabData[tabKey].content;
+                        document.querySelector('.cssmar-url-input').value = tabData[tabKey].url;
                     });
                 });
             </script>
