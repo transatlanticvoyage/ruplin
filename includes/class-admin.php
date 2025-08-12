@@ -9726,15 +9726,16 @@ class Snefuru_Admin {
                 .cssmar-editor {
                     width: 100%;
                     height: 600px;
-                    font-family: 'Courier New', monospace;
-                    font-size: 14px;
-                    line-height: 1.6;
-                    letter-spacing: 0.5px;
+                    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Courier New', monospace !important;
+                    font-size: 14px !important;
+                    line-height: 1.8 !important;
+                    letter-spacing: 1px !important;
+                    font-weight: normal !important;
                     border: 1px solid #ddd;
                     border-radius: 4px;
                     padding: 15px;
-                    background: #000000;
-                    color: #ffffff;
+                    background: #000000 !important;
+                    color: #ffffff !important;
                     resize: vertical;
                 }
                 
