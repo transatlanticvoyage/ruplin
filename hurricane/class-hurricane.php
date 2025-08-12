@@ -286,7 +286,7 @@ class Snefuru_Hurricane {
                 
                 <div style="display: flex; flex-direction: column;">
                     <div class="beamray_banner1">
-                        <svg class="stellar-galactic-logo" viewBox="0 0 24 24" fill="currentColor">
+                        <svg class="stellar-galactic-logo" viewBox="0 0 24 24" fill="currentColor" style="width: 8px; height: 8px;">
                             <circle cx="12" cy="12" r="10" stroke="white" stroke-width="0.5" fill="none"/>
                             <circle cx="12" cy="12" r="6" stroke="white" stroke-width="0.5" fill="none"/>
                             <circle cx="12" cy="12" r="2" fill="white"/>
