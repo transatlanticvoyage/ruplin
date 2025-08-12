@@ -7755,7 +7755,7 @@ class Snefuru_Admin {
                     background: #e0e0e0;
                 }
                 
-                .beamraymar-table td {
+                .beamraymar-table td .tcell_inner_wrapper_div {
                     height: 38px;
                 }
                 
