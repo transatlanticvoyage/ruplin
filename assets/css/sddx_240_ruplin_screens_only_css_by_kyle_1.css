@@ -3,3 +3,22 @@
 
 /* This file stores customizations for Ruplin plugin admin pages */
 /* This CSS is only loaded on Ruplin plugin pages, not on native WP admin pages */
+
+/*
+BeamRayMar Table Column Class Names (fact_ prefix convention):
+1. fact_checkbox - Checkbox column (no DB equivalent)
+2. fact_wp_posts_id - ID column
+3. fact_wp_posts_post_title - Post Title column
+4. fact_wp_posts_post_content - Post Content column
+5. fact_wp_postmeta_meta_key_elementor_data - _elementor_data column
+6. fact_wp_posts_post_type - Post Type column
+7. fact_wp_posts_post_status - Post Status column
+8. fact_wp_posts_post_name - Post Name column
+9. fact_wp_posts_post_date - Post Date column
+10. fact_wp_posts_post_modified - Post Modified column
+11. fact_wp_posts_post_author - Post Author column
+12. fact_wp_posts_post_parent - Post Parent column
+13. fact_wp_posts_menu_order - Menu Order column
+14. fact_wp_posts_comment_status - Comment Status column
+15. fact_wp_posts_ping_status - Ping Status column
+*/
