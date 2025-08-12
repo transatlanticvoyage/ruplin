@@ -7755,6 +7755,10 @@ class Snefuru_Admin {
                     background: #e0e0e0;
                 }
                 
+                .beamraymar-table td {
+                    height: 38px;
+                }
+                
                 /* Column pagination styles */
                 .beamraymar-column-pagination-controls {
                     display: flex;
@@ -7878,21 +7882,21 @@ class Snefuru_Admin {
                         <thead>
                             <tr>
                                 <th class="beamraymar-checkbox-cell">
-                                    <input type="checkbox" class="beamraymar-checkbox" id="select-all">
+                                    <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox" id="select-all"></div>
                                 </th>
-                                <th data-field="ID" data-type="integer">id</th>
-                                <th data-field="post_title" data-type="text">post_title</th>
-                                <th data-field="post_content" data-type="longtext">post_content</th>
-                                <th data-field="post_type" data-type="text">post_type</th>
-                                <th data-field="post_status" data-type="text">post_status</th>
-                                <th data-field="post_name" data-type="text">post_name</th>
-                                <th data-field="post_date" data-type="datetime">post_date</th>
-                                <th data-field="post_modified" data-type="datetime">post_modified</th>
-                                <th data-field="post_author" data-type="integer">post_author</th>
-                                <th data-field="post_parent" data-type="integer">post_parent</th>
-                                <th data-field="menu_order" data-type="integer">menu_order</th>
-                                <th data-field="comment_status" data-type="text">comment_status</th>
-                                <th data-field="ping_status" data-type="text">ping_status</th>
+                                <th data-field="ID" data-type="integer"><div class="tcell_inner_wrapper_div">id</div></th>
+                                <th data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">post_title</div></th>
+                                <th data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">post_content</div></th>
+                                <th data-field="post_type" data-type="text"><div class="tcell_inner_wrapper_div">post_type</div></th>
+                                <th data-field="post_status" data-type="text"><div class="tcell_inner_wrapper_div">post_status</div></th>
+                                <th data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">post_name</div></th>
+                                <th data-field="post_date" data-type="datetime"><div class="tcell_inner_wrapper_div">post_date</div></th>
+                                <th data-field="post_modified" data-type="datetime"><div class="tcell_inner_wrapper_div">post_modified</div></th>
+                                <th data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">post_author</div></th>
+                                <th data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">post_parent</div></th>
+                                <th data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">menu_order</div></th>
+                                <th data-field="comment_status" data-type="text"><div class="tcell_inner_wrapper_div">comment_status</div></th>
+                                <th data-field="ping_status" data-type="text"><div class="tcell_inner_wrapper_div">ping_status</div></th>
                             </tr>
                         </thead>
                         <tbody id="beamraymar-tbody">
@@ -8262,21 +8266,21 @@ class Snefuru_Admin {
                         data.forEach(item => {
                             html += `<tr data-id="${item.ID}">
                                 <td class="beamraymar-checkbox-cell">
-                                    <input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}">
+                                    <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
-                                <td class="readonly-cell">${item.ID}</td>
-                                <td class="beamraymar-editable-cell" data-field="post_title" data-type="text">${item.post_title || ''}</td>
-                                <td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext">${truncateText(item.post_content || '', 100)}</td>
-                                <td class="readonly-cell">${item.post_type}</td>
-                                <td class="beamraymar-editable-cell" data-field="post_status" data-type="select">${item.post_status}</td>
-                                <td class="beamraymar-editable-cell" data-field="post_name" data-type="text">${item.post_name || ''}</td>
-                                <td class="readonly-cell">${formatDate(item.post_date)}</td>
-                                <td class="readonly-cell">${formatDate(item.post_modified)}</td>
-                                <td class="beamraymar-editable-cell" data-field="post_author" data-type="integer">${item.post_author}</td>
-                                <td class="beamraymar-editable-cell" data-field="post_parent" data-type="integer">${item.post_parent || '0'}</td>
-                                <td class="beamraymar-editable-cell" data-field="menu_order" data-type="integer">${item.menu_order || '0'}</td>
-                                <td class="beamraymar-editable-cell" data-field="comment_status" data-type="select">${item.comment_status}</td>
-                                <td class="beamraymar-editable-cell" data-field="ping_status" data-type="select">${item.ping_status}</td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">${truncateText(item.post_content || '', 100)}</div></td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${formatDate(item.post_date)}</div></td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${formatDate(item.post_modified)}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_author}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_parent || '0'}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">${item.menu_order || '0'}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.comment_status}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.ping_status}</div></td>
                             </tr>`;
                         });
                         
@@ -8536,7 +8540,7 @@ class Snefuru_Admin {
      */
     private function render_beamraymar_table_rows($posts_pages) {
         if (empty($posts_pages)) {
-            echo '<tr><td colspan="14" style="text-align: center; padding: 40px;">No posts or pages found.</td></tr>';
+            echo '<tr><td colspan="14" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
             return;
         }
         
@@ -8548,21 +8552,21 @@ class Snefuru_Admin {
             
             echo '<tr data-id="' . esc_attr($item['ID']) . '">';
             echo '<td class="beamraymar-checkbox-cell">';
-            echo '<input type="checkbox" class="beamraymar-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '">';
+            echo '<div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '"></div>';
             echo '</td>';
-            echo '<td class="readonly-cell">' . esc_html($item['ID']) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_title" data-type="text">' . esc_html($item['post_title']) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext">' . esc_html($content_preview) . '</td>';
-            echo '<td class="readonly-cell">' . esc_html($item['post_type']) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_status" data-type="select">' . esc_html($item['post_status']) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_name" data-type="text">' . esc_html($item['post_name']) . '</td>';
-            echo '<td class="readonly-cell">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</td>';
-            echo '<td class="readonly-cell">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_author" data-type="integer">' . esc_html($item['post_author']) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_parent" data-type="integer">' . esc_html($item['post_parent'] ?: '0') . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="menu_order" data-type="integer">' . esc_html($item['menu_order'] ?: '0') . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="comment_status" data-type="select">' . esc_html($item['comment_status']) . '</td>';
-            echo '<td class="beamraymar-editable-cell" data-field="ping_status" data-type="select">' . esc_html($item['ping_status']) . '</td>';
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '</div></td>';
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</div></td>';
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_author']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_parent'] ?: '0') . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['menu_order'] ?: '0') . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['comment_status']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['ping_status']) . '</div></td>';
             echo '</tr>';
             
             $count++;
