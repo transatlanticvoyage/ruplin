@@ -7754,6 +7754,50 @@ class Snefuru_Admin {
                 .beamraymar-modal-btn.secondary:hover {
                     background: #e0e0e0;
                 }
+                
+                /* Column pagination styles */
+                .beamraymar-column-pagination-controls {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 8px;
+                    margin-left: 15px;
+                }
+                
+                .beamraymar-column-pagination-bar {
+                    display: flex;
+                }
+                
+                .beamraymar-column-pagination-btn {
+                    padding: 10px 12px;
+                    font-size: 14px;
+                    border: 1px solid #ddd;
+                    background: white;
+                    cursor: pointer;
+                    margin-right: -1px;
+                    text-decoration: none;
+                    color: #333;
+                    transition: background-color 0.2s;
+                }
+                
+                .beamraymar-column-pagination-btn:hover {
+                    background-color: #f5f5f5;
+                }
+                
+                .beamraymar-column-pagination-btn.active {
+                    background-color: #ffd700;
+                    color: black;
+                }
+                
+                .beamraymar-column-pagination-btn:first-child {
+                    border-top-left-radius: 4px;
+                    border-bottom-left-radius: 4px;
+                }
+                
+                .beamraymar-column-pagination-btn:last-child {
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
             </style>
 
             <!-- Top Controls -->
@@ -7808,6 +7852,22 @@ class Snefuru_Admin {
                         <button class="beamraymar-create-btn beamraymar-create-popup" id="create-popup">Create New (Popup)</button>
                     </div>
                     <div class="beamraymar-nubra-kite">nubra-tableface-kite</div>
+                    
+                    <!-- Column Pagination Controls -->
+                    <div class="beamraymar-column-pagination-controls">
+                        <div class="beamraymar-column-pagination-bar" id="beamraymar-column-group-bar">
+                            <a href="#" class="beamraymar-column-pagination-btn active" data-column-group="1">Columns 1-7</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="2">Columns 8-14</a>
+                        </div>
+                        
+                        <div class="beamraymar-column-pagination-bar" id="beamraymar-column-nav-bar">
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="first">First</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="prev">Prev</a>
+                            <a href="#" class="beamraymar-column-pagination-btn active" data-column-nav="1">1</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="next">Next</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="last">Last</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -7955,6 +8015,7 @@ class Snefuru_Admin {
                     $(document).ready(function() {
                         initializeEventHandlers();
                         updateTable();
+                        updateColumnVisibility(); // Initialize column pagination
                     });
                     
                     function initializeEventHandlers() {
@@ -8000,6 +8061,32 @@ class Snefuru_Admin {
                             }
                             
                             updateTable();
+                        });
+                        
+                        // Column pagination controls
+                        $('.beamraymar-column-pagination-btn').on('click', function(e) {
+                            e.preventDefault();
+                            const $this = $(this);
+                            
+                            if ($this.data('column-group')) {
+                                // Column group selection
+                                const columnGroup = parseInt($this.data('column-group'));
+                                setActiveColumnGroup(columnGroup);
+                                
+                                $this.siblings('.beamraymar-column-pagination-btn').removeClass('active');
+                                $this.addClass('active');
+                                
+                            } else if ($this.data('column-nav')) {
+                                // Column navigation
+                                const navAction = $this.data('column-nav');
+                                handleColumnNavigation(navAction);
+                                
+                                // Update active state for numbered buttons only
+                                if (!isNaN(navAction)) {
+                                    $this.siblings('[data-column-nav]').removeClass('active');
+                                    $this.addClass('active');
+                                }
+                            }
                         });
                         
                         // Search functionality
@@ -8084,6 +8171,69 @@ class Snefuru_Admin {
                         });
                     }
                     
+                    // Column pagination variables
+                    let currentColumnGroup = 1;
+                    const columnsPerGroup = 7;
+                    
+                    function setActiveColumnGroup(groupNumber) {
+                        currentColumnGroup = groupNumber;
+                        updateColumnVisibility();
+                    }
+                    
+                    function handleColumnNavigation(action) {
+                        const totalGroups = Math.ceil(14 / columnsPerGroup); // 14 total columns
+                        
+                        switch(action) {
+                            case 'first':
+                                currentColumnGroup = 1;
+                                break;
+                            case 'prev':
+                                if (currentColumnGroup > 1) currentColumnGroup--;
+                                break;
+                            case 'next':
+                                if (currentColumnGroup < totalGroups) currentColumnGroup++;
+                                break;
+                            case 'last':
+                                currentColumnGroup = totalGroups;
+                                break;
+                            default:
+                                if (!isNaN(action)) {
+                                    currentColumnGroup = parseInt(action);
+                                }
+                        }
+                        
+                        updateColumnVisibility();
+                        updateColumnGroupButtons();
+                    }
+                    
+                    function updateColumnVisibility() {
+                        const startColumn = (currentColumnGroup - 1) * columnsPerGroup + 1; // +1 for checkbox column
+                        const endColumn = startColumn + columnsPerGroup - 1;
+                        
+                        // Hide all columns except checkbox (index 0)
+                        $('.beamraymar-table th, .beamraymar-table td').each(function(index) {
+                            const columnIndex = $(this).index();
+                            if (columnIndex === 0) {
+                                // Always show checkbox column
+                                $(this).show();
+                            } else if (columnIndex >= startColumn && columnIndex <= endColumn) {
+                                $(this).show();
+                            } else {
+                                $(this).hide();
+                            }
+                        });
+                    }
+                    
+                    function updateColumnGroupButtons() {
+                        // Update column group bar
+                        $('#beamraymar-column-group-bar .beamraymar-column-pagination-btn').removeClass('active');
+                        $(`[data-column-group="${currentColumnGroup}"]`).addClass('active');
+                        
+                        // Update column nav bar active state
+                        $('#beamraymar-column-nav-bar .beamraymar-column-pagination-btn').removeClass('active');
+                        $(`[data-column-nav="${currentColumnGroup}"]`).addClass('active');
+                    }
+                    
                     function updateTable() {
                         const startIndex = (currentPage - 1) * itemsPerPage;
                         const endIndex = itemsPerPage === filteredData.length ? filteredData.length : startIndex + itemsPerPage;
@@ -8101,6 +8251,9 @@ class Snefuru_Admin {
                         
                         // Reattach event handlers for new rows
                         attachRowEventHandlers();
+                        
+                        // Apply column pagination
+                        updateColumnVisibility();
                     }
                     
                     function renderTableRows(data) {
