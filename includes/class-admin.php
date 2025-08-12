@@ -8599,8 +8599,13 @@ class Snefuru_Admin {
                     function truncatePostContent(text) {
                         if (!text) return '';
                         
+                        // Strip HTML tags to get plain text
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = text;
+                        const plainText = tempDiv.textContent || tempDiv.innerText || '';
+                        
                         // Get first line only
-                        let firstLine = text.split(/\r?\n/)[0] || '';
+                        let firstLine = plainText.split(/\r?\n/)[0] || '';
                         
                         // Truncate to 50 characters with conditional ellipsis
                         if (firstLine.length > 50) {
@@ -8653,8 +8658,11 @@ class Snefuru_Admin {
         foreach ($posts_pages as $item) {
             if ($count >= 100) break; // Default pagination limit
             
+            // Strip all HTML tags to get plain text
+            $plain_text = strip_tags($item['post_content']);
+            
             // Get first line only
-            $first_line = explode("\n", $item['post_content'])[0];
+            $first_line = explode("\n", $plain_text)[0];
             $first_line = explode("\r", $first_line)[0]; // Handle Windows line breaks
             
             // Truncate to 50 characters with conditional ellipsis
