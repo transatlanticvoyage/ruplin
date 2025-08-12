@@ -8362,7 +8362,7 @@ class Snefuru_Admin {
                                 </td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
-                                <td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">${truncateText(item.post_content || '', 100)}</div></td>
+                                <td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}</div></td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
@@ -8596,6 +8596,19 @@ class Snefuru_Admin {
                         return text.length > length ? text.substring(0, length) + '...' : text;
                     }
                     
+                    function truncatePostContent(text) {
+                        if (!text) return '';
+                        
+                        // Get first line only
+                        let firstLine = text.split(/\r?\n/)[0] || '';
+                        
+                        // Truncate to 50 characters with conditional ellipsis
+                        if (firstLine.length > 50) {
+                            return firstLine.substring(0, 50) + '...';
+                        }
+                        return firstLine;
+                    }
+                    
                     function formatDate(dateString) {
                         if (!dateString) return '';
                         return new Date(dateString).toLocaleString();
@@ -8640,7 +8653,16 @@ class Snefuru_Admin {
         foreach ($posts_pages as $item) {
             if ($count >= 100) break; // Default pagination limit
             
-            $content_preview = wp_trim_words($item['post_content'], 15, '...');
+            // Get first line only
+            $first_line = explode("\n", $item['post_content'])[0];
+            $first_line = explode("\r", $first_line)[0]; // Handle Windows line breaks
+            
+            // Truncate to 50 characters with conditional ellipsis
+            if (strlen($first_line) > 50) {
+                $content_preview = substr($first_line, 0, 50) . '...';
+            } else {
+                $content_preview = $first_line;
+            }
             
             echo '<tr data-id="' . esc_attr($item['ID']) . '">';
             echo '<td class="beamraymar-checkbox-cell">';
