@@ -7987,10 +7987,19 @@ class Snefuru_Admin {
                 </div>
                 
                 <div class="beamraymar-controls-right">
-                    <div class="beamraymar-create-buttons">
-                        <button class="beamraymar-create-btn beamraymar-create-inline-post" id="create-post-inline">Create New (Inline)</button>
-                        <button class="beamraymar-create-btn beamraymar-create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
-                        <button class="beamraymar-create-btn beamraymar-create-popup" id="create-popup">Create New (Popup)</button>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                        <?php
+                        global $wpdb;
+                        $sitespren_base = $wpdb->get_var("SELECT sitespren_base FROM {$wpdb->prefix}zen_sitespren WHERE wppma_id = 1");
+                        ?>
+                        <div style="font-size: 16px; font-weight: bold; text-transform: lowercase; margin-bottom: 10px;">
+                            _zen_sitespren.sitespren_base: <?php echo esc_html($sitespren_base ?: ''); ?>
+                        </div>
+                        <div class="beamraymar-create-buttons">
+                            <button class="beamraymar-create-btn beamraymar-create-inline-post" id="create-post-inline">Create New (Inline)</button>
+                            <button class="beamraymar-create-btn beamraymar-create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
+                            <button class="beamraymar-create-btn beamraymar-create-popup" id="create-popup">Create New (Popup)</button>
+                        </div>
                     </div>
                     <div class="beamraymar-nubra-kite">nubra-tableface-kite</div>
                     
