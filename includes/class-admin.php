@@ -9724,8 +9724,8 @@ class Snefuru_Admin {
                 }
                 
                 .cssmar-editor {
-                    width: 100%;
-                    height: 600px;
+                    width: 960px;
+                    height: 735px;
                     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'Courier New', monospace !important;
                     font-size: 14px !important;
                     line-height: 1.8 !important;
@@ -9737,6 +9737,7 @@ class Snefuru_Admin {
                     background: #000000 !important;
                     color: #ffffff !important;
                     resize: vertical;
+                    margin-left: 0;
                 }
                 
                 .cssmar-save-btn {
