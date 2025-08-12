@@ -324,6 +324,18 @@ class Snefuru_Hurricane {
                     </g>
                 </svg>
                 
+                <!-- Sitespren Base Display -->
+                <div style="display: flex; align-items: center; margin-left: 20px;">
+                    <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">sitespren_base</span>
+                    <span style="color: white; font-size: 16px; font-weight: bold;">
+                        <?php 
+                        global $wpdb;
+                        $sitespren_base_value = $wpdb->get_var("SELECT sitespren_base FROM {$wpdb->prefix}zen_sitespren WHERE wppma_id = 1");
+                        echo esc_html($sitespren_base_value ? $sitespren_base_value : 'No data');
+                        ?>
+                    </span>
+                </div>
+                
                 <!-- Driggs Revenue Goal Display -->
                 <div style="display: flex; align-items: center; margin-left: 20px;">
                     <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">driggs_revenue_goal</span>
