@@ -8125,13 +8125,19 @@ class Snefuru_Admin {
                         <div class="beamraymar-column-pagination-bar" id="beamraymar-column-group-bar">
                             <a href="#" class="beamraymar-column-pagination-btn active" data-column-group="1">Columns 1-7</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-group="2">Columns 8-14</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="3">Column 15</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="3">Columns 15-21</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="4">Columns 22-28</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="5">Columns 29-35</a>
                         </div>
                         
                         <div class="beamraymar-column-pagination-bar" id="beamraymar-column-nav-bar">
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="first">First</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="prev">Prev</a>
                             <a href="#" class="beamraymar-column-pagination-btn active" data-column-nav="1">1</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="2">2</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="3">3</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="4">4</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="5">5</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="next">Next</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="last">Last</a>
                         </div>
@@ -8596,7 +8602,7 @@ class Snefuru_Admin {
                     }
                     
                     function handleColumnNavigation(action) {
-                        const totalGroups = Math.ceil(15 / columnsPerGroup); // 15 total columns
+                        const totalGroups = 5; // 5 total groups
                         
                         switch(action) {
                             case 'first':
@@ -9645,6 +9651,13 @@ class Snefuru_Admin {
             $css_content_2 = file_get_contents($css_file_path_2);
         }
         
+        // Get CSS file content for third tab
+        $css_file_path_3 = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_260_random_masterlist_of_utg_styling_rules_1.css';
+        $css_content_3 = '';
+        if (file_exists($css_file_path_3)) {
+            $css_content_3 = file_get_contents($css_file_path_3);
+        }
+        
         // Construct full URL
         $plugin_url = SNEFURU_PLUGIN_URL . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
         $full_url = 'https://' . $sitespren_base . '/' . str_replace(home_url('/'), '', $plugin_url);
@@ -9748,7 +9761,7 @@ class Snefuru_Admin {
             <div class="cssmar-tabs">
                 <div class="cssmar-tab active" data-tab="sddx-240">SDDX - 240</div>
                 <div class="cssmar-tab" data-tab="sddx-250">SDDX - 250</div>
-                <div class="cssmar-tab" data-tab="tab3">tab3</div>
+                <div class="cssmar-tab" data-tab="sddx-260">SDDX - 260</div>
                 <div class="cssmar-tab" data-tab="tab4">tab4</div>
                 <div class="cssmar-tab" data-tab="tab5">tab5</div>
             </div>
@@ -9781,6 +9794,10 @@ class Snefuru_Admin {
                     'sddx-250': {
                         content: <?php echo json_encode($css_content_2); ?>,
                         url: '<?php echo esc_js('https://' . $sitespren_base . '/' . str_replace(home_url('/'), '', SNEFURU_PLUGIN_URL . 'assets/css/sddx_250_beamray_table_grid_1.css')); ?>'
+                    },
+                    'sddx-260': {
+                        content: <?php echo json_encode($css_content_3); ?>,
+                        url: '<?php echo esc_js('https://' . $sitespren_base . '/' . str_replace(home_url('/'), '', SNEFURU_PLUGIN_URL . 'assets/css/sddx_260_random_masterlist_of_utg_styling_rules_1.css')); ?>'
                     }
                 };
                 

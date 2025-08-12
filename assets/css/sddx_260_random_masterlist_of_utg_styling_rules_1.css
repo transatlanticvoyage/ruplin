@@ -1,0 +1,38 @@
+/* sddx_260_random_masterlist_of_utg_styling_rules_1.css */
+/* Internal dev tool - CSS reference for UTG styling */
+
+/*
+Width Constraints:
+- width: 150px; - Sets exact width
+- max-width: 200px; - Sets maximum width limit
+- min-width: 100px; - Sets minimum width limit
+
+Text Overflow Control:
+- overflow: hidden; - Hides overflowing text (makes it invisible)
+- overflow: scroll; - Adds scrollbars
+- overflow: auto; - Adds scrollbars only when needed
+- text-overflow: ellipsis; - Shows "..." when text is cut off
+- word-wrap: break-word; - Breaks long words to fit
+- word-break: break-all; - Aggressive word breaking
+- white-space: nowrap; - Prevents text wrapping to new lines
+
+Complete Invisible Overflow Solution:
+td {
+    width: 150px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+Table-Specific Properties:
+- table-layout: fixed; - On the <table> element forces exact column widths
+- word-break: break-word; - Breaks words within cell boundaries
+
+Best Practices:
+1. Use table-layout: fixed on the table for consistent column widths
+2. Combine overflow: hidden + text-overflow: ellipsis + white-space: nowrap for clean cutoff with "..."
+3. Set both width and max-width to the same value for strict enforcement
+
+The overflow: hidden approach makes overflowing content completely invisible to users without visual disruption.
+*/
