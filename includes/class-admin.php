@@ -8042,20 +8042,20 @@ class Snefuru_Admin {
                         <thead>
                             <tr>
                                 <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
-                                <th><div class="tcell_inner_wrapper_div"></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>postmeta</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
                             </tr>
                             <tr class="beamraymar-main-header-row">
                                 <th class="beamraymar-checkbox-cell">
