@@ -8130,56 +8130,56 @@ class Snefuru_Admin {
                     <table class="beamraymar-table" id="beamraymar-table">
                         <thead>
                             <tr>
-                                <th class="fact_checkbox"><div class="tcell_inner_wrapper_div"></div></th>
-                                <th class="fact_tool_buttons"><div class="tcell_inner_wrapper_div"><strong>misc-uicol-type</strong></div></th>
-                                <th class="fact_wp_posts_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_title"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>postmeta</strong></div></th>
-                                <th class="fact_wp_posts_post_type"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_status"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_name"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_date"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_modified"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_author"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_post_parent"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_menu_order"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_comment_status"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_wp_posts_ping_status"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
-                                <th class="fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
-                                <th class="fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
-                                <th class="fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
-                                <th class="fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
-                                <th class="fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
-                                <th class="fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
-                                <th class="fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_checkbox row_obtain_db_table"><div class="tcell_inner_wrapper_div"></div></th>
+                                <th class="column_tool_buttons row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong>misc-uicol-type</strong></div></th>
+                                <th class="column_wp_posts_id row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_title row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_content row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_postmeta_meta_key_elementor_data row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>postmeta</strong></div></th>
+                                <th class="column_wp_posts_post_type row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_status row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_name row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_date row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_modified row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_author row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_post_parent row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_menu_order row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_comment_status row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_wp_posts_ping_status row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="column_zen_orbitposts_rel_wp_post_id row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_orbitpost_id row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_redshift_datum row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_rover_datum row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_hudson_imgplanbatch_id row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_created_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="column_zen_orbitposts_updated_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                             </tr>
                             <tr class="beamraymar-main-header-row">
-                                <th class="beamraymar-checkbox-cell fact_checkbox">
+                                <th class="beamraymar-checkbox-cell column_checkbox row_obtain_db_column">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox" id="select-all"></div>
                                 </th>
-                                <th class="fact_tool_buttons"><div class="tcell_inner_wrapper_div">tool_buttons</div></th>
-                                <th data-field="ID" data-type="integer" class="fact_wp_posts_id"><div class="tcell_inner_wrapper_div">id</div></th>
-                                <th data-field="post_title" data-type="text" class="fact_wp_posts_post_title"><div class="tcell_inner_wrapper_div">post_title</div></th>
-                                <th data-field="post_content" data-type="longtext" class="fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">post_content</div></th>
-                                <th data-field="_elementor_data" data-type="text" class="fact_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div"><strong>meta_key:_elementor_data</strong></div></th>
-                                <th data-field="post_type" data-type="text" class="fact_wp_posts_post_type"><div class="tcell_inner_wrapper_div">post_type</div></th>
-                                <th data-field="post_status" data-type="text" class="fact_wp_posts_post_status"><div class="tcell_inner_wrapper_div">post_status</div></th>
-                                <th data-field="post_name" data-type="text" class="fact_wp_posts_post_name"><div class="tcell_inner_wrapper_div">post_name</div></th>
-                                <th data-field="post_date" data-type="datetime" class="fact_wp_posts_post_date"><div class="tcell_inner_wrapper_div">post_date</div></th>
-                                <th data-field="post_modified" data-type="datetime" class="fact_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">post_modified</div></th>
-                                <th data-field="post_author" data-type="integer" class="fact_wp_posts_post_author"><div class="tcell_inner_wrapper_div">post_author</div></th>
-                                <th data-field="post_parent" data-type="integer" class="fact_wp_posts_post_parent"><div class="tcell_inner_wrapper_div">post_parent</div></th>
-                                <th data-field="menu_order" data-type="integer" class="fact_wp_posts_menu_order"><div class="tcell_inner_wrapper_div">menu_order</div></th>
-                                <th data-field="comment_status" data-type="text" class="fact_wp_posts_comment_status"><div class="tcell_inner_wrapper_div">comment_status</div></th>
-                                <th data-field="ping_status" data-type="text" class="fact_wp_posts_ping_status"><div class="tcell_inner_wrapper_div">ping_status</div></th>
-                                <th data-field="rel_wp_post_id" data-type="integer" class="fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">rel_wp_post_id</div></th>
-                                <th data-field="orbitpost_id" data-type="integer" class="fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">orbitpost_id</div></th>
-                                <th data-field="redshift_datum" data-type="text" class="fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">redshift_datum</div></th>
-                                <th data-field="rover_datum" data-type="text" class="fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">rover_datum</div></th>
-                                <th data-field="hudson_imgplanbatch_id" data-type="integer" class="fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">hudson_imgplanbatch_id</div></th>
-                                <th data-field="created_at" data-type="datetime" class="fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">created_at</div></th>
-                                <th data-field="updated_at" data-type="datetime" class="fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">updated_at</div></th>
+                                <th class="column_tool_buttons row_obtain_db_column"><div class="tcell_inner_wrapper_div">tool_buttons</div></th>
+                                <th data-field="ID" data-type="integer" class="column_wp_posts_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">id</div></th>
+                                <th data-field="post_title" data-type="text" class="column_wp_posts_post_title row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_title</div></th>
+                                <th data-field="post_content" data-type="longtext" class="column_wp_posts_post_content row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_content</div></th>
+                                <th data-field="_elementor_data" data-type="text" class="column_wp_postmeta_meta_key_elementor_data row_obtain_db_column"><div class="tcell_inner_wrapper_div"><strong>meta_key:_elementor_data</strong></div></th>
+                                <th data-field="post_type" data-type="text" class="column_wp_posts_post_type row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_type</div></th>
+                                <th data-field="post_status" data-type="text" class="column_wp_posts_post_status row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_status</div></th>
+                                <th data-field="post_name" data-type="text" class="column_wp_posts_post_name row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_name</div></th>
+                                <th data-field="post_date" data-type="datetime" class="column_wp_posts_post_date row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_date</div></th>
+                                <th data-field="post_modified" data-type="datetime" class="column_wp_posts_post_modified row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_modified</div></th>
+                                <th data-field="post_author" data-type="integer" class="column_wp_posts_post_author row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_author</div></th>
+                                <th data-field="post_parent" data-type="integer" class="column_wp_posts_post_parent row_obtain_db_column"><div class="tcell_inner_wrapper_div">post_parent</div></th>
+                                <th data-field="menu_order" data-type="integer" class="column_wp_posts_menu_order row_obtain_db_column"><div class="tcell_inner_wrapper_div">menu_order</div></th>
+                                <th data-field="comment_status" data-type="text" class="column_wp_posts_comment_status row_obtain_db_column"><div class="tcell_inner_wrapper_div">comment_status</div></th>
+                                <th data-field="ping_status" data-type="text" class="column_wp_posts_ping_status row_obtain_db_column"><div class="tcell_inner_wrapper_div">ping_status</div></th>
+                                <th data-field="rel_wp_post_id" data-type="integer" class="column_zen_orbitposts_rel_wp_post_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">rel_wp_post_id</div></th>
+                                <th data-field="orbitpost_id" data-type="integer" class="column_zen_orbitposts_orbitpost_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">orbitpost_id</div></th>
+                                <th data-field="redshift_datum" data-type="text" class="column_zen_orbitposts_redshift_datum row_obtain_db_column"><div class="tcell_inner_wrapper_div">redshift_datum</div></th>
+                                <th data-field="rover_datum" data-type="text" class="column_zen_orbitposts_rover_datum row_obtain_db_column"><div class="tcell_inner_wrapper_div">rover_datum</div></th>
+                                <th data-field="hudson_imgplanbatch_id" data-type="integer" class="column_zen_orbitposts_hudson_imgplanbatch_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">hudson_imgplanbatch_id</div></th>
+                                <th data-field="created_at" data-type="datetime" class="column_zen_orbitposts_created_at row_obtain_db_column"><div class="tcell_inner_wrapper_div">created_at</div></th>
+                                <th data-field="updated_at" data-type="datetime" class="column_zen_orbitposts_updated_at row_obtain_db_column"><div class="tcell_inner_wrapper_div">updated_at</div></th>
                             </tr>
                         </thead>
                         <tbody id="beamraymar-tbody">
@@ -8666,31 +8666,31 @@ class Snefuru_Admin {
                         
                         data.forEach(item => {
                             html += `<tr data-id="${item.ID}">
-                                <td class="beamraymar-checkbox-cell fact_checkbox">
+                                <td class="beamraymar-checkbox-cell column_checkbox">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
-                                <td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a></div></td>
-                                <td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
-                                <td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
-                                <td class="readonly-cell fact_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}" data-editor-type="elementor">ED</button></div></td>
-                                <td class="readonly-cell fact_wp_posts_post_type"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
-                                <td class="readonly-cell fact_wp_posts_post_date"><div class="tcell_inner_wrapper_div">${formatDate(item.post_date)}</div></td>
-                                <td class="readonly-cell fact_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">${formatDate(item.post_modified)}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_author}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_parent || '0'}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">${item.menu_order || '0'}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.comment_status}</div></td>
-                                <td class="beamraymar-editable-cell fact_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.ping_status}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">${item.rel_wp_post_id || ''}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">${item.orbitpost_id || ''}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">${item.redshift_datum || ''}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">${item.rover_datum || ''}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">${item.hudson_imgplanbatch_id || ''}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">${formatDate(item.created_at)}</div></td>
-                                <td class="readonly-cell fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">${formatDate(item.updated_at)}</div></td>
+                                <td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a></div></td>
+                                <td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
+                                <td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
+                                <td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}" data-editor-type="elementor">ED</button></div></td>
+                                <td class="readonly-cell column_wp_posts_post_type"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
+                                <td class="readonly-cell column_wp_posts_post_date"><div class="tcell_inner_wrapper_div">${formatDate(item.post_date)}</div></td>
+                                <td class="readonly-cell column_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">${formatDate(item.post_modified)}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_author}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_parent || '0'}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">${item.menu_order || '0'}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.comment_status}</div></td>
+                                <td class="beamraymar-editable-cell column_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.ping_status}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">${item.rel_wp_post_id || ''}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">${item.orbitpost_id || ''}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">${item.redshift_datum || ''}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">${item.rover_datum || ''}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">${item.hudson_imgplanbatch_id || ''}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">${formatDate(item.created_at)}</div></td>
+                                <td class="readonly-cell column_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">${formatDate(item.updated_at)}</div></td>
                             </tr>`;
                         });
                         
@@ -9117,7 +9117,7 @@ class Snefuru_Admin {
             }
             
             echo '<tr data-id="' . esc_attr($item['ID']) . '">';
-            echo '<td class="beamraymar-checkbox-cell fact_checkbox">';
+            echo '<td class="beamraymar-checkbox-cell column_checkbox">';
             echo '<div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '"></div>';
             echo '</td>';
             
@@ -9136,7 +9136,7 @@ class Snefuru_Admin {
             $elementor_edit_url = admin_url('post.php?post=' . $item['ID'] . '&action=elementor');
             $is_elementor = !empty($item['_elementor_data']) && $item['_elementor_data'] !== '[]';
             
-            echo '<td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div">';
+            echo '<td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div">';
             echo '<a href="' . esc_url($admin_edit_url) . '" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>';
             if ($is_elementor) {
                 echo '<a href="' . esc_url($elementor_edit_url) . '" target="_blank" class="beamraymar-elementor-btn">E</a>';
@@ -9145,9 +9145,9 @@ class Snefuru_Admin {
             }
             echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a>';
             echo '</div></td>';
-            echo '<td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
-            echo '<td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
+            echo '<td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
+            echo '<td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
             
             // Calculate elementor data line count
             $elementor_display = 'none';
@@ -9159,25 +9159,25 @@ class Snefuru_Admin {
                     $elementor_display = $line_count . ' lines';
                 }
             }
-            echo '<td class="readonly-cell fact_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '" data-editor-type="elementor">ED</button></div></td>';
+            echo '<td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '" data-editor-type="elementor">ED</button></div></td>';
             
-            echo '<td class="readonly-cell fact_wp_posts_post_type"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
-            echo '<td class="readonly-cell fact_wp_posts_post_date"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</div></td>';
-            echo '<td class="readonly-cell fact_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_author']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_parent'] ?: '0') . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['menu_order'] ?: '0') . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['comment_status']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell fact_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['ping_status']) . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['rel_wp_post_id'] ?: '') . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['orbitpost_id'] ?: '') . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['redshift_datum'] ?: '') . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['rover_datum'] ?: '') . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['hudson_imgplanbatch_id'] ?: '') . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['created_at'] ? date('Y-m-d H:i:s', strtotime($item['created_at'])) : '') . '</div></td>';
-            echo '<td class="readonly-cell fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['updated_at'] ? date('Y-m-d H:i:s', strtotime($item['updated_at'])) : '') . '</div></td>';
+            echo '<td class="readonly-cell column_wp_posts_post_type"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
+            echo '<td class="readonly-cell column_wp_posts_post_date"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</div></td>';
+            echo '<td class="readonly-cell column_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_author']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_parent'] ?: '0') . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['menu_order'] ?: '0') . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['comment_status']) . '</div></td>';
+            echo '<td class="beamraymar-editable-cell column_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['ping_status']) . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['rel_wp_post_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['orbitpost_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['redshift_datum'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['rover_datum'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['hudson_imgplanbatch_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['created_at'] ? date('Y-m-d H:i:s', strtotime($item['created_at'])) : '') . '</div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['updated_at'] ? date('Y-m-d H:i:s', strtotime($item['updated_at'])) : '') . '</div></td>';
             echo '</tr>';
             
             $count++;
