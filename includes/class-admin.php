@@ -7952,6 +7952,29 @@ class Snefuru_Admin {
                     background: #f1f1f1;
                     color: #333;
                 }
+                
+                /* Tool button styling */
+                .beamraymar-tool-btn {
+                    width: 20px;
+                    height: 20px;
+                    background: #0073aa;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 10px;
+                    font-weight: bold;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-decoration: none;
+                    border-radius: 2px;
+                }
+                
+                .beamraymar-tool-btn:hover {
+                    background: #005a87;
+                    color: white;
+                    text-decoration: none;
+                }
             </style>
 
             <!-- Top Controls -->
@@ -8055,6 +8078,7 @@ class Snefuru_Admin {
                         <thead>
                             <tr>
                                 <th class="fact_checkbox"><div class="tcell_inner_wrapper_div"></div></th>
+                                <th class="fact_tool_buttons"><div class="tcell_inner_wrapper_div"><strong>misc-uicol-type</strong></div></th>
                                 <th class="fact_wp_posts_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
                                 <th class="fact_wp_posts_post_title"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
                                 <th class="fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
@@ -8081,6 +8105,7 @@ class Snefuru_Admin {
                                 <th class="beamraymar-checkbox-cell fact_checkbox">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox" id="select-all"></div>
                                 </th>
+                                <th class="fact_tool_buttons"><div class="tcell_inner_wrapper_div">tool_buttons</div></th>
                                 <th data-field="ID" data-type="integer" class="fact_wp_posts_id"><div class="tcell_inner_wrapper_div">id</div></th>
                                 <th data-field="post_title" data-type="text" class="fact_wp_posts_post_title"><div class="tcell_inner_wrapper_div">post_title</div></th>
                                 <th data-field="post_content" data-type="longtext" class="fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">post_content</div></th>
@@ -8556,6 +8581,19 @@ class Snefuru_Admin {
                         updateColumnVisibility();
                     }
                     
+                    function getFrontendUrl(item) {
+                        const baseUrl = '<?php echo home_url('/'); ?>';
+                        if (item.post_status === 'draft') {
+                            return baseUrl + '?p=' + item.ID + '&preview=true';
+                        } else {
+                            if (item.post_name) {
+                                return baseUrl + item.post_name + '/';
+                            } else {
+                                return baseUrl + '?p=' + item.ID;
+                            }
+                        }
+                    }
+                    
                     function renderTableRows(data) {
                         let html = '';
                         
@@ -8564,6 +8602,7 @@ class Snefuru_Admin {
                                 <td class="beamraymar-checkbox-cell fact_checkbox">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
+                                <td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a></div></td>
                                 <td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
                                 <td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
@@ -8988,7 +9027,7 @@ class Snefuru_Admin {
      */
     private function render_beamraymar_table_rows($posts_pages) {
         if (empty($posts_pages)) {
-            echo '<tr><td colspan="22" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
+            echo '<tr><td colspan="23" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
             return;
         }
         
@@ -9014,6 +9053,19 @@ class Snefuru_Admin {
             echo '<td class="beamraymar-checkbox-cell fact_checkbox">';
             echo '<div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '"></div>';
             echo '</td>';
+            
+            // Frontend URL logic
+            $frontend_url = '';
+            if ($item['post_status'] === 'draft') {
+                $frontend_url = home_url('/?p=' . $item['ID'] . '&preview=true');
+            } else {
+                if ($item['post_name']) {
+                    $frontend_url = home_url('/' . $item['post_name'] . '/');
+                } else {
+                    $frontend_url = home_url('/?p=' . $item['ID']);
+                }
+            }
+            echo '<td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a></div></td>';
             echo '<td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
             echo '<td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';

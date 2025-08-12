@@ -7,25 +7,26 @@
 /*
 BeamRayMar Table Column Class Names (fact_ prefix convention):
 1. fact_checkbox - Checkbox column (no DB equivalent)
-2. fact_wp_posts_id - ID column
-3. fact_wp_posts_post_title - Post Title column
-4. fact_wp_posts_post_content - Post Content column
-5. fact_wp_postmeta_meta_key_elementor_data - _elementor_data column
-6. fact_wp_posts_post_type - Post Type column
-7. fact_wp_posts_post_status - Post Status column
-8. fact_wp_posts_post_name - Post Name column
-9. fact_wp_posts_post_date - Post Date column
-10. fact_wp_posts_post_modified - Post Modified column
-11. fact_wp_posts_post_author - Post Author column
-12. fact_wp_posts_post_parent - Post Parent column
-13. fact_wp_posts_menu_order - Menu Order column
-14. fact_wp_posts_comment_status - Comment Status column
-15. fact_wp_posts_ping_status - Ping Status column
-16. fact_zen_orbitposts_rel_wp_post_id - zen_orbitposts rel_wp_post_id column
-17. fact_zen_orbitposts_orbitpost_id - zen_orbitposts orbitpost_id column
-18. fact_zen_orbitposts_redshift_datum - zen_orbitposts redshift_datum column
-19. fact_zen_orbitposts_rover_datum - zen_orbitposts rover_datum column
-20. fact_zen_orbitposts_hudson_imgplanbatch_id - zen_orbitposts hudson_imgplanbatch_id column
-21. fact_zen_orbitposts_created_at - zen_orbitposts created_at column
-22. fact_zen_orbitposts_updated_at - zen_orbitposts updated_at column
+2. fact_tool_buttons - Tool buttons column (misc-uicol-type)
+3. fact_wp_posts_id - ID column
+4. fact_wp_posts_post_title - Post Title column
+5. fact_wp_posts_post_content - Post Content column
+6. fact_wp_postmeta_meta_key_elementor_data - _elementor_data column
+7. fact_wp_posts_post_type - Post Type column
+8. fact_wp_posts_post_status - Post Status column
+9. fact_wp_posts_post_name - Post Name column
+10. fact_wp_posts_post_date - Post Date column
+11. fact_wp_posts_post_modified - Post Modified column
+12. fact_wp_posts_post_author - Post Author column
+13. fact_wp_posts_post_parent - Post Parent column
+14. fact_wp_posts_menu_order - Menu Order column
+15. fact_wp_posts_comment_status - Comment Status column
+16. fact_wp_posts_ping_status - Ping Status column
+17. fact_zen_orbitposts_rel_wp_post_id - zen_orbitposts rel_wp_post_id column
+18. fact_zen_orbitposts_orbitpost_id - zen_orbitposts orbitpost_id column
+19. fact_zen_orbitposts_redshift_datum - zen_orbitposts redshift_datum column
+20. fact_zen_orbitposts_rover_datum - zen_orbitposts rover_datum column
+21. fact_zen_orbitposts_hudson_imgplanbatch_id - zen_orbitposts hudson_imgplanbatch_id column
+22. fact_zen_orbitposts_created_at - zen_orbitposts created_at column
+23. fact_zen_orbitposts_updated_at - zen_orbitposts updated_at column
 */
