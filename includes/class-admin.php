@@ -55,6 +55,9 @@ class Snefuru_Admin {
         // Bulk duplication AJAX action
         add_action('wp_ajax_rup_duplicate_single_post', array($this, 'rup_duplicate_single_post'));
         
+        // AJAX handler for beamraymar post content update
+        add_action('wp_ajax_beamraymar_update_post_content', array($this, 'beamraymar_update_post_content'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -7846,6 +7849,93 @@ class Snefuru_Admin {
                     border-top-right-radius: 4px;
                     border-bottom-right-radius: 4px;
                 }
+                
+                /* ED button for post_content */
+                .beamraymar-content-edit-btn {
+                    width: 20px;
+                    height: 20px;
+                    background: #0073aa;
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 10px;
+                    font-weight: bold;
+                    float: right;
+                    margin-left: 8px;
+                }
+                
+                .beamraymar-content-edit-btn:hover {
+                    background: #005a87;
+                }
+                
+                /* Post content editor popup */
+                .beamraymar-content-editor-modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 999999;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.7);
+                }
+                
+                .beamraymar-content-editor-modal.active {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .beamraymar-content-editor-content {
+                    background: white;
+                    padding: 30px;
+                    border-radius: 6px;
+                    width: 90%;
+                    height: 85%;
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .beamraymar-content-editor-header {
+                    font-size: 16px;
+                    font-weight: bold;
+                    margin-bottom: 15px;
+                }
+                
+                .beamraymar-content-editor-textarea {
+                    width: 100%;
+                    flex: 1;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    font-family: monospace;
+                    font-size: 14px;
+                    resize: none;
+                }
+                
+                .beamraymar-content-editor-actions {
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 10px;
+                    margin-top: 15px;
+                }
+                
+                .beamraymar-content-editor-btn {
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 600;
+                }
+                
+                .beamraymar-content-editor-btn.save {
+                    background: #0073aa;
+                    color: white;
+                }
+                
+                .beamraymar-content-editor-btn.cancel {
+                    background: #f1f1f1;
+                    color: #333;
+                }
             </style>
 
             <!-- Top Controls -->
@@ -8059,6 +8149,18 @@ class Snefuru_Admin {
                 </div>
             </div>
 
+            <!-- Post Content Editor Modal -->
+            <div id="beamraymar-content-editor-modal" class="beamraymar-content-editor-modal">
+                <div class="beamraymar-content-editor-content">
+                    <div class="beamraymar-content-editor-header">post_content</div>
+                    <textarea id="beamraymar-content-editor-textarea" class="beamraymar-content-editor-textarea"></textarea>
+                    <div class="beamraymar-content-editor-actions">
+                        <button type="button" class="beamraymar-content-editor-btn cancel" id="beamraymar-content-editor-cancel">Cancel</button>
+                        <button type="button" class="beamraymar-content-editor-btn save" id="beamraymar-content-editor-save">Save</button>
+                    </div>
+                </div>
+            </div>
+
             <script>
                 // Beamraymar JavaScript functionality
                 (function($) {
@@ -8071,6 +8173,7 @@ class Snefuru_Admin {
                     let filteredData = [...allData];
                     let selectedRows = new Set();
                     let editingCell = null;
+                    let currentContentEditPostId = null;
                     
                     // Initialize page
                     $(document).ready(function() {
@@ -8224,6 +8327,21 @@ class Snefuru_Admin {
                             saveModalData();
                         });
                         
+                        // Post content editor handlers
+                        $(document).on('click', '.beamraymar-content-edit-btn', function(e) {
+                            e.stopPropagation();
+                            const postId = $(this).data('post-id');
+                            openContentEditor(postId);
+                        });
+                        
+                        $('#beamraymar-content-editor-cancel').on('click', function() {
+                            closeContentEditor();
+                        });
+                        
+                        $('#beamraymar-content-editor-save').on('click', function() {
+                            saveContentEditor();
+                        });
+                        
                         // Table column sorting
                         $('.beamraymar-table th[data-field]').on('click', function() {
                             const field = $(this).data('field');
@@ -8362,7 +8480,7 @@ class Snefuru_Admin {
                                 </td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
-                                <td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}</div></td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
@@ -8619,6 +8737,61 @@ class Snefuru_Admin {
                         return new Date(dateString).toLocaleString();
                     }
                     
+                    // Post content editor functions
+                    function openContentEditor(postId) {
+                        currentContentEditPostId = postId;
+                        const post = allData.find(item => item.ID == postId);
+                        
+                        if (post) {
+                            $('#beamraymar-content-editor-textarea').val(post.post_content || '');
+                            $('#beamraymar-content-editor-modal').addClass('active');
+                        }
+                    }
+                    
+                    function closeContentEditor() {
+                        $('#beamraymar-content-editor-modal').removeClass('active');
+                        $('#beamraymar-content-editor-textarea').val('');
+                        currentContentEditPostId = null;
+                    }
+                    
+                    function saveContentEditor() {
+                        if (!currentContentEditPostId) return;
+                        
+                        const newContent = $('#beamraymar-content-editor-textarea').val();
+                        
+                        // Send AJAX request to save
+                        $.ajax({
+                            url: ajaxurl,
+                            type: 'POST',
+                            data: {
+                                action: 'beamraymar_update_post_content',
+                                post_id: currentContentEditPostId,
+                                post_content: newContent,
+                                nonce: '<?php echo wp_create_nonce('beamraymar_nonce'); ?>'
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    // Update local data
+                                    const post = allData.find(item => item.ID == currentContentEditPostId);
+                                    if (post) {
+                                        post.post_content = newContent;
+                                    }
+                                    
+                                    // Refresh table
+                                    updateTable();
+                                    
+                                    // Close editor
+                                    closeContentEditor();
+                                } else {
+                                    alert('Failed to save: ' + (response.data || 'Unknown error'));
+                                }
+                            },
+                            error: function() {
+                                alert('Failed to save content');
+                            }
+                        });
+                    }
+                    
                 })(jQuery);
             </script>
         </div>
@@ -8678,7 +8851,7 @@ class Snefuru_Admin {
             echo '</td>';
             echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell" data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '</div></td>';
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
             echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
@@ -8692,6 +8865,45 @@ class Snefuru_Admin {
             echo '</tr>';
             
             $count++;
+        }
+    }
+    
+    /**
+     * AJAX handler for updating post content from beamraymar editor
+     */
+    public function beamraymar_update_post_content() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+        
+        // Get and validate post ID
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+            return;
+        }
+        
+        // Get new content
+        $new_content = isset($_POST['post_content']) ? wp_kses_post($_POST['post_content']) : '';
+        
+        // Update the post
+        $updated = wp_update_post(array(
+            'ID' => $post_id,
+            'post_content' => $new_content
+        ));
+        
+        if (is_wp_error($updated)) {
+            wp_send_json_error($updated->get_error_message());
+        } else {
+            wp_send_json_success('Content updated successfully');
         }
     }
     
