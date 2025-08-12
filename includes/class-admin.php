@@ -7998,6 +7998,36 @@ class Snefuru_Admin {
                     color: white;
                     text-decoration: none;
                 }
+                
+                /* Elementor button styling */
+                .beamraymar-elementor-btn {
+                    width: 20px;
+                    height: 20px;
+                    background: #0073aa;
+                    color: white;
+                    border: none;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    cursor: pointer;
+                    margin-left: 2px;
+                    border-radius: 2px;
+                }
+                
+                .beamraymar-elementor-btn:hover {
+                    background: #005a87;
+                    color: white;
+                    text-decoration: none;
+                }
+                
+                .beamraymar-elementor-btn.disabled {
+                    background: #ccc;
+                    color: #999;
+                    cursor: not-allowed;
+                    pointer-events: none;
+                }
             </style>
 
             <!-- Top Controls -->
@@ -8622,6 +8652,15 @@ class Snefuru_Admin {
                         return adminUrl + '?post=' + item.ID + '&action=edit';
                     }
                     
+                    function getElementorEditUrl(item) {
+                        const adminUrl = '<?php echo admin_url('post.php'); ?>';
+                        return adminUrl + '?post=' + item.ID + '&action=elementor';
+                    }
+                    
+                    function isElementorPost(item) {
+                        return item._elementor_data && item._elementor_data !== '' && item._elementor_data !== '[]';
+                    }
+                    
                     function renderTableRows(data) {
                         let html = '';
                         
@@ -8630,7 +8669,7 @@ class Snefuru_Admin {
                                 <td class="beamraymar-checkbox-cell fact_checkbox">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
-                                <td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a><a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a></div></td>
+                                <td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a><a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}</div></td>
                                 <td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
                                 <td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
@@ -9094,7 +9133,18 @@ class Snefuru_Admin {
                 }
             }
             $admin_edit_url = admin_url('post.php?post=' . $item['ID'] . '&action=edit');
-            echo '<td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="' . esc_url($admin_edit_url) . '" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a><a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a></div></td>';
+            $elementor_edit_url = admin_url('post.php?post=' . $item['ID'] . '&action=elementor');
+            $is_elementor = !empty($item['_elementor_data']) && $item['_elementor_data'] !== '[]';
+            
+            echo '<td class="readonly-cell fact_tool_buttons"><div class="tcell_inner_wrapper_div">';
+            echo '<a href="' . esc_url($admin_edit_url) . '" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>';
+            echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a>';
+            if ($is_elementor) {
+                echo '<a href="' . esc_url($elementor_edit_url) . '" target="_blank" class="beamraymar-elementor-btn">E</a>';
+            } else {
+                echo '<span class="beamraymar-elementor-btn disabled">E</span>';
+            }
+            echo '</div></td>';
             echo '<td class="readonly-cell fact_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell fact_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
             echo '<td class="readonly-cell fact_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
