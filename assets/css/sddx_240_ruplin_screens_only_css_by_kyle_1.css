@@ -21,4 +21,11 @@ BeamRayMar Table Column Class Names (fact_ prefix convention):
 13. fact_wp_posts_menu_order - Menu Order column
 14. fact_wp_posts_comment_status - Comment Status column
 15. fact_wp_posts_ping_status - Ping Status column
+16. fact_zen_orbitposts_rel_wp_post_id - zen_orbitposts rel_wp_post_id column
+17. fact_zen_orbitposts_orbitpost_id - zen_orbitposts orbitpost_id column
+18. fact_zen_orbitposts_redshift_datum - zen_orbitposts redshift_datum column
+19. fact_zen_orbitposts_rover_datum - zen_orbitposts rover_datum column
+20. fact_zen_orbitposts_hudson_imgplanbatch_id - zen_orbitposts hudson_imgplanbatch_id column
+21. fact_zen_orbitposts_created_at - zen_orbitposts created_at column
+22. fact_zen_orbitposts_updated_at - zen_orbitposts updated_at column
 */

@@ -8069,6 +8069,13 @@ class Snefuru_Admin {
                                 <th class="fact_wp_posts_menu_order"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
                                 <th class="fact_wp_posts_comment_status"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
                                 <th class="fact_wp_posts_ping_status"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>posts</strong></div></th>
+                                <th class="fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
+                                <th class="fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                             </tr>
                             <tr class="beamraymar-main-header-row">
                                 <th class="beamraymar-checkbox-cell fact_checkbox">
@@ -8088,6 +8095,13 @@ class Snefuru_Admin {
                                 <th data-field="menu_order" data-type="integer" class="fact_wp_posts_menu_order"><div class="tcell_inner_wrapper_div">menu_order</div></th>
                                 <th data-field="comment_status" data-type="text" class="fact_wp_posts_comment_status"><div class="tcell_inner_wrapper_div">comment_status</div></th>
                                 <th data-field="ping_status" data-type="text" class="fact_wp_posts_ping_status"><div class="tcell_inner_wrapper_div">ping_status</div></th>
+                                <th data-field="rel_wp_post_id" data-type="integer" class="fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">rel_wp_post_id</div></th>
+                                <th data-field="orbitpost_id" data-type="integer" class="fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">orbitpost_id</div></th>
+                                <th data-field="redshift_datum" data-type="text" class="fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">redshift_datum</div></th>
+                                <th data-field="rover_datum" data-type="text" class="fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">rover_datum</div></th>
+                                <th data-field="hudson_imgplanbatch_id" data-type="integer" class="fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">hudson_imgplanbatch_id</div></th>
+                                <th data-field="created_at" data-type="datetime" class="fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">created_at</div></th>
+                                <th data-field="updated_at" data-type="datetime" class="fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">updated_at</div></th>
                             </tr>
                         </thead>
                         <tbody id="beamraymar-tbody">
@@ -8564,6 +8578,13 @@ class Snefuru_Admin {
                                 <td class="beamraymar-editable-cell fact_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">${item.menu_order || '0'}</div></td>
                                 <td class="beamraymar-editable-cell fact_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.comment_status}</div></td>
                                 <td class="beamraymar-editable-cell fact_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.ping_status}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">${item.rel_wp_post_id || ''}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">${item.orbitpost_id || ''}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">${item.redshift_datum || ''}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">${item.rover_datum || ''}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">${item.hudson_imgplanbatch_id || ''}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">${formatDate(item.created_at)}</div></td>
+                                <td class="readonly-cell fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">${formatDate(item.updated_at)}</div></td>
                             </tr>`;
                         });
                         
@@ -8947,9 +8968,12 @@ class Snefuru_Admin {
             "SELECT p.ID, p.post_title, p.post_content, p.post_type, p.post_status, p.post_name, 
                     p.post_date, p.post_modified, p.post_author, p.post_parent, p.menu_order, 
                     p.comment_status, p.ping_status,
-                    pm.meta_value as _elementor_data
+                    pm.meta_value as _elementor_data,
+                    zop.rel_wp_post_id, zop.orbitpost_id, zop.redshift_datum, zop.rover_datum, 
+                    zop.hudson_imgplanbatch_id, zop.created_at, zop.updated_at
              FROM {$wpdb->posts} p
              LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_elementor_data'
+             LEFT JOIN {$wpdb->prefix}zen_orbitposts zop ON p.ID = zop.rel_wp_post_id
              WHERE p.post_type IN ('post', 'page') 
              AND p.post_status NOT IN ('trash', 'auto-draft') 
              ORDER BY p.post_modified DESC",
@@ -8964,7 +8988,7 @@ class Snefuru_Admin {
      */
     private function render_beamraymar_table_rows($posts_pages) {
         if (empty($posts_pages)) {
-            echo '<tr><td colspan="15" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
+            echo '<tr><td colspan="22" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
             return;
         }
         
@@ -9016,6 +9040,13 @@ class Snefuru_Admin {
             echo '<td class="beamraymar-editable-cell fact_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['menu_order'] ?: '0') . '</div></td>';
             echo '<td class="beamraymar-editable-cell fact_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['comment_status']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell fact_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['ping_status']) . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['rel_wp_post_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['orbitpost_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['redshift_datum'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['rover_datum'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['hudson_imgplanbatch_id'] ?: '') . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['created_at'] ? date('Y-m-d H:i:s', strtotime($item['created_at'])) : '') . '</div></td>';
+            echo '<td class="readonly-cell fact_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['updated_at'] ? date('Y-m-d H:i:s', strtotime($item['updated_at'])) : '') . '</div></td>';
             echo '</tr>';
             
             $count++;
