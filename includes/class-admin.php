@@ -28,6 +28,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_locations_get_data', array($this, 'rup_locations_get_data'));
         add_action('wp_ajax_rup_locations_update_field', array($this, 'rup_locations_update_field'));
         add_action('wp_ajax_rup_locations_create', array($this, 'rup_locations_create'));
+        add_action('wp_ajax_rup_locations_delete_selected', array($this, 'rup_locations_delete_selected'));
         add_action('wp_ajax_rup_locations_get_image_url', array($this, 'rup_locations_get_image_url'));
         
         // Services management AJAX actions
@@ -1699,6 +1700,7 @@ class Snefuru_Admin {
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <button id="create-inline-btn" class="button button-primary">Create New (Inline)</button>
                         <button id="create-popup-btn" class="button button-secondary">Create New (Popup)</button>
+                        <button id="delete-selected-btn" class="button" style="background: #dc3545; color: white; border-color: #dc3545;">Delete Selected</button>
                     </div>
                 </div>
                 
@@ -1924,6 +1926,41 @@ class Snefuru_Admin {
             $('#create-form').submit(function(e) {
                 e.preventDefault();
                 createLocationPopup();
+            });
+            
+            // Delete selected button
+            $('#delete-selected-btn').click(function() {
+                if (selectedRows.size === 0) {
+                    alert('Please select at least one location to delete.');
+                    return;
+                }
+                
+                let selectedIds = Array.from(selectedRows);
+                let confirmMessage = `Are you sure you want to delete ${selectedIds.length} selected location(s)?\n\nThis action cannot be undone.`;
+                
+                if (confirm(confirmMessage)) {
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'rup_locations_delete_selected',
+                            nonce: '<?php echo wp_create_nonce('rup_locations_nonce'); ?>',
+                            location_ids: selectedIds
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert(`Successfully deleted ${response.data.deleted_count} location(s).`);
+                                selectedRows.clear();
+                                loadData(); // Reload all data
+                            } else {
+                                alert('Error deleting locations: ' + (response.data || 'Unknown error'));
+                            }
+                        },
+                        error: function() {
+                            alert('Error deleting locations');
+                        }
+                    });
+                }
             });
             
             // Load data function
@@ -5089,6 +5126,51 @@ class Snefuru_Admin {
             ));
         } catch (Exception $e) {
             wp_send_json_error('Error creating location: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * AJAX: Delete selected locations
+     */
+    public function rup_locations_delete_selected() {
+        check_ajax_referer('rup_locations_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        if (!isset($_POST['location_ids']) || !is_array($_POST['location_ids'])) {
+            wp_send_json_error('No location IDs provided');
+            return;
+        }
+        
+        $location_ids = array_map('intval', $_POST['location_ids']);
+        
+        if (empty($location_ids)) {
+            wp_send_json_error('No valid location IDs provided');
+            return;
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_locations';
+        
+        try {
+            $placeholders = implode(',', array_fill(0, count($location_ids), '%d'));
+            $sql = "DELETE FROM $table_name WHERE location_id IN ($placeholders)";
+            
+            $result = $wpdb->query($wpdb->prepare($sql, $location_ids));
+            
+            if ($result === false) {
+                wp_send_json_error('Database delete failed: ' . $wpdb->last_error);
+                return;
+            }
+            
+            wp_send_json_success(array(
+                'message' => "Successfully deleted $result location(s)",
+                'deleted_count' => $result
+            ));
+        } catch (Exception $e) {
+            wp_send_json_error('Error deleting locations: ' . $e->getMessage());
         }
     }
     
