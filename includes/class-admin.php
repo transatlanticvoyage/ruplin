@@ -61,6 +61,9 @@ class Snefuru_Admin {
         // AJAX handler for beamraymar elementor data update
         add_action('wp_ajax_beamraymar_update_elementor_data', array($this, 'beamraymar_update_elementor_data'));
         
+        // AJAX handler for cssmar CSS file save
+        add_action('wp_ajax_cssmar_save_css', array($this, 'cssmar_save_css'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -273,6 +276,15 @@ class Snefuru_Admin {
             'manage_options',
             'beamraymar',
             array($this, 'beamraymar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'cssmar',
+            'cssmar',
+            'manage_options',
+            'cssmar',
+            array($this, 'cssmar_page')
         );
     }
     
@@ -9254,5 +9266,278 @@ class Snefuru_Admin {
         
         echo json_encode(array('success' => true, 'post_id' => $result));
         wp_die();
+    }
+    
+    /**
+     * CSS Editor page (cssmar)
+     */
+    public function cssmar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION
+        $this->suppress_all_admin_notices();
+        
+        global $wpdb;
+        
+        // Get sitespren_base from database
+        $sitespren_base = '';
+        $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$zen_sitespren_table'") == $zen_sitespren_table) {
+            $result = $wpdb->get_row("SELECT sitespren_base FROM $zen_sitespren_table WHERE wppma_id = 1");
+            if ($result) {
+                $sitespren_base = $result->sitespren_base;
+            }
+        }
+        
+        // Get CSS file content
+        $css_file_path = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
+        $css_content = '';
+        if (file_exists($css_file_path)) {
+            $css_content = file_get_contents($css_file_path);
+        }
+        
+        // Construct full URL
+        $plugin_url = SNEFURU_PLUGIN_URL . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
+        $full_url = 'https://' . $sitespren_base . '/' . str_replace(home_url('/'), '', $plugin_url);
+        
+        ?>
+        <div class="wrap cssmar-wrapper">
+            <style>
+                .cssmar-wrapper {
+                    background: white;
+                    padding: 20px;
+                    margin: 0 0 0 -20px;
+                }
+                
+                .cssmar-tabs {
+                    display: flex;
+                    border-bottom: 2px solid #ddd;
+                    margin-bottom: 20px;
+                }
+                
+                .cssmar-tab {
+                    padding: 12px 20px;
+                    background: #f1f1f1;
+                    border: 1px solid #ddd;
+                    border-bottom: none;
+                    cursor: pointer;
+                    font-weight: 600;
+                    margin-right: 2px;
+                }
+                
+                .cssmar-tab.active {
+                    background: white;
+                    border-bottom: 2px solid white;
+                    margin-bottom: -2px;
+                }
+                
+                .cssmar-url-container {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 15px;
+                    gap: 10px;
+                }
+                
+                .cssmar-url-input {
+                    flex: 1;
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    background: #f9f9f9;
+                }
+                
+                .cssmar-copy-url-btn {
+                    padding: 8px 16px;
+                    background: #0073aa;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 600;
+                }
+                
+                .cssmar-copy-url-btn:hover {
+                    background: #005a87;
+                }
+                
+                .cssmar-editor {
+                    width: 100%;
+                    height: 600px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 14px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    padding: 15px;
+                    background: #f9f9f9;
+                    resize: vertical;
+                }
+                
+                .cssmar-save-btn {
+                    padding: 12px 24px;
+                    background: #16a085;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: 600;
+                    font-size: 16px;
+                }
+                
+                .cssmar-save-btn:hover {
+                    background: #138d75;
+                }
+                
+                .cssmar-save-container {
+                    margin: 15px 0;
+                }
+            </style>
+            
+            <h1>CSS Editor (cssmar)</h1>
+            
+            <!-- Tabs -->
+            <div class="cssmar-tabs">
+                <div class="cssmar-tab active" data-tab="sddx-240">SDDX - 240</div>
+                <div class="cssmar-tab" data-tab="tab2">tab2</div>
+                <div class="cssmar-tab" data-tab="tab3">tab3</div>
+                <div class="cssmar-tab" data-tab="tab4">tab4</div>
+                <div class="cssmar-tab" data-tab="tab5">tab5</div>
+            </div>
+            
+            <!-- URL Display -->
+            <div class="cssmar-url-container">
+                <input type="text" class="cssmar-url-input" value="<?php echo esc_attr($full_url); ?>" readonly>
+                <button type="button" class="cssmar-copy-url-btn" onclick="copyUrlToClipboard()">Copy</button>
+            </div>
+            
+            <!-- Save Button (Top) -->
+            <div class="cssmar-save-container">
+                <button type="button" class="cssmar-save-btn" onclick="saveCssFile()">Save</button>
+            </div>
+            
+            <!-- CSS Editor -->
+            <textarea class="cssmar-editor" id="cssmar-editor"><?php echo esc_textarea($css_content); ?></textarea>
+            
+            <!-- Save Button (Bottom) -->
+            <div class="cssmar-save-container">
+                <button type="button" class="cssmar-save-btn" onclick="saveCssFile()">Save</button>
+            </div>
+            
+            <script>
+                function copyUrlToClipboard() {
+                    const urlInput = document.querySelector('.cssmar-url-input');
+                    urlInput.select();
+                    document.execCommand('copy');
+                    
+                    const button = document.querySelector('.cssmar-copy-url-btn');
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = '#16a085';
+                    
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#0073aa';
+                    }, 2000);
+                }
+                
+                function saveCssFile() {
+                    const content = document.getElementById('cssmar-editor').value;
+                    const saveButtons = document.querySelectorAll('.cssmar-save-btn');
+                    
+                    // Update button states
+                    saveButtons.forEach(btn => {
+                        btn.textContent = 'Saving...';
+                        btn.style.background = '#f39c12';
+                        btn.disabled = true;
+                    });
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'cssmar_save_css');
+                    formData.append('css_content', content);
+                    formData.append('nonce', '<?php echo wp_create_nonce('cssmar_nonce'); ?>');
+                    
+                    fetch(ajaxurl, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            saveButtons.forEach(btn => {
+                                btn.textContent = 'Saved!';
+                                btn.style.background = '#16a085';
+                            });
+                        } else {
+                            saveButtons.forEach(btn => {
+                                btn.textContent = 'Error';
+                                btn.style.background = '#e74c3c';
+                            });
+                            alert('Error saving file: ' + (data.message || 'Unknown error'));
+                        }
+                        
+                        setTimeout(() => {
+                            saveButtons.forEach(btn => {
+                                btn.textContent = 'Save';
+                                btn.style.background = '#16a085';
+                                btn.disabled = false;
+                            });
+                        }, 2000);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        saveButtons.forEach(btn => {
+                            btn.textContent = 'Error';
+                            btn.style.background = '#e74c3c';
+                            btn.disabled = false;
+                        });
+                        setTimeout(() => {
+                            saveButtons.forEach(btn => {
+                                btn.textContent = 'Save';
+                                btn.style.background = '#16a085';
+                            });
+                        }, 2000);
+                    });
+                }
+                
+                // Tab functionality (currently only SDDX-240 is functional)
+                document.querySelectorAll('.cssmar-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        if (this.dataset.tab !== 'sddx-240') {
+                            alert('This tab is not yet implemented.');
+                            return;
+                        }
+                        
+                        document.querySelectorAll('.cssmar-tab').forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+            </script>
+        </div>
+        <?php
+    }
+    
+    /**
+     * AJAX handler for saving CSS file
+     */
+    public function cssmar_save_css() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'cssmar_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
+        }
+        
+        $css_content = stripslashes($_POST['css_content']);
+        $css_file_path = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
+        
+        // Save the file
+        $result = file_put_contents($css_file_path, $css_content);
+        
+        if ($result !== false) {
+            wp_send_json_success(array('message' => 'CSS file saved successfully'));
+        } else {
+            wp_send_json_error(array('message' => 'Failed to save CSS file'));
+        }
     }
 } 
