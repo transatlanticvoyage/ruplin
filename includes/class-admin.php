@@ -7996,6 +7996,7 @@ class Snefuru_Admin {
                         <div class="beamraymar-column-pagination-bar" id="beamraymar-column-group-bar">
                             <a href="#" class="beamraymar-column-pagination-btn active" data-column-group="1">Columns 1-7</a>
                             <a href="#" class="beamraymar-column-pagination-btn" data-column-group="2">Columns 8-14</a>
+                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="3">Column 15</a>
                         </div>
                         
                         <div class="beamraymar-column-pagination-bar" id="beamraymar-column-nav-bar">
@@ -8034,6 +8035,7 @@ class Snefuru_Admin {
                                 <th data-field="ID" data-type="integer"><div class="tcell_inner_wrapper_div">id</div></th>
                                 <th data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">post_title</div></th>
                                 <th data-field="post_content" data-type="longtext"><div class="tcell_inner_wrapper_div">post_content</div></th>
+                                <th data-field="_elementor_data" data-type="text"><div class="tcell_inner_wrapper_div">_elementor_data</div></th>
                                 <th data-field="post_type" data-type="text"><div class="tcell_inner_wrapper_div">post_type</div></th>
                                 <th data-field="post_status" data-type="text"><div class="tcell_inner_wrapper_div">post_status</div></th>
                                 <th data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">post_name</div></th>
@@ -8395,7 +8397,7 @@ class Snefuru_Admin {
                     }
                     
                     function handleColumnNavigation(action) {
-                        const totalGroups = Math.ceil(14 / columnsPerGroup); // 14 total columns
+                        const totalGroups = Math.ceil(15 / columnsPerGroup); // 15 total columns
                         
                         switch(action) {
                             case 'first':
@@ -8481,6 +8483,7 @@ class Snefuru_Admin {
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
+                                <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}</div></td>
                                 <td class="readonly-cell"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status}</div></td>
                                 <td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
@@ -8737,6 +8740,17 @@ class Snefuru_Admin {
                         return new Date(dateString).toLocaleString();
                     }
                     
+                    function formatElementorData(elementorData) {
+                        if (elementorData === null || elementorData === undefined) {
+                            return 'none';
+                        }
+                        if (elementorData === '' || elementorData === '[]') {
+                            return '0 lines';
+                        }
+                        const lineCount = (elementorData.match(/\n/g) || []).length + 1;
+                        return lineCount + ' lines';
+                    }
+                    
                     // Post content editor functions
                     function openContentEditor(postId) {
                         currentContentEditPostId = postId;
@@ -8805,13 +8819,15 @@ class Snefuru_Admin {
         global $wpdb;
         
         $results = $wpdb->get_results(
-            "SELECT ID, post_title, post_content, post_type, post_status, post_name, 
-                    post_date, post_modified, post_author, post_parent, menu_order, 
-                    comment_status, ping_status 
-             FROM {$wpdb->posts} 
-             WHERE post_type IN ('post', 'page') 
-             AND post_status NOT IN ('trash', 'auto-draft') 
-             ORDER BY post_modified DESC",
+            "SELECT p.ID, p.post_title, p.post_content, p.post_type, p.post_status, p.post_name, 
+                    p.post_date, p.post_modified, p.post_author, p.post_parent, p.menu_order, 
+                    p.comment_status, p.ping_status,
+                    pm.meta_value as _elementor_data
+             FROM {$wpdb->posts} p
+             LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_elementor_data'
+             WHERE p.post_type IN ('post', 'page') 
+             AND p.post_status NOT IN ('trash', 'auto-draft') 
+             ORDER BY p.post_modified DESC",
             ARRAY_A
         );
         
@@ -8823,7 +8839,7 @@ class Snefuru_Admin {
      */
     private function render_beamraymar_table_rows($posts_pages) {
         if (empty($posts_pages)) {
-            echo '<tr><td colspan="14" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
+            echo '<tr><td colspan="15" style="text-align: center; padding: 40px;"><div class="tcell_inner_wrapper_div">No posts or pages found.</div></td></tr>';
             return;
         }
         
@@ -8852,6 +8868,19 @@ class Snefuru_Admin {
             echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
             echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
+            
+            // Calculate elementor data line count
+            $elementor_display = 'none';
+            if (isset($item['_elementor_data']) && $item['_elementor_data'] !== null) {
+                if (empty($item['_elementor_data']) || $item['_elementor_data'] === '[]') {
+                    $elementor_display = '0 lines';
+                } else {
+                    $line_count = substr_count($item['_elementor_data'], "\n") + 1;
+                    $elementor_display = $line_count . ' lines';
+                }
+            }
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '</div></td>';
+            
             echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
             echo '<td class="beamraymar-editable-cell" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
