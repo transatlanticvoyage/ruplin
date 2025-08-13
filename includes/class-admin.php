@@ -69,6 +69,19 @@ class Snefuru_Admin {
         // AJAX handler for zen_orbitposts field update
         add_action('wp_ajax_beamraymar_update_zen_orbitpost_field', array($this, 'beamraymar_update_zen_orbitpost_field'));
         
+        // Cache management AJAX actions
+        add_action('wp_ajax_rup_clear_object_cache', array($this, 'rup_clear_object_cache'));
+        add_action('wp_ajax_rup_clear_transients', array($this, 'rup_clear_transients'));
+        add_action('wp_ajax_rup_clear_rewrite_rules', array($this, 'rup_clear_rewrite_rules'));
+        add_action('wp_ajax_rup_clear_opcache', array($this, 'rup_clear_opcache'));
+        add_action('wp_ajax_rup_clear_plugin_cache', array($this, 'rup_clear_plugin_cache'));
+        add_action('wp_ajax_rup_clear_elementor_cache', array($this, 'rup_clear_elementor_cache'));
+        add_action('wp_ajax_rup_clear_database_cache', array($this, 'rup_clear_database_cache'));
+        add_action('wp_ajax_rup_clear_file_cache', array($this, 'rup_clear_file_cache'));
+        add_action('wp_ajax_rup_clear_server_cache', array($this, 'rup_clear_server_cache'));
+        add_action('wp_ajax_rup_force_asset_reload', array($this, 'rup_force_asset_reload'));
+        add_action('wp_ajax_rup_nuclear_cache_flush', array($this, 'rup_nuclear_cache_flush'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -281,6 +294,15 @@ class Snefuru_Admin {
             'manage_options',
             'beamraymar',
             array($this, 'beamraymar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'rupcacheman',
+            'rupcacheman',
+            'manage_options',
+            'rupcacheman',
+            array($this, 'rupcacheman_page')
         );
         
         add_submenu_page(
@@ -10278,5 +10300,553 @@ class Snefuru_Admin {
         } else {
             wp_send_json_error(array('message' => 'Failed to save CSS file'));
         }
+    }
+    
+    /**
+     * rupcacheman page - Cache Management
+     */
+    public function rupcacheman_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        ?>
+        <div class="wrap" style="margin: 0; padding: 0;">
+            <!-- Allow space for WordPress notices -->
+            <div style="height: 20px;"></div>
+            
+            <div style="padding: 20px;">
+                <h1 style="margin-bottom: 20px;">🧹 Cache Management - rupcacheman</h1>
+                
+                <div style="background: white; border: 1px solid #ddd; padding: 30px; border-radius: 5px; max-width: 1200px;">
+                    <p style="margin-bottom: 30px; color: #666;">
+                        Use these buttons to clear different types of caches that might be preventing updates from appearing.
+                        Each button targets specific cache mechanisms.
+                    </p>
+                    
+                    <!-- WordPress Core Caches -->
+                    <div style="margin-bottom: 40px;">
+                        <h3 style="color: #0073aa; border-bottom: 2px solid #0073aa; padding-bottom: 10px; margin-bottom: 20px;">WordPress Core Caches</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_object_cache" 
+                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🗃️ Clear Object Cache
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">wp_cache_flush()</div>
+                            </button>
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_transients"
+                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                ⏰ Clear Transients
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Delete all _transient_* data</div>
+                            </button>
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_rewrite_rules"
+                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🔄 Flush Rewrite Rules
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">flush_rewrite_rules()</div>
+                            </button>
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_opcache"
+                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                ⚡ Clear OpCache
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">opcache_reset() if available</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Plugin & Theme Caches -->
+                    <div style="margin-bottom: 40px;">
+                        <h3 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 10px; margin-bottom: 20px;">Plugin & Theme Caches</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_plugin_cache"
+                                    style="padding: 15px; background: #16a085; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🔌 Clear Plugin Caches
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">wp-content/cache/ directories</div>
+                            </button>
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_elementor_cache"
+                                    style="padding: 15px; background: #16a085; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🎨 Clear Elementor Cache
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Elementor files_manager cache</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Database & File Caches -->
+                    <div style="margin-bottom: 40px;">
+                        <h3 style="color: #e67e22; border-bottom: 2px solid #e67e22; padding-bottom: 10px; margin-bottom: 20px;">Database & File Caches</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_database_cache"
+                                    style="padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🗄️ Clear Database Cache
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Meta cache & database queries</div>
+                            </button>
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_file_cache"
+                                    style="padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                📁 Clear File Cache
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Compiled assets & temp files</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Server & Advanced Caches -->
+                    <div style="margin-bottom: 40px;">
+                        <h3 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 20px;">Server & Advanced Caches</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            
+                            <button type="button" class="cache-btn" data-action="rup_clear_server_cache"
+                                    style="padding: 15px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🖥️ Clear Server Cache
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Memcached, Redis, APCu</div>
+                            </button>
+                            
+                            <button type="button" class="cache-btn" data-action="rup_force_asset_reload"
+                                    style="padding: 15px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                                🔄 Force Asset Reload
+                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Version CSS/JS for browser reload</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Nuclear Option -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; margin-bottom: 20px;">Nuclear Option</h3>
+                        <div style="display: flex; justify-content: center;">
+                            <button type="button" class="cache-btn" data-action="rup_nuclear_cache_flush"
+                                    style="padding: 20px 30px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 16px;">
+                                💥 NUCLEAR CACHE FLUSH
+                                <div style="font-size: 14px; margin-top: 5px; opacity: 0.9;">Clear ALL cache types at once</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Area -->
+                    <div id="cache-results" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; display: none;">
+                        <h4 style="margin-top: 0; color: #333;">Results:</h4>
+                        <div id="cache-results-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('.cache-btn').on('click', function() {
+                var button = $(this);
+                var action = button.data('action');
+                var originalText = button.html();
+                
+                // Update button state
+                button.prop('disabled', true);
+                button.html('🔄 Processing...');
+                
+                // Show results area
+                $('#cache-results').show();
+                $('#cache-results-content').append('<div>🔄 Running: ' + action + '...</div>');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: action,
+                        nonce: '<?php echo wp_create_nonce('rupcacheman_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#cache-results-content').append('<div style="color: #16a085;">✅ ' + action + ': ' + response.data.message + '</div>');
+                        } else {
+                            $('#cache-results-content').append('<div style="color: #e74c3c;">❌ ' + action + ': ' + response.data + '</div>');
+                        }
+                    },
+                    error: function() {
+                        $('#cache-results-content').append('<div style="color: #e74c3c;">❌ ' + action + ': AJAX error occurred</div>');
+                    },
+                    complete: function() {
+                        // Reset button
+                        button.prop('disabled', false);
+                        button.html(originalText);
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+    
+    /**
+     * Clear WordPress object cache
+     */
+    public function rup_clear_object_cache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            $result = wp_cache_flush();
+            if ($result) {
+                wp_send_json_success(array('message' => 'Object cache cleared successfully'));
+            } else {
+                wp_send_json_success(array('message' => 'Object cache flush attempted (may not be active)'));
+            }
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing object cache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear all transients
+     */
+    public function rup_clear_transients() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            global $wpdb;
+            
+            // Delete all transients
+            $result1 = $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_%'");
+            $result2 = $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_%'");
+            
+            $total_deleted = $result1 + $result2;
+            wp_send_json_success(array('message' => "Deleted {$total_deleted} transients"));
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing transients: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Flush rewrite rules
+     */
+    public function rup_clear_rewrite_rules() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            flush_rewrite_rules(false);
+            wp_send_json_success(array('message' => 'Rewrite rules flushed successfully'));
+        } catch (Exception $e) {
+            wp_send_json_error('Error flushing rewrite rules: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear OpCache
+     */
+    public function rup_clear_opcache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            if (function_exists('opcache_reset')) {
+                $result = opcache_reset();
+                if ($result) {
+                    wp_send_json_success(array('message' => 'OpCache cleared successfully'));
+                } else {
+                    wp_send_json_error('OpCache reset failed');
+                }
+            } else {
+                wp_send_json_success(array('message' => 'OpCache not available on this server'));
+            }
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing OpCache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear plugin caches
+     */
+    public function rup_clear_plugin_cache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            $cache_dir = WP_CONTENT_DIR . '/cache';
+            $deleted_files = 0;
+            
+            if (is_dir($cache_dir)) {
+                $deleted_files = $this->delete_directory_contents($cache_dir);
+            }
+            
+            // Clear common caching plugin caches
+            if (function_exists('w3tc_flush_all')) {
+                w3tc_flush_all();
+            }
+            
+            if (function_exists('wp_cache_clear_cache')) {
+                wp_cache_clear_cache();
+            }
+            
+            wp_send_json_success(array('message' => "Plugin caches cleared. Deleted {$deleted_files} files"));
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing plugin cache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear Elementor cache
+     */
+    public function rup_clear_elementor_cache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            if (class_exists('\Elementor\Plugin')) {
+                \Elementor\Plugin::$instance->files_manager->clear_cache();
+                wp_send_json_success(array('message' => 'Elementor cache cleared successfully'));
+            } else {
+                wp_send_json_success(array('message' => 'Elementor plugin not active'));
+            }
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing Elementor cache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear database cache
+     */
+    public function rup_clear_database_cache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            // Clear WordPress meta caches
+            wp_cache_flush_group('posts');
+            wp_cache_flush_group('post_meta');
+            wp_cache_flush_group('user_meta');
+            wp_cache_flush_group('term_meta');
+            wp_cache_flush_group('comment_meta');
+            
+            global $wpdb;
+            // Clear any custom query caches
+            $wpdb->flush();
+            
+            wp_send_json_success(array('message' => 'Database cache cleared successfully'));
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing database cache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear file cache
+     */
+    public function rup_clear_file_cache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            $deleted_files = 0;
+            
+            // Clear temp directories
+            $temp_dirs = [
+                sys_get_temp_dir() . '/wordpress-*',
+                WP_CONTENT_DIR . '/uploads/elementor/css',
+                WP_CONTENT_DIR . '/uploads/wp-optimize-cache'
+            ];
+            
+            foreach ($temp_dirs as $pattern) {
+                $dirs = glob($pattern);
+                foreach ($dirs as $dir) {
+                    if (is_dir($dir)) {
+                        $deleted_files += $this->delete_directory_contents($dir);
+                    }
+                }
+            }
+            
+            wp_send_json_success(array('message' => "File cache cleared. Deleted {$deleted_files} files"));
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing file cache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Clear server cache
+     */
+    public function rup_clear_server_cache() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            $cleared = array();
+            
+            // Clear Memcached
+            if (class_exists('Memcached')) {
+                $memcached = new Memcached();
+                if ($memcached->flush()) {
+                    $cleared[] = 'Memcached';
+                }
+            }
+            
+            // Clear Redis
+            if (class_exists('Redis')) {
+                $redis = new Redis();
+                if ($redis->flushAll()) {
+                    $cleared[] = 'Redis';
+                }
+            }
+            
+            // Clear APCu
+            if (function_exists('apcu_clear_cache')) {
+                if (apcu_clear_cache()) {
+                    $cleared[] = 'APCu';
+                }
+            }
+            
+            if (empty($cleared)) {
+                wp_send_json_success(array('message' => 'No server-level caches found or accessible'));
+            } else {
+                wp_send_json_success(array('message' => 'Cleared: ' . implode(', ', $cleared)));
+            }
+        } catch (Exception $e) {
+            wp_send_json_error('Error clearing server cache: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Force asset reload by updating version numbers
+     */
+    public function rup_force_asset_reload() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            // Update a timestamp option that can be used for versioning
+            update_option('snefuru_asset_version', time());
+            
+            wp_send_json_success(array('message' => 'Asset version updated to force browser reload'));
+        } catch (Exception $e) {
+            wp_send_json_error('Error forcing asset reload: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Nuclear cache flush - clear everything
+     */
+    public function rup_nuclear_cache_flush() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        try {
+            $results = array();
+            
+            // Run all cache clearing methods
+            ob_start();
+            $this->rup_clear_object_cache();
+            ob_end_clean();
+            $results[] = 'Object Cache';
+            
+            ob_start();
+            $this->rup_clear_transients();
+            ob_end_clean();
+            $results[] = 'Transients';
+            
+            ob_start();
+            $this->rup_clear_rewrite_rules();
+            ob_end_clean();
+            $results[] = 'Rewrite Rules';
+            
+            ob_start();
+            $this->rup_clear_opcache();
+            ob_end_clean();
+            $results[] = 'OpCache';
+            
+            ob_start();
+            $this->rup_clear_plugin_cache();
+            ob_end_clean();
+            $results[] = 'Plugin Cache';
+            
+            ob_start();
+            $this->rup_clear_elementor_cache();
+            ob_end_clean();
+            $results[] = 'Elementor Cache';
+            
+            ob_start();
+            $this->rup_clear_database_cache();
+            ob_end_clean();
+            $results[] = 'Database Cache';
+            
+            ob_start();
+            $this->rup_clear_file_cache();
+            ob_end_clean();
+            $results[] = 'File Cache';
+            
+            ob_start();
+            $this->rup_clear_server_cache();
+            ob_end_clean();
+            $results[] = 'Server Cache';
+            
+            ob_start();
+            $this->rup_force_asset_reload();
+            ob_end_clean();
+            $results[] = 'Asset Reload';
+            
+            wp_send_json_success(array('message' => '💥 NUCLEAR FLUSH COMPLETE! Cleared: ' . implode(', ', $results)));
+        } catch (Exception $e) {
+            wp_send_json_error('Nuclear flush failed: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Helper function to delete directory contents
+     */
+    private function delete_directory_contents($dir) {
+        $deleted_count = 0;
+        
+        if (!is_dir($dir)) {
+            return $deleted_count;
+        }
+        
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
+        );
+        
+        foreach ($files as $fileinfo) {
+            if ($fileinfo->isDir()) {
+                if (@rmdir($fileinfo->getRealPath())) {
+                    $deleted_count++;
+                }
+            } else {
+                if (@unlink($fileinfo->getRealPath())) {
+                    $deleted_count++;
+                }
+            }
+        }
+        
+        return $deleted_count;
     }
 } 
