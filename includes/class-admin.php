@@ -81,6 +81,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_clear_server_cache', array($this, 'rup_clear_server_cache'));
         add_action('wp_ajax_rup_force_asset_reload', array($this, 'rup_force_asset_reload'));
         add_action('wp_ajax_rup_nuclear_cache_flush', array($this, 'rup_nuclear_cache_flush'));
+        add_action('wp_ajax_rup_get_cache_reports', array($this, 'rup_get_cache_reports'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -10423,6 +10424,19 @@ class Snefuru_Admin {
                         </div>
                     </div>
                     
+                    <!-- Cache Reports Section -->
+                    <div style="margin-top: 40px;">
+                        <h3 style="color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px;">📊 Recent Cache Operations</h3>
+                        <div id="cache-reports" style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+                            <?php $this->display_cache_reports(); ?>
+                        </div>
+                        <div style="text-align: center;">
+                            <button type="button" id="refresh-reports" style="padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                🔄 Refresh Reports
+                            </button>
+                        </div>
+                    </div>
+                    
                     <!-- Results Area -->
                     <div id="cache-results" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; display: none;">
                         <h4 style="margin-top: 0; color: #333;">Results:</h4>
@@ -10456,9 +10470,24 @@ class Snefuru_Admin {
                     },
                     success: function(response) {
                         if (response.success) {
-                            $('#cache-results-content').append('<div style="color: #16a085;">✅ ' + action + ': ' + response.data.message + '</div>');
+                            var details = '';
+                            if (response.data.items_cleared !== undefined) {
+                                details += ' (' + response.data.items_cleared + ' items cleared';
+                                if (response.data.execution_time) {
+                                    details += ', ' + response.data.execution_time;
+                                }
+                                details += ')';
+                            }
+                            $('#cache-results-content').append('<div style="color: #16a085;">✅ ' + action + ': ' + response.data.message + details + '</div>');
                         } else {
                             $('#cache-results-content').append('<div style="color: #e74c3c;">❌ ' + action + ': ' + response.data + '</div>');
+                        }
+                        
+                        // Refresh the reports after a successful operation
+                        if (response.success) {
+                            setTimeout(function() {
+                                refreshReports();
+                            }, 1000);
                         }
                     },
                     error: function() {
@@ -10471,6 +10500,28 @@ class Snefuru_Admin {
                     }
                 });
             });
+            
+            // Refresh reports button handler
+            $('#refresh-reports').on('click', function() {
+                refreshReports();
+            });
+            
+            // Function to refresh cache reports
+            function refreshReports() {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'rup_get_cache_reports',
+                        nonce: '<?php echo wp_create_nonce('rupcacheman_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $('#cache-reports').html(response.data);
+                        }
+                    }
+                });
+            }
         });
         </script>
         <?php
@@ -10486,14 +10537,52 @@ class Snefuru_Admin {
             wp_send_json_error('Unauthorized');
         }
         
+        $start_time = microtime(true);
+        $memory_before = memory_get_usage();
+        
         try {
             $result = wp_cache_flush();
-            if ($result) {
-                wp_send_json_success(array('message' => 'Object cache cleared successfully'));
-            } else {
-                wp_send_json_success(array('message' => 'Object cache flush attempted (may not be active)'));
-            }
+            $items_cleared = $result ? 1 : 0;
+            $status = 'success';
+            $message = $result ? 'Object cache cleared successfully' : 'Object cache flush attempted (may not be active)';
+            
+            $execution_time = round((microtime(true) - $start_time) * 1000);
+            $memory_after = memory_get_usage();
+            
+            // Log to cache reports
+            $this->log_cache_report(array(
+                'cache_type' => 'object_cache',
+                'operation_status' => $status,
+                'items_cleared' => $items_cleared,
+                'memory_before' => $memory_before,
+                'memory_after' => $memory_after,
+                'execution_time_ms' => $execution_time,
+                'error_message' => null,
+                'additional_data' => json_encode(array('wp_cache_flush_result' => $result))
+            ));
+            
+            wp_send_json_success(array(
+                'message' => $message,
+                'items_cleared' => $items_cleared,
+                'execution_time' => $execution_time . 'ms'
+            ));
+            
         } catch (Exception $e) {
+            $execution_time = round((microtime(true) - $start_time) * 1000);
+            $memory_after = memory_get_usage();
+            
+            // Log error to cache reports
+            $this->log_cache_report(array(
+                'cache_type' => 'object_cache',
+                'operation_status' => 'error',
+                'items_cleared' => 0,
+                'memory_before' => $memory_before,
+                'memory_after' => $memory_after,
+                'execution_time_ms' => $execution_time,
+                'error_message' => $e->getMessage(),
+                'additional_data' => null
+            ));
+            
             wp_send_json_error('Error clearing object cache: ' . $e->getMessage());
         }
     }
@@ -10508,6 +10597,9 @@ class Snefuru_Admin {
             wp_send_json_error('Unauthorized');
         }
         
+        $start_time = microtime(true);
+        $memory_before = memory_get_usage();
+        
         try {
             global $wpdb;
             
@@ -10516,8 +10608,46 @@ class Snefuru_Admin {
             $result2 = $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '_site_transient_%'");
             
             $total_deleted = $result1 + $result2;
-            wp_send_json_success(array('message' => "Deleted {$total_deleted} transients"));
+            $execution_time = round((microtime(true) - $start_time) * 1000);
+            $memory_after = memory_get_usage();
+            
+            // Log to cache reports
+            $this->log_cache_report(array(
+                'cache_type' => 'transients',
+                'operation_status' => 'success',
+                'items_cleared' => $total_deleted,
+                'memory_before' => $memory_before,
+                'memory_after' => $memory_after,
+                'execution_time_ms' => $execution_time,
+                'error_message' => null,
+                'additional_data' => json_encode(array(
+                    'transient_deleted' => $result1,
+                    'site_transient_deleted' => $result2
+                ))
+            ));
+            
+            wp_send_json_success(array(
+                'message' => "Deleted {$total_deleted} transients",
+                'items_cleared' => $total_deleted,
+                'execution_time' => $execution_time . 'ms'
+            ));
+            
         } catch (Exception $e) {
+            $execution_time = round((microtime(true) - $start_time) * 1000);
+            $memory_after = memory_get_usage();
+            
+            // Log error to cache reports
+            $this->log_cache_report(array(
+                'cache_type' => 'transients',
+                'operation_status' => 'error',
+                'items_cleared' => 0,
+                'memory_before' => $memory_before,
+                'memory_after' => $memory_after,
+                'execution_time_ms' => $execution_time,
+                'error_message' => $e->getMessage(),
+                'additional_data' => null
+            ));
+            
             wp_send_json_error('Error clearing transients: ' . $e->getMessage());
         }
     }
@@ -10550,18 +10680,89 @@ class Snefuru_Admin {
             wp_send_json_error('Unauthorized');
         }
         
+        $start_time = microtime(true);
+        $memory_before = memory_get_usage();
+        
         try {
             if (function_exists('opcache_reset')) {
+                $opcache_stats_before = function_exists('opcache_get_status') ? opcache_get_status() : null;
                 $result = opcache_reset();
+                $execution_time = round((microtime(true) - $start_time) * 1000);
+                $memory_after = memory_get_usage();
+                
                 if ($result) {
-                    wp_send_json_success(array('message' => 'OpCache cleared successfully'));
+                    // Log success to cache reports
+                    $this->log_cache_report(array(
+                        'cache_type' => 'opcache',
+                        'operation_status' => 'success',
+                        'items_cleared' => 1,
+                        'memory_before' => $memory_before,
+                        'memory_after' => $memory_after,
+                        'execution_time_ms' => $execution_time,
+                        'error_message' => null,
+                        'additional_data' => json_encode(array(
+                            'opcache_stats_before' => $opcache_stats_before ? $opcache_stats_before['opcache_statistics'] : null
+                        ))
+                    ));
+                    
+                    wp_send_json_success(array(
+                        'message' => 'OpCache cleared successfully',
+                        'items_cleared' => 1,
+                        'execution_time' => $execution_time . 'ms'
+                    ));
                 } else {
+                    // Log failure to cache reports
+                    $this->log_cache_report(array(
+                        'cache_type' => 'opcache',
+                        'operation_status' => 'error',
+                        'items_cleared' => 0,
+                        'memory_before' => $memory_before,
+                        'memory_after' => $memory_after,
+                        'execution_time_ms' => $execution_time,
+                        'error_message' => 'OpCache reset failed',
+                        'additional_data' => null
+                    ));
+                    
                     wp_send_json_error('OpCache reset failed');
                 }
             } else {
-                wp_send_json_success(array('message' => 'OpCache not available on this server'));
+                $execution_time = round((microtime(true) - $start_time) * 1000);
+                $memory_after = memory_get_usage();
+                
+                // Log not available to cache reports
+                $this->log_cache_report(array(
+                    'cache_type' => 'opcache',
+                    'operation_status' => 'success',
+                    'items_cleared' => 0,
+                    'memory_before' => $memory_before,
+                    'memory_after' => $memory_after,
+                    'execution_time_ms' => $execution_time,
+                    'error_message' => null,
+                    'additional_data' => json_encode(array('message' => 'OpCache not available'))
+                ));
+                
+                wp_send_json_success(array(
+                    'message' => 'OpCache not available on this server',
+                    'items_cleared' => 0,
+                    'execution_time' => $execution_time . 'ms'
+                ));
             }
         } catch (Exception $e) {
+            $execution_time = round((microtime(true) - $start_time) * 1000);
+            $memory_after = memory_get_usage();
+            
+            // Log error to cache reports
+            $this->log_cache_report(array(
+                'cache_type' => 'opcache',
+                'operation_status' => 'error',
+                'items_cleared' => 0,
+                'memory_before' => $memory_before,
+                'memory_after' => $memory_after,
+                'execution_time_ms' => $execution_time,
+                'error_message' => $e->getMessage(),
+                'additional_data' => null
+            ));
+            
             wp_send_json_error('Error clearing OpCache: ' . $e->getMessage());
         }
     }
@@ -10818,6 +11019,141 @@ class Snefuru_Admin {
         } catch (Exception $e) {
             wp_send_json_error('Nuclear flush failed: ' . $e->getMessage());
         }
+    }
+    
+    /**
+     * Log cache clear operation to database
+     */
+    private function log_cache_report($data) {
+        try {
+            require_once SNEFURU_PLUGIN_DIR . 'includes/class-ruplin-wppma-database.php';
+            
+            $report_data = array_merge(array(
+                'user_id' => get_current_user_id(),
+                'operation_timestamp' => current_time('mysql')
+            ), $data);
+            
+            Ruplin_WP_Database_Horse_Class::insert_cache_report($report_data);
+        } catch (Exception $e) {
+            error_log('Snefuru: Failed to log cache report: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Display cache reports
+     */
+    private function display_cache_reports() {
+        try {
+            require_once SNEFURU_PLUGIN_DIR . 'includes/class-ruplin-wppma-database.php';
+            
+            // Get recent reports
+            $reports = Ruplin_WP_Database_Horse_Class::get_cache_reports(array(
+                'limit' => 10,
+                'user_id' => get_current_user_id()
+            ));
+            
+            // Get statistics
+            $stats = Ruplin_WP_Database_Horse_Class::get_cache_report_stats(array(
+                'user_id' => get_current_user_id(),
+                'date_from' => date('Y-m-d', strtotime('-7 days'))
+            ));
+            
+            if (empty($reports) && empty($stats)) {
+                echo '<div style="text-align: center; color: #666; padding: 20px;">No cache operations recorded yet. Clear a cache to see reports here.</div>';
+                return;
+            }
+            
+            // Display statistics summary
+            if (!empty($stats)) {
+                echo '<div style="margin-bottom: 20px;">';
+                echo '<h4 style="color: #2c3e50; margin-bottom: 15px;">📈 Last 7 Days Summary</h4>';
+                echo '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+                
+                foreach ($stats as $stat) {
+                    $success_rate = $stat->total_operations > 0 ? round(($stat->successful_operations / $stat->total_operations) * 100, 1) : 0;
+                    $cache_type_display = ucwords(str_replace('_', ' ', $stat->cache_type));
+                    
+                    echo '<div style="background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #0073aa;">';
+                    echo '<div style="font-weight: 600; color: #0073aa; margin-bottom: 5px;">' . esc_html($cache_type_display) . '</div>';
+                    echo '<div style="font-size: 12px; color: #666;">';
+                    echo 'Operations: ' . intval($stat->total_operations) . '<br>';
+                    echo 'Success Rate: ' . $success_rate . '%<br>';
+                    echo 'Items Cleared: ' . intval($stat->total_items_cleared) . '<br>';
+                    echo 'Avg Time: ' . round($stat->avg_execution_time, 1) . 'ms';
+                    echo '</div>';
+                    echo '</div>';
+                }
+                
+                echo '</div>';
+                echo '</div>';
+            }
+            
+            // Display recent operations
+            if (!empty($reports)) {
+                echo '<h4 style="color: #2c3e50; margin-bottom: 15px;">🕒 Recent Operations</h4>';
+                echo '<div style="max-height: 300px; overflow-y: auto;">';
+                
+                foreach ($reports as $report) {
+                    $status_color = $report->operation_status === 'success' ? '#16a085' : '#e74c3c';
+                    $status_icon = $report->operation_status === 'success' ? '✅' : '❌';
+                    $cache_type_display = ucwords(str_replace('_', ' ', $report->cache_type));
+                    
+                    echo '<div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 5px; border-left: 4px solid ' . $status_color . ';">';
+                    echo '<div style="display: flex; justify-content: between; align-items: start;">';
+                    echo '<div style="flex: 1;">';
+                    echo '<span style="font-weight: 600; color: ' . $status_color . ';">' . $status_icon . ' ' . esc_html($cache_type_display) . '</span>';
+                    echo '<div style="font-size: 12px; color: #666; margin-top: 5px;">';
+                    echo 'Items cleared: ' . intval($report->items_cleared) . ' | ';
+                    echo 'Time: ' . intval($report->execution_time_ms) . 'ms | ';
+                    echo 'Memory: ' . $this->format_bytes($report->memory_after - $report->memory_before);
+                    if ($report->error_message) {
+                        echo '<br><span style="color: #e74c3c;">Error: ' . esc_html($report->error_message) . '</span>';
+                    }
+                    echo '</div>';
+                    echo '</div>';
+                    echo '<div style="text-align: right; font-size: 11px; color: #999;">';
+                    echo date('M j, H:i', strtotime($report->operation_timestamp));
+                    echo '</div>';
+                    echo '</div>';
+                    echo '</div>';
+                }
+                
+                echo '</div>';
+            }
+            
+        } catch (Exception $e) {
+            echo '<div style="color: #e74c3c; text-align: center;">Error loading cache reports: ' . esc_html($e->getMessage()) . '</div>';
+        }
+    }
+    
+    /**
+     * AJAX handler to get cache reports
+     */
+    public function rup_get_cache_reports() {
+        check_ajax_referer('rupcacheman_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        ob_start();
+        $this->display_cache_reports();
+        $output = ob_get_clean();
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Helper function to format bytes
+     */
+    private function format_bytes($bytes, $precision = 2) {
+        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+        
+        for ($i = 0; $bytes > 1024; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, $precision) . ' ' . $units[$i];
     }
     
     /**

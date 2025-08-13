@@ -9,7 +9,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '1.7.0';
+    const DB_VERSION = '1.8.0';
     
     /**
      * Option name for storing database version
@@ -79,6 +79,26 @@ class Ruplin_WP_Database_Horse_Class {
                 KEY hudson_imgplanbatch_id (hudson_imgplanbatch_id)
             ) $charset_collate;";
             
+            // Create zen_cache_reports table
+            $cache_reports_table = $wpdb->prefix . 'zen_cache_reports';
+            $cache_reports_sql = "CREATE TABLE $cache_reports_table (
+                report_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+                user_id BIGINT(20) UNSIGNED,
+                operation_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                cache_type VARCHAR(50),
+                operation_status VARCHAR(20),
+                items_cleared INT(11) DEFAULT 0,
+                memory_before BIGINT(20) DEFAULT 0,
+                memory_after BIGINT(20) DEFAULT 0,
+                execution_time_ms INT(11) DEFAULT 0,
+                error_message TEXT,
+                additional_data JSON,
+                PRIMARY KEY (report_id),
+                KEY user_id (user_id),
+                KEY cache_type (cache_type),
+                KEY operation_timestamp (operation_timestamp)
+            ) $charset_collate;";
+            
             // Use dbDelta to create/update tables
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             
@@ -86,15 +106,18 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: Creating services table with SQL: ' . $services_sql);
             error_log('Snefuru: Creating locations table with SQL: ' . $locations_sql);
             error_log('Snefuru: Creating orbitposts table with SQL: ' . $orbitposts_sql);
+            error_log('Snefuru: Creating cache_reports table with SQL: ' . $cache_reports_sql);
             
             $services_result = dbDelta($services_sql);
             $locations_result = dbDelta($locations_sql);
             $orbitposts_result = dbDelta($orbitposts_sql);
+            $cache_reports_result = dbDelta($cache_reports_sql);
             
             // Log dbDelta results
             error_log('Snefuru: Services table dbDelta result: ' . print_r($services_result, true));
             error_log('Snefuru: Locations table dbDelta result: ' . print_r($locations_result, true));
             error_log('Snefuru: Orbitposts table dbDelta result: ' . print_r($orbitposts_result, true));
+            error_log('Snefuru: Cache reports table dbDelta result: ' . print_r($cache_reports_result, true));
             
             // Update database version
             update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
@@ -103,13 +126,15 @@ class Ruplin_WP_Database_Horse_Class {
             $services_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'") == $services_table;
             $locations_exists = $wpdb->get_var("SHOW TABLES LIKE '$locations_table'") == $locations_table;
             $orbitposts_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
+            $cache_reports_exists = $wpdb->get_var("SHOW TABLES LIKE '$cache_reports_table'") == $cache_reports_table;
             
             // Log verification results
             error_log('Snefuru: Services table exists: ' . ($services_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Locations table exists: ' . ($locations_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Orbitposts table exists: ' . ($orbitposts_exists ? 'YES' : 'NO'));
+            error_log('Snefuru: Cache reports table exists: ' . ($cache_reports_exists ? 'YES' : 'NO'));
             
-            if ($services_exists && $locations_exists && $orbitposts_exists) {
+            if ($services_exists && $locations_exists && $orbitposts_exists && $cache_reports_exists) {
                 error_log('Snefuru: Zen tables created/updated successfully');
                 return true;
             } else {
@@ -289,5 +314,126 @@ class Ruplin_WP_Database_Horse_Class {
         $table = $wpdb->prefix . 'zen_locations';
         
         return $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE location_id = %d", $location_id));
+    }
+    
+    /**
+     * Insert a cache report
+     */
+    public static function insert_cache_report($data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'zen_cache_reports';
+        
+        return $wpdb->insert($table, $data);
+    }
+    
+    /**
+     * Get cache reports with optional filtering
+     */
+    public static function get_cache_reports($args = array()) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'zen_cache_reports';
+        
+        $defaults = array(
+            'limit' => 50,
+            'offset' => 0,
+            'orderby' => 'operation_timestamp',
+            'order' => 'DESC',
+            'user_id' => null,
+            'cache_type' => null,
+            'date_from' => null,
+            'date_to' => null
+        );
+        
+        $args = wp_parse_args($args, $defaults);
+        
+        $where_conditions = array();
+        $where_values = array();
+        
+        if (!empty($args['user_id'])) {
+            $where_conditions[] = 'user_id = %d';
+            $where_values[] = $args['user_id'];
+        }
+        
+        if (!empty($args['cache_type'])) {
+            $where_conditions[] = 'cache_type = %s';
+            $where_values[] = $args['cache_type'];
+        }
+        
+        if (!empty($args['date_from'])) {
+            $where_conditions[] = 'operation_timestamp >= %s';
+            $where_values[] = $args['date_from'];
+        }
+        
+        if (!empty($args['date_to'])) {
+            $where_conditions[] = 'operation_timestamp <= %s';
+            $where_values[] = $args['date_to'];
+        }
+        
+        $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+        
+        $query = "SELECT * FROM $table $where_clause ORDER BY {$args['orderby']} {$args['order']} LIMIT %d OFFSET %d";
+        $where_values[] = $args['limit'];
+        $where_values[] = $args['offset'];
+        
+        if (!empty($where_values)) {
+            return $wpdb->get_results($wpdb->prepare($query, $where_values));
+        } else {
+            return $wpdb->get_results($query);
+        }
+    }
+    
+    /**
+     * Get cache report statistics
+     */
+    public static function get_cache_report_stats($args = array()) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'zen_cache_reports';
+        
+        $defaults = array(
+            'user_id' => null,
+            'date_from' => null,
+            'date_to' => null
+        );
+        
+        $args = wp_parse_args($args, $defaults);
+        
+        $where_conditions = array();
+        $where_values = array();
+        
+        if (!empty($args['user_id'])) {
+            $where_conditions[] = 'user_id = %d';
+            $where_values[] = $args['user_id'];
+        }
+        
+        if (!empty($args['date_from'])) {
+            $where_conditions[] = 'operation_timestamp >= %s';
+            $where_values[] = $args['date_from'];
+        }
+        
+        if (!empty($args['date_to'])) {
+            $where_conditions[] = 'operation_timestamp <= %s';
+            $where_values[] = $args['date_to'];
+        }
+        
+        $where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+        
+        $query = "SELECT 
+            cache_type,
+            COUNT(*) as total_operations,
+            SUM(CASE WHEN operation_status = 'success' THEN 1 ELSE 0 END) as successful_operations,
+            SUM(CASE WHEN operation_status = 'error' THEN 1 ELSE 0 END) as failed_operations,
+            SUM(items_cleared) as total_items_cleared,
+            AVG(execution_time_ms) as avg_execution_time,
+            MAX(operation_timestamp) as last_operation
+            FROM $table 
+            $where_clause 
+            GROUP BY cache_type 
+            ORDER BY total_operations DESC";
+        
+        if (!empty($where_values)) {
+            return $wpdb->get_results($wpdb->prepare($query, $where_values));
+        } else {
+            return $wpdb->get_results($query);
+        }
     }
 }
