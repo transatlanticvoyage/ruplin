@@ -5458,7 +5458,7 @@ class Snefuru_Admin {
             'fk_users_id', 'updated_at', 'wpuser1', 'wppass1', 'wp_plugin_installed1', 'wp_plugin_connected2',
             'fk_domreg_hostaccount', 'is_wp_site', 'wp_rest_app_pass', 'driggs_industry', 'driggs_city',
             'driggs_brand_name', 'driggs_site_type_purpose', 'driggs_email_1', 'driggs_address_full',
-            'driggs_phone_1', 'driggs_special_note_for_ai_tool', 'ns_full', 'ip_address', 'is_starred1',
+            'driggs_phone_1', 'driggs_special_note_for_ai_tool', 'driggs_logo_url', 'ns_full', 'ip_address', 'is_starred1',
             'icon_name', 'icon_color', 'is_bulldozer', 'driggs_phone1_platform_id', 'driggs_cgig_id',
             'driggs_revenue_goal', 'driggs_address_species_id', 'is_competitor', 'is_external', 'is_internal',
             'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build', 'is_rnr', 'is_aff',
