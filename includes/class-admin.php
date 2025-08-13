@@ -10555,6 +10555,9 @@ class Snefuru_Admin {
         
         <script type="text/javascript">
         jQuery(document).ready(function($) {
+            // Define ajaxurl for this page since WordPress doesn't auto-define it everywhere
+            var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+            
             $('.cache-btn').on('click', function() {
                 var button = $(this);
                 var action = button.data('action');
