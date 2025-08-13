@@ -3766,8 +3766,23 @@ class Snefuru_Admin {
                     {key: 'wppma_id', label: 'wppma_id', type: 'number'},
                     {key: 'wppma_db_only_created_at', label: 'wppma_db_only_created_at', type: 'datetime'},
                     {key: 'wppma_db_only_updated_at', label: 'wppma_db_only_updated_at', type: 'datetime'},
+                    {key: 'id', label: 'id', type: 'text'},
                     {key: 'created_at', label: 'created_at', type: 'datetime'},
                     {key: 'sitespren_base', label: 'sitespren_base', type: 'text'},
+                    {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
+                    {key: 'driggs_city', label: 'driggs_city', type: 'text'},
+                    {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
+                    {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
+                    {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
+                    {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
+                    {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
+                    {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
+                    {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
+                    {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
+                    {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
+                    {key: 'driggs_logo_url', label: 'driggs_logo_url', type: 'logo_url'},
+                    {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'},
+                    {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
                     {key: 'true_root_domain', label: 'true_root_domain', type: 'text'},
                     {key: 'full_subdomain', label: 'full_subdomain', type: 'text'},
                     {key: 'webproperty_type', label: 'webproperty_type', type: 'text'},
@@ -3779,27 +3794,13 @@ class Snefuru_Admin {
                     {key: 'wp_plugin_connected2', label: 'wp_plugin_connected2', type: 'boolean'},
                     {key: 'fk_domreg_hostaccount', label: 'fk_domreg_hostaccount', type: 'text'},
                     {key: 'is_wp_site', label: 'is_wp_site', type: 'boolean'},
-                    {key: 'id', label: 'id', type: 'text'},
                     {key: 'wp_rest_app_pass', label: 'wp_rest_app_pass', type: 'textarea'},
-                    {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
-                    {key: 'driggs_city', label: 'driggs_city', type: 'text'},
-                    {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
-                    {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
-                    {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
-                    {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
-                    {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
-                    {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
-                    {key: 'driggs_logo_url', label: 'driggs_logo_url', type: 'logo_url'},
                     {key: 'ns_full', label: 'ns_full', type: 'text'},
                     {key: 'ip_address', label: 'ip_address', type: 'text'},
                     {key: 'is_starred1', label: 'is_starred1', type: 'text'},
                     {key: 'icon_name', label: 'icon_name', type: 'text'},
                     {key: 'icon_color', label: 'icon_color', type: 'text'},
                     {key: 'is_bulldozer', label: 'is_bulldozer', type: 'boolean'},
-                    {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
-                    {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
-                    {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
-                    {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
                     {key: 'is_competitor', label: 'is_competitor', type: 'boolean'},
                     {key: 'is_external', label: 'is_external', type: 'boolean'},
                     {key: 'is_internal', label: 'is_internal', type: 'boolean'},
@@ -3811,7 +3812,6 @@ class Snefuru_Admin {
                     {key: 'is_aff', label: 'is_aff', type: 'boolean'},
                     {key: 'is_other1', label: 'is_other1', type: 'boolean'},
                     {key: 'is_other2', label: 'is_other2', type: 'boolean'},
-                    {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'},
                     {key: 'is_flylocal', label: 'is_flylocal', type: 'boolean'}
                 ];
                 
@@ -5715,6 +5715,36 @@ class Snefuru_Admin {
             if (!$row) {
                 wp_send_json_error('No sitespren record found with wppma_id = ' . $wppma_id);
             }
+            
+            // Reorder fields according to specified order
+            $field_order = [
+                'wppma_id', 'wppma_db_only_created_at', 'wppma_db_only_updated_at', 'id', 'created_at',
+                'sitespren_base', 'driggs_industry', 'driggs_city', 'driggs_brand_name', 'driggs_site_type_purpose',
+                'driggs_email_1', 'driggs_address_full', 'driggs_phone_1', 'driggs_special_note_for_ai_tool',
+                'driggs_phone1_platform_id', 'driggs_cgig_id', 'driggs_address_species_id', 'driggs_logo_url',
+                'driggs_citations_done', 'driggs_revenue_goal', 'true_root_domain', 'full_subdomain',
+                'webproperty_type', 'fk_users_id', 'updated_at', 'wpuser1', 'wppass1', 'wp_plugin_installed1',
+                'wp_plugin_connected2', 'fk_domreg_hostaccount', 'is_wp_site', 'wp_rest_app_pass', 'ns_full',
+                'ip_address', 'is_starred1', 'icon_name', 'icon_color', 'is_bulldozer', 'is_competitor',
+                'is_external', 'is_internal', 'is_ppx', 'is_ms', 'is_wayback_rebuild', 'is_naked_wp_build',
+                'is_rnr', 'is_aff', 'is_other1', 'is_other2', 'is_flylocal'
+            ];
+            
+            $ordered_row = array();
+            foreach ($field_order as $field) {
+                if (array_key_exists($field, $row)) {
+                    $ordered_row[$field] = $row[$field];
+                }
+            }
+            
+            // Add any remaining fields not in the specified order (to preserve all data)
+            foreach ($row as $field => $value) {
+                if (!array_key_exists($field, $ordered_row)) {
+                    $ordered_row[$field] = $value;
+                }
+            }
+            
+            $row = $ordered_row;
             
             $generated_files = array();
             $upload_dir = wp_upload_dir();
