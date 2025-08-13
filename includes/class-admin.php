@@ -3,6 +3,13 @@
 class Snefuru_Admin {
     
     public function __construct() {
+        // Set global admin instance for page files
+        global $snefuru_admin;
+        $snefuru_admin = $this;
+        
+        // Include all page files
+        $this->include_page_files();
+        
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'init_settings'));
         
@@ -88,6 +95,31 @@ class Snefuru_Admin {
         
         // One-time cleanup on admin_init
         add_action('admin_init', array($this, 'one_time_cleanup_zen_driggs'), 1);
+    }
+    
+    /**
+     * Include all page files
+     */
+    private function include_page_files() {
+        $page_files = array(
+            'admin-page.php',
+            'settings-page.php', 
+            'logs-page.php',
+            'rupcacheman-page.php',
+            'dioptra-page.php',
+            'beamraymar-page.php',
+            'rup-locations-mar-page.php',
+            'rup-services-mar-page.php',
+            'rup-driggs-mar-page.php',
+            'rup-pantheon-mar-page.php'
+        );
+        
+        foreach ($page_files as $file) {
+            $file_path = SNEFURU_PLUGIN_DIR . 'includes/pages/' . $file;
+            if (file_exists($file_path)) {
+                require_once $file_path;
+            }
+        }
     }
     
     /**
@@ -10316,325 +10348,18 @@ class Snefuru_Admin {
      * dioptra page - Standalone Stellar Chamber view
      */
     public function dioptra_page() {
-        // AGGRESSIVE NOTICE SUPPRESSION
-        $this->suppress_all_admin_notices();
-        
-        // Get post ID from URL parameter
-        $post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;
-        $post = null;
-        
-        if ($post_id) {
-            $post = get_post($post_id);
-            if (!$post) {
-                echo '<div class="wrap">';
-                echo '<h1>Dioptra - Stellar Chamber</h1>';
-                echo '<div class="notice notice-error"><p>Invalid post ID provided.</p></div>';
-                echo '<p><a href="' . admin_url('edit.php') . '" class="button">← Back to Posts</a></p>';
-                echo '</div>';
-                return;
-            }
-        }
-        
-        // Enqueue Hurricane assets
-        wp_enqueue_style('snefuru-hurricane', SNEFURU_PLUGIN_URL . 'hurricane/assets/hurricane.css', array(), SNEFURU_PLUGIN_VERSION);
-        wp_enqueue_script('snefuru-hurricane', SNEFURU_PLUGIN_URL . 'hurricane/assets/hurricane.js', array('jquery'), SNEFURU_PLUGIN_VERSION, true);
-        
-        ?>
-        <div class="wrap" style="max-width: 100%; margin: 20px;">
-            <h1 style="margin-bottom: 20px;">
-                Dioptra - Stellar Chamber
-                <?php if ($post): ?>
-                    <span style="font-weight: normal; font-size: 0.7em; color: #666;">
-                        | Viewing: <?php echo esc_html($post->post_title); ?> (ID: <?php echo $post_id; ?>)
-                    </span>
-                <?php endif; ?>
-            </h1>
-            
-            <?php if (!$post): ?>
-                <div class="notice notice-info">
-                    <p>No post selected. Please provide a post ID in the URL (e.g., ?page=dioptra&post=448)</p>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h3>Recent Posts</h3>
-                    <?php
-                    $recent_posts = get_posts(array(
-                        'numberposts' => 10,
-                        'post_type' => array('post', 'page'),
-                        'post_status' => array('publish', 'draft', 'pending', 'private')
-                    ));
-                    
-                    if ($recent_posts) {
-                        echo '<ul>';
-                        foreach ($recent_posts as $recent_post) {
-                            $url = admin_url('admin.php?page=dioptra&post=' . $recent_post->ID);
-                            echo '<li>';
-                            echo '<a href="' . esc_url($url) . '">';
-                            echo esc_html($recent_post->post_title);
-                            echo '</a>';
-                            echo ' (' . $recent_post->post_type . ' - ' . $recent_post->post_status . ')';
-                            echo '</li>';
-                        }
-                        echo '</ul>';
-                    }
-                    ?>
-                </div>
-            <?php else: ?>
-                <div style="margin-bottom: 20px;">
-                    <a href="<?php echo admin_url('post.php?post=' . $post_id . '&action=edit'); ?>" class="button">
-                        ← Edit Post in WordPress Editor
-                    </a>
-                    <a href="<?php echo admin_url('admin.php?page=dioptra'); ?>" class="button">
-                        View Post Selector
-                    </a>
-                </div>
-                
-                <?php
-                // Initialize Hurricane and render Stellar Chamber
-                if (class_exists('Snefuru_Hurricane')) {
-                    $hurricane = new Snefuru_Hurricane();
-                    
-                    // Check if we have a standalone render method
-                    if (method_exists($hurricane, 'render_stellar_chamber_standalone')) {
-                        $hurricane->render_stellar_chamber_standalone($post);
-                    } else {
-                        // Fallback: use the regular method
-                        $hurricane->add_stellar_chamber($post);
-                    }
-                } else {
-                    echo '<div class="notice notice-error"><p>Hurricane class not found. Please ensure the Hurricane feature is properly installed.</p></div>';
-                }
-                ?>
-            <?php endif; ?>
-        </div>
-        <?php
+        // Include the separate page file
+        require_once SNEFURU_PLUGIN_DIR . 'includes/pages/dioptra-page.php';
+        snefuru_dioptra_page();
     }
     
     /**
      * rupcacheman page - Cache Management
      */
     public function rupcacheman_page() {
-        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
-        $this->suppress_all_admin_notices();
-        
-        ?>
-        <div class="wrap" style="margin: 0; padding: 0;">
-            <!-- Allow space for WordPress notices -->
-            <div style="height: 20px;"></div>
-            
-            <div style="padding: 20px;">
-                <h1 style="margin-bottom: 20px;">🧹 Cache Management - rupcacheman</h1>
-                
-                <div style="background: white; border: 1px solid #ddd; padding: 30px; border-radius: 5px; max-width: 1200px;">
-                    <p style="margin-bottom: 30px; color: #666;">
-                        Use these buttons to clear different types of caches that might be preventing updates from appearing.
-                        Each button targets specific cache mechanisms.
-                    </p>
-                    
-                    <!-- WordPress Core Caches -->
-                    <div style="margin-bottom: 40px;">
-                        <h3 style="color: #0073aa; border-bottom: 2px solid #0073aa; padding-bottom: 10px; margin-bottom: 20px;">WordPress Core Caches</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_object_cache" 
-                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🗃️ Clear Object Cache
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">wp_cache_flush()</div>
-                            </button>
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_transients"
-                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                ⏰ Clear Transients
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Delete all _transient_* data</div>
-                            </button>
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_rewrite_rules"
-                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🔄 Flush Rewrite Rules
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">flush_rewrite_rules()</div>
-                            </button>
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_opcache"
-                                    style="padding: 15px; background: #0073aa; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                ⚡ Clear OpCache
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">opcache_reset() if available</div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Plugin & Theme Caches -->
-                    <div style="margin-bottom: 40px;">
-                        <h3 style="color: #16a085; border-bottom: 2px solid #16a085; padding-bottom: 10px; margin-bottom: 20px;">Plugin & Theme Caches</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_plugin_cache"
-                                    style="padding: 15px; background: #16a085; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🔌 Clear Plugin Caches
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">wp-content/cache/ directories</div>
-                            </button>
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_elementor_cache"
-                                    style="padding: 15px; background: #16a085; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🎨 Clear Elementor Cache
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Elementor files_manager cache</div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Database & File Caches -->
-                    <div style="margin-bottom: 40px;">
-                        <h3 style="color: #e67e22; border-bottom: 2px solid #e67e22; padding-bottom: 10px; margin-bottom: 20px;">Database & File Caches</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_database_cache"
-                                    style="padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🗄️ Clear Database Cache
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Meta cache & database queries</div>
-                            </button>
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_file_cache"
-                                    style="padding: 15px; background: #e67e22; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                📁 Clear File Cache
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Compiled assets & temp files</div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Server & Advanced Caches -->
-                    <div style="margin-bottom: 40px;">
-                        <h3 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 20px;">Server & Advanced Caches</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
-                            
-                            <button type="button" class="cache-btn" data-action="rup_clear_server_cache"
-                                    style="padding: 15px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🖥️ Clear Server Cache
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Memcached, Redis, APCu</div>
-                            </button>
-                            
-                            <button type="button" class="cache-btn" data-action="rup_force_asset_reload"
-                                    style="padding: 15px; background: #8e44ad; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
-                                🔄 Force Asset Reload
-                                <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">Version CSS/JS for browser reload</div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Nuclear Option -->
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; margin-bottom: 20px;">Nuclear Option</h3>
-                        <div style="display: flex; justify-content: center;">
-                            <button type="button" class="cache-btn" data-action="rup_nuclear_cache_flush"
-                                    style="padding: 20px 30px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 16px;">
-                                💥 NUCLEAR CACHE FLUSH
-                                <div style="font-size: 14px; margin-top: 5px; opacity: 0.9;">Clear ALL cache types at once</div>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Cache Reports Section -->
-                    <div style="margin-top: 40px;">
-                        <h3 style="color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px;">📊 Recent Cache Operations</h3>
-                        <div id="cache-reports" style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
-                            <?php $this->display_cache_reports(); ?>
-                        </div>
-                        <div style="text-align: center;">
-                            <button type="button" id="refresh-reports" style="padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                                🔄 Refresh Reports
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- Results Area -->
-                    <div id="cache-results" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 5px; display: none;">
-                        <h4 style="margin-top: 0; color: #333;">Results:</h4>
-                        <div id="cache-results-content"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            // Define ajaxurl for this page since WordPress doesn't auto-define it everywhere
-            var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
-            
-            $('.cache-btn').on('click', function() {
-                var button = $(this);
-                var action = button.data('action');
-                var originalText = button.html();
-                
-                // Update button state
-                button.prop('disabled', true);
-                button.html('🔄 Processing...');
-                
-                // Show results area
-                $('#cache-results').show();
-                $('#cache-results-content').append('<div>🔄 Running: ' + action + '...</div>');
-                
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: action,
-                        nonce: '<?php echo wp_create_nonce('rupcacheman_nonce'); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            var details = '';
-                            if (response.data.items_cleared !== undefined) {
-                                details += ' (' + response.data.items_cleared + ' items cleared';
-                                if (response.data.execution_time) {
-                                    details += ', ' + response.data.execution_time;
-                                }
-                                details += ')';
-                            }
-                            $('#cache-results-content').append('<div style="color: #16a085;">✅ ' + action + ': ' + response.data.message + details + '</div>');
-                        } else {
-                            $('#cache-results-content').append('<div style="color: #e74c3c;">❌ ' + action + ': ' + response.data + '</div>');
-                        }
-                        
-                        // Refresh the reports after a successful operation
-                        if (response.success) {
-                            setTimeout(function() {
-                                refreshReports();
-                            }, 1000);
-                        }
-                    },
-                    error: function() {
-                        $('#cache-results-content').append('<div style="color: #e74c3c;">❌ ' + action + ': AJAX error occurred</div>');
-                    },
-                    complete: function() {
-                        // Reset button
-                        button.prop('disabled', false);
-                        button.html(originalText);
-                    }
-                });
-            });
-            
-            // Refresh reports button handler
-            $('#refresh-reports').on('click', function() {
-                refreshReports();
-            });
-            
-            // Function to refresh cache reports
-            function refreshReports() {
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'rup_get_cache_reports',
-                        nonce: '<?php echo wp_create_nonce('rupcacheman_nonce'); ?>'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            $('#cache-reports').html(response.data);
-                        }
-                    }
-                });
-            }
-        });
-        </script>
-        <?php
+        // Include the separate page file
+        require_once SNEFURU_PLUGIN_DIR . 'includes/pages/rupcacheman-page.php';
+        snefuru_rupcacheman_page();
     }
     
     /**
