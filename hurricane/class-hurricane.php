@@ -2121,6 +2121,29 @@ In the following text content I paste below, you will be seeing the following:
     }
     
     /**
+     * Render Stellar Chamber as standalone component for dioptra page
+     */
+    public function render_stellar_chamber_standalone($post) {
+        // This method simply calls the original add_stellar_chamber
+        // The original method has a type check, but we'll bypass it by temporarily
+        // modifying the post type if needed
+        
+        // Store original post type
+        $original_post_type = $post->post_type;
+        
+        // Temporarily set post type to 'post' or 'page' to pass the check
+        if (!in_array($post->post_type, array('post', 'page'))) {
+            $post->post_type = 'post';
+        }
+        
+        // Call the original method
+        $this->add_stellar_chamber($post);
+        
+        // Restore original post type
+        $post->post_type = $original_post_type;
+    }
+    
+    /**
      * Add Hurricane metabox to post/page edit screens
      */
     public function add_hurricane_metabox() {
