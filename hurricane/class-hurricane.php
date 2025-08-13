@@ -826,7 +826,7 @@ class Snefuru_Hurricane {
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                <!-- Column 3 content will go here -->
+                                <strong>this is a test</strong>
                             </div>
                             
                         </div>
