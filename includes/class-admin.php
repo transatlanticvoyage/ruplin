@@ -47,8 +47,9 @@ class Snefuru_Admin {
         // Hudson ImgPlanBatch ID save AJAX action
         add_action('wp_ajax_save_hudson_imgplanbatch_id', array($this, 'save_hudson_imgplanbatch_id'));
         
-        // Content injection AJAX action
+        // Content injection AJAX actions
         add_action('wp_ajax_snefuru_inject_content', array($this, 'snefuru_inject_content'));
+        add_action('wp_ajax_snefuru_inject_replex_content', array($this, 'snefuru_inject_replex_content'));
         
         // Page duplication AJAX action - TEMPORARILY DISABLED FOR DEBUGGING
         // add_action('wp_ajax_snefuru_duplicate_page', array($this, 'snefuru_duplicate_page'));
@@ -1250,6 +1251,146 @@ class Snefuru_Admin {
             } catch (err) {
                 alert('Failed to copy. Please manually select and copy the text.');
             }
+        }
+        </script>
+        
+        <!-- Stellar Chamber / Elementor Deployer Tab -->
+        <div style="margin-top: 30px; border-top: 2px solid #ccc; padding-top: 20px;">
+            <h3 style="margin-bottom: 15px;">🌟 Stellar Chamber - Elementor Deployer</h3>
+            
+            <!-- Denyeep Column Div 1 -->
+            <div id="denyeep-column-div-1" style="background: #f9f9f9; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px;">
+                <h4 style="margin-top: 0; color: #0073aa;">Denyeep Column Div 1</h4>
+                
+                <!-- Zeeprex Submit Box (existing functionality) -->
+                <div style="margin-bottom: 20px;">
+                    <label for="zeeprex-content" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                        Zeeprex Content Injection (Widget-Based)
+                    </label>
+                    <textarea 
+                        id="zeeprex-content" 
+                        placeholder="Enter content with #y_ codes (e.g., #y_hero1_heading)" 
+                        style="width: 100%; height: 150px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 3px;"
+                    ></textarea>
+                    <button 
+                        type="button" 
+                        onclick="injectZeeprexContent()" 
+                        style="margin-top: 10px; background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                    >
+                        Submit Zeeprex Content
+                    </button>
+                </div>
+                
+                <!-- Developer Box -->
+                <div style="background: #fff; border: 1px solid #bbb; padding: 15px; border-radius: 3px;">
+                    <h5 style="margin-top: 0; color: #666;">Developer Info: How Zeeprex Works</h5>
+                    <pre style="font-size: 11px; color: #555; white-space: pre-wrap; margin: 0;">The current function:
+1. Looks for widgets with a zeeprex_content_id field in their settings
+2. Matches that ID to your content markers
+3. Updates the widget's content if there's a match</pre>
+                </div>
+            </div>
+            
+            <!-- Denyeep Column Div 2 -->
+            <div id="denyeep-column-div-2" style="background: #f9f9f9; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px;">
+                <h4 style="margin-top: 0; color: #0073aa;">Denyeep Column Div 2</h4>
+                
+                <!-- Replex Submit Box -->
+                <div>
+                    <label for="replex-content" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                        replex_submit_box (replace codes directly only)
+                    </label>
+                    <textarea 
+                        id="replex-content" 
+                        placeholder="Enter content with ##codes to replace directly in text" 
+                        style="width: 100%; height: 150px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 3px;"
+                    ></textarea>
+                    <button 
+                        type="button" 
+                        onclick="injectReplexContent()" 
+                        style="margin-top: 10px; background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                    >
+                        run function_inject_content_5
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+        function injectZeeprexContent() {
+            var content = document.getElementById('zeeprex-content').value;
+            if (!content.trim()) {
+                alert('Please enter content with #y_ codes');
+                return;
+            }
+            
+            var button = event.target;
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            
+            jQuery.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'snefuru_inject_content',
+                    post_id: <?php echo $post->ID; ?>,
+                    zeeprex_content: content,
+                    nonce: '<?php echo wp_create_nonce('snefuru_inject_content_nonce'); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Content injected successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                    button.disabled = false;
+                    button.textContent = 'Submit Zeeprex Content';
+                },
+                error: function() {
+                    alert('Failed to inject content. Please try again.');
+                    button.disabled = false;
+                    button.textContent = 'Submit Zeeprex Content';
+                }
+            });
+        }
+        
+        function injectReplexContent() {
+            var content = document.getElementById('replex-content').value;
+            if (!content.trim()) {
+                alert('Please enter content with ##codes');
+                return;
+            }
+            
+            var button = event.target;
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            
+            jQuery.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'snefuru_inject_replex_content',
+                    post_id: <?php echo $post->ID; ?>,
+                    replex_content: content,
+                    nonce: '<?php echo wp_create_nonce('snefuru_inject_replex_content_nonce'); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Content replaced successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                    button.disabled = false;
+                    button.textContent = 'run function_inject_content_5';
+                },
+                error: function() {
+                    alert('Failed to replace content. Please try again.');
+                    button.disabled = false;
+                    button.textContent = 'run function_inject_content_5';
+                }
+            });
         }
         </script>
         
@@ -7118,6 +7259,101 @@ class Snefuru_Admin {
         } else {
             wp_send_json_error($result['message']);
         }
+    }
+    
+    /**
+     * AJAX: Handle replex content injection (direct replacement)
+     */
+    public function snefuru_inject_replex_content() {
+        check_ajax_referer('snefuru_inject_replex_content_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+            return;
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        $replex_content = isset($_POST['replex_content']) ? wp_kses_post($_POST['replex_content']) : '';
+        
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+            return;
+        }
+        
+        if (empty($replex_content)) {
+            wp_send_json_error('No content provided');
+            return;
+        }
+        
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            wp_send_json_error('No Elementor data found for this page');
+            return;
+        }
+        
+        // Parse the replex content to extract ##code and replacement text
+        $replacements = array();
+        $lines = preg_split('/\r\n|\r|\n/', $replex_content);
+        $current_code = '';
+        $current_text = '';
+        
+        foreach ($lines as $line) {
+            // Check if line starts with ##
+            if (preg_match('/^##(.+)$/', $line, $matches)) {
+                // Save previous code/text pair if exists
+                if ($current_code && $current_text) {
+                    $replacements[$current_code] = trim($current_text);
+                }
+                // Start new code
+                $current_code = '##' . trim($matches[1]);
+                $current_text = '';
+            } else if ($current_code) {
+                // Add to current text
+                $current_text .= ($current_text ? "\n" : "") . $line;
+            }
+        }
+        
+        // Save last code/text pair if exists
+        if ($current_code && $current_text) {
+            $replacements[$current_code] = trim($current_text);
+        }
+        
+        if (empty($replacements)) {
+            wp_send_json_error('No valid ##codes found in content');
+            return;
+        }
+        
+        // Perform replacements in the Elementor data
+        $modified = false;
+        foreach ($replacements as $code => $replacement_text) {
+            // Count occurrences before replacement
+            $count = substr_count($elementor_data, $code);
+            if ($count > 0) {
+                // Replace all occurrences of the code with the replacement text
+                $elementor_data = str_replace($code, $replacement_text, $elementor_data);
+                $modified = true;
+                error_log("Snefuru Replex: Replaced $count occurrences of $code");
+            }
+        }
+        
+        if (!$modified) {
+            wp_send_json_error('No matching ##codes found in Elementor content. Make sure the codes exist in your page content.');
+            return;
+        }
+        
+        // Save the modified Elementor data
+        update_post_meta($post_id, '_elementor_data', $elementor_data);
+        
+        // Clear Elementor cache
+        if (class_exists('\Elementor\Plugin')) {
+            \Elementor\Plugin::$instance->files_manager->clear_cache();
+        }
+        
+        wp_send_json_success(array(
+            'message' => 'Content replaced successfully! ' . count($replacements) . ' code(s) processed.'
+        ));
     }
     
     /**
