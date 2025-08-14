@@ -6,8 +6,10 @@ function snefuru_dioptra_page() {
     // Get the admin instance for accessing helper methods
     global $snefuru_admin;
     
-    // AGGRESSIVE NOTICE SUPPRESSION
-    $snefuru_admin->suppress_all_admin_notices();
+    // AGGRESSIVE NOTICE SUPPRESSION - only if admin object exists and has the method
+    if ($snefuru_admin && method_exists($snefuru_admin, 'suppress_all_admin_notices')) {
+        $snefuru_admin->suppress_all_admin_notices();
+    }
     
     // Get post ID from URL parameter
     $post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;

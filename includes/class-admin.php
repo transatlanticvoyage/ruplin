@@ -7342,7 +7342,7 @@ class Snefuru_Admin {
         }
         
         // Include the content injector class
-        require_once SNEFURU_PLUGIN_DIR . 'includes/class-elementor-content-injector.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-content-injector.php';
         
         // Inject the content
         $result = Snefuru_Elementor_Content_Injector::inject_content($post_id, $zeeprex_content);
@@ -10350,7 +10350,7 @@ class Snefuru_Admin {
      */
     public function dioptra_page() {
         // Include the separate page file
-        require_once SNEFURU_PLUGIN_DIR . 'includes/pages/dioptra-page.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/dioptra-page.php';
         snefuru_dioptra_page();
     }
     
@@ -10359,7 +10359,7 @@ class Snefuru_Admin {
      */
     public function rupcacheman_page() {
         // Include the separate page file
-        require_once SNEFURU_PLUGIN_DIR . 'includes/pages/rupcacheman-page.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/rupcacheman-page.php';
         snefuru_rupcacheman_page();
     }
     
@@ -10862,7 +10862,7 @@ class Snefuru_Admin {
      */
     private function log_cache_report($data) {
         try {
-            require_once SNEFURU_PLUGIN_DIR . 'includes/class-ruplin-wppma-database.php';
+            require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
             
             $report_data = array_merge(array(
                 'user_id' => get_current_user_id(),
@@ -10880,7 +10880,7 @@ class Snefuru_Admin {
      */
     private function display_cache_reports() {
         try {
-            require_once SNEFURU_PLUGIN_DIR . 'includes/class-ruplin-wppma-database.php';
+            require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
             
             // Get recent reports
             $reports = Ruplin_WP_Database_Horse_Class::get_cache_reports(array(
