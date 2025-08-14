@@ -106,6 +106,7 @@ class Snefuru_Admin {
             'settings-page.php', 
             'logs-page.php',
             'rupcacheman-page.php',
+            'cssmar-page.php',
             'dioptra-page.php',
             'beamraymar-page.php',
             'rup-locations-mar-page.php',
@@ -115,7 +116,7 @@ class Snefuru_Admin {
         );
         
         foreach ($page_files as $file) {
-            $file_path = SNEFURU_PLUGIN_DIR . 'includes/pages/' . $file;
+            $file_path = SNEFURU_PLUGIN_PATH . 'includes/pages/' . $file;
             if (file_exists($file_path)) {
                 require_once $file_path;
             }
