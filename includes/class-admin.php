@@ -7316,6 +7316,11 @@ class Snefuru_Admin {
         $post_id = intval($_POST['post_id']);
         $replex_content = isset($_POST['replex_content']) ? wp_kses_post($_POST['replex_content']) : '';
         
+        // Remove backslashes from all shortcode content
+        $replex_content = preg_replace_callback('/\[[^[\]]+\]/', function($matches) {
+            return stripslashes($matches[0]);
+        }, $replex_content);
+        
         if (!$post_id) {
             wp_send_json_error('Invalid post ID');
             return;
