@@ -7348,7 +7348,7 @@ class Snefuru_Admin {
                     $replacements[$current_code] = trim($current_text);
                 }
                 // Start new code
-                $current_code = '##' . trim($matches[1]);
+                $current_code = trim($matches[1]);
                 $current_text = '';
             } else if ($current_code) {
                 // Add to current text
