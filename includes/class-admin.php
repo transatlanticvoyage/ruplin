@@ -1360,24 +1360,7 @@ class Snefuru_Admin {
             <div id="denyeep-column-div-2" style="background: #f9f9f9; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px;">
                 <h4 style="margin-top: 0; color: #0073aa;">Denyeep Column Div 2</h4>
                 
-                <!-- Replex Submit Box -->
-                <div>
-                    <label for="replex-content" style="display: block; font-weight: bold; margin-bottom: 5px;">
-                        replex_submit_box (replace codes directly only)
-                    </label>
-                    <textarea 
-                        id="replex-content" 
-                        placeholder="Enter content with ##codes to replace directly in text" 
-                        style="width: 100%; height: 150px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 3px;"
-                    ></textarea>
-                    <button 
-                        type="button" 
-                        onclick="injectReplexContent()" 
-                        style="margin-top: 10px; background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 14px;"
-                    >
-                        run function_inject_content_5
-                    </button>
-                </div>
+                <p style="color: #666; font-style: italic;">Content moved to Stellar Chamber → Elementor Deployer tab → Denyeep Column Div 2</p>
             </div>
         </div>
         
@@ -1420,43 +1403,6 @@ class Snefuru_Admin {
             });
         }
         
-        function injectReplexContent() {
-            var content = document.getElementById('replex-content').value;
-            if (!content.trim()) {
-                alert('Please enter content with ##codes');
-                return;
-            }
-            
-            var button = event.target;
-            button.disabled = true;
-            button.textContent = 'Processing...';
-            
-            jQuery.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'snefuru_inject_replex_content',
-                    post_id: <?php echo $post->ID; ?>,
-                    replex_content: content,
-                    nonce: '<?php echo wp_create_nonce('snefuru_inject_replex_content_nonce'); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        alert('Content replaced successfully!');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + response.data);
-                    }
-                    button.disabled = false;
-                    button.textContent = 'run function_inject_content_5';
-                },
-                error: function() {
-                    alert('Failed to replace content. Please try again.');
-                    button.disabled = false;
-                    button.textContent = 'run function_inject_content_5';
-                }
-            });
-        }
         </script>
         
         <?php

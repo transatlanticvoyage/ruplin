@@ -819,8 +819,90 @@ class Snefuru_Hurricane {
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                <!-- Column 2 content will go here -->
-                                <strong>this is a test aug 14</strong>
+                                
+                                <!-- Replex Submit Box -->
+                                <div>
+                                    <label for="snefuru-replex-content" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                                        replex_submit_box (replace codes directly only)
+                                    </label>
+                                    <textarea 
+                                        id="snefuru-replex-content" 
+                                        placeholder="Enter content with ##codes to replace directly in text" 
+                                        style="width: 100%; height: 150px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 3px;"
+                                    ></textarea>
+                                    <button 
+                                        type="button" 
+                                        id="snefuru-replex-submit-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="margin-top: 10px; background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                                    >
+                                        run function_inject_content_5
+                                    </button>
+                                    
+                                    <div id="snefuru-replex-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                                </div>
+                                
+                                <script type="text/javascript">
+                                jQuery(document).ready(function($) {
+                                    $('#snefuru-replex-submit-btn').on('click', function() {
+                                        var content = $('#snefuru-replex-content').val();
+                                        var postId = $(this).data('post-id');
+                                        var $btn = $(this);
+                                        var $result = $('#snefuru-replex-result');
+                                        
+                                        if (!content.trim()) {
+                                            $result.removeClass('success error').addClass('error');
+                                            $result.html('<strong>Error:</strong> Please enter content to inject.');
+                                            $result.show();
+                                            return;
+                                        }
+                                        
+                                        $btn.prop('disabled', true).text('Processing...');
+                                        $result.hide();
+                                        
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'snefuru_inject_replex_content',
+                                                post_id: postId,
+                                                replex_content: content,
+                                                nonce: '<?php echo wp_create_nonce('snefuru_inject_replex_content_nonce'); ?>'
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    $result.removeClass('error').addClass('success').css({
+                                                        'background': '#d4edda',
+                                                        'color': '#155724',
+                                                        'border': '1px solid #c3e6cb'
+                                                    });
+                                                    $result.html('<strong>Success:</strong> ' + response.data.message);
+                                                } else {
+                                                    $result.removeClass('success').addClass('error').css({
+                                                        'background': '#f8d7da',
+                                                        'color': '#721c24',
+                                                        'border': '1px solid #f5c6cb'
+                                                    });
+                                                    $result.html('<strong>Error:</strong> ' + (response.data ? response.data : 'Unknown error occurred'));
+                                                }
+                                                $result.show();
+                                            },
+                                            error: function() {
+                                                $result.removeClass('success').css({
+                                                    'background': '#f8d7da',
+                                                    'color': '#721c24',
+                                                    'border': '1px solid #f5c6cb'
+                                                });
+                                                $result.html('<strong>Error:</strong> Failed to inject replex content. Please try again.');
+                                                $result.show();
+                                            },
+                                            complete: function() {
+                                                $btn.prop('disabled', false).text('run function_inject_content_5');
+                                            }
+                                        });
+                                    });
+                                });
+                                </script>
                             </div>
                             
                             <!-- Denyeep Column Div 3 -->
