@@ -7389,7 +7389,7 @@ class Snefuru_Admin {
         }
 
         // Use Elementor's internal save mechanism if available
-        if (class_exists('\Elementor\Plugin')) {
+        if (class_exists('\\Elementor\\Plugin')) {
             $document = \Elementor\Plugin::$instance->documents->get($post_id);
             if ($document) {
                 // Update the document data
@@ -7399,7 +7399,7 @@ class Snefuru_Admin {
                 ]);
                 
                 // Clear Elementor cache
-                if (method_exists('\Elementor\Plugin::$instance->files_manager', 'clear_cache')) {
+                if (method_exists(\Elementor\Plugin::$instance->files_manager, 'clear_cache')) {
                     \Elementor\Plugin::$instance->files_manager->clear_cache();
                 }
                 
@@ -7629,8 +7629,8 @@ class Snefuru_Admin {
         
         // Clear Elementor cache
         if (class_exists('\\Elementor\\Plugin')) {
-            if (method_exists('\\Elementor\\Plugin', 'clear_cache')) {
-                \\Elementor\\Plugin::$instance->files_manager->clear_cache();
+            if (method_exists(\Elementor\Plugin::$instance->files_manager, 'clear_cache')) {
+                \Elementor\Plugin::$instance->files_manager->clear_cache();
             }
         }
         
