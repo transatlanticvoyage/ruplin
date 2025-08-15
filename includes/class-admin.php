@@ -7801,38 +7801,19 @@ class Snefuru_Admin {
      * Beamraymar admin page - WordPress Posts & Pages Manager
      */
     public function beamraymar_page() {
-        // AGGRESSIVE NOTICE SUPPRESSION
-        $this->suppress_all_admin_notices();
-        
-        // Handle AJAX requests
-        if (isset($_POST['action']) && in_array($_POST['action'], ['create_new_post', 'update_post_field', 'create', 'edit'])) {
-            $this->handle_beamraymar_ajax();
+        // Call the independent beamraymar function
+        snefuru_beamraymar_page();
+    }
+
+    /**
+     * AJAX handler for updating elementor data from beamraymar editor
+     */
+    public function beamraymar_update_elementor_data() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
             return;
         }
-        
-        // Get posts and pages data
-        $posts_pages = $this->get_posts_and_pages_data();
-        
-        ?>
-        <div class="wrap beamraymar-wrapper">
-            <style>
-                /* Beamraymar Custom Styles - Mimicking FileJar Design */
-                .beamraymar-wrapper {
-                    background: white;
-                    padding: 0;
-                    margin: 0 0 0 -20px;
-                }
-                
-                .beamraymar-top-controls {
-                    background-color: white;
-                    border-bottom: 1px solid #ddd;
-                    padding: 12px 20px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    gap: 16px;
-                }
                 
                 .beamraymar-controls-left {
                     display: flex;
