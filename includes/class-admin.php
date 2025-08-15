@@ -8463,8 +8463,8 @@ class Snefuru_Admin {
                 
                 /* Tool button styling */
                 .beamraymar-tool-btn {
-                    width: 20px;
-                    height: 20px;
+                    width: 36px;
+                    height: 36px;
                     background: #0073aa;
                     color: white;
                     border: none;
@@ -8486,8 +8486,8 @@ class Snefuru_Admin {
                 
                 /* Pendulum button styling */
                 .beamraymar-pendulum-btn {
-                    width: 20px;
-                    height: 20px;
+                    width: 36px;
+                    height: 36px;
                     background: #0073aa;
                     color: white;
                     border: none;
@@ -8509,8 +8509,8 @@ class Snefuru_Admin {
                 
                 /* Elementor button styling */
                 .beamraymar-elementor-btn {
-                    width: 20px;
-                    height: 20px;
+                    width: 36px;
+                    height: 36px;
                     background: #800020;
                     color: white;
                     border: none;
