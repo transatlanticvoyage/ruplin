@@ -7900,36 +7900,81 @@ class Snefuru_Admin {
             wp_send_json_error('Failed to update field');
         }
     }
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    white-space: nowrap;
-                }
-                
-                .beamray-logo {
-                    width: 20px;
-                    height: 20px;
-                    display: inline-block;
-                }
-                
-                .beamraymar-controls-right {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                
-                .beamraymar-info-text {
-                    font-size: 14px;
-                    color: #666;
-                }
-                
-                .beamraymar-pagination-controls {
-                    display: flex;
-                    align-items: center;
-                }
-                
-                .beamraymar-pagination-bar {
-                    display: flex;
+
+    /**
+     * AJAX handler for updating post content from beamraymar editor
+     */
+    public function beamraymar_update_post_content() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $post_content = wp_kses_post($_POST['post_content']);
+        
+        $result = wp_update_post(array(
+            'ID' => $post_id,
+            'post_content' => $post_content
+        ));
+        
+        if ($result && !is_wp_error($result)) {
+            wp_send_json_success('Post content updated successfully');
+        } else {
+            wp_send_json_error('Failed to update post content');
+        }
+    }
+
+    /**
+     * CSS Editor page (cssmar)
+     */
+    public function cssmar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION
+        $this->suppress_all_admin_notices();
+        
+        global $wpdb;
+        
+        // Get sitespren_base from database
+        $sitespren_base = '';
+        $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$zen_sitespren_table'") == $zen_sitespren_table) {
+            $result = $wpdb->get_row("SELECT sitespren_base FROM $zen_sitespren_table WHERE wppma_id = 1");
+            if ($result) {
+                $sitespren_base = $result->sitespren_base;
+            }
+        }
+        
+        // Get CSS file content for first tab
+        $css_file_path = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
+        $css_content = '';
+        if (file_exists($css_file_path)) {
+            $css_content = file_get_contents($css_file_path);
+        }
+        
+        // Get CSS file content for second tab
+        $css_file_path_2 = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_250_beamray_table_grid_1.css';
+        $css_content_2 = '';
+        if (file_exists($css_file_path_2)) {
+            $css_content_2 = file_get_contents($css_file_path_2);
+        }
+        
+        // Get CSS file content for third tab
+        $css_file_path_3 = SNEFURU_PLUGIN_PATH . 'assets/css/sddx_260_random_masterlist_of_utg_styling_rules_1.css';
+        $css_content_3 = '';
+        if (file_exists($css_file_path_3)) {
+            $css_content_3 = file_get_contents($css_file_path_3);
+        }
+        
+        // Construct full URL
+        $plugin_url = SNEFURU_PLUGIN_URL . 'assets/css/sddx_240_ruplin_screens_only_css_by_kyle_1.css';
+        $full_url = 'https://' . $sitespren_base . '/' . str_replace(home_url('/'), '', $plugin_url);
                 }
                 
                 .beamraymar-pagination-btn {
