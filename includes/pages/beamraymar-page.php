@@ -988,15 +988,167 @@ function snefuru_beamraymar_page() {
         
         <!-- Bottom Controls -->
         <div class="beamraymar-bottom-controls">
-            <!-- Content will be added in next steps -->
+            <div class="beamraymar-controls-left">
+                <div class="beamraymar-info-text">
+                    <span id="beamraymar-results-info-bottom">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
+                </div>
+                
+                <div class="beamraymar-pagination-controls">
+                    <div class="beamraymar-pagination-bar" id="beamraymar-per-page-bar-bottom">
+                        <a href="#" class="beamraymar-pagination-btn" data-per-page="10">10</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-per-page="20">20</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-per-page="50">50</a>
+                        <a href="#" class="beamraymar-pagination-btn active" data-per-page="100">100</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-per-page="200">200</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-per-page="500">500</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-per-page="all">All</a>
+                    </div>
+                    
+                    <div class="beamraymar-pagination-divider"></div>
+                    
+                    <div class="beamraymar-pagination-bar" id="beamraymar-page-bar-bottom">
+                        <a href="#" class="beamraymar-pagination-btn" data-page="first">First</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-page="prev">Prev</a>
+                        <a href="#" class="beamraymar-pagination-btn active" data-page="1">1</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-page="next">Next</a>
+                        <a href="#" class="beamraymar-pagination-btn" data-page="last">Last</a>
+                    </div>
+                </div>
+                
+                <div class="beamraymar-search-container">
+                    <input type="text" id="beamraymar-search-bottom" class="beamraymar-search-input" placeholder="Search all fields...">
+                    <button class="beamraymar-clear-btn" id="beamraymar-clear-bottom">CL</button>
+                </div>
+            </div>
+            <div></div>
+        </div>
         </div>
         
         <!-- Modals -->
-        <!-- Content will be added in next steps -->
+        <!-- Create/Edit Modal -->
+        <div id="beamraymar-modal" class="beamraymar-modal">
+            <div class="beamraymar-modal-content">
+                <div class="beamraymar-modal-header">
+                    <h2 class="beamraymar-modal-title" id="beamraymar-modal-title">Create New Post/Page</h2>
+                    <button class="beamraymar-modal-close" id="beamraymar-modal-close">&times;</button>
+                </div>
+                
+                <form id="beamraymar-modal-form">
+                    <input type="hidden" id="modal-post-id" name="post_id">
+                    <input type="hidden" id="modal-action" name="action" value="create">
+                    
+                    <div class="beamraymar-form-grid">
+                        <div class="beamraymar-form-field">
+                            <label class="beamraymar-form-label">Post Type</label>
+                            <select id="modal-post-type" name="post_type" class="beamraymar-form-select">
+                                <option value="post">Post</option>
+                                <option value="page">Page</option>
+                            </select>
+                        </div>
+                        
+                        <div class="beamraymar-form-field">
+                            <label class="beamraymar-form-label">Status</label>
+                            <select id="modal-post-status" name="post_status" class="beamraymar-form-select">
+                                <option value="draft">Draft</option>
+                                <option value="publish">Published</option>
+                                <option value="private">Private</option>
+                            </select>
+                        </div>
+                        
+                        <div class="beamraymar-form-field full-width">
+                            <label class="beamraymar-form-label">Title</label>
+                            <input type="text" id="modal-post-title" name="post_title" class="beamraymar-form-input">
+                        </div>
+                        
+                        <div class="beamraymar-form-field full-width">
+                            <label class="beamraymar-form-label">Content</label>
+                            <textarea id="modal-post-content" name="post_content" class="beamraymar-form-textarea"></textarea>
+                        </div>
+                        
+                        <div class="beamraymar-form-field">
+                            <label class="beamraymar-form-label">Slug</label>
+                            <input type="text" id="modal-post-name" name="post_name" class="beamraymar-form-input">
+                        </div>
+                        
+                        <div class="beamraymar-form-field">
+                            <label class="beamraymar-form-label">Parent ID</label>
+                            <input type="number" id="modal-post-parent" name="post_parent" class="beamraymar-form-input" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="beamraymar-modal-actions">
+                        <button type="button" class="beamraymar-modal-btn secondary" id="beamraymar-modal-cancel">Cancel</button>
+                        <button type="submit" class="beamraymar-modal-btn primary" id="beamraymar-modal-save">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Post Content Editor Modal -->
+        <div id="beamraymar-content-editor-modal" class="beamraymar-content-editor-modal">
+            <div class="beamraymar-content-editor-content">
+                <div class="beamraymar-content-editor-header">post_content</div>
+                <textarea id="beamraymar-content-editor-textarea" class="beamraymar-content-editor-textarea"></textarea>
+                <div class="beamraymar-content-editor-actions">
+                    <button type="button" class="beamraymar-content-editor-btn cancel" id="beamraymar-content-editor-cancel">Cancel</button>
+                    <button type="button" class="beamraymar-content-editor-btn save" id="beamraymar-content-editor-save">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Elementor Data Editor Modal -->
+        <div id="beamraymar-elementor-editor-modal" class="beamraymar-content-editor-modal">
+            <div class="beamraymar-content-editor-content">
+                <div class="beamraymar-content-editor-header">_elementor_data</div>
+                <textarea id="beamraymar-elementor-editor-textarea" class="beamraymar-content-editor-textarea"></textarea>
+                <div class="beamraymar-content-editor-actions">
+                    <button type="button" class="beamraymar-content-editor-btn cancel" id="beamraymar-elementor-editor-cancel">Cancel</button>
+                    <button type="button" class="beamraymar-content-editor-btn save" id="beamraymar-elementor-editor-save">Save</button>
+                </div>
+            </div>
+        </div>
         
         <script>
-            // This will contain all the JavaScript from the original method
-            // Content will be added in next steps
+            // Beamraymar JavaScript functionality
+            (function($) {
+                'use strict';
+                
+                let currentPage = 1;
+                let itemsPerPage = 100;
+                let currentSearch = '';
+                let allData = <?php echo json_encode($posts_pages); ?>;
+                let filteredData = [...allData];
+                let selectedRows = new Set();
+                let editingCell = null;
+                let currentContentEditPostId = null;
+                let currentElementorEditPostId = null;
+                
+                // Initialize page
+                $(document).ready(function() {
+                    initializeBeamraymar();
+                });
+                
+                function initializeBeamraymar() {
+                    bindEventHandlers();
+                    renderTable();
+                    updatePaginationInfo();
+                }
+                
+                function bindEventHandlers() {
+                    // Content will be added in next steps
+                }
+                
+                function renderTable() {
+                    // Content will be added in next steps
+                }
+                
+                function updatePaginationInfo() {
+                    // Content will be added in next steps
+                }
+                
+                // More functions will be added in next steps
+                
+            })(jQuery);
         </script>
     </div>
     <?php
@@ -1006,20 +1158,193 @@ function snefuru_beamraymar_page() {
  * Helper function to suppress admin notices
  */
 function snefuru_suppress_all_admin_notices() {
-    // Implementation will be added
+    // Remove all admin notices immediately
+    add_action('admin_print_styles', function() {
+        // Remove all notice actions
+        remove_all_actions('admin_notices');
+        remove_all_actions('all_admin_notices');
+        remove_all_actions('network_admin_notices');
+        
+        // Remove user admin notices
+        global $wp_filter;
+        if (isset($wp_filter['user_admin_notices'])) {
+            unset($wp_filter['user_admin_notices']);
+        }
+    }, 0);
+    
+    // Additional cleanup for persistent notices
+    add_action('admin_head', function() {
+        // Hide any notices that slip through via CSS
+        echo '<style type="text/css">
+            .notice, .notice-warning, .notice-error, .notice-success, .notice-info,
+            .updated, .error, .update-nag, .admin-notice,
+            .wrap > .notice, .wrap > .error, .wrap > .updated {
+                display: none !important;
+            }
+        </style>';
+    });
 }
 
 /**
  * Helper function to handle AJAX requests
  */
 function snefuru_handle_beamraymar_ajax() {
-    // Implementation will be added
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+        echo json_encode(array('success' => false, 'message' => 'Security check failed'));
+        wp_die();
+    }
+
+    $action = sanitize_text_field($_POST['action']);
+
+    switch ($action) {
+        case 'create_new_post':
+            $post_data = array(
+                'post_title' => sanitize_text_field($_POST['post_title']),
+                'post_content' => wp_kses_post($_POST['post_content']),
+                'post_status' => sanitize_text_field($_POST['post_status']),
+                'post_type' => sanitize_text_field($_POST['post_type']),
+                'post_name' => sanitize_text_field($_POST['post_name']),
+                'post_parent' => intval($_POST['post_parent'])
+            );
+
+            $post_id = wp_insert_post($post_data);
+            if ($post_id && !is_wp_error($post_id)) {
+                echo json_encode(array('success' => true, 'message' => 'Post created successfully', 'post_id' => $post_id));
+            } else {
+                echo json_encode(array('success' => false, 'message' => 'Failed to create post'));
+            }
+            break;
+
+        case 'update_post_field':
+            $post_id = intval($_POST['post_id']);
+            $field = sanitize_text_field($_POST['field']);
+            $value = sanitize_textarea_field($_POST['value']);
+
+            $update_data = array(
+                'ID' => $post_id,
+                $field => $value
+            );
+
+            $result = wp_update_post($update_data);
+            if ($result && !is_wp_error($result)) {
+                echo json_encode(array('success' => true, 'message' => 'Field updated successfully'));
+            } else {
+                echo json_encode(array('success' => false, 'message' => 'Failed to update field'));
+            }
+            break;
+
+        default:
+            echo json_encode(array('success' => false, 'message' => 'Invalid action'));
+    }
+    
+    wp_die();
 }
 
 /**
  * Helper function to get posts and pages data
  */
 function snefuru_get_posts_and_pages_data() {
-    // Implementation will be added
-    return array();
+    global $wpdb;
+    
+    $results = $wpdb->get_results(
+        "SELECT p.ID, p.post_title, p.post_content, p.post_type, p.post_status, p.post_name, 
+                p.post_date, p.post_modified, p.post_author, p.post_parent, p.menu_order,
+                p.comment_status, p.ping_status, pm._elementor_data,
+                op.rel_wp_post_id, op.orbitpost_id, op.redshift_datum, op.rover_datum,
+                op.hudson_imgplanbatch_id, op.is_pinned, op.is_flagged, op.is_starred, op.is_squared,
+                op.created_at, op.updated_at
+         FROM {$wpdb->prefix}posts p
+         LEFT JOIN (
+             SELECT post_id, meta_value as _elementor_data
+             FROM {$wpdb->prefix}postmeta
+             WHERE meta_key = '_elementor_data'
+         ) pm ON p.ID = pm.post_id
+         LEFT JOIN {$wpdb->prefix}zen_orbitposts op ON p.ID = op.rel_wp_post_id
+         WHERE p.post_type IN ('post', 'page')
+         ORDER BY p.post_modified DESC",
+        ARRAY_A
+    );
+    
+    return $results ?: array();
+}
+
+/**
+ * Helper function to render beamraymar table rows
+ */
+function snefuru_render_beamraymar_table_rows($posts_pages) {
+    if (empty($posts_pages)) {
+        echo '<tr><td colspan="28" class="beamraymar-loading">No posts or pages found.</td></tr>';
+        return;
+    }
+
+    $count = 0;
+    foreach ($posts_pages as $item) {
+        if ($count >= 100) break; // Limit initial display
+        
+        $post_id = $item['ID'];
+        $content_preview = wp_trim_words(strip_tags($item['post_content'] ?: ''), 10, '...');
+        
+        echo '<tr data-post-id="' . esc_attr($post_id) . '">';
+        
+        // Checkbox
+        echo '<td class="beamraymar-checkbox-cell column_checkbox"><div class="tcell_inner_wrapper_div">';
+        echo '<input type="checkbox" class="beamraymar-checkbox" value="' . esc_attr($post_id) . '">';
+        echo '</div></td>';
+        
+        // Tool buttons
+        echo '<td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div">';
+        echo '<a href="' . get_edit_post_link($post_id) . '" class="beamraymar-tool-btn" title="Edit">ED</a>';
+        echo '<a href="' . get_permalink($post_id) . '" class="beamraymar-pendulum-btn" title="View">VW</a>';
+        if ($item['_elementor_data']) {
+            echo '<button class="beamraymar-elementor-btn" data-post-id="' . esc_attr($post_id) . '" title="Elementor">EL</button>';
+        } else {
+            echo '<button class="beamraymar-elementor-btn disabled" title="No Elementor Data">EL</button>';
+        }
+        echo '<button class="beamraymar-c-btn" title="C1">C1</button>';
+        echo '<button class="beamraymar-c-btn" title="C2">C2</button>';
+        echo '<button class="beamraymar-c-btn" title="C3">C3</button>';
+        echo '</div></td>';
+        
+        // ID
+        echo '<td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($post_id) . '</div></td>';
+        
+        // Status  
+        echo '<td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="text" data-status="' . esc_attr($item['post_status']) . '">';
+        echo '<div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
+        
+        // Title
+        echo '<td class="beamraymar-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
+        
+        // Name/Slug
+        echo '<td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
+        
+        // Replex Submit (empty UI column)
+        echo '<td class="readonly-cell column_replex_submit"><div class="tcell_inner_wrapper_div"></div></td>';
+        
+        // Content with ED button
+        echo '<td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($post_id) . '">ED</button></div></td>';
+        
+        // Add remaining columns with basic data
+        $remaining_fields = [
+            '_elementor_data', 'post_type', 'post_date', 'post_modified', 'post_author', 
+            'post_parent', 'menu_order', 'comment_status', 'ping_status',
+            'rel_wp_post_id', 'orbitpost_id', 'redshift_datum', 'rover_datum', 
+            'hudson_imgplanbatch_id', 'is_pinned', 'is_flagged', 'is_starred', 
+            'is_squared', 'created_at', 'updated_at'
+        ];
+        
+        foreach ($remaining_fields as $field) {
+            $value = $item[$field] ?? '';
+            if (in_array($field, ['is_pinned', 'is_flagged', 'is_starred', 'is_squared'])) {
+                $value = $value ? '1' : '0';
+            } elseif ($field === '_elementor_data') {
+                $value = $value ? 'Yes' : 'No';
+            }
+            echo '<td class="readonly-cell"><div class="tcell_inner_wrapper_div">' . esc_html($value) . '</div></td>';
+        }
+        
+        echo '</tr>';
+        $count++;
+    }
 }

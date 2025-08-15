@@ -7814,20 +7814,92 @@ class Snefuru_Admin {
             wp_send_json_error('Security check failed');
             return;
         }
-                
-                .beamraymar-controls-left {
-                    display: flex;
-                    align-items: center;
-                    gap: 24px;
-                }
-                
-                .beamray_banner1 {
-                    background: black;
-                    color: white;
-                    font-size: 18px;
-                    font-weight: bold;
-                    padding: 8px 12px;
-                    border: 1px solid gray;
+
+    /**
+     * AJAX handler for updating elementor data from beamraymar editor
+     */
+    public function beamraymar_update_elementor_data() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $elementor_data = wp_unslash($_POST['elementor_data']);
+        
+        // Update the _elementor_data meta field
+        $result = update_post_meta($post_id, '_elementor_data', $elementor_data);
+        
+        if ($result !== false) {
+            wp_send_json_success('Elementor data updated successfully');
+        } else {
+            wp_send_json_error('Failed to update elementor data');
+        }
+    }
+
+    /**
+     * AJAX handler for updating zen_orbitposts boolean fields
+     */
+    public function beamraymar_update_zen_orbitpost_field() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
+            wp_send_json_error('Security check failed');
+            return;
+        }
+
+        // Check permissions
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Permission denied');
+            return;
+        }
+
+        global $wpdb;
+        $post_id = intval($_POST['post_id']);
+        $field = sanitize_text_field($_POST['field']);
+        $value = $_POST['value'] === '1' ? 1 : 0;
+        
+        $table_name = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if record exists
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$table_name} WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            // Update existing record
+            $result = $wpdb->update(
+                $table_name,
+                array($field => $value),
+                array('rel_wp_post_id' => $post_id),
+                array('%d'),
+                array('%d')
+            );
+        } else {
+            // Create new record
+            $result = $wpdb->insert(
+                $table_name,
+                array(
+                    'rel_wp_post_id' => $post_id,
+                    $field => $value
+                ),
+                array('%d', '%d')
+            );
+        }
+        
+        if ($result !== false) {
+            wp_send_json_success('Field updated successfully');
+        } else {
+            wp_send_json_error('Failed to update field');
+        }
+    }
                     display: inline-flex;
                     align-items: center;
                     gap: 8px;
