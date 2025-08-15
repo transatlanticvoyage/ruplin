@@ -129,7 +129,7 @@ class Snefuru_Admin {
     public function add_admin_menu() {
         add_menu_page(
             'Snefuruplin Dashboard',
-            'Snefuruplin',
+            'Ruplin Dashboard',
             'manage_options',
             'snefuru',
             array($this, 'admin_page'),
@@ -147,6 +147,15 @@ class Snefuru_Admin {
             array($this, 'rup_kenli_mar_page')
         );
         
+        add_submenu_page(
+            'snefuru',
+            'Dashboard',
+            'Ruplin Dashboard',
+            'manage_options',
+            'snefuru',
+            array($this, 'admin_page')
+        );
+        
         // Add KenliSidebarLinks as a non-clickable label
         add_submenu_page(
             'snefuru',
@@ -155,15 +164,6 @@ class Snefuru_Admin {
             'manage_options',
             'snefuru-kenli-sidebar-links',
             array($this, 'kenli_sidebar_links_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'Dashboard',
-            'Dashboard',
-            'manage_options',
-            'snefuru',
-            array($this, 'admin_page')
         );
         
         add_submenu_page(
@@ -8286,6 +8286,23 @@ class Snefuru_Admin {
                     height: 38px;
                 }
                 
+                .column_tool_buttons {
+                    min-width: 230px;
+                    white-space: nowrap;
+                }
+                
+                .column_tool_buttons .tcell_inner_wrapper_div {
+                    display: flex;
+                    align-items: center;
+                    gap: 2px;
+                    height: auto;
+                }
+                
+                .beamraymar-table td.column_wp_posts_post_title {
+                    font-size: 18px;
+                    font-weight: bold;
+                }
+                
                 /* Column pagination styles */
                 .beamraymar-column-pagination-controls {
                     display: flex;
@@ -8535,6 +8552,23 @@ class Snefuru_Admin {
                     color: #999;
                     cursor: not-allowed;
                     pointer-events: none;
+                }
+                
+                /* C1, C2, C3 button styling */
+                .beamraymar-c-btn {
+                    width: 36px;
+                    height: 36px;
+                    background: #f0f0f0;
+                    color: #333;
+                    border: 1px solid #999;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                    cursor: pointer;
+                    margin-right: 2px;
+                    border-radius: 2px;
                 }
                 
                 /* Icon button styling */
@@ -9217,7 +9251,7 @@ class Snefuru_Admin {
                                 <td class="beamraymar-checkbox-cell column_checkbox">
                                     <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
-                                <td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a></div></td>
+                                <td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a><span class="beamraymar-c-btn">C1</span><span class="beamraymar-c-btn">C2</span><span class="beamraymar-c-btn">C3</span></div></td>
                                 <td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
                                 <td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.post_status === 'publish' ? '<strong>' + item.post_status + '</strong>' : item.post_status}</div></td>
                                 <td class="beamraymar-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
@@ -9760,6 +9794,9 @@ class Snefuru_Admin {
                 echo '<span class="beamraymar-elementor-btn disabled">E</span>';
             }
             echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a>';
+            echo '<span class="beamraymar-c-btn">C1</span>';
+            echo '<span class="beamraymar-c-btn">C2</span>';
+            echo '<span class="beamraymar-c-btn">C3</span>';
             echo '</div></td>';
             echo '<td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             $status_display = $item['post_status'] === 'publish' ? '<strong>' . esc_html($item['post_status']) . '</strong>' : esc_html($item['post_status']);
