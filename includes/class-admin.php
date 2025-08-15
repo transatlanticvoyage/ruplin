@@ -7389,7 +7389,7 @@ class Snefuru_Admin {
         }
 
         // Use Elementor's internal save mechanism if available
-        if (class_exists('\\Elementor\\Plugin')) {
+        if (class_exists('\Elementor\Plugin')) {
             $document = \Elementor\Plugin::$instance->documents->get($post_id);
             if ($document) {
                 // Update the document data
@@ -7628,7 +7628,7 @@ class Snefuru_Admin {
         }
         
         // Clear Elementor cache
-        if (class_exists('\\Elementor\\Plugin')) {
+        if (class_exists('\Elementor\Plugin')) {
             if (method_exists(\Elementor\Plugin::$instance->files_manager, 'clear_cache')) {
                 \Elementor\Plugin::$instance->files_manager->clear_cache();
             }
@@ -7808,31 +7808,6 @@ class Snefuru_Admin {
     /**
      * AJAX handler for updating elementor data from beamraymar editor
      */
-    public function beamraymar_update_elementor_data() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'beamraymar_nonce')) {
-            wp_send_json_error('Security check failed');
-            return;
-        }
-        
-        // Check permissions
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error('Permission denied');
-            return;
-        }
-
-        $post_id = intval($_POST['post_id']);
-        $elementor_data = wp_unslash($_POST['elementor_data']);
-        
-        // Update the _elementor_data meta field
-        $result = update_post_meta($post_id, '_elementor_data', $elementor_data);
-        
-        if ($result !== false) {
-            wp_send_json_success('Elementor data updated successfully');
-        } else {
-            wp_send_json_error('Failed to update elementor data');
-        }
-    }
 
     /**
      * AJAX handler for updating zen_orbitposts boolean fields
