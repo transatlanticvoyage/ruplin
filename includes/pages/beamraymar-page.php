@@ -1135,18 +1135,100 @@ function snefuru_beamraymar_page() {
                 }
                 
                 function bindEventHandlers() {
-                    // Content will be added in next steps
+                    // Pagination buttons
+                    $(document).on('click', '.beamraymar-pagination-btn', function(e) {
+                        e.preventDefault();
+                        const $this = $(this);
+                        
+                        // Handle per-page buttons
+                        if ($this.data('per-page')) {
+                            itemsPerPage = $this.data('per-page') === 'all' ? filteredData.length : parseInt($this.data('per-page'));
+                            currentPage = 1;
+                            $('.beamraymar-pagination-btn[data-per-page]').removeClass('active');
+                            $this.addClass('active');
+                            renderTable();
+                            updatePaginationInfo();
+                        }
+                        
+                        // Handle page navigation
+                        if ($this.data('page')) {
+                            const pageAction = $this.data('page');
+                            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                            
+                            switch(pageAction) {
+                                case 'first':
+                                    currentPage = 1;
+                                    break;
+                                case 'prev':
+                                    currentPage = Math.max(1, currentPage - 1);
+                                    break;
+                                case 'next':
+                                    currentPage = Math.min(totalPages, currentPage + 1);
+                                    break;
+                                case 'last':
+                                    currentPage = totalPages;
+                                    break;
+                                default:
+                                    currentPage = parseInt(pageAction);
+                            }
+                            renderTable();
+                            updatePaginationInfo();
+                        }
+                    });
+                    
+                    // Search functionality
+                    $(document).on('input', '.beamraymar-search-input', function() {
+                        currentSearch = $(this).val().toLowerCase();
+                        filterData();
+                        currentPage = 1;
+                        renderTable();
+                        updatePaginationInfo();
+                    });
+                    
+                    // Clear search buttons
+                    $(document).on('click', '.beamraymar-clear-btn', function(e) {
+                        e.preventDefault();
+                        $('.beamraymar-search-input').val('');
+                        currentSearch = '';
+                        filterData();
+                        currentPage = 1;
+                        renderTable();
+                        updatePaginationInfo();
+                    });
+                }
+                
+                function filterData() {
+                    if (!currentSearch) {
+                        filteredData = [...allData];
+                        return;
+                    }
+                    
+                    filteredData = allData.filter(item => {
+                        return Object.values(item).some(value => 
+                            String(value).toLowerCase().includes(currentSearch)
+                        );
+                    });
                 }
                 
                 function renderTable() {
-                    // Content will be added in next steps
+                    const start = (currentPage - 1) * itemsPerPage;
+                    const end = itemsPerPage === filteredData.length ? filteredData.length : start + itemsPerPage;
+                    const pageData = filteredData.slice(start, end);
+                    
+                    // Basic table rendering would go here
+                    // For now just log to prevent errors
+                    console.log('Rendering', pageData.length, 'items on page', currentPage);
                 }
                 
                 function updatePaginationInfo() {
-                    // Content will be added in next steps
+                    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+                    const start = (currentPage - 1) * itemsPerPage + 1;
+                    const end = Math.min(currentPage * itemsPerPage, filteredData.length);
+                    
+                    // Update pagination display
+                    $('.beamraymar-pagination-btn[data-page]').removeClass('active');
+                    $(`.beamraymar-pagination-btn[data-page="${currentPage}"]`).addClass('active');
                 }
-                
-                // More functions will be added in next steps
                 
             })(jQuery);
         </script>
