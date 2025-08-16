@@ -7400,8 +7400,8 @@ class Snefuru_Admin {
         }
 
         // Use Elementor's internal save mechanism if available
-        if (class_exists('Elementor\\Plugin')) {
-            $elementor_instance = \Elementor\Plugin::$instance;
+        if (class_exists('Elementor\\\\Plugin')) {
+            $elementor_instance = \\Elementor\\Plugin::$instance;
             $document = $elementor_instance->documents->get($post_id);
             if ($document) {
                 // Update the document data
@@ -7640,8 +7640,8 @@ class Snefuru_Admin {
         }
         
         // Clear Elementor cache
-        if (class_exists('Elementor\\Plugin')) {
-            $elementor_instance = \Elementor\Plugin::$instance;
+        if (class_exists('Elementor\\\\Plugin')) {
+            $elementor_instance = \\Elementor\\Plugin::$instance;
             if (isset($elementor_instance->files_manager) && method_exists($elementor_instance->files_manager, 'clear_cache')) {
                 $elementor_instance->files_manager->clear_cache();
             }
@@ -10048,8 +10048,8 @@ class Snefuru_Admin {
         }
         
         try {
-            if (class_exists('Elementor\\Plugin')) {
-                $elementor_instance = \Elementor\Plugin::$instance;
+            if (class_exists('Elementor\\\\Plugin')) {
+                $elementor_instance = \\Elementor\\Plugin::$instance;
                 if (isset($elementor_instance->files_manager) && method_exists($elementor_instance->files_manager, 'clear_cache')) {
                     $elementor_instance->files_manager->clear_cache();
                     wp_send_json_success(array('message' => 'Elementor cache cleared successfully'));

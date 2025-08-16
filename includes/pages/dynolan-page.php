@@ -29,6 +29,69 @@ function snefuru_dynolan_page() {
     
     ?>
     <link rel="stylesheet" href="<?php echo SNEFURU_PLUGIN_URL; ?>assets/css/shared-table-styles.css">
+    
+    <!-- Debug Panel (only visible to admins) -->
+    <?php if (current_user_can('manage_options') && isset($_GET['debug'])): ?>
+    <div id="dynomar-debug-panel" style="background: #f0f0f0; border: 2px solid #007cba; padding: 15px; margin: 10px 0; border-radius: 5px;">
+        <h3 style="color: #007cba; margin-top: 0;">🔧 DynoMar Debug Panel</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h4>System Info:</h4>
+                <ul style="font-family: monospace; font-size: 12px;">
+                    <li><strong>PHP Version:</strong> <?php echo phpversion(); ?></li>
+                    <li><strong>WordPress Version:</strong> <?php echo get_bloginfo('version'); ?></li>
+                    <li><strong>Plugin Version:</strong> <?php echo SNEFURU_PLUGIN_VERSION; ?></li>
+                    <li><strong>Database Prefix:</strong> <?php echo $wpdb->prefix; ?></li>
+                    <li><strong>Memory Limit:</strong> <?php echo ini_get('memory_limit'); ?></li>
+                    <li><strong>Execution Time:</strong> <?php echo ini_get('max_execution_time'); ?>s</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Database Tables:</h4>
+                <ul style="font-family: monospace; font-size: 12px;">
+                    <?php
+                    $tables_to_check = [
+                        'zen_orbitposts',
+                        'zen_services', 
+                        'zen_locations',
+                        'snefuru_logs',
+                        'snefuruplin_styling'
+                    ];
+                    foreach ($tables_to_check as $table) {
+                        $full_table = $wpdb->prefix . $table;
+                        $exists = $wpdb->get_var("SHOW TABLES LIKE '$full_table'") == $full_table;
+                        $color = $exists ? 'green' : 'red';
+                        $status = $exists ? '✓' : '✗';
+                        echo "<li style='color: $color;'><strong>$status $table:</strong> " . ($exists ? 'EXISTS' : 'MISSING') . "</li>";
+                        if ($exists) {
+                            $count = $wpdb->get_var("SELECT COUNT(*) FROM $full_table");
+                            echo "<li style='margin-left: 20px; color: #666;'>└─ Records: $count</li>";
+                        }
+                    }
+                    ?>
+                </ul>
+            </div>
+        </div>
+        <div style="margin-top: 15px;">
+            <h4>Data Query Results:</h4>
+            <div style="font-family: monospace; font-size: 12px; background: white; padding: 10px; border-radius: 3px;">
+                <?php
+                $debug_posts = snefuru_get_posts_and_pages_data();
+                echo "<strong>Total Posts/Pages Found:</strong> " . count($debug_posts) . "<br>";
+                if (count($debug_posts) > 0) {
+                    echo "<strong>Sample Record Fields:</strong> " . implode(', ', array_keys($debug_posts[0])) . "<br>";
+                    echo "<strong>First Record ID:</strong> " . $debug_posts[0]['ID'] . " (" . $debug_posts[0]['post_title'] . ")<br>";
+                }
+                ?>
+            </div>
+        </div>
+        <div style="margin-top: 10px;">
+            <strong>Debug URL:</strong> <code><?php echo admin_url('admin.php?page=dynomar&debug=1'); ?></code><br>
+            <small style="color: #666;">Add &debug=1 to URL to show this panel | Only visible to administrators</small>
+        </div>
+    </div>
+    <?php endif; ?>
+    
     <div class="wrap table-wrapper">
         <!-- Top Controls -->
         <div class="top-controls">
@@ -332,6 +395,15 @@ function snefuru_dynolan_page() {
             (function($) {
                 'use strict';
                 
+                // Debug mode - enable with ?debug=1 in URL
+                const DEBUG_MODE = window.location.search.includes('debug=1');
+                
+                function debugLog(message, data = null) {
+                    if (DEBUG_MODE) {
+                        console.log('[DynoMar Debug]', message, data || '');
+                    }
+                }
+                
                 let currentPage = 1;
                 let itemsPerPage = 100;
                 let currentSearch = '';
@@ -341,6 +413,12 @@ function snefuru_dynolan_page() {
                 let editingCell = null;
                 let currentContentEditPostId = null;
                 let currentElementorEditPostId = null;
+                
+                debugLog('DynoMar initialized', {
+                    totalRecords: allData.length,
+                    debugMode: DEBUG_MODE,
+                    itemsPerPage: itemsPerPage
+                });
                 
                 // Column pagination variables
                 let currentColumnGroup = 1;
