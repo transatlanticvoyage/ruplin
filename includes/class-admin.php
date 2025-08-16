@@ -7642,9 +7642,9 @@ class Snefuru_Admin {
         }
         
         // Clear Elementor cache
-        if (class_exists('\\Elementor\\Plugin')) {
-            if (method_exists('\\Elementor\\Plugin::$instance->files_manager', 'clear_cache')) {
-                \\Elementor\\Plugin::$instance->files_manager->clear_cache();
+        if (class_exists('\Elementor\Plugin')) {
+            if (method_exists('\Elementor\Plugin::$instance->files_manager', 'clear_cache')) {
+                \Elementor\Plugin::$instance->files_manager->clear_cache();
             }
         }
         
