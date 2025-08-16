@@ -55,8 +55,12 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
-        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
-        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-media-workaround.php';
+        
+        // Load Elementor components only if Elementor is available
+        if (class_exists('Elementor\Plugin')) {
+            require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
+            require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-media-workaround.php';
+        }
         require_once SNEFURU_PLUGIN_PATH . 'hurricane/class-hurricane.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-orbit-mar-admin.php';
     }

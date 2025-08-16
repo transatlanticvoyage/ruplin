@@ -9,6 +9,11 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Only load if Elementor is active and classes are available
+if (!class_exists('Elementor\Core\DynamicTags\Data_Tag')) {
+    return;
+}
+
 /**
  * Main Dynamic Tags Manager Class
  */
