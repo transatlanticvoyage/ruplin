@@ -99,6 +99,27 @@ class SnefuruPlugin {
     }
     
     public function activate() {
+        // Debug activation process
+        error_log('=== SNEFURU ACTIVATION START ===');
+        error_log('PHP Version: ' . phpversion());
+        error_log('WordPress Version: ' . get_bloginfo('version'));
+        error_log('Active Plugins: ' . print_r(get_option('active_plugins'), true));
+        
+        // Check if Elementor is active
+        if (class_exists('Elementor\Plugin')) {
+            error_log('Elementor: ACTIVE');
+        } else {
+            error_log('Elementor: NOT ACTIVE');
+        }
+        
+        // Check which files are being loaded
+        $included_files = get_included_files();
+        foreach ($included_files as $file) {
+            if (strpos($file, 'snefuruplin') !== false) {
+                error_log('Loaded: ' . basename($file));
+            }
+        }
+        
         // Clean up any mistakenly created zen_driggs table
         $this->cleanup_unwanted_tables();
         
@@ -123,6 +144,8 @@ class SnefuruPlugin {
         if (get_option('snefuru_upload_max_size') === false) {
             update_option('snefuru_upload_max_size', '10MB');
         }
+        
+        error_log('=== SNEFURU ACTIVATION END ===');
     }
     
     public function deactivate() {
@@ -269,6 +292,14 @@ class SnefuruPlugin {
         }
     }
 }
+
+// Add shutdown function to catch fatal errors during plugin loading
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
+        error_log('SNEFURU FATAL ERROR: ' . print_r($error, true));
+    }
+});
 
 // Initialize the plugin
 new SnefuruPlugin(); 
