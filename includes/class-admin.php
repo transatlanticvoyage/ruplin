@@ -76,10 +76,10 @@ class Snefuru_Admin {
         // AJAX handler for zen_orbitposts field update
         add_action('wp_ajax_beamraymar_update_zen_orbitpost_field', array($this, 'beamraymar_update_zen_orbitpost_field'));
         
-        // BCenter AJAX handlers (independent from beamraymar)
-        add_action('wp_ajax_bcenter_update_post_content', array($this, 'bcenter_update_post_content'));
-        add_action('wp_ajax_bcenter_update_elementor_data', array($this, 'bcenter_update_elementor_data'));
-        add_action('wp_ajax_bcenter_update_zen_orbitpost_field', array($this, 'bcenter_update_zen_orbitpost_field'));
+        // DynoLan AJAX handlers (independent from beamraymar)
+        add_action('wp_ajax_dynolan_update_post_content', array($this, 'dynolan_update_post_content'));
+        add_action('wp_ajax_dynolan_update_elementor_data', array($this, 'dynolan_update_elementor_data'));
+        add_action('wp_ajax_dynolan_update_zen_orbitpost_field', array($this, 'dynolan_update_zen_orbitpost_field'));
         
         // Cache management AJAX actions
         add_action('wp_ajax_rup_clear_object_cache', array($this, 'rup_clear_object_cache'));
@@ -337,11 +337,11 @@ class Snefuru_Admin {
         
         add_submenu_page(
             'snefuru',
-            'BCenter',
-            'BCenter',
+            'DynoMar',
+            'DynoMar',
             'manage_options',
-            'bcenter',
-            array($this, 'bcenter_page')
+            'dynomar',
+            array($this, 'dynolan_page')
         );
         
         add_submenu_page(
@@ -11207,11 +11207,11 @@ class Snefuru_Admin {
     }
     
     /**
-     * BCenter AJAX handler for updating post content
+     * DynoLan AJAX handler for updating post content
      */
-    public function bcenter_update_post_content() {
+    public function dynolan_update_post_content() {
         // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'bcenter_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
             wp_send_json_error('Security check failed');
             return;
         }
@@ -11246,11 +11246,11 @@ class Snefuru_Admin {
     }
     
     /**
-     * BCenter AJAX handler for updating elementor data
+     * DynoLan AJAX handler for updating elementor data
      */
-    public function bcenter_update_elementor_data() {
+    public function dynolan_update_elementor_data() {
         // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'bcenter_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
             wp_send_json_error('Security check failed');
             return;
         }
@@ -11275,11 +11275,11 @@ class Snefuru_Admin {
     }
     
     /**
-     * BCenter AJAX handler for updating zen_orbitposts boolean fields
+     * DynoLan AJAX handler for updating zen_orbitposts boolean fields
      */
-    public function bcenter_update_zen_orbitpost_field() {
+    public function dynolan_update_zen_orbitpost_field() {
         // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'bcenter_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
             wp_send_json_error('Security check failed');
             return;
         }
@@ -11347,11 +11347,11 @@ class Snefuru_Admin {
     }
     
     /**
-     * BCenter page - Enhanced beamraymar with modular architecture
+     * DynoLan page - Enhanced beamraymar with modular architecture
      */
-    public function bcenter_page() {
-        // Include the independent bcenter page file
-        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/bcenter-page.php';
-        snefuru_bcenter_page();
+    public function dynolan_page() {
+        // Include the independent dynolan page file
+        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/dynolan-page.php';
+        snefuru_dynolan_page();
     }
 } 

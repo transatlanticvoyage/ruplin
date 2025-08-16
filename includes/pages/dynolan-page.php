@@ -1,6 +1,6 @@
 <?php
 /**
- * Independent bcenter page
+ * Independent dynolan page
  * Extracted from class-admin.php for better maintainability
  */
 
@@ -12,15 +12,15 @@ if (!defined('ABSPATH')) {
 global $wpdb;
 
 /**
- * Main bcenter page function - completely independent
+ * Main dynolan page function - completely independent
  */
-function snefuru_bcenter_page() {
+function snefuru_dynolan_page() {
     // AGGRESSIVE NOTICE SUPPRESSION
     snefuru_suppress_all_admin_notices();
     
     // Handle AJAX requests
     if (isset($_POST['action']) && in_array($_POST['action'], ['create_new_post', 'update_post_field', 'create', 'edit'])) {
-        snefuru_handle_bcenter_ajax();
+        snefuru_handle_dynolan_ajax();
         return;
     }
     
@@ -28,16 +28,16 @@ function snefuru_bcenter_page() {
     $posts_pages = snefuru_get_posts_and_pages_data();
     
     ?>
-    <div class="wrap bcenter-wrapper">
+    <div class="wrap dynolan-wrapper">
         <style>
             /* Beamraymar Custom Styles - Mimicking FileJar Design */
-            .bcenter-wrapper {
+            .dynolan-wrapper {
                 background: white;
                 padding: 0;
                 margin: 0 0 0 -20px;
             }
             
-            .bcenter-top-controls {
+            .dynolan-top-controls {
                 background-color: white;
                 border-bottom: 1px solid #ddd;
                 padding: 12px 20px;
@@ -48,7 +48,7 @@ function snefuru_bcenter_page() {
                 gap: 16px;
             }
             
-            .bcenter-controls-left {
+            .dynolan-controls-left {
                 display: flex;
                 align-items: center;
                 gap: 24px;
@@ -73,27 +73,27 @@ function snefuru_bcenter_page() {
                 display: inline-block;
             }
             
-            .bcenter-controls-right {
+            .dynolan-controls-right {
                 display: flex;
                 align-items: center;
                 gap: 12px;
             }
             
-            .bcenter-info-text {
+            .dynolan-info-text {
                 font-size: 14px;
                 color: #666;
             }
             
-            .bcenter-pagination-controls {
+            .dynolan-pagination-controls {
                 display: flex;
                 align-items: center;
             }
             
-            .bcenter-pagination-bar {
+            .dynolan-pagination-bar {
                 display: flex;
             }
             
-            .bcenter-pagination-btn {
+            .dynolan-pagination-btn {
                 padding: 10px 12px;
                 font-size: 14px;
                 border: 1px solid #ddd;
@@ -105,37 +105,37 @@ function snefuru_bcenter_page() {
                 transition: background-color 0.2s;
             }
             
-            .bcenter-pagination-btn:hover {
+            .dynolan-pagination-btn:hover {
                 background-color: #f5f5f5;
             }
             
-            .bcenter-pagination-btn.active {
+            .dynolan-pagination-btn.active {
                 background-color: #0073aa;
                 color: white;
             }
             
-            .bcenter-pagination-btn:first-child {
+            .dynolan-pagination-btn:first-child {
                 border-top-left-radius: 4px;
                 border-bottom-left-radius: 4px;
             }
             
-            .bcenter-pagination-btn:last-child {
+            .dynolan-pagination-btn:last-child {
                 border-top-right-radius: 4px;
                 border-bottom-right-radius: 4px;
             }
             
-            .bcenter-pagination-divider {
+            .dynolan-pagination-divider {
                 width: 1px;
                 height: 20px;
                 background: #ddd;
                 margin: 0 12px;
             }
             
-            .bcenter-search-container {
+            .dynolan-search-container {
                 position: relative;
             }
             
-            .bcenter-search-input {
+            .dynolan-search-input {
                 width: 320px;
                 padding: 8px 40px 8px 12px;
                 border: 1px solid #ddd;
@@ -143,7 +143,7 @@ function snefuru_bcenter_page() {
                 font-size: 14px;
             }
             
-            .bcenter-clear-btn {
+            .dynolan-clear-btn {
                 position: absolute;
                 right: 6px;
                 top: 50%;
@@ -158,16 +158,16 @@ function snefuru_bcenter_page() {
                 cursor: pointer;
             }
             
-            .bcenter-clear-btn:hover {
+            .dynolan-clear-btn:hover {
                 background: #ffed4e;
             }
             
-            .bcenter-create-buttons {
+            .dynolan-create-buttons {
                 display: flex;
                 gap: 8px;
             }
             
-            .bcenter-create-btn {
+            .dynolan-create-btn {
                 padding: 8px 16px;
                 font-size: 14px;
                 font-weight: 600;
@@ -178,34 +178,34 @@ function snefuru_bcenter_page() {
                 transition: all 0.2s;
             }
             
-            .bcenter-create-inline-post {
+            .dynolan-create-inline-post {
                 background: #16a085;
                 color: white;
             }
             
-            .bcenter-create-inline-post:hover {
+            .dynolan-create-inline-post:hover {
                 background: #138d75;
             }
             
-            .bcenter-create-inline-page {
+            .dynolan-create-inline-page {
                 background: #2980b9;
                 color: white;
             }
             
-            .bcenter-create-inline-page:hover {
+            .dynolan-create-inline-page:hover {
                 background: #2471a3;
             }
             
-            .bcenter-create-popup {
+            .dynolan-create-popup {
                 background: #8e44ad;
                 color: white;
             }
             
-            .bcenter-create-popup:hover {
+            .dynolan-create-popup:hover {
                 background: #7d3c98;
             }
             
-            .bcenter-nubra-kite {
+            .dynolan-nubra-kite {
                 background: #f39c12;
                 color: black;
                 padding: 6px 12px;
@@ -215,35 +215,35 @@ function snefuru_bcenter_page() {
                 font-weight: bold;
             }
             
-            .bcenter-table-container {
+            .dynolan-table-container {
                 background: white;
                 overflow: hidden;
             }
             
-            .bcenter-table-scroll {
+            .dynolan-table-scroll {
                 overflow-x: auto;
             }
             
-            .bcenter-table {
+            .dynolan-table {
                 width: 100%;
                 border-collapse: collapse;
                 border: 1px solid #ddd;
                 min-width: 1600px;
             }
             
-            .bcenter-table thead {
+            .dynolan-table thead {
                 background: #f8f9fa;
             }
             
-            .bcenter-table th,
-            .bcenter-table td {
+            .dynolan-table th,
+            .dynolan-table td {
                 border: 1px solid #ddd;
                 padding: 8px 12px;
                 text-align: left;
                 font-size: 14px;
             }
             
-            .bcenter-table th {
+            .dynolan-table th {
                 font-weight: bold;
                 font-size: 12px;
                 text-transform: lowercase;
@@ -251,39 +251,39 @@ function snefuru_bcenter_page() {
                 position: relative;
             }
             
-            .bcenter-table th:hover {
+            .dynolan-table th:hover {
                 background: #e9ecef;
             }
             
-            .bcenter-table tbody tr:hover {
+            .dynolan-table tbody tr:hover {
                 background: #f8f9fa;
             }
             
-            .bcenter-checkbox-cell {
+            .dynolan-checkbox-cell {
                 width: 40px;
                 text-align: center;
                 cursor: pointer;
             }
             
-            .bcenter-checkbox {
+            .dynolan-checkbox {
                 width: 20px;
                 height: 20px;
                 cursor: pointer;
             }
             
-            .bcenter-editable-cell {
+            .dynolan-editable-cell {
                 cursor: pointer;
                 min-height: 20px;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
             }
             
-            .bcenter-editable-cell:hover {
+            .dynolan-editable-cell:hover {
                 background: #f0f8ff;
                 outline: 1px solid #cce7ff;
             }
             
-            .bcenter-editing-input {
+            .dynolan-editing-input {
                 width: 100%;
                 padding: 4px 6px;
                 border: 2px solid #0073aa;
@@ -292,7 +292,7 @@ function snefuru_bcenter_page() {
                 background: white;
             }
             
-            .bcenter-editing-textarea {
+            .dynolan-editing-textarea {
                 width: 100%;
                 padding: 4px 6px;
                 border: 2px solid #0073aa;
@@ -303,7 +303,7 @@ function snefuru_bcenter_page() {
                 min-height: 60px;
             }
             
-            .bcenter-toggle-switch {
+            .dynolan-toggle-switch {
                 width: 48px;
                 height: 24px;
                 border-radius: 12px;
@@ -313,15 +313,15 @@ function snefuru_bcenter_page() {
                 display: inline-block;
             }
             
-            .bcenter-toggle-switch.on {
+            .dynolan-toggle-switch.on {
                 background: #16a085;
             }
             
-            .bcenter-toggle-switch.off {
+            .dynolan-toggle-switch.off {
                 background: #bdc3c7;
             }
             
-            .bcenter-toggle-handle {
+            .dynolan-toggle-handle {
                 width: 20px;
                 height: 20px;
                 background: white;
@@ -332,20 +332,20 @@ function snefuru_bcenter_page() {
                 box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             }
             
-            .bcenter-toggle-switch.on .bcenter-toggle-handle {
+            .dynolan-toggle-switch.on .dynolan-toggle-handle {
                 transform: translateX(24px);
             }
             
-            .bcenter-toggle-switch.off .bcenter-toggle-handle {
+            .dynolan-toggle-switch.off .dynolan-toggle-handle {
                 transform: translateX(2px);
             }
             
-            .bcenter-sort-indicator {
+            .dynolan-sort-indicator {
                 margin-left: 8px;
                 color: #666;
             }
             
-            .bcenter-loading {
+            .dynolan-loading {
                 text-align: center;
                 padding: 40px;
                 font-size: 16px;
@@ -353,7 +353,7 @@ function snefuru_bcenter_page() {
             }
             
             /* Bottom controls */
-            .bcenter-bottom-controls {
+            .dynolan-bottom-controls {
                 background-color: white;
                 border-top: 1px solid #ddd;
                 padding: 12px 20px;
@@ -363,7 +363,7 @@ function snefuru_bcenter_page() {
             }
             
             /* Modal styles */
-            .bcenter-modal {
+            .dynolan-modal {
                 display: none;
                 position: fixed;
                 z-index: 999999;
@@ -374,13 +374,13 @@ function snefuru_bcenter_page() {
                 background: rgba(0,0,0,0.5);
             }
             
-            .bcenter-modal.active {
+            .dynolan-modal.active {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
             
-            .bcenter-modal-content {
+            .dynolan-modal-content {
                 background: white;
                 padding: 30px;
                 border-radius: 6px;
@@ -390,7 +390,7 @@ function snefuru_bcenter_page() {
                 overflow-y: auto;
             }
             
-            .bcenter-modal-header {
+            .dynolan-modal-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -399,13 +399,13 @@ function snefuru_bcenter_page() {
                 padding-bottom: 15px;
             }
             
-            .bcenter-modal-title {
+            .dynolan-modal-title {
                 font-size: 20px;
                 font-weight: bold;
                 margin: 0;
             }
             
-            .bcenter-modal-close {
+            .dynolan-modal-close {
                 font-size: 24px;
                 background: none;
                 border: none;
@@ -413,54 +413,54 @@ function snefuru_bcenter_page() {
                 color: #666;
             }
             
-            .bcenter-modal-close:hover {
+            .dynolan-modal-close:hover {
                 color: #333;
             }
             
-            .bcenter-form-grid {
+            .dynolan-form-grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 20px;
                 margin-bottom: 20px;
             }
             
-            .bcenter-form-field {
+            .dynolan-form-field {
                 display: flex;
                 flex-direction: column;
             }
             
-            .bcenter-form-field.full-width {
+            .dynolan-form-field.full-width {
                 grid-column: 1 / -1;
             }
             
-            .bcenter-form-label {
+            .dynolan-form-label {
                 font-weight: 600;
                 margin-bottom: 6px;
                 color: #333;
             }
             
-            .bcenter-form-input,
-            .bcenter-form-textarea,
-            .bcenter-form-select {
+            .dynolan-form-input,
+            .dynolan-form-textarea,
+            .dynolan-form-select {
                 padding: 8px 12px;
                 border: 1px solid #ddd;
                 border-radius: 4px;
                 font-size: 14px;
             }
             
-            .bcenter-form-textarea {
+            .dynolan-form-textarea {
                 min-height: 100px;
                 resize: vertical;
             }
             
-            .bcenter-modal-actions {
+            .dynolan-modal-actions {
                 display: flex;
                 justify-content: flex-end;
                 gap: 12px;
                 margin-top: 24px;
             }
             
-            .bcenter-modal-btn {
+            .dynolan-modal-btn {
                 padding: 10px 20px;
                 border: none;
                 border-radius: 4px;
@@ -470,26 +470,26 @@ function snefuru_bcenter_page() {
                 transition: all 0.2s;
             }
             
-            .bcenter-modal-btn.primary {
+            .dynolan-modal-btn.primary {
                 background: #0073aa;
                 color: white;
             }
             
-            .bcenter-modal-btn.primary:hover {
+            .dynolan-modal-btn.primary:hover {
                 background: #005a87;
             }
             
-            .bcenter-modal-btn.secondary {
+            .dynolan-modal-btn.secondary {
                 background: #f1f1f1;
                 color: #333;
                 border: 1px solid #ddd;
             }
             
-            .bcenter-modal-btn.secondary:hover {
+            .dynolan-modal-btn.secondary:hover {
                 background: #e0e0e0;
             }
             
-            .bcenter-table td .tcell_inner_wrapper_div {
+            .dynolan-table td .tcell_inner_wrapper_div {
                 height: 38px;
             }
             
@@ -505,17 +505,17 @@ function snefuru_bcenter_page() {
                 height: auto;
             }
             
-            .bcenter-table td.column_wp_posts_post_title {
+            .dynolan-table td.column_wp_posts_post_title {
                 font-size: 18px;
                 font-weight: bold;
             }
             
-            .bcenter-table td.column_wp_posts_post_status[data-status="publish"] {
+            .dynolan-table td.column_wp_posts_post_status[data-status="publish"] {
                 background-color: #efddbb;
             }
             
             /* Column pagination styles */
-            .bcenter-column-pagination-controls {
+            .dynolan-column-pagination-controls {
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
@@ -523,11 +523,11 @@ function snefuru_bcenter_page() {
                 margin-left: 15px;
             }
             
-            .bcenter-column-pagination-bar {
+            .dynolan-column-pagination-bar {
                 display: flex;
             }
             
-            .bcenter-column-pagination-btn {
+            .dynolan-column-pagination-btn {
                 padding: 10px 12px;
                 font-size: 14px;
                 border: 1px solid #ddd;
@@ -539,27 +539,27 @@ function snefuru_bcenter_page() {
                 transition: background-color 0.2s;
             }
             
-            .bcenter-column-pagination-btn:hover {
+            .dynolan-column-pagination-btn:hover {
                 background-color: #f5f5f5;
             }
             
-            .bcenter-column-pagination-btn.active {
+            .dynolan-column-pagination-btn.active {
                 background-color: #ffd700;
                 color: black;
             }
             
-            .bcenter-column-pagination-btn:first-child {
+            .dynolan-column-pagination-btn:first-child {
                 border-top-left-radius: 4px;
                 border-bottom-left-radius: 4px;
             }
             
-            .bcenter-column-pagination-btn:last-child {
+            .dynolan-column-pagination-btn:last-child {
                 border-top-right-radius: 4px;
                 border-bottom-right-radius: 4px;
             }
             
             /* Filter button bars */
-            .bcenter-filter-controls {
+            .dynolan-filter-controls {
                 display: flex;
                 flex-direction: column;
                 align-items: flex-start;
@@ -567,11 +567,11 @@ function snefuru_bcenter_page() {
                 margin-left: 15px;
             }
             
-            .bcenter-filter-bar {
+            .dynolan-filter-bar {
                 display: flex;
             }
             
-            .bcenter-filter-btn {
+            .dynolan-filter-btn {
                 padding: 10px 12px;
                 font-size: 14px;
                 border: 1px solid #ddd;
@@ -583,27 +583,27 @@ function snefuru_bcenter_page() {
                 transition: background-color 0.2s;
             }
             
-            .bcenter-filter-btn:hover {
+            .dynolan-filter-btn:hover {
                 background-color: #f5f5f5;
             }
             
-            .bcenter-filter-btn.active {
+            .dynolan-filter-btn.active {
                 background-color: #0073aa;
                 color: white;
             }
             
-            .bcenter-filter-btn:first-child {
+            .dynolan-filter-btn:first-child {
                 border-top-left-radius: 4px;
                 border-bottom-left-radius: 4px;
             }
             
-            .bcenter-filter-btn:last-child {
+            .dynolan-filter-btn:last-child {
                 border-top-right-radius: 4px;
                 border-bottom-right-radius: 4px;
             }
             
             /* ED button for post_content */
-            .bcenter-content-edit-btn {
+            .dynolan-content-edit-btn {
                 width: 20px;
                 height: 20px;
                 background: #0073aa;
@@ -616,12 +616,12 @@ function snefuru_bcenter_page() {
                 margin-left: 8px;
             }
             
-            .bcenter-content-edit-btn:hover {
+            .dynolan-content-edit-btn:hover {
                 background: #005a87;
             }
             
             /* Post content editor popup */
-            .bcenter-content-editor-modal {
+            .dynolan-content-editor-modal {
                 display: none;
                 position: fixed;
                 z-index: 999999;
@@ -632,13 +632,13 @@ function snefuru_bcenter_page() {
                 background: rgba(0,0,0,0.7);
             }
             
-            .bcenter-content-editor-modal.active {
+            .dynolan-content-editor-modal.active {
                 display: flex;
                 align-items: center;
                 justify-content: center;
             }
             
-            .bcenter-content-editor-content {
+            .dynolan-content-editor-content {
                 background: white;
                 padding: 30px;
                 border-radius: 6px;
@@ -648,13 +648,13 @@ function snefuru_bcenter_page() {
                 flex-direction: column;
             }
             
-            .bcenter-content-editor-header {
+            .dynolan-content-editor-header {
                 font-size: 16px;
                 font-weight: bold;
                 margin-bottom: 15px;
             }
             
-            .bcenter-content-editor-textarea {
+            .dynolan-content-editor-textarea {
                 width: 100%;
                 flex: 1;
                 padding: 10px;
@@ -664,14 +664,14 @@ function snefuru_bcenter_page() {
                 resize: none;
             }
             
-            .bcenter-content-editor-actions {
+            .dynolan-content-editor-actions {
                 display: flex;
                 justify-content: flex-end;
                 gap: 10px;
                 margin-top: 15px;
             }
             
-            .bcenter-content-editor-btn {
+            .dynolan-content-editor-btn {
                 padding: 10px 20px;
                 border: none;
                 border-radius: 4px;
@@ -679,18 +679,18 @@ function snefuru_bcenter_page() {
                 font-weight: 600;
             }
             
-            .bcenter-content-editor-btn.save {
+            .dynolan-content-editor-btn.save {
                 background: #0073aa;
                 color: white;
             }
             
-            .bcenter-content-editor-btn.cancel {
+            .dynolan-content-editor-btn.cancel {
                 background: #f1f1f1;
                 color: #333;
             }
             
             /* Tool button styling */
-            .bcenter-tool-btn {
+            .dynolan-tool-btn {
                 width: 36px;
                 height: 36px;
                 background: #0073aa;
@@ -706,14 +706,14 @@ function snefuru_bcenter_page() {
                 border-radius: 2px;
             }
             
-            .bcenter-tool-btn:hover {
+            .dynolan-tool-btn:hover {
                 background: #005a87;
                 color: white;
                 text-decoration: none;
             }
             
             /* Pendulum button styling */
-            .bcenter-pendulum-btn {
+            .dynolan-pendulum-btn {
                 width: 36px;
                 height: 36px;
                 background: #0073aa;
@@ -729,14 +729,14 @@ function snefuru_bcenter_page() {
                 border-radius: 2px;
             }
             
-            .bcenter-pendulum-btn:hover {
+            .dynolan-pendulum-btn:hover {
                 background: #005a87;
                 color: white;
                 text-decoration: none;
             }
             
             /* Elementor button styling */
-            .bcenter-elementor-btn {
+            .dynolan-elementor-btn {
                 width: 36px;
                 height: 36px;
                 background: #800020;
@@ -752,13 +752,13 @@ function snefuru_bcenter_page() {
                 border-radius: 2px;
             }
             
-            .bcenter-elementor-btn:hover {
+            .dynolan-elementor-btn:hover {
                 background: #5c0016;
                 color: white;
                 text-decoration: none;
             }
             
-            .bcenter-elementor-btn.disabled {
+            .dynolan-elementor-btn.disabled {
                 background: #ccc;
                 color: #999;
                 cursor: not-allowed;
@@ -766,7 +766,7 @@ function snefuru_bcenter_page() {
             }
             
             /* C1, C2, C3 button styling */
-            .bcenter-c-btn {
+            .dynolan-c-btn {
                 width: 36px;
                 height: 36px;
                 background: #f0f0f0;
@@ -809,8 +809,8 @@ function snefuru_bcenter_page() {
         </style>
         
         <!-- Top Controls -->
-        <div class="bcenter-top-controls">
-            <div class="bcenter-controls-left">
+        <div class="dynolan-top-controls">
+            <div class="dynolan-controls-left">
                 <div class="beamray_banner1">
                     <svg class="beamray-logo" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.18L18.18 8 12 11.82 5.82 8 12 4.18zM6 9.42l5 2.5v8.16l-5-2.5V9.42zm12 0v8.16l-5 2.5v-8.16l5-2.5z"/>
@@ -821,39 +821,39 @@ function snefuru_bcenter_page() {
                     </svg>
                     BeamRay Table
                 </div>
-                <div class="bcenter-info-text">
-                    <span id="bcenter-results-info">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
+                <div class="dynolan-info-text">
+                    <span id="dynolan-results-info">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
                 </div>
                 
-                <div class="bcenter-pagination-controls">
-                    <div class="bcenter-pagination-bar" id="bcenter-per-page-bar">
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="10">10</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="20">20</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="50">50</a>
-                        <a href="#" class="bcenter-pagination-btn active" data-per-page="100">100</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="200">200</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="500">500</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="all">All</a>
+                <div class="dynolan-pagination-controls">
+                    <div class="dynolan-pagination-bar" id="dynolan-per-page-bar">
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="10">10</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="20">20</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="50">50</a>
+                        <a href="#" class="dynolan-pagination-btn active" data-per-page="100">100</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="200">200</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="500">500</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="all">All</a>
                     </div>
                     
-                    <div class="bcenter-pagination-divider"></div>
+                    <div class="dynolan-pagination-divider"></div>
                     
-                    <div class="bcenter-pagination-bar" id="bcenter-page-bar">
-                        <a href="#" class="bcenter-pagination-btn" data-page="first">First</a>
-                        <a href="#" class="bcenter-pagination-btn" data-page="prev">Prev</a>
-                        <a href="#" class="bcenter-pagination-btn active" data-page="1">1</a>
-                        <a href="#" class="bcenter-pagination-btn" data-page="next">Next</a>
-                        <a href="#" class="bcenter-pagination-btn" data-page="last">Last</a>
+                    <div class="dynolan-pagination-bar" id="dynolan-page-bar">
+                        <a href="#" class="dynolan-pagination-btn" data-page="first">First</a>
+                        <a href="#" class="dynolan-pagination-btn" data-page="prev">Prev</a>
+                        <a href="#" class="dynolan-pagination-btn active" data-page="1">1</a>
+                        <a href="#" class="dynolan-pagination-btn" data-page="next">Next</a>
+                        <a href="#" class="dynolan-pagination-btn" data-page="last">Last</a>
                     </div>
                 </div>
                 
-                <div class="bcenter-search-container">
-                    <input type="text" id="bcenter-search" class="bcenter-search-input" placeholder="Search all fields...">
-                    <button class="bcenter-clear-btn" id="bcenter-clear">CL</button>
+                <div class="dynolan-search-container">
+                    <input type="text" id="dynolan-search" class="dynolan-search-input" placeholder="Search all fields...">
+                    <button class="dynolan-clear-btn" id="dynolan-clear">CL</button>
                 </div>
             </div>
             
-            <div class="bcenter-controls-right">
+            <div class="dynolan-controls-right">
                 <div style="display: flex; flex-direction: column; align-items: flex-end;">
                     <?php
                     global $wpdb;
@@ -862,48 +862,48 @@ function snefuru_bcenter_page() {
                     <div style="font-size: 16px; font-weight: bold; text-transform: lowercase; margin-bottom: 10px;">
                         <span style="font-weight: bold;"><?php echo esc_html($wpdb->prefix); ?></span>zen_sitespren.sitespren_base: <?php echo esc_html($sitespren_base ?: ''); ?>
                     </div>
-                    <div class="bcenter-create-buttons">
-                        <button class="bcenter-create-btn bcenter-create-inline-post" id="create-post-inline">Create New (Inline)</button>
-                        <button class="bcenter-create-btn bcenter-create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
-                        <button class="bcenter-create-btn bcenter-create-popup" id="create-popup">Create New (Popup)</button>
-                        <button class="bcenter-create-btn bcenter-duplicate-btn" id="duplicate-selected">Duplicate</button>
+                    <div class="dynolan-create-buttons">
+                        <button class="dynolan-create-btn dynolan-create-inline-post" id="create-post-inline">Create New (Inline)</button>
+                        <button class="dynolan-create-btn dynolan-create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
+                        <button class="dynolan-create-btn dynolan-create-popup" id="create-popup">Create New (Popup)</button>
+                        <button class="dynolan-create-btn dynolan-duplicate-btn" id="duplicate-selected">Duplicate</button>
                     </div>
                 </div>
-                <div class="bcenter-nubra-kite">nubra-tableface-kite</div>
+                <div class="dynolan-nubra-kite">nubra-tableface-kite</div>
                 
                 <!-- Column Pagination Controls -->
-                <div class="bcenter-column-pagination-controls">
-                    <div class="bcenter-column-pagination-bar" id="bcenter-column-group-bar">
-                        <a href="#" class="bcenter-column-pagination-btn active" data-column-group="1">Columns 1-7</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-group="2">Columns 8-14</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-group="3">Columns 15-21</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-group="4">Columns 22-28</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-group="5">Columns 29-35</a>
+                <div class="dynolan-column-pagination-controls">
+                    <div class="dynolan-column-pagination-bar" id="dynolan-column-group-bar">
+                        <a href="#" class="dynolan-column-pagination-btn active" data-column-group="1">Columns 1-7</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-group="2">Columns 8-14</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-group="3">Columns 15-21</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-group="4">Columns 22-28</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-group="5">Columns 29-35</a>
                     </div>
                     
-                    <div class="bcenter-column-pagination-bar" id="bcenter-column-nav-bar">
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="first">First</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="prev">Prev</a>
-                        <a href="#" class="bcenter-column-pagination-btn active" data-column-nav="1">1</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="2">2</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="3">3</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="4">4</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="5">5</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="next">Next</a>
-                        <a href="#" class="bcenter-column-pagination-btn" data-column-nav="last">Last</a>
+                    <div class="dynolan-column-pagination-bar" id="dynolan-column-nav-bar">
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="first">First</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="prev">Prev</a>
+                        <a href="#" class="dynolan-column-pagination-btn active" data-column-nav="1">1</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="2">2</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="3">3</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="4">4</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="5">5</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="next">Next</a>
+                        <a href="#" class="dynolan-column-pagination-btn" data-column-nav="last">Last</a>
                     </div>
                 </div>
                 
                 <!-- Filter Controls -->
-                <div class="bcenter-filter-controls">
-                    <div class="bcenter-filter-bar" id="bcenter-post-type-filter">
-                        <a href="#" class="bcenter-filter-btn" data-filter-type="post_type" data-filter-value="page">Page</a>
-                        <a href="#" class="bcenter-filter-btn" data-filter-type="post_type" data-filter-value="post">Post</a>
+                <div class="dynolan-filter-controls">
+                    <div class="dynolan-filter-bar" id="dynolan-post-type-filter">
+                        <a href="#" class="dynolan-filter-btn" data-filter-type="post_type" data-filter-value="page">Page</a>
+                        <a href="#" class="dynolan-filter-btn" data-filter-type="post_type" data-filter-value="post">Post</a>
                     </div>
                     
-                    <div class="bcenter-filter-bar" id="bcenter-post-status-filter">
-                        <a href="#" class="bcenter-filter-btn" data-filter-type="post_status" data-filter-value="publish">Published</a>
-                        <a href="#" class="bcenter-filter-btn" data-filter-type="post_status" data-filter-value="draft">Draft</a>
+                    <div class="dynolan-filter-bar" id="dynolan-post-status-filter">
+                        <a href="#" class="dynolan-filter-btn" data-filter-type="post_status" data-filter-value="publish">Published</a>
+                        <a href="#" class="dynolan-filter-btn" data-filter-type="post_status" data-filter-value="draft">Draft</a>
                     </div>
                 </div>
             </div>
@@ -911,9 +911,9 @@ function snefuru_bcenter_page() {
         </div>
         
         <!-- Table Container -->
-        <div class="bcenter-table-container">
-            <div class="bcenter-table-scroll">
-                <table class="bcenter-table utg_beamray" id="bcenter-table">
+        <div class="dynolan-table-container">
+            <div class="dynolan-table-scroll">
+                <table class="dynolan-table utg_beamray" id="dynolan-table">
                     <thead>
                         <tr>
                             <th class="column_checkbox row_obtain_db_table"><div class="tcell_inner_wrapper_div"></div></th>
@@ -945,9 +945,9 @@ function snefuru_bcenter_page() {
                             <th class="column_zen_orbitposts_created_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                             <th class="column_zen_orbitposts_updated_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                         </tr>
-                        <tr class="bcenter-main-header-row">
-                            <th class="bcenter-checkbox-cell column_checkbox row_obtain_db_column">
-                                <div class="tcell_inner_wrapper_div"><input type="checkbox" class="bcenter-checkbox" id="select-all"></div>
+                        <tr class="dynolan-main-header-row">
+                            <th class="dynolan-checkbox-cell column_checkbox row_obtain_db_column">
+                                <div class="tcell_inner_wrapper_div"><input type="checkbox" class="dynolan-checkbox" id="select-all"></div>
                             </th>
                             <th class="column_tool_buttons row_obtain_db_column"><div class="tcell_inner_wrapper_div">tool_buttons</div></th>
                             <th data-field="ID" data-type="integer" class="column_wp_posts_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">id</div></th>
@@ -978,8 +978,8 @@ function snefuru_bcenter_page() {
                             <th data-field="updated_at" data-type="datetime" class="column_zen_orbitposts_updated_at row_obtain_db_column"><div class="tcell_inner_wrapper_div">updated_at</div></th>
                         </tr>
                     </thead>
-                    <tbody id="bcenter-tbody">
-                        <?php snefuru_render_bcenter_table_rows($posts_pages); ?>
+                    <tbody id="dynolan-tbody">
+                        <?php snefuru_render_dynolan_table_rows($posts_pages); ?>
                     </tbody>
                 </table>
             </div>
@@ -987,37 +987,37 @@ function snefuru_bcenter_page() {
         </div>
         
         <!-- Bottom Controls -->
-        <div class="bcenter-bottom-controls">
-            <div class="bcenter-controls-left">
-                <div class="bcenter-info-text">
-                    <span id="bcenter-results-info-bottom">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
+        <div class="dynolan-bottom-controls">
+            <div class="dynolan-controls-left">
+                <div class="dynolan-info-text">
+                    <span id="dynolan-results-info-bottom">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
                 </div>
                 
-                <div class="bcenter-pagination-controls">
-                    <div class="bcenter-pagination-bar" id="bcenter-per-page-bar-bottom">
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="10">10</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="20">20</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="50">50</a>
-                        <a href="#" class="bcenter-pagination-btn active" data-per-page="100">100</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="200">200</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="500">500</a>
-                        <a href="#" class="bcenter-pagination-btn" data-per-page="all">All</a>
+                <div class="dynolan-pagination-controls">
+                    <div class="dynolan-pagination-bar" id="dynolan-per-page-bar-bottom">
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="10">10</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="20">20</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="50">50</a>
+                        <a href="#" class="dynolan-pagination-btn active" data-per-page="100">100</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="200">200</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="500">500</a>
+                        <a href="#" class="dynolan-pagination-btn" data-per-page="all">All</a>
                     </div>
                     
-                    <div class="bcenter-pagination-divider"></div>
+                    <div class="dynolan-pagination-divider"></div>
                     
-                    <div class="bcenter-pagination-bar" id="bcenter-page-bar-bottom">
-                        <a href="#" class="bcenter-pagination-btn" data-page="first">First</a>
-                        <a href="#" class="bcenter-pagination-btn" data-page="prev">Prev</a>
-                        <a href="#" class="bcenter-pagination-btn active" data-page="1">1</a>
-                        <a href="#" class="bcenter-pagination-btn" data-page="next">Next</a>
-                        <a href="#" class="bcenter-pagination-btn" data-page="last">Last</a>
+                    <div class="dynolan-pagination-bar" id="dynolan-page-bar-bottom">
+                        <a href="#" class="dynolan-pagination-btn" data-page="first">First</a>
+                        <a href="#" class="dynolan-pagination-btn" data-page="prev">Prev</a>
+                        <a href="#" class="dynolan-pagination-btn active" data-page="1">1</a>
+                        <a href="#" class="dynolan-pagination-btn" data-page="next">Next</a>
+                        <a href="#" class="dynolan-pagination-btn" data-page="last">Last</a>
                     </div>
                 </div>
                 
-                <div class="bcenter-search-container">
-                    <input type="text" id="bcenter-search-bottom" class="bcenter-search-input" placeholder="Search all fields...">
-                    <button class="bcenter-clear-btn" id="bcenter-clear-bottom">CL</button>
+                <div class="dynolan-search-container">
+                    <input type="text" id="dynolan-search-bottom" class="dynolan-search-input" placeholder="Search all fields...">
+                    <button class="dynolan-clear-btn" id="dynolan-clear-bottom">CL</button>
                 </div>
             </div>
             <div></div>
@@ -1026,84 +1026,84 @@ function snefuru_bcenter_page() {
         
         <!-- Modals -->
         <!-- Create/Edit Modal -->
-        <div id="bcenter-modal" class="bcenter-modal">
-            <div class="bcenter-modal-content">
-                <div class="bcenter-modal-header">
-                    <h2 class="bcenter-modal-title" id="bcenter-modal-title">Create New Post/Page</h2>
-                    <button class="bcenter-modal-close" id="bcenter-modal-close">&times;</button>
+        <div id="dynolan-modal" class="dynolan-modal">
+            <div class="dynolan-modal-content">
+                <div class="dynolan-modal-header">
+                    <h2 class="dynolan-modal-title" id="dynolan-modal-title">Create New Post/Page</h2>
+                    <button class="dynolan-modal-close" id="dynolan-modal-close">&times;</button>
                 </div>
                 
-                <form id="bcenter-modal-form">
+                <form id="dynolan-modal-form">
                     <input type="hidden" id="modal-post-id" name="post_id">
                     <input type="hidden" id="modal-action" name="action" value="create">
                     
-                    <div class="bcenter-form-grid">
-                        <div class="bcenter-form-field">
-                            <label class="bcenter-form-label">Post Type</label>
-                            <select id="modal-post-type" name="post_type" class="bcenter-form-select">
+                    <div class="dynolan-form-grid">
+                        <div class="dynolan-form-field">
+                            <label class="dynolan-form-label">Post Type</label>
+                            <select id="modal-post-type" name="post_type" class="dynolan-form-select">
                                 <option value="post">Post</option>
                                 <option value="page">Page</option>
                             </select>
                         </div>
                         
-                        <div class="bcenter-form-field">
-                            <label class="bcenter-form-label">Status</label>
-                            <select id="modal-post-status" name="post_status" class="bcenter-form-select">
+                        <div class="dynolan-form-field">
+                            <label class="dynolan-form-label">Status</label>
+                            <select id="modal-post-status" name="post_status" class="dynolan-form-select">
                                 <option value="draft">Draft</option>
                                 <option value="publish">Published</option>
                                 <option value="private">Private</option>
                             </select>
                         </div>
                         
-                        <div class="bcenter-form-field full-width">
-                            <label class="bcenter-form-label">Title</label>
-                            <input type="text" id="modal-post-title" name="post_title" class="bcenter-form-input">
+                        <div class="dynolan-form-field full-width">
+                            <label class="dynolan-form-label">Title</label>
+                            <input type="text" id="modal-post-title" name="post_title" class="dynolan-form-input">
                         </div>
                         
-                        <div class="bcenter-form-field full-width">
-                            <label class="bcenter-form-label">Content</label>
-                            <textarea id="modal-post-content" name="post_content" class="bcenter-form-textarea"></textarea>
+                        <div class="dynolan-form-field full-width">
+                            <label class="dynolan-form-label">Content</label>
+                            <textarea id="modal-post-content" name="post_content" class="dynolan-form-textarea"></textarea>
                         </div>
                         
-                        <div class="bcenter-form-field">
-                            <label class="bcenter-form-label">Slug</label>
-                            <input type="text" id="modal-post-name" name="post_name" class="bcenter-form-input">
+                        <div class="dynolan-form-field">
+                            <label class="dynolan-form-label">Slug</label>
+                            <input type="text" id="modal-post-name" name="post_name" class="dynolan-form-input">
                         </div>
                         
-                        <div class="bcenter-form-field">
-                            <label class="bcenter-form-label">Parent ID</label>
-                            <input type="number" id="modal-post-parent" name="post_parent" class="bcenter-form-input" value="0">
+                        <div class="dynolan-form-field">
+                            <label class="dynolan-form-label">Parent ID</label>
+                            <input type="number" id="modal-post-parent" name="post_parent" class="dynolan-form-input" value="0">
                         </div>
                     </div>
                     
-                    <div class="bcenter-modal-actions">
-                        <button type="button" class="bcenter-modal-btn secondary" id="bcenter-modal-cancel">Cancel</button>
-                        <button type="submit" class="bcenter-modal-btn primary" id="bcenter-modal-save">Save</button>
+                    <div class="dynolan-modal-actions">
+                        <button type="button" class="dynolan-modal-btn secondary" id="dynolan-modal-cancel">Cancel</button>
+                        <button type="submit" class="dynolan-modal-btn primary" id="dynolan-modal-save">Save</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <!-- Post Content Editor Modal -->
-        <div id="bcenter-content-editor-modal" class="bcenter-content-editor-modal">
-            <div class="bcenter-content-editor-content">
-                <div class="bcenter-content-editor-header">post_content</div>
-                <textarea id="bcenter-content-editor-textarea" class="bcenter-content-editor-textarea"></textarea>
-                <div class="bcenter-content-editor-actions">
-                    <button type="button" class="bcenter-content-editor-btn cancel" id="bcenter-content-editor-cancel">Cancel</button>
-                    <button type="button" class="bcenter-content-editor-btn save" id="bcenter-content-editor-save">Save</button>
+        <div id="dynolan-content-editor-modal" class="dynolan-content-editor-modal">
+            <div class="dynolan-content-editor-content">
+                <div class="dynolan-content-editor-header">post_content</div>
+                <textarea id="dynolan-content-editor-textarea" class="dynolan-content-editor-textarea"></textarea>
+                <div class="dynolan-content-editor-actions">
+                    <button type="button" class="dynolan-content-editor-btn cancel" id="dynolan-content-editor-cancel">Cancel</button>
+                    <button type="button" class="dynolan-content-editor-btn save" id="dynolan-content-editor-save">Save</button>
                 </div>
             </div>
         </div>
 
         <!-- Elementor Data Editor Modal -->
-        <div id="bcenter-elementor-editor-modal" class="bcenter-content-editor-modal">
-            <div class="bcenter-content-editor-content">
-                <div class="bcenter-content-editor-header">_elementor_data</div>
-                <textarea id="bcenter-elementor-editor-textarea" class="bcenter-content-editor-textarea"></textarea>
-                <div class="bcenter-content-editor-actions">
-                    <button type="button" class="bcenter-content-editor-btn cancel" id="bcenter-elementor-editor-cancel">Cancel</button>
-                    <button type="button" class="bcenter-content-editor-btn save" id="bcenter-elementor-editor-save">Save</button>
+        <div id="dynolan-elementor-editor-modal" class="dynolan-content-editor-modal">
+            <div class="dynolan-content-editor-content">
+                <div class="dynolan-content-editor-header">_elementor_data</div>
+                <textarea id="dynolan-elementor-editor-textarea" class="dynolan-content-editor-textarea"></textarea>
+                <div class="dynolan-content-editor-actions">
+                    <button type="button" class="dynolan-content-editor-btn cancel" id="dynolan-elementor-editor-cancel">Cancel</button>
+                    <button type="button" class="dynolan-content-editor-btn save" id="dynolan-elementor-editor-save">Save</button>
                 </div>
             </div>
         </div>
@@ -1136,7 +1136,7 @@ function snefuru_bcenter_page() {
                 
                 function bindEventHandlers() {
                     // Pagination buttons
-                    $(document).on('click', '.bcenter-pagination-btn', function(e) {
+                    $(document).on('click', '.dynolan-pagination-btn', function(e) {
                         e.preventDefault();
                         const $this = $(this);
                         
@@ -1144,7 +1144,7 @@ function snefuru_bcenter_page() {
                         if ($this.data('per-page')) {
                             itemsPerPage = $this.data('per-page') === 'all' ? filteredData.length : parseInt($this.data('per-page'));
                             currentPage = 1;
-                            $('.bcenter-pagination-btn[data-per-page]').removeClass('active');
+                            $('.dynolan-pagination-btn[data-per-page]').removeClass('active');
                             $this.addClass('active');
                             renderTable();
                             updatePaginationInfo();
@@ -1177,7 +1177,7 @@ function snefuru_bcenter_page() {
                     });
                     
                     // Search functionality
-                    $(document).on('input', '.bcenter-search-input', function() {
+                    $(document).on('input', '.dynolan-search-input', function() {
                         currentSearch = $(this).val().toLowerCase();
                         filterData();
                         currentPage = 1;
@@ -1186,9 +1186,9 @@ function snefuru_bcenter_page() {
                     });
                     
                     // Clear search buttons
-                    $(document).on('click', '.bcenter-clear-btn', function(e) {
+                    $(document).on('click', '.dynolan-clear-btn', function(e) {
                         e.preventDefault();
-                        $('.bcenter-search-input').val('');
+                        $('.dynolan-search-input').val('');
                         currentSearch = '';
                         filterData();
                         currentPage = 1;
@@ -1226,8 +1226,8 @@ function snefuru_bcenter_page() {
                     const end = Math.min(currentPage * itemsPerPage, filteredData.length);
                     
                     // Update pagination display
-                    $('.bcenter-pagination-btn[data-page]').removeClass('active');
-                    $(`.bcenter-pagination-btn[data-page="${currentPage}"]`).addClass('active');
+                    $('.dynolan-pagination-btn[data-page]').removeClass('active');
+                    $(`.dynolan-pagination-btn[data-page="${currentPage}"]`).addClass('active');
                 }
                 
             })(jQuery);
@@ -1270,9 +1270,9 @@ function snefuru_suppress_all_admin_notices() {
 /**
  * Helper function to handle AJAX requests
  */
-function snefuru_handle_bcenter_ajax() {
+function snefuru_handle_dynolan_ajax() {
     // Verify nonce
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'bcenter_nonce')) {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
         echo json_encode(array('success' => false, 'message' => 'Security check failed'));
         wp_die();
     }
@@ -1352,11 +1352,11 @@ function snefuru_get_posts_and_pages_data() {
 }
 
 /**
- * Helper function to render bcenter table rows
+ * Helper function to render dynolan table rows
  */
-function snefuru_render_bcenter_table_rows($posts_pages) {
+function snefuru_render_dynolan_table_rows($posts_pages) {
     if (empty($posts_pages)) {
-        echo '<tr><td colspan="28" class="bcenter-loading">No posts or pages found.</td></tr>';
+        echo '<tr><td colspan="28" class="dynolan-loading">No posts or pages found.</td></tr>';
         return;
     }
 
@@ -1370,42 +1370,42 @@ function snefuru_render_bcenter_table_rows($posts_pages) {
         echo '<tr data-post-id="' . esc_attr($post_id) . '">';
         
         // Checkbox
-        echo '<td class="bcenter-checkbox-cell column_checkbox"><div class="tcell_inner_wrapper_div">';
-        echo '<input type="checkbox" class="bcenter-checkbox" value="' . esc_attr($post_id) . '">';
+        echo '<td class="dynolan-checkbox-cell column_checkbox"><div class="tcell_inner_wrapper_div">';
+        echo '<input type="checkbox" class="dynolan-checkbox" value="' . esc_attr($post_id) . '">';
         echo '</div></td>';
         
         // Tool buttons
         echo '<td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div">';
-        echo '<a href="' . get_edit_post_link($post_id) . '" class="bcenter-tool-btn" title="Edit">ED</a>';
-        echo '<a href="' . get_permalink($post_id) . '" class="bcenter-pendulum-btn" title="View">VW</a>';
+        echo '<a href="' . get_edit_post_link($post_id) . '" class="dynolan-tool-btn" title="Edit">ED</a>';
+        echo '<a href="' . get_permalink($post_id) . '" class="dynolan-pendulum-btn" title="View">VW</a>';
         if ($item['_elementor_data']) {
-            echo '<button class="bcenter-elementor-btn" data-post-id="' . esc_attr($post_id) . '" title="Elementor">EL</button>';
+            echo '<button class="dynolan-elementor-btn" data-post-id="' . esc_attr($post_id) . '" title="Elementor">EL</button>';
         } else {
-            echo '<button class="bcenter-elementor-btn disabled" title="No Elementor Data">EL</button>';
+            echo '<button class="dynolan-elementor-btn disabled" title="No Elementor Data">EL</button>';
         }
-        echo '<button class="bcenter-c-btn" title="C1">C1</button>';
-        echo '<button class="bcenter-c-btn" title="C2">C2</button>';
-        echo '<button class="bcenter-c-btn" title="C3">C3</button>';
+        echo '<button class="dynolan-c-btn" title="C1">C1</button>';
+        echo '<button class="dynolan-c-btn" title="C2">C2</button>';
+        echo '<button class="dynolan-c-btn" title="C3">C3</button>';
         echo '</div></td>';
         
         // ID
         echo '<td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($post_id) . '</div></td>';
         
         // Status  
-        echo '<td class="bcenter-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="text" data-status="' . esc_attr($item['post_status']) . '">';
+        echo '<td class="dynolan-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="text" data-status="' . esc_attr($item['post_status']) . '">';
         echo '<div class="tcell_inner_wrapper_div">' . esc_html($item['post_status']) . '</div></td>';
         
         // Title
-        echo '<td class="bcenter-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
+        echo '<td class="dynolan-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
         
         // Name/Slug
-        echo '<td class="bcenter-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
+        echo '<td class="dynolan-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
         
         // Replex Submit (empty UI column)
         echo '<td class="readonly-cell column_replex_submit"><div class="tcell_inner_wrapper_div"></div></td>';
         
         // Content with ED button
-        echo '<td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="bcenter-content-edit-btn" data-post-id="' . esc_attr($post_id) . '">ED</button></div></td>';
+        echo '<td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="dynolan-content-edit-btn" data-post-id="' . esc_attr($post_id) . '">ED</button></div></td>';
         
         // Add remaining columns with basic data
         $remaining_fields = [
