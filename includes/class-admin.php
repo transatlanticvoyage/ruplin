@@ -76,10 +76,7 @@ class Snefuru_Admin {
         // AJAX handler for zen_orbitposts field update
         add_action('wp_ajax_beamraymar_update_zen_orbitpost_field', array($this, 'beamraymar_update_zen_orbitpost_field'));
         
-        // DynoLan AJAX handlers (independent from beamraymar)
-        add_action('wp_ajax_dynolan_update_post_content', array($this, 'dynolan_update_post_content'));
-        add_action('wp_ajax_dynolan_update_elementor_data', array($this, 'dynolan_update_elementor_data'));
-        add_action('wp_ajax_dynolan_update_zen_orbitpost_field', array($this, 'dynolan_update_zen_orbitpost_field'));
+        // DynoLan AJAX handlers are now registered in dynolan-page.php as standalone functions
         
         // Cache management AJAX actions
         add_action('wp_ajax_rup_clear_object_cache', array($this, 'rup_clear_object_cache'));
@@ -7829,792 +7826,17 @@ class Snefuru_Admin {
         // Get posts and pages data
         $posts_pages = $this->get_posts_and_pages_data();
         
+        // Enqueue shared table styles
+        wp_enqueue_style('shared-table-styles', SNEFURU_PLUGIN_URL . 'assets/css/shared-table-styles.css', array(), SNEFURU_PLUGIN_VERSION);
+        
         ?>
-        <div class="wrap beamraymar-wrapper">
-            <style>
-                /* Beamraymar Custom Styles - Mimicking FileJar Design */
-                .beamraymar-wrapper {
-                    background: white;
-                    padding: 0;
-                    margin: 0 0 0 -20px;
-                }
-                
-                .beamraymar-top-controls {
-                    background-color: white;
-                    border-bottom: 1px solid #ddd;
-                    padding: 12px 20px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    flex-wrap: wrap;
-                    gap: 16px;
-                }
-                
-                .beamraymar-controls-left {
-                    display: flex;
-                    align-items: center;
-                    gap: 24px;
-                }
-                
-                .beamray_banner1 {
-                    background: black;
-                    color: white;
-                    font-size: 18px;
-                    font-weight: bold;
-                    padding: 8px 12px;
-                    border: 1px solid gray;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 8px;
-                    white-space: nowrap;
-                }
-                
-                .beamray-logo {
-                    width: 20px;
-                    height: 20px;
-                    display: inline-block;
-                }
-                
-                .beamraymar-controls-right {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                
-                .beamraymar-info-text {
-                    font-size: 14px;
-                    color: #666;
-                }
-                
-                .beamraymar-pagination-controls {
-                    display: flex;
-                    align-items: center;
-                }
-                
-                .beamraymar-pagination-bar {
-                    display: flex;
-                }
-                
-                .beamraymar-pagination-btn {
-                    padding: 10px 12px;
-                    font-size: 14px;
-                    border: 1px solid #ddd;
-                    background: white;
-                    cursor: pointer;
-                    margin-right: -1px;
-                    text-decoration: none;
-                    color: #333;
-                    transition: background-color 0.2s;
-                }
-                
-                .beamraymar-pagination-btn:hover {
-                    background-color: #f5f5f5;
-                }
-                
-                .beamraymar-pagination-btn.active {
-                    background-color: #0073aa;
-                    color: white;
-                }
-                
-                .beamraymar-pagination-btn:first-child {
-                    border-top-left-radius: 4px;
-                    border-bottom-left-radius: 4px;
-                }
-                
-                .beamraymar-pagination-btn:last-child {
-                    border-top-right-radius: 4px;
-                    border-bottom-right-radius: 4px;
-                }
-                
-                .beamraymar-pagination-divider {
-                    width: 1px;
-                    height: 20px;
-                    background: #ddd;
-                    margin: 0 12px;
-                }
-                
-                .beamraymar-search-container {
-                    position: relative;
-                }
-                
-                .beamraymar-search-input {
-                    width: 320px;
-                    padding: 8px 40px 8px 12px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }
-                
-                .beamraymar-clear-btn {
-                    position: absolute;
-                    right: 6px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    background: #ffd700;
-                    color: black;
-                    border: none;
-                    padding: 4px 8px;
-                    border-radius: 2px;
-                    font-size: 12px;
-                    font-weight: bold;
-                    cursor: pointer;
-                }
-                
-                .beamraymar-clear-btn:hover {
-                    background: #ffed4e;
-                }
-                
-                .beamraymar-create-buttons {
-                    display: flex;
-                    gap: 8px;
-                }
-                
-                .beamraymar-create-btn {
-                    padding: 8px 16px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    text-decoration: none;
-                    transition: all 0.2s;
-                }
-                
-                .beamraymar-create-inline-post {
-                    background: #16a085;
-                    color: white;
-                }
-                
-                .beamraymar-create-inline-post:hover {
-                    background: #138d75;
-                }
-                
-                .beamraymar-create-inline-page {
-                    background: #2980b9;
-                    color: white;
-                }
-                
-                .beamraymar-create-inline-page:hover {
-                    background: #2471a3;
-                }
-                
-                .beamraymar-create-popup {
-                    background: #8e44ad;
-                    color: white;
-                }
-                
-                .beamraymar-create-popup:hover {
-                    background: #7d3c98;
-                }
-                
-                .beamraymar-nubra-kite {
-                    background: #f39c12;
-                    color: black;
-                    padding: 6px 12px;
-                    border: 1px solid black;
-                    border-radius: 3px;
-                    font-size: 12px;
-                    font-weight: bold;
-                }
-                
-                .beamraymar-table-container {
-                    background: white;
-                    overflow: hidden;
-                }
-                
-                .beamraymar-table-scroll {
-                    overflow-x: auto;
-                }
-                
-                .beamraymar-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    border: 1px solid #ddd;
-                    min-width: 1600px;
-                }
-                
-                .beamraymar-table thead {
-                    background: #f8f9fa;
-                }
-                
-                .beamraymar-table th,
-                .beamraymar-table td {
-                    border: 1px solid #ddd;
-                    padding: 8px 12px;
-                    text-align: left;
-                    font-size: 14px;
-                }
-                
-                .beamraymar-table th {
-                    font-weight: bold;
-                    font-size: 12px;
-                    text-transform: lowercase;
-                    cursor: pointer;
-                    position: relative;
-                }
-                
-                .beamraymar-table th:hover {
-                    background: #e9ecef;
-                }
-                
-                .beamraymar-table tbody tr:hover {
-                    background: #f8f9fa;
-                }
-                
-                .beamraymar-checkbox-cell {
-                    width: 40px;
-                    text-align: center;
-                    cursor: pointer;
-                }
-                
-                .beamraymar-checkbox {
-                    width: 20px;
-                    height: 20px;
-                    cursor: pointer;
-                }
-                
-                .beamraymar-editable-cell {
-                    cursor: pointer;
-                    min-height: 20px;
-                    word-wrap: break-word;
-                    overflow-wrap: break-word;
-                }
-                
-                .beamraymar-editable-cell:hover {
-                    background: #f0f8ff;
-                    outline: 1px solid #cce7ff;
-                }
-                
-                .beamraymar-editing-input {
-                    width: 100%;
-                    padding: 4px 6px;
-                    border: 2px solid #0073aa;
-                    border-radius: 3px;
-                    font-size: 14px;
-                    background: white;
-                }
-                
-                .beamraymar-editing-textarea {
-                    width: 100%;
-                    padding: 4px 6px;
-                    border: 2px solid #0073aa;
-                    border-radius: 3px;
-                    font-size: 14px;
-                    background: white;
-                    resize: none;
-                    min-height: 60px;
-                }
-                
-                .beamraymar-toggle-switch {
-                    width: 48px;
-                    height: 24px;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    position: relative;
-                    display: inline-block;
-                }
-                
-                .beamraymar-toggle-switch.on {
-                    background: #16a085;
-                }
-                
-                .beamraymar-toggle-switch.off {
-                    background: #bdc3c7;
-                }
-                
-                .beamraymar-toggle-handle {
-                    width: 20px;
-                    height: 20px;
-                    background: white;
-                    border-radius: 50%;
-                    position: absolute;
-                    top: 2px;
-                    transition: transform 0.3s;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-                }
-                
-                .beamraymar-toggle-switch.on .beamraymar-toggle-handle {
-                    transform: translateX(24px);
-                }
-                
-                .beamraymar-toggle-switch.off .beamraymar-toggle-handle {
-                    transform: translateX(2px);
-                }
-                
-                .beamraymar-sort-indicator {
-                    margin-left: 8px;
-                    color: #666;
-                }
-                
-                .beamraymar-loading {
-                    text-align: center;
-                    padding: 40px;
-                    font-size: 16px;
-                    color: #666;
-                }
-                
-                /* Bottom controls */
-                .beamraymar-bottom-controls {
-                    background-color: white;
-                    border-top: 1px solid #ddd;
-                    padding: 12px 20px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                
-                /* Modal styles */
-                .beamraymar-modal {
-                    display: none;
-                    position: fixed;
-                    z-index: 999999;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.5);
-                }
-                
-                .beamraymar-modal.active {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .beamraymar-modal-content {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 6px;
-                    max-width: 800px;
-                    width: 90%;
-                    max-height: 80vh;
-                    overflow-y: auto;
-                }
-                
-                .beamraymar-modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 20px;
-                    border-bottom: 1px solid #ddd;
-                    padding-bottom: 15px;
-                }
-                
-                .beamraymar-modal-title {
-                    font-size: 20px;
-                    font-weight: bold;
-                    margin: 0;
-                }
-                
-                .beamraymar-modal-close {
-                    font-size: 24px;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    color: #666;
-                }
-                
-                .beamraymar-modal-close:hover {
-                    color: #333;
-                }
-                
-                .beamraymar-form-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 20px;
-                    margin-bottom: 20px;
-                }
-                
-                .beamraymar-form-field {
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .beamraymar-form-field.full-width {
-                    grid-column: 1 / -1;
-                }
-                
-                .beamraymar-form-label {
-                    font-weight: 600;
-                    margin-bottom: 6px;
-                    color: #333;
-                }
-                
-                .beamraymar-form-input,
-                .beamraymar-form-textarea,
-                .beamraymar-form-select {
-                    padding: 8px 12px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    font-size: 14px;
-                }
-                
-                .beamraymar-form-textarea {
-                    min-height: 100px;
-                    resize: vertical;
-                }
-                
-                .beamraymar-modal-actions {
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 12px;
-                    margin-top: 24px;
-                }
-                
-                .beamraymar-modal-btn {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 4px;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                
-                .beamraymar-modal-btn.primary {
-                    background: #0073aa;
-                    color: white;
-                }
-                
-                .beamraymar-modal-btn.primary:hover {
-                    background: #005a87;
-                }
-                
-                .beamraymar-modal-btn.secondary {
-                    background: #f1f1f1;
-                    color: #333;
-                    border: 1px solid #ddd;
-                }
-                
-                .beamraymar-modal-btn.secondary:hover {
-                    background: #e0e0e0;
-                }
-                
-                .beamraymar-table td .tcell_inner_wrapper_div {
-                    height: 38px;
-                }
-                
-                .column_tool_buttons {
-                    min-width: 230px;
-                    white-space: nowrap;
-                }
-                
-                .column_tool_buttons .tcell_inner_wrapper_div {
-                    display: flex;
-                    align-items: center;
-                    gap: 2px;
-                    height: auto;
-                }
-                
-                .beamraymar-table td.column_wp_posts_post_title {
-                    font-size: 18px;
-                    font-weight: bold;
-                }
-                
-                .beamraymar-table td.column_wp_posts_post_status[data-status="publish"] {
-                    background-color: #efddbb;
-                }
-                
-                /* Column pagination styles */
-                .beamraymar-column-pagination-controls {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 8px;
-                    margin-left: 15px;
-                }
-                
-                .beamraymar-column-pagination-bar {
-                    display: flex;
-                }
-                
-                .beamraymar-column-pagination-btn {
-                    padding: 10px 12px;
-                    font-size: 14px;
-                    border: 1px solid #ddd;
-                    background: white;
-                    cursor: pointer;
-                    margin-right: -1px;
-                    text-decoration: none;
-                    color: #333;
-                    transition: background-color 0.2s;
-                }
-                
-                .beamraymar-column-pagination-btn:hover {
-                    background-color: #f5f5f5;
-                }
-                
-                .beamraymar-column-pagination-btn.active {
-                    background-color: #ffd700;
-                    color: black;
-                }
-                
-                .beamraymar-column-pagination-btn:first-child {
-                    border-top-left-radius: 4px;
-                    border-bottom-left-radius: 4px;
-                }
-                
-                .beamraymar-column-pagination-btn:last-child {
-                    border-top-right-radius: 4px;
-                    border-bottom-right-radius: 4px;
-                }
-                
-                /* Filter button bars */
-                .beamraymar-filter-controls {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-start;
-                    gap: 8px;
-                    margin-left: 15px;
-                }
-                
-                .beamraymar-filter-bar {
-                    display: flex;
-                }
-                
-                .beamraymar-filter-btn {
-                    padding: 10px 12px;
-                    font-size: 14px;
-                    border: 1px solid #ddd;
-                    background: white;
-                    cursor: pointer;
-                    margin-right: -1px;
-                    text-decoration: none;
-                    color: #333;
-                    transition: background-color 0.2s;
-                }
-                
-                .beamraymar-filter-btn:hover {
-                    background-color: #f5f5f5;
-                }
-                
-                .beamraymar-filter-btn.active {
-                    background-color: #0073aa;
-                    color: white;
-                }
-                
-                .beamraymar-filter-btn:first-child {
-                    border-top-left-radius: 4px;
-                    border-bottom-left-radius: 4px;
-                }
-                
-                .beamraymar-filter-btn:last-child {
-                    border-top-right-radius: 4px;
-                    border-bottom-right-radius: 4px;
-                }
-                
-                /* ED button for post_content */
-                .beamraymar-content-edit-btn {
-                    width: 20px;
-                    height: 20px;
-                    background: #0073aa;
-                    color: white;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 10px;
-                    font-weight: bold;
-                    float: right;
-                    margin-left: 8px;
-                }
-                
-                .beamraymar-content-edit-btn:hover {
-                    background: #005a87;
-                }
-                
-                /* Post content editor popup */
-                .beamraymar-content-editor-modal {
-                    display: none;
-                    position: fixed;
-                    z-index: 999999;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0,0,0,0.7);
-                }
-                
-                .beamraymar-content-editor-modal.active {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                
-                .beamraymar-content-editor-content {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 6px;
-                    width: 90%;
-                    height: 85%;
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .beamraymar-content-editor-header {
-                    font-size: 16px;
-                    font-weight: bold;
-                    margin-bottom: 15px;
-                }
-                
-                .beamraymar-content-editor-textarea {
-                    width: 100%;
-                    flex: 1;
-                    padding: 10px;
-                    border: 1px solid #ddd;
-                    font-family: monospace;
-                    font-size: 14px;
-                    resize: none;
-                }
-                
-                .beamraymar-content-editor-actions {
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 10px;
-                    margin-top: 15px;
-                }
-                
-                .beamraymar-content-editor-btn {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-weight: 600;
-                }
-                
-                .beamraymar-content-editor-btn.save {
-                    background: #0073aa;
-                    color: white;
-                }
-                
-                .beamraymar-content-editor-btn.cancel {
-                    background: #f1f1f1;
-                    color: #333;
-                }
-                
-                /* Tool button styling */
-                .beamraymar-tool-btn {
-                    width: 36px;
-                    height: 36px;
-                    background: #0073aa;
-                    color: white;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 10px;
-                    font-weight: bold;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    text-decoration: none;
-                    border-radius: 2px;
-                }
-                
-                .beamraymar-tool-btn:hover {
-                    background: #005a87;
-                    color: white;
-                    text-decoration: none;
-                }
-                
-                /* Pendulum button styling */
-                .beamraymar-pendulum-btn {
-                    width: 36px;
-                    height: 36px;
-                    background: #0073aa;
-                    color: white;
-                    border: none;
-                    text-decoration: none;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
-                    cursor: pointer;
-                    margin-right: 2px;
-                    border-radius: 2px;
-                }
-                
-                .beamraymar-pendulum-btn:hover {
-                    background: #005a87;
-                    color: white;
-                    text-decoration: none;
-                }
-                
-                /* Elementor button styling */
-                .beamraymar-elementor-btn {
-                    width: 36px;
-                    height: 36px;
-                    background: #800020;
-                    color: white;
-                    border: none;
-                    text-decoration: none;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
-                    cursor: pointer;
-                    margin-right: 2px;
-                    border-radius: 2px;
-                }
-                
-                .beamraymar-elementor-btn:hover {
-                    background: #5c0016;
-                    color: white;
-                    text-decoration: none;
-                }
-                
-                .beamraymar-elementor-btn.disabled {
-                    background: #ccc;
-                    color: #999;
-                    cursor: not-allowed;
-                    pointer-events: none;
-                }
-                
-                /* C1, C2, C3 button styling */
-                .beamraymar-c-btn {
-                    width: 36px;
-                    height: 36px;
-                    background: #f0f0f0;
-                    color: #333;
-                    border: 1px solid #999;
-                    text-decoration: none;
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 10px;
-                    cursor: pointer;
-                    margin-right: 2px;
-                    border-radius: 2px;
-                }
-                
-                /* Icon button styling */
-                .beamray-icon-btn {
-                    display: inline-block;
-                    font-size: 16px;
-                    cursor: pointer;
-                    padding: 2px;
-                    opacity: 0.3;
-                    transition: all 0.2s ease;
-                    user-select: none;
-                }
-                
-                .beamray-icon-btn:hover {
-                    opacity: 0.7;
-                    transform: scale(1.1);
-                }
-                
-                .beamray-icon-btn.active {
-                    opacity: 1.0;
-                }
-                
-                .beamray-icon-btn.active:hover {
-                    opacity: 1.0;
-                    transform: scale(1.2);
-                }
-            </style>
+        <div class="wrap table-wrapper">
 
             <!-- Top Controls -->
-            <div class="beamraymar-top-controls">
-                <div class="beamraymar-controls-left">
-                    <div class="beamray_banner1">
-                        <svg class="beamray-logo" viewBox="0 0 24 24" fill="currentColor">
+            <div class="top-controls">
+                <div class="controls-left">
+                    <div class="banner-title">
+                        <svg class="table-logo" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.18L18.18 8 12 11.82 5.82 8 12 4.18zM6 9.42l5 2.5v8.16l-5-2.5V9.42zm12 0v8.16l-5 2.5v-8.16l5-2.5z"/>
                             <circle cx="12" cy="8" r="1.5" fill="white"/>
                             <line x1="12" y1="8" x2="12" y2="16" stroke="white" stroke-width="1" opacity="0.6"/>
@@ -8623,39 +7845,39 @@ class Snefuru_Admin {
                         </svg>
                         BeamRay Table
                     </div>
-                    <div class="beamraymar-info-text">
+                    <div class="info-text">
                         <span id="beamraymar-results-info">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
                     </div>
                     
-                    <div class="beamraymar-pagination-controls">
-                        <div class="beamraymar-pagination-bar" id="beamraymar-per-page-bar">
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="10">10</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="20">20</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="50">50</a>
-                            <a href="#" class="beamraymar-pagination-btn active" data-per-page="100">100</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="200">200</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="500">500</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="all">All</a>
+                    <div class="pagination-controls">
+                        <div class="pagination-bar" id="beamraymar-per-page-bar">
+                            <a href="#" class="pagination-btn" data-per-page="10">10</a>
+                            <a href="#" class="pagination-btn" data-per-page="20">20</a>
+                            <a href="#" class="pagination-btn" data-per-page="50">50</a>
+                            <a href="#" class="pagination-btn active" data-per-page="100">100</a>
+                            <a href="#" class="pagination-btn" data-per-page="200">200</a>
+                            <a href="#" class="pagination-btn" data-per-page="500">500</a>
+                            <a href="#" class="pagination-btn" data-per-page="all">All</a>
                         </div>
                         
-                        <div class="beamraymar-pagination-divider"></div>
+                        <div class="pagination-divider"></div>
                         
-                        <div class="beamraymar-pagination-bar" id="beamraymar-page-bar">
-                            <a href="#" class="beamraymar-pagination-btn" data-page="first">First</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-page="prev">Prev</a>
-                            <a href="#" class="beamraymar-pagination-btn active" data-page="1">1</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-page="next">Next</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-page="last">Last</a>
+                        <div class="pagination-bar" id="beamraymar-page-bar">
+                            <a href="#" class="pagination-btn" data-page="first">First</a>
+                            <a href="#" class="pagination-btn" data-page="prev">Prev</a>
+                            <a href="#" class="pagination-btn active" data-page="1">1</a>
+                            <a href="#" class="pagination-btn" data-page="next">Next</a>
+                            <a href="#" class="pagination-btn" data-page="last">Last</a>
                         </div>
                     </div>
                     
-                    <div class="beamraymar-search-container">
-                        <input type="text" id="beamraymar-search" class="beamraymar-search-input" placeholder="Search all fields...">
-                        <button class="beamraymar-clear-btn" id="beamraymar-clear">CL</button>
+                    <div class="search-container">
+                        <input type="text" id="beamraymar-search" class="search-input" placeholder="Search all fields...">
+                        <button class="clear-btn" id="beamraymar-clear">CL</button>
                     </div>
                 </div>
                 
-                <div class="beamraymar-controls-right">
+                <div class="controls-right">
                     <div style="display: flex; flex-direction: column; align-items: flex-end;">
                         <?php
                         global $wpdb;
@@ -8664,57 +7886,57 @@ class Snefuru_Admin {
                         <div style="font-size: 16px; font-weight: bold; text-transform: lowercase; margin-bottom: 10px;">
                             <span style="font-weight: bold;"><?php echo esc_html($wpdb->prefix); ?></span>zen_sitespren.sitespren_base: <?php echo esc_html($sitespren_base ?: ''); ?>
                         </div>
-                        <div class="beamraymar-create-buttons">
-                            <button class="beamraymar-create-btn beamraymar-create-inline-post" id="create-post-inline">Create New (Inline)</button>
-                            <button class="beamraymar-create-btn beamraymar-create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
-                            <button class="beamraymar-create-btn beamraymar-create-popup" id="create-popup">Create New (Popup)</button>
-                            <button class="beamraymar-create-btn beamraymar-duplicate-btn" id="duplicate-selected">Duplicate</button>
+                        <div class="create-buttons">
+                            <button class="create-btn create-inline-post" id="create-post-inline">Create New (Inline)</button>
+                            <button class="create-btn create-inline-page" id="create-page-inline">Create New (Inline) WP Page</button>
+                            <button class="create-btn create-popup" id="create-popup">Create New (Popup)</button>
+                            <button class="create-btn duplicate-btn" id="duplicate-selected">Duplicate</button>
                         </div>
                     </div>
-                    <div class="beamraymar-nubra-kite">nubra-tableface-kite</div>
+                    <div class="nubra-kite">nubra-tableface-kite</div>
                     
                     <!-- Column Pagination Controls -->
-                    <div class="beamraymar-column-pagination-controls">
-                        <div class="beamraymar-column-pagination-bar" id="beamraymar-column-group-bar">
-                            <a href="#" class="beamraymar-column-pagination-btn active" data-column-group="1">Columns 1-7</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="2">Columns 8-14</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="3">Columns 15-21</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="4">Columns 22-28</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-group="5">Columns 29-35</a>
+                    <div class="column-pagination-controls">
+                        <div class="column-pagination-bar" id="beamraymar-column-group-bar">
+                            <a href="#" class="column-pagination-btn active" data-column-group="1">Columns 1-7</a>
+                            <a href="#" class="column-pagination-btn" data-column-group="2">Columns 8-14</a>
+                            <a href="#" class="column-pagination-btn" data-column-group="3">Columns 15-21</a>
+                            <a href="#" class="column-pagination-btn" data-column-group="4">Columns 22-28</a>
+                            <a href="#" class="column-pagination-btn" data-column-group="5">Columns 29-35</a>
                         </div>
                         
-                        <div class="beamraymar-column-pagination-bar" id="beamraymar-column-nav-bar">
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="first">First</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="prev">Prev</a>
-                            <a href="#" class="beamraymar-column-pagination-btn active" data-column-nav="1">1</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="2">2</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="3">3</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="4">4</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="5">5</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="next">Next</a>
-                            <a href="#" class="beamraymar-column-pagination-btn" data-column-nav="last">Last</a>
+                        <div class="column-pagination-bar" id="beamraymar-column-nav-bar">
+                            <a href="#" class="column-pagination-btn" data-column-nav="first">First</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="prev">Prev</a>
+                            <a href="#" class="column-pagination-btn active" data-column-nav="1">1</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="2">2</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="3">3</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="4">4</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="5">5</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="next">Next</a>
+                            <a href="#" class="column-pagination-btn" data-column-nav="last">Last</a>
                         </div>
                     </div>
                     
                     <!-- Filter Controls -->
-                    <div class="beamraymar-filter-controls">
-                        <div class="beamraymar-filter-bar" id="beamraymar-post-type-filter">
-                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_type" data-filter-value="page">Page</a>
-                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_type" data-filter-value="post">Post</a>
+                    <div class="filter-controls">
+                        <div class="filter-bar" id="beamraymar-post-type-filter">
+                            <a href="#" class="filter-btn" data-filter-type="post_type" data-filter-value="page">Page</a>
+                            <a href="#" class="filter-btn" data-filter-type="post_type" data-filter-value="post">Post</a>
                         </div>
                         
-                        <div class="beamraymar-filter-bar" id="beamraymar-post-status-filter">
-                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_status" data-filter-value="publish">Published</a>
-                            <a href="#" class="beamraymar-filter-btn" data-filter-type="post_status" data-filter-value="draft">Draft</a>
+                        <div class="filter-bar" id="beamraymar-post-status-filter">
+                            <a href="#" class="filter-btn" data-filter-type="post_status" data-filter-value="publish">Published</a>
+                            <a href="#" class="filter-btn" data-filter-type="post_status" data-filter-value="draft">Draft</a>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Table Container -->
-            <div class="beamraymar-table-container">
-                <div class="beamraymar-table-scroll">
-                    <table class="beamraymar-table utg_beamray" id="beamraymar-table">
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table class="data-table utg_beamray" id="beamraymar-table">
                         <thead>
                             <tr>
                                 <th class="column_checkbox row_obtain_db_table"><div class="tcell_inner_wrapper_div"></div></th>
@@ -8747,8 +7969,8 @@ class Snefuru_Admin {
                                 <th class="column_zen_orbitposts_updated_at row_obtain_db_table"><div class="tcell_inner_wrapper_div"><strong><?php echo esc_html($wpdb->prefix); ?>zen_orbitposts</strong></div></th>
                             </tr>
                             <tr class="beamraymar-main-header-row">
-                                <th class="beamraymar-checkbox-cell column_checkbox row_obtain_db_column">
-                                    <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox" id="select-all"></div>
+                                <th class="checkbox-cell column_checkbox row_obtain_db_column">
+                                    <div class="tcell_inner_wrapper_div"><input type="checkbox" class="row-checkbox" id="select-all"></div>
                                 </th>
                                 <th class="column_tool_buttons row_obtain_db_column"><div class="tcell_inner_wrapper_div">tool_buttons</div></th>
                                 <th data-field="ID" data-type="integer" class="column_wp_posts_id row_obtain_db_column"><div class="tcell_inner_wrapper_div">id</div></th>
@@ -8787,121 +8009,121 @@ class Snefuru_Admin {
             </div>
 
             <!-- Bottom Controls -->
-            <div class="beamraymar-bottom-controls">
-                <div class="beamraymar-controls-left">
-                    <div class="beamraymar-info-text">
+            <div class="bottom-controls">
+                <div class="controls-left">
+                    <div class="info-text">
                         <span id="beamraymar-results-info-bottom">1-<?php echo min(100, count($posts_pages)); ?> of <?php echo count($posts_pages); ?> posts/pages</span>
                     </div>
                     
-                    <div class="beamraymar-pagination-controls">
-                        <div class="beamraymar-pagination-bar" id="beamraymar-per-page-bar-bottom">
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="10">10</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="20">20</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="50">50</a>
-                            <a href="#" class="beamraymar-pagination-btn active" data-per-page="100">100</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="200">200</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="500">500</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-per-page="all">All</a>
+                    <div class="pagination-controls">
+                        <div class="pagination-bar" id="beamraymar-per-page-bar-bottom">
+                            <a href="#" class="pagination-btn" data-per-page="10">10</a>
+                            <a href="#" class="pagination-btn" data-per-page="20">20</a>
+                            <a href="#" class="pagination-btn" data-per-page="50">50</a>
+                            <a href="#" class="pagination-btn active" data-per-page="100">100</a>
+                            <a href="#" class="pagination-btn" data-per-page="200">200</a>
+                            <a href="#" class="pagination-btn" data-per-page="500">500</a>
+                            <a href="#" class="pagination-btn" data-per-page="all">All</a>
                         </div>
                         
-                        <div class="beamraymar-pagination-divider"></div>
+                        <div class="pagination-divider"></div>
                         
-                        <div class="beamraymar-pagination-bar" id="beamraymar-page-bar-bottom">
-                            <a href="#" class="beamraymar-pagination-btn" data-page="first">First</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-page="prev">Prev</a>
-                            <a href="#" class="beamraymar-pagination-btn active" data-page="1">1</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-page="next">Next</a>
-                            <a href="#" class="beamraymar-pagination-btn" data-page="last">Last</a>
+                        <div class="pagination-bar" id="beamraymar-page-bar-bottom">
+                            <a href="#" class="pagination-btn" data-page="first">First</a>
+                            <a href="#" class="pagination-btn" data-page="prev">Prev</a>
+                            <a href="#" class="pagination-btn active" data-page="1">1</a>
+                            <a href="#" class="pagination-btn" data-page="next">Next</a>
+                            <a href="#" class="pagination-btn" data-page="last">Last</a>
                         </div>
                     </div>
                     
-                    <div class="beamraymar-search-container">
-                        <input type="text" id="beamraymar-search-bottom" class="beamraymar-search-input" placeholder="Search all fields...">
-                        <button class="beamraymar-clear-btn" id="beamraymar-clear-bottom">CL</button>
+                    <div class="search-container">
+                        <input type="text" id="beamraymar-search-bottom" class="search-input" placeholder="Search all fields...">
+                        <button class="clear-btn" id="beamraymar-clear-bottom">CL</button>
                     </div>
                 </div>
                 <div></div>
             </div>
 
             <!-- Create/Edit Modal -->
-            <div id="beamraymar-modal" class="beamraymar-modal">
-                <div class="beamraymar-modal-content">
-                    <div class="beamraymar-modal-header">
-                        <h2 class="beamraymar-modal-title" id="beamraymar-modal-title">Create New Post/Page</h2>
-                        <button class="beamraymar-modal-close" id="beamraymar-modal-close">&times;</button>
+            <div id="beamraymar-modal" class="table-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title" id="beamraymar-modal-title">Create New Post/Page</h2>
+                        <button class="modal-close" id="beamraymar-modal-close">&times;</button>
                     </div>
                     
                     <form id="beamraymar-modal-form">
                         <input type="hidden" id="modal-post-id" name="post_id">
                         <input type="hidden" id="modal-action" name="action" value="create">
                         
-                        <div class="beamraymar-form-grid">
-                            <div class="beamraymar-form-field">
-                                <label class="beamraymar-form-label">Post Type</label>
-                                <select id="modal-post-type" name="post_type" class="beamraymar-form-select">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="form-label">Post Type</label>
+                                <select id="modal-post-type" name="post_type" class="form-select">
                                     <option value="post">Post</option>
                                     <option value="page">Page</option>
                                 </select>
                             </div>
                             
-                            <div class="beamraymar-form-field">
-                                <label class="beamraymar-form-label">Status</label>
-                                <select id="modal-post-status" name="post_status" class="beamraymar-form-select">
+                            <div class="form-field">
+                                <label class="form-label">Status</label>
+                                <select id="modal-post-status" name="post_status" class="form-select">
                                     <option value="draft">Draft</option>
                                     <option value="publish">Published</option>
                                     <option value="private">Private</option>
                                 </select>
                             </div>
                             
-                            <div class="beamraymar-form-field full-width">
-                                <label class="beamraymar-form-label">Title</label>
-                                <input type="text" id="modal-post-title" name="post_title" class="beamraymar-form-input">
+                            <div class="form-field full-width">
+                                <label class="form-label">Title</label>
+                                <input type="text" id="modal-post-title" name="post_title" class="form-input">
                             </div>
                             
-                            <div class="beamraymar-form-field full-width">
-                                <label class="beamraymar-form-label">Content</label>
-                                <textarea id="modal-post-content" name="post_content" class="beamraymar-form-textarea"></textarea>
+                            <div class="form-field full-width">
+                                <label class="form-label">Content</label>
+                                <textarea id="modal-post-content" name="post_content" class="form-textarea"></textarea>
                             </div>
                             
-                            <div class="beamraymar-form-field">
-                                <label class="beamraymar-form-label">Slug</label>
-                                <input type="text" id="modal-post-name" name="post_name" class="beamraymar-form-input">
+                            <div class="form-field">
+                                <label class="form-label">Slug</label>
+                                <input type="text" id="modal-post-name" name="post_name" class="form-input">
                             </div>
                             
-                            <div class="beamraymar-form-field">
-                                <label class="beamraymar-form-label">Parent ID</label>
-                                <input type="number" id="modal-post-parent" name="post_parent" class="beamraymar-form-input" value="0">
+                            <div class="form-field">
+                                <label class="form-label">Parent ID</label>
+                                <input type="number" id="modal-post-parent" name="post_parent" class="form-input" value="0">
                             </div>
                         </div>
                         
-                        <div class="beamraymar-modal-actions">
-                            <button type="button" class="beamraymar-modal-btn secondary" id="beamraymar-modal-cancel">Cancel</button>
-                            <button type="submit" class="beamraymar-modal-btn primary" id="beamraymar-modal-save">Save</button>
+                        <div class="modal-actions">
+                            <button type="button" class="modal-btn secondary" id="beamraymar-modal-cancel">Cancel</button>
+                            <button type="submit" class="modal-btn primary" id="beamraymar-modal-save">Save</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             <!-- Post Content Editor Modal -->
-            <div id="beamraymar-content-editor-modal" class="beamraymar-content-editor-modal">
-                <div class="beamraymar-content-editor-content">
-                    <div class="beamraymar-content-editor-header">post_content</div>
-                    <textarea id="beamraymar-content-editor-textarea" class="beamraymar-content-editor-textarea"></textarea>
-                    <div class="beamraymar-content-editor-actions">
-                        <button type="button" class="beamraymar-content-editor-btn cancel" id="beamraymar-content-editor-cancel">Cancel</button>
-                        <button type="button" class="beamraymar-content-editor-btn save" id="beamraymar-content-editor-save">Save</button>
+            <div id="beamraymar-content-editor-modal" class="content-editor-modal">
+                <div class="content-editor-content">
+                    <div class="content-editor-header">post_content</div>
+                    <textarea id="beamraymar-content-editor-textarea" class="content-editor-textarea"></textarea>
+                    <div class="content-editor-actions">
+                        <button type="button" class="content-editor-btn cancel" id="beamraymar-content-editor-cancel">Cancel</button>
+                        <button type="button" class="content-editor-btn save" id="beamraymar-content-editor-save">Save</button>
                     </div>
                 </div>
             </div>
 
             <!-- Elementor Data Editor Modal -->
-            <div id="beamraymar-elementor-editor-modal" class="beamraymar-content-editor-modal">
-                <div class="beamraymar-content-editor-content">
-                    <div class="beamraymar-content-editor-header">_elementor_data</div>
-                    <textarea id="beamraymar-elementor-editor-textarea" class="beamraymar-content-editor-textarea"></textarea>
-                    <div class="beamraymar-content-editor-actions">
-                        <button type="button" class="beamraymar-content-editor-btn cancel" id="beamraymar-elementor-editor-cancel">Cancel</button>
-                        <button type="button" class="beamraymar-content-editor-btn save" id="beamraymar-elementor-editor-save">Save</button>
+            <div id="beamraymar-elementor-editor-modal" class="content-editor-modal">
+                <div class="content-editor-content">
+                    <div class="content-editor-header">_elementor_data</div>
+                    <textarea id="beamraymar-elementor-editor-textarea" class="content-editor-textarea"></textarea>
+                    <div class="content-editor-actions">
+                        <button type="button" class="content-editor-btn cancel" id="beamraymar-elementor-editor-cancel">Cancel</button>
+                        <button type="button" class="content-editor-btn save" id="beamraymar-elementor-editor-save">Save</button>
                     </div>
                 </div>
             </div>
@@ -8931,7 +8153,7 @@ class Snefuru_Admin {
                     
                     function initializeEventHandlers() {
                         // Pagination controls
-                        $('.beamraymar-pagination-btn').on('click', function(e) {
+                        $('.pagination-btn').on('click', function(e) {
                             e.preventDefault();
                             const $this = $(this);
                             
@@ -8941,7 +8163,7 @@ class Snefuru_Admin {
                                 itemsPerPage = perPage === 'all' ? filteredData.length : parseInt(perPage);
                                 currentPage = 1;
                                 
-                                $this.siblings('.beamraymar-pagination-btn').removeClass('active');
+                                $this.siblings('.pagination-btn').removeClass('active');
                                 $this.addClass('active');
                                 
                                 // Update both top and bottom bars
@@ -8975,7 +8197,7 @@ class Snefuru_Admin {
                         });
                         
                         // Column pagination controls
-                        $('.beamraymar-column-pagination-btn').on('click', function(e) {
+                        $('.column-pagination-btn').on('click', function(e) {
                             e.preventDefault();
                             const $this = $(this);
                             
@@ -8984,7 +8206,7 @@ class Snefuru_Admin {
                                 const columnGroup = parseInt($this.data('column-group'));
                                 setActiveColumnGroup(columnGroup);
                                 
-                                $this.siblings('.beamraymar-column-pagination-btn').removeClass('active');
+                                $this.siblings('.column-pagination-btn').removeClass('active');
                                 $this.addClass('active');
                                 
                             } else if ($this.data('column-nav')) {
@@ -9001,7 +8223,7 @@ class Snefuru_Admin {
                         });
                         
                         // Filter button controls
-                        $('.beamraymar-filter-btn').on('click', function(e) {
+                        $('.filter-btn').on('click', function(e) {
                             e.preventDefault();
                             const $this = $(this);
                             
@@ -9107,7 +8329,7 @@ class Snefuru_Admin {
                         });
                         
                         // Post content editor handlers
-                        $(document).on('click', '.beamraymar-content-edit-btn', function(e) {
+                        $(document).on('click', '.content-edit-btn', function(e) {
                             e.stopPropagation();
                             const postId = $(this).data('post-id');
                             const editorType = $(this).data('editor-type');
@@ -9137,7 +8359,7 @@ class Snefuru_Admin {
                         });
                         
                         // Table column sorting
-                        $('.beamraymar-table th[data-field]').on('click', function() {
+                        $('.data-table th[data-field]').on('click', function() {
                             const field = $(this).data('field');
                             sortData(field);
                             updateTable();
@@ -9157,7 +8379,7 @@ class Snefuru_Admin {
                             
                             // Apply post type filter
                             let matchesPostType = true;
-                            const activePostTypes = $('.beamraymar-filter-btn[data-filter-type="post_type"].active');
+                            const activePostTypes = $('.filter-btn[data-filter-type="post_type"].active');
                             if (activePostTypes.length > 0) {
                                 const activeValues = activePostTypes.map(function() {
                                     return $(this).data('filter-value');
@@ -9167,7 +8389,7 @@ class Snefuru_Admin {
                             
                             // Apply post status filter
                             let matchesPostStatus = true;
-                            const activePostStatuses = $('.beamraymar-filter-btn[data-filter-type="post_status"].active');
+                            const activePostStatuses = $('.filter-btn[data-filter-type="post_status"].active');
                             if (activePostStatuses.length > 0) {
                                 const activeValues = activePostStatuses.map(function() {
                                     return $(this).data('filter-value');
@@ -9219,7 +8441,7 @@ class Snefuru_Admin {
                         const endColumn = startColumn + columnsPerGroup - 1;
                         
                         // Hide all columns except checkbox (index 0)
-                        $('.beamraymar-table th, .beamraymar-table td').each(function(index) {
+                        $('.data-table th, .data-table td').each(function(index) {
                             const columnIndex = $(this).index();
                             if (columnIndex === 0) {
                                 // Always show checkbox column
@@ -9234,11 +8456,11 @@ class Snefuru_Admin {
                     
                     function updateColumnGroupButtons() {
                         // Update column group bar
-                        $('#beamraymar-column-group-bar .beamraymar-column-pagination-btn').removeClass('active');
+                        $('#beamraymar-column-group-bar .column-pagination-btn').removeClass('active');
                         $(`[data-column-group="${currentColumnGroup}"]`).addClass('active');
                         
                         // Update column nav bar active state
-                        $('#beamraymar-column-nav-bar .beamraymar-column-pagination-btn').removeClass('active');
+                        $('#beamraymar-column-nav-bar .column-pagination-btn').removeClass('active');
                         $(`[data-column-nav="${currentColumnGroup}"]`).addClass('active');
                     }
                     
@@ -9296,34 +8518,34 @@ class Snefuru_Admin {
                         
                         data.forEach(item => {
                             html += `<tr data-id="${item.ID}">
-                                <td class="beamraymar-checkbox-cell column_checkbox">
-                                    <div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="${item.ID}"></div>
+                                <td class="checkbox-cell column_checkbox">
+                                    <div class="tcell_inner_wrapper_div"><input type="checkbox" class="row-checkbox row-checkbox" value="${item.ID}"></div>
                                 </td>
-                                <td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="beamraymar-elementor-btn">E</a>` : '<span class="beamraymar-elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="beamraymar-tool-btn">F</a><span class="beamraymar-c-btn">C1</span><span class="beamraymar-c-btn">C2</span><span class="beamraymar-c-btn">C3</span></div></td>
+                                <td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div"><a href="${getAdminEditUrl(item)}" target="_blank" class="pendulum-btn">&#9675;&#124;</a>${isElementorPost(item) ? `<a href="${getElementorEditUrl(item)}" target="_blank" class="elementor-btn">E</a>` : '<span class="elementor-btn disabled">E</span>'}<a href="${getFrontendUrl(item)}" target="_blank" class="tool-btn">F</a><span class="c-btn">C1</span><span class="c-btn">C2</span><span class="c-btn">C3</span></div></td>
                                 <td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">${item.ID}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select" data-status="${item.post_status}"><div class="tcell_inner_wrapper_div">${item.post_status === 'publish' ? '<strong>' + item.post_status + '</strong>' : item.post_status}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
+                                <td class="editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select" data-status="${item.post_status}"><div class="tcell_inner_wrapper_div">${item.post_status === 'publish' ? '<strong>' + item.post_status + '</strong>' : item.post_status}</div></td>
+                                <td class="editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_title || ''}</div></td>
+                                <td class="editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">${item.post_name || ''}</div></td>
                                 <td class="readonly-cell column_replex_submit"><div class="tcell_inner_wrapper_div"></div></td>
-                                <td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
-                                <td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}<button class="beamraymar-content-edit-btn" data-post-id="${item.ID}" data-editor-type="elementor">ED</button></div></td>
+                                <td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">${truncatePostContent(item.post_content || '')}<button class="content-edit-btn" data-post-id="${item.ID}">ED</button></div></td>
+                                <td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">${formatElementorData(item._elementor_data)}<button class="content-edit-btn" data-post-id="${item.ID}" data-editor-type="elementor">ED</button></div></td>
                                 <td class="readonly-cell column_wp_posts_post_type"><div class="tcell_inner_wrapper_div">${item.post_type}</div></td>
                                 <td class="readonly-cell column_wp_posts_post_date"><div class="tcell_inner_wrapper_div">${formatDate(item.post_date)}</div></td>
                                 <td class="readonly-cell column_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">${formatDate(item.post_modified)}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_author}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_parent || '0'}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">${item.menu_order || '0'}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.comment_status}</div></td>
-                                <td class="beamraymar-editable-cell column_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.ping_status}</div></td>
+                                <td class="editable-cell column_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_author}</div></td>
+                                <td class="editable-cell column_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">${item.post_parent || '0'}</div></td>
+                                <td class="editable-cell column_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">${item.menu_order || '0'}</div></td>
+                                <td class="editable-cell column_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.comment_status}</div></td>
+                                <td class="editable-cell column_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">${item.ping_status}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">${item.rel_wp_post_id || ''}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">${item.orbitpost_id || ''}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">${item.redshift_datum || ''}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">${item.rover_datum || ''}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">${item.hudson_imgplanbatch_id || ''}</div></td>
-                                <td class="readonly-cell column_zen_orbitposts_is_pinned"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_pinned" data-post-id="${item.ID}" data-value="${item.is_pinned || 0}">📌</span></div></td>
-                                <td class="readonly-cell column_zen_orbitposts_is_flagged"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_flagged" data-post-id="${item.ID}" data-value="${item.is_flagged || 0}">🚩</span></div></td>
-                                <td class="readonly-cell column_zen_orbitposts_is_starred"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_starred" data-post-id="${item.ID}" data-value="${item.is_starred || 0}">⭐</span></div></td>
-                                <td class="readonly-cell column_zen_orbitposts_is_squared"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_squared" data-post-id="${item.ID}" data-value="${item.is_squared || 0}">⬜</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_pinned"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_pinned" data-post-id="${item.ID}" data-value="${item.is_pinned || 0}">📌</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_flagged"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_flagged" data-post-id="${item.ID}" data-value="${item.is_flagged || 0}">🚩</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_starred"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_starred" data-post-id="${item.ID}" data-value="${item.is_starred || 0}">⭐</span></div></td>
+                                <td class="readonly-cell column_zen_orbitposts_is_squared"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_squared" data-post-id="${item.ID}" data-value="${item.is_squared || 0}">⬜</span></div></td>
                                 <td class="readonly-cell column_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">${formatDate(item.created_at)}</div></td>
                                 <td class="readonly-cell column_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">${formatDate(item.updated_at)}</div></td>
                             </tr>`;
@@ -9347,7 +8569,7 @@ class Snefuru_Admin {
                         });
                         
                         // Inline editing
-                        $('.beamraymar-editable-cell').on('click', function() {
+                        $('.editable-cell').on('click', function() {
                             if (editingCell) return; // Don't start new edit if already editing
                             
                             const $cell = $(this);
@@ -9360,7 +8582,7 @@ class Snefuru_Admin {
                         });
                         
                         // Icon button handling
-                        $('.beamray-icon-btn').on('click', function() {
+                        $('.icon-btn').on('click', function() {
                             const $icon = $(this);
                             const field = $icon.data('field');
                             const postId = $icon.data('post-id');
@@ -9377,7 +8599,7 @@ class Snefuru_Admin {
                         
                         let input;
                         if (type === 'longtext') {
-                            input = $(`<textarea class="beamraymar-editing-textarea">${currentValue}</textarea>`);
+                            input = $(`<textarea class="editing-textarea">${currentValue}</textarea>`);
                         } else if (type === 'select') {
                             let options = '';
                             if (field === 'post_status') {
@@ -9385,10 +8607,10 @@ class Snefuru_Admin {
                             } else if (field === 'comment_status' || field === 'ping_status') {
                                 options = '<option value="open">open</option><option value="closed">closed</option>';
                             }
-                            input = $(`<select class="beamraymar-editing-input">${options}</select>`);
+                            input = $(`<select class="editing-input">${options}</select>`);
                             input.val(currentValue);
                         } else {
-                            input = $(`<input type="text" class="beamraymar-editing-input" value="${currentValue}">`);
+                            input = $(`<input type="text" class="editing-input" value="${currentValue}">`);
                         }
                         
                         $cell.html(input);
@@ -9532,7 +8754,7 @@ class Snefuru_Admin {
                         const totalPages = Math.ceil(filteredData.length / itemsPerPage);
                         
                         // Update page number buttons (simplified for demo)
-                        $('.beamraymar-pagination-btn[data-page]').each(function() {
+                        $('.pagination-btn[data-page]').each(function() {
                             const $btn = $(this);
                             const page = $btn.data('page');
                             
@@ -9600,7 +8822,7 @@ class Snefuru_Admin {
                     
                     // Icon button functions
                     function initializeIconButtons() {
-                        $('.beamray-icon-btn').each(function() {
+                        $('.icon-btn').each(function() {
                             const $icon = $(this);
                             const value = parseInt($icon.data('value'));
                             if (value) {
@@ -9816,8 +9038,8 @@ class Snefuru_Admin {
             }
             
             echo '<tr data-id="' . esc_attr($item['ID']) . '">';
-            echo '<td class="beamraymar-checkbox-cell column_checkbox">';
-            echo '<div class="tcell_inner_wrapper_div"><input type="checkbox" class="beamraymar-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '"></div>';
+            echo '<td class="checkbox-cell column_checkbox">';
+            echo '<div class="tcell_inner_wrapper_div"><input type="checkbox" class="row-checkbox row-checkbox" value="' . esc_attr($item['ID']) . '"></div>';
             echo '</td>';
             
             // Frontend URL logic
@@ -9836,24 +9058,24 @@ class Snefuru_Admin {
             $is_elementor = !empty($item['_elementor_data']) && $item['_elementor_data'] !== '[]';
             
             echo '<td class="readonly-cell column_tool_buttons"><div class="tcell_inner_wrapper_div">';
-            echo '<a href="' . esc_url($admin_edit_url) . '" target="_blank" class="beamraymar-pendulum-btn">&#9675;&#124;</a>';
+            echo '<a href="' . esc_url($admin_edit_url) . '" target="_blank" class="pendulum-btn">&#9675;&#124;</a>';
             if ($is_elementor) {
-                echo '<a href="' . esc_url($elementor_edit_url) . '" target="_blank" class="beamraymar-elementor-btn">E</a>';
+                echo '<a href="' . esc_url($elementor_edit_url) . '" target="_blank" class="elementor-btn">E</a>';
             } else {
-                echo '<span class="beamraymar-elementor-btn disabled">E</span>';
+                echo '<span class="elementor-btn disabled">E</span>';
             }
-            echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="beamraymar-tool-btn">F</a>';
-            echo '<span class="beamraymar-c-btn">C1</span>';
-            echo '<span class="beamraymar-c-btn">C2</span>';
-            echo '<span class="beamraymar-c-btn">C3</span>';
+            echo '<a href="' . esc_url($frontend_url) . '" target="_blank" class="tool-btn">F</a>';
+            echo '<span class="c-btn">C1</span>';
+            echo '<span class="c-btn">C2</span>';
+            echo '<span class="c-btn">C3</span>';
             echo '</div></td>';
             echo '<td class="readonly-cell column_wp_posts_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['ID']) . '</div></td>';
             $status_display = $item['post_status'] === 'publish' ? '<strong>' . esc_html($item['post_status']) . '</strong>' : esc_html($item['post_status']);
-            echo '<td class="beamraymar-editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select" data-status="' . esc_attr($item['post_status']) . '"><div class="tcell_inner_wrapper_div">' . $status_display . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_post_status" data-field="post_status" data-type="select" data-status="' . esc_attr($item['post_status']) . '"><div class="tcell_inner_wrapper_div">' . $status_display . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_post_title" data-field="post_title" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_title']) . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_post_name" data-field="post_name" data-type="text"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_name']) . '</div></td>';
             echo '<td class="readonly-cell column_replex_submit"><div class="tcell_inner_wrapper_div"></div></td>';
-            echo '<td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
+            echo '<td class="readonly-cell column_wp_posts_post_content"><div class="tcell_inner_wrapper_div">' . esc_html($content_preview) . '<button class="content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '">ED</button></div></td>';
             
             // Calculate elementor data line count
             $elementor_display = 'none';
@@ -9865,25 +9087,25 @@ class Snefuru_Admin {
                     $elementor_display = $line_count . ' lines';
                 }
             }
-            echo '<td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '<button class="beamraymar-content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '" data-editor-type="elementor">ED</button></div></td>';
+            echo '<td class="readonly-cell column_wp_postmeta_meta_key_elementor_data"><div class="tcell_inner_wrapper_div">' . esc_html($elementor_display) . '<button class="content-edit-btn" data-post-id="' . esc_attr($item['ID']) . '" data-editor-type="elementor">ED</button></div></td>';
             
             echo '<td class="readonly-cell column_wp_posts_post_type"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_type']) . '</div></td>';
             echo '<td class="readonly-cell column_wp_posts_post_date"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_date']))) . '</div></td>';
             echo '<td class="readonly-cell column_wp_posts_post_modified"><div class="tcell_inner_wrapper_div">' . esc_html(date('Y-m-d H:i:s', strtotime($item['post_modified']))) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_author']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_parent'] ?: '0') . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['menu_order'] ?: '0') . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['comment_status']) . '</div></td>';
-            echo '<td class="beamraymar-editable-cell column_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['ping_status']) . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_post_author" data-field="post_author" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_author']) . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_post_parent" data-field="post_parent" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['post_parent'] ?: '0') . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_menu_order" data-field="menu_order" data-type="integer"><div class="tcell_inner_wrapper_div">' . esc_html($item['menu_order'] ?: '0') . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_comment_status" data-field="comment_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['comment_status']) . '</div></td>';
+            echo '<td class="editable-cell column_wp_posts_ping_status" data-field="ping_status" data-type="select"><div class="tcell_inner_wrapper_div">' . esc_html($item['ping_status']) . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_rel_wp_post_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['rel_wp_post_id'] ?: '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_orbitpost_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['orbitpost_id'] ?: '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_redshift_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['redshift_datum'] ?: '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_rover_datum"><div class="tcell_inner_wrapper_div">' . esc_html($item['rover_datum'] ?: '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_hudson_imgplanbatch_id"><div class="tcell_inner_wrapper_div">' . esc_html($item['hudson_imgplanbatch_id'] ?: '') . '</div></td>';
-            echo '<td class="readonly-cell column_zen_orbitposts_is_pinned"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_pinned" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_pinned'] ?: 0) . '">📌</span></div></td>';
-            echo '<td class="readonly-cell column_zen_orbitposts_is_flagged"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_flagged" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_flagged'] ?: 0) . '">🚩</span></div></td>';
-            echo '<td class="readonly-cell column_zen_orbitposts_is_starred"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_starred" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_starred'] ?: 0) . '">⭐</span></div></td>';
-            echo '<td class="readonly-cell column_zen_orbitposts_is_squared"><div class="tcell_inner_wrapper_div"><span class="beamray-icon-btn" data-field="is_squared" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_squared'] ?: 0) . '">⬜</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_pinned"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_pinned" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_pinned'] ?: 0) . '">📌</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_flagged"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_flagged" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_flagged'] ?: 0) . '">🚩</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_starred"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_starred" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_starred'] ?: 0) . '">⭐</span></div></td>';
+            echo '<td class="readonly-cell column_zen_orbitposts_is_squared"><div class="tcell_inner_wrapper_div"><span class="icon-btn" data-field="is_squared" data-post-id="' . esc_attr($item['ID']) . '" data-value="' . esc_attr($item['is_squared'] ?: 0) . '">⬜</span></div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_created_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['created_at'] ? date('Y-m-d H:i:s', strtotime($item['created_at'])) : '') . '</div></td>';
             echo '<td class="readonly-cell column_zen_orbitposts_updated_at"><div class="tcell_inner_wrapper_div">' . esc_html($item['updated_at'] ? date('Y-m-d H:i:s', strtotime($item['updated_at'])) : '') . '</div></td>';
             echo '</tr>';
@@ -11206,145 +10428,7 @@ class Snefuru_Admin {
         return $deleted_count;
     }
     
-    /**
-     * DynoLan AJAX handler for updating post content
-     */
-    public function dynolan_update_post_content() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
-            wp_send_json_error('Security check failed');
-            return;
-        }
-        
-        // Check permissions
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error('Permission denied');
-            return;
-        }
-        
-        // Get and validate post ID
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if (!$post_id) {
-            wp_send_json_error('Invalid post ID');
-            return;
-        }
-        
-        // Get new content
-        $new_content = isset($_POST['post_content']) ? wp_kses_post($_POST['post_content']) : '';
-        
-        // Update the post
-        $updated = wp_update_post(array(
-            'ID' => $post_id,
-            'post_content' => $new_content
-        ));
-        
-        if (is_wp_error($updated)) {
-            wp_send_json_error($updated->get_error_message());
-        } else {
-            wp_send_json_success('Content updated successfully');
-        }
-    }
-    
-    /**
-     * DynoLan AJAX handler for updating elementor data
-     */
-    public function dynolan_update_elementor_data() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
-            wp_send_json_error('Security check failed');
-            return;
-        }
-        
-        // Check permissions
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error('Permission denied');
-            return;
-        }
-
-        $post_id = intval($_POST['post_id']);
-        $elementor_data = wp_unslash($_POST['elementor_data']);
-        
-        // Update the _elementor_data meta field
-        $result = update_post_meta($post_id, '_elementor_data', $elementor_data);
-        
-        if ($result !== false) {
-            wp_send_json_success('Elementor data updated successfully');
-        } else {
-            wp_send_json_error('Failed to update elementor data');
-        }
-    }
-    
-    /**
-     * DynoLan AJAX handler for updating zen_orbitposts boolean fields
-     */
-    public function dynolan_update_zen_orbitpost_field() {
-        // Verify nonce
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
-            wp_send_json_error('Security check failed');
-            return;
-        }
-        
-        // Check permissions
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error('Permission denied');
-            return;
-        }
-        
-        // Get and validate post ID
-        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        if (!$post_id) {
-            wp_send_json_error('Invalid post ID');
-            return;
-        }
-        
-        // Get and validate field name
-        $field = isset($_POST['field']) ? sanitize_text_field($_POST['field']) : '';
-        $allowed_fields = array('is_pinned', 'is_flagged', 'is_starred', 'is_squared');
-        if (!in_array($field, $allowed_fields)) {
-            wp_send_json_error('Invalid field name');
-            return;
-        }
-        
-        // Get and validate value
-        $value = isset($_POST['value']) ? intval($_POST['value']) : 0;
-        $value = $value ? 1 : 0; // Ensure boolean 0 or 1
-        
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'zen_orbitposts';
-        
-        // Check if record exists
-        $existing_record = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table_name WHERE rel_wp_post_id = %d",
-            $post_id
-        ));
-        
-        if ($existing_record) {
-            // Update existing record
-            $result = $wpdb->update(
-                $table_name,
-                array($field => $value),
-                array('rel_wp_post_id' => $post_id),
-                array('%d'),
-                array('%d')
-            );
-        } else {
-            // Create new record
-            $result = $wpdb->insert(
-                $table_name,
-                array(
-                    'rel_wp_post_id' => $post_id,
-                    $field => $value
-                ),
-                array('%d', '%d')
-            );
-        }
-        
-        if ($result !== false) {
-            wp_send_json_success('Field updated successfully');
-        } else {
-            wp_send_json_error('Database update failed');
-        }
-    }
+    // DynoLan AJAX handlers have been moved to standalone functions in dynolan-page.php
     
     /**
      * DynoLan page - Enhanced beamraymar with modular architecture
