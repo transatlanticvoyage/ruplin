@@ -87,8 +87,10 @@ class SnefuruPlugin {
             new Zen_Elementor_Dynamic_Tags();
         }
         
-        // Initialize media library workaround (always load for potential Elementor use)
-        new Zen_Elementor_Media_Workaround();
+        // Initialize media library workaround (only if Elementor is available)
+        if (class_exists('Elementor\Plugin')) {
+            new Zen_Elementor_Media_Workaround();
+        }
         
         // Initialize Hurricane feature
         new Snefuru_Hurricane();
