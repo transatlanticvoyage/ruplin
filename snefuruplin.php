@@ -40,6 +40,13 @@ class SnefuruPlugin {
     }
     
     private function load_dependencies() {
+        // Load database class FIRST to prevent race conditions
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
+        
+        // Load error boundary for safe execution
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-error-boundary.php';
+        
+        // Load core classes
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-api-client.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-data-collector.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-admin.php';
@@ -53,8 +60,9 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
-        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-manager.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-version-checker.php';
         
         // Load Elementor components only if Elementor is available
         if (class_exists('Elementor\Plugin')) {
@@ -63,37 +71,36 @@ class SnefuruPlugin {
         }
         require_once SNEFURU_PLUGIN_PATH . 'hurricane/class-hurricane.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-orbit-mar-admin.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/debug-status-page.php';
     }
     
     private function init_hooks() {
-        // Check and update database schema if needed
-        Ruplin_WP_Database_Horse_Class::check_database_version();
+        // Database version check moved to activation hook to prevent race conditions
         
-        // Initialize components
-        new Snefuru_API_Client();
-        new Snefuru_Data_Collector();
-        new Snefuru_Admin();
-        new Snefuru_Settings();
-        new Snefuru_Upload_Handler();
-        new Snefuru_Media_Tab();
-        new Snefuru_CSS_Endpoint();
-        new Snefuru_Barkro_Updater();
-        new Snefuru_Elementor_Updater();
-        new Snefuru_Dublish_API();
-        new Zen_Shortcodes();
+        // Initialize components with error boundaries
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_API_Client');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Data_Collector');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Admin');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Settings');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Upload_Handler');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Media_Tab');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_CSS_Endpoint');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Barkro_Updater');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Elementor_Updater');
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Dublish_API');
+        Snefuru_Error_Boundary::safe_instantiate('Zen_Shortcodes');
         
-        // Initialize Elementor integrations
-        if (did_action('elementor/loaded')) {
-            new Zen_Elementor_Dynamic_Tags();
-        }
-        
-        // Initialize media library workaround (only if Elementor is available)
-        if (class_exists('Elementor\Plugin')) {
-            new Zen_Elementor_Media_Workaround();
-        }
+        // Initialize Elementor manager (handles all Elementor features safely)
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Elementor_Manager');
         
         // Initialize Hurricane feature
-        new Snefuru_Hurricane();
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Hurricane');
+        
+        // Initialize version checker for deployment sync
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Version_Checker');
+        
+        // Initialize debug status page
+        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Debug_Status_Page');
         
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
@@ -101,53 +108,76 @@ class SnefuruPlugin {
     }
     
     public function activate() {
-        // Debug activation process
-        error_log('=== SNEFURU ACTIVATION START ===');
-        error_log('PHP Version: ' . phpversion());
-        error_log('WordPress Version: ' . get_bloginfo('version'));
-        error_log('Active Plugins: ' . print_r(get_option('active_plugins'), true));
-        
-        // Check if Elementor is active
-        if (class_exists('Elementor\Plugin')) {
-            error_log('Elementor: ACTIVE');
-        } else {
-            error_log('Elementor: NOT ACTIVE');
-        }
-        
-        // Check which files are being loaded
-        $included_files = get_included_files();
-        foreach ($included_files as $file) {
-            if (strpos($file, 'snefuruplin') !== false) {
-                error_log('Loaded: ' . basename($file));
+        try {
+            // Debug activation process
+            error_log('=== SNEFURU ACTIVATION START ===');
+            error_log('PHP Version: ' . phpversion());
+            error_log('WordPress Version: ' . get_bloginfo('version'));
+            error_log('Active Plugins: ' . print_r(get_option('active_plugins'), true));
+            
+            // Check if Elementor is active
+            if (class_exists('Elementor\Plugin')) {
+                error_log('Elementor: ACTIVE');
+            } else {
+                error_log('Elementor: NOT ACTIVE');
             }
+            
+            // Check which files are being loaded
+            $included_files = get_included_files();
+            foreach ($included_files as $file) {
+                if (strpos($file, 'snefuruplin') !== false) {
+                    error_log('Loaded: ' . basename($file));
+                }
+            }
+            
+            // Clean up any mistakenly created zen_driggs table
+            $this->cleanup_unwanted_tables();
+            
+            // Create database tables if needed
+            $this->create_tables();
+            
+            // Database class is already loaded via load_dependencies(), but ensure it exists
+            if (!class_exists('Ruplin_WP_Database_Horse_Class')) {
+                require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
+            }
+            
+            // Create zen tables
+            Ruplin_WP_Database_Horse_Class::create_tables();
+            
+            // Check and update database schema
+            Ruplin_WP_Database_Horse_Class::check_database_version();
+            
+            // Schedule recurring events
+            if (!wp_next_scheduled('snefuru_sync_data')) {
+                wp_schedule_event(time(), 'hourly', 'snefuru_sync_data');
+            }
+            
+            // Set default upload settings
+            if (get_option('snefuru_upload_enabled') === false) {
+                update_option('snefuru_upload_enabled', 1);
+            }
+            if (get_option('snefuru_upload_max_size') === false) {
+                update_option('snefuru_upload_max_size', '10MB');
+            }
+            
+            // Clear any previous activation errors
+            delete_option('snefuru_activation_error');
+            
+            error_log('=== SNEFURU ACTIVATION END ===');
+            
+        } catch (Throwable $e) {
+            error_log('SNEFURU ACTIVATION FAILED: ' . $e->getMessage());
+            error_log('Stack trace: ' . $e->getTraceAsString());
+            
+            // Store error for admin notice
+            update_option('snefuru_activation_error', $e->getMessage());
+            
+            // Deactivate plugin to prevent broken state
+            deactivate_plugins(__FILE__);
+            
+            wp_die('Snefuru activation failed: ' . esc_html($e->getMessage()) . 
+                   '<br><br><a href="' . admin_url('plugins.php') . '">Return to Plugins</a>');
         }
-        
-        // Clean up any mistakenly created zen_driggs table
-        $this->cleanup_unwanted_tables();
-        
-        // Create database tables if needed
-        $this->create_tables();
-        
-        // Load the database class before trying to use it
-        require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
-        
-        // Create zen tables
-        Ruplin_WP_Database_Horse_Class::create_tables();
-        
-        // Schedule recurring events
-        if (!wp_next_scheduled('snefuru_sync_data')) {
-            wp_schedule_event(time(), 'hourly', 'snefuru_sync_data');
-        }
-        
-        // Set default upload settings
-        if (get_option('snefuru_upload_enabled') === false) {
-            update_option('snefuru_upload_enabled', 1);
-        }
-        if (get_option('snefuru_upload_max_size') === false) {
-            update_option('snefuru_upload_max_size', '10MB');
-        }
-        
-        error_log('=== SNEFURU ACTIVATION END ===');
     }
     
     public function deactivate() {
@@ -300,6 +330,17 @@ register_shutdown_function(function() {
     $error = error_get_last();
     if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE)) {
         error_log('SNEFURU FATAL ERROR: ' . print_r($error, true));
+    }
+});
+
+// Add admin notice handler for activation errors
+add_action('admin_notices', function() {
+    $error = get_option('snefuru_activation_error');
+    if ($error) {
+        echo '<div class="notice notice-error"><p>';
+        echo '<strong>Snefuru Plugin:</strong> ' . esc_html($error);
+        echo '</p></div>';
+        delete_option('snefuru_activation_error'); // Clear after showing
     }
 });
 
