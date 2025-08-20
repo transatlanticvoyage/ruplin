@@ -16,6 +16,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// EMERGENCY DEBUG: Check if plugin file is even loading
+error_log('🚨 SNEFURU PLUGIN LOADING: snefuruplin.php is being executed at ' . date('Y-m-d H:i:s'));
+
 // Define plugin constants
 define('SNEFURU_PLUGIN_VERSION', '4.2.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
@@ -78,9 +81,17 @@ class SnefuruPlugin {
         // Database version check moved to activation hook to prevent race conditions
         
         // Initialize components with error boundaries
+        error_log('🔧 SNEFURU DEBUG: About to instantiate components');
         Snefuru_Error_Boundary::safe_instantiate('Snefuru_API_Client');
         Snefuru_Error_Boundary::safe_instantiate('Snefuru_Data_Collector');
-        Snefuru_Error_Boundary::safe_instantiate('Snefuru_Admin');
+        
+        error_log('🔧 SNEFURU DEBUG: About to instantiate Snefuru_Admin class');
+        $admin_instance = Snefuru_Error_Boundary::safe_instantiate('Snefuru_Admin');
+        if ($admin_instance) {
+            error_log('🔧 SNEFURU DEBUG: Snefuru_Admin instantiated successfully');
+        } else {
+            error_log('🚨 SNEFURU ERROR: Snefuru_Admin failed to instantiate!');
+        }
         Snefuru_Error_Boundary::safe_instantiate('Snefuru_Settings');
         Snefuru_Error_Boundary::safe_instantiate('Snefuru_Upload_Handler');
         Snefuru_Error_Boundary::safe_instantiate('Snefuru_Media_Tab');

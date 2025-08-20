@@ -3,9 +3,13 @@
 class Snefuru_Admin {
     
     public function __construct() {
+        // EMERGENCY DEBUG: Admin class constructor starting
+        error_log('🔧 SNEFURU DEBUG: Admin class constructor starting');
+        
         // Set global admin instance for page files
         global $snefuru_admin;
         $snefuru_admin = $this;
+        error_log('🔧 SNEFURU DEBUG: Global $snefuru_admin set successfully');
         
         // Include all page files
         $this->include_page_files();
@@ -111,18 +115,24 @@ class Snefuru_Admin {
             'cssmar-page.php',
             'dioptra-page.php',
             'beamraymar-page.php',
+            'dynolan-page.php',
             'rup-locations-mar-page.php',
             'rup-services-mar-page.php',
             'rup-driggs-mar-page.php',
             'rup-pantheon-mar-page.php'
         );
         
+        error_log('🔧 SNEFURU DEBUG: Starting to include page files');
         foreach ($page_files as $file) {
             $file_path = SNEFURU_PLUGIN_PATH . 'includes/pages/' . $file;
             if (file_exists($file_path)) {
+                error_log('🔧 SNEFURU DEBUG: Including page file: ' . $file);
                 require_once $file_path;
+            } else {
+                error_log('🚨 SNEFURU WARNING: Page file not found: ' . $file_path);
             }
         }
+        error_log('🔧 SNEFURU DEBUG: Finished including page files');
     }
     
     /**
