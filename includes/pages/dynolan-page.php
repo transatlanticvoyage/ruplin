@@ -12,9 +12,9 @@ if (!defined('ABSPATH')) {
 global $wpdb;
 
 /**
- * Get posts and pages data - moved to top to avoid function order issues
+ * Get posts and pages data for dynolan - renamed to avoid conflicts with beamraymar
  */
-function snefuru_get_posts_and_pages_data() {
+function snefuru_dynolan_get_posts_and_pages_data() {
     global $wpdb;
     
     $results = $wpdb->get_results(
@@ -106,7 +106,7 @@ function snefuru_dynolan_page() {
         
         error_log('SNEFURU DEBUG: Getting posts and pages data');
         // Get posts and pages data
-        $posts_pages = snefuru_get_posts_and_pages_data();
+        $posts_pages = snefuru_dynolan_get_posts_and_pages_data();
         error_log('SNEFURU DEBUG: Retrieved ' . count($posts_pages) . ' posts/pages');
     
     ?>
@@ -158,7 +158,7 @@ function snefuru_dynolan_page() {
             <h4>Data Query Results:</h4>
             <div style="font-family: monospace; font-size: 12px; background: white; padding: 10px; border-radius: 3px;">
                 <?php
-                $debug_posts = snefuru_get_posts_and_pages_data();
+                $debug_posts = snefuru_dynolan_get_posts_and_pages_data();
                 echo "<strong>Total Posts/Pages Found:</strong> " . count($debug_posts) . "<br>";
                 if (count($debug_posts) > 0) {
                     echo "<strong>Sample Record Fields:</strong> " . implode(', ', array_keys($debug_posts[0])) . "<br>";
