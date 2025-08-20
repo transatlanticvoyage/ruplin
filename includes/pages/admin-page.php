@@ -3,6 +3,12 @@
  * Main admin dashboard page
  */
 function snefuru_admin_page() {
+    // FORCE IMMEDIATE ERROR OUTPUT TO SCREEN
+    echo '<div style="background: yellow; padding: 20px; margin: 20px; border: 3px solid red;">';
+    echo '<h1>🔧 SNEFURU DEBUG: Admin Page Loading...</h1>';
+    echo '<p>If you see this, the page is executing. Timestamp: ' . date('Y-m-d H:i:s') . '</p>';
+    echo '</div>';
+    
     // DEBUGGING: Start error capture
     error_log('=== SNEFURU ADMIN PAGE DEBUG START ===');
     
