@@ -12,11 +12,75 @@ if (!defined('ABSPATH')) {
 global $wpdb;
 
 /**
+ * Get posts and pages data - moved to top to avoid function order issues
+ */
+function snefuru_get_posts_and_pages_data() {
+    global $wpdb;
+    
+    $results = $wpdb->get_results(
+        "SELECT p.ID, p.post_title, p.post_content, p.post_type, p.post_status, p.post_name, 
+                p.post_date, p.post_modified, p.post_author, p.post_parent, p.menu_order, 
+                p.comment_status, p.ping_status,
+                pm.meta_value as _elementor_data,
+                zop.rel_wp_post_id, zop.orbitpost_id, zop.redshift_datum, zop.rover_datum, 
+                zop.hudson_imgplanbatch_id, zop.is_pinned, zop.is_flagged, zop.is_starred, zop.is_squared,
+                zop.created_at, zop.updated_at
+         FROM {$wpdb->posts} p
+         LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_elementor_data'
+         LEFT JOIN {$wpdb->prefix}zen_orbitposts zop ON p.ID = zop.rel_wp_post_id
+         WHERE p.post_type IN ('post', 'page') 
+         AND p.post_status NOT IN ('trash', 'auto-draft') 
+         ORDER BY p.post_modified DESC",
+        ARRAY_A
+    );
+    
+    return $results;
+}
+
+/**
+ * Handle AJAX requests - moved to top to avoid function order issues
+ */
+function snefuru_handle_dynolan_ajax() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
+        echo json_encode(array('success' => false, 'message' => 'Security check failed'));
+        wp_die();
+    }
+
+    $action = sanitize_text_field($_POST['action']);
+
+    switch ($action) {
+        case 'create_new_post':
+            snefuru_ajax_create_new_post();
+            break;
+            
+        case 'update_post_field':
+            snefuru_ajax_update_post_field();
+            break;
+            
+        case 'create':
+        case 'edit':
+            snefuru_ajax_create_or_edit_post();
+            break;
+            
+        default:
+            echo json_encode(array('success' => false, 'message' => 'Unknown action'));
+    }
+    
+    wp_die();
+}
+
+/**
  * Main dynolan page function - completely independent with full BeamRayMar parity
  */
 function snefuru_dynolan_page() {
-    // AGGRESSIVE NOTICE SUPPRESSION
-    snefuru_suppress_all_admin_notices();
+    // Get the admin instance for accessing helper methods
+    global $snefuru_admin;
+    
+    // AGGRESSIVE NOTICE SUPPRESSION - only if admin object exists and has the method
+    if ($snefuru_admin && method_exists($snefuru_admin, 'suppress_all_admin_notices')) {
+        $snefuru_admin->suppress_all_admin_notices();
+    }
     
     // Handle AJAX requests
     if (isset($_POST['action']) && in_array($_POST['action'], ['create_new_post', 'update_post_field', 'create', 'edit'])) {
@@ -1293,38 +1357,6 @@ function snefuru_suppress_all_admin_notices() {
     });
 }
 
-/**
- * Helper function to handle AJAX requests - Complete BeamRayMar parity
- */
-function snefuru_handle_dynolan_ajax() {
-    // Verify nonce
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dynolan_nonce')) {
-        echo json_encode(array('success' => false, 'message' => 'Security check failed'));
-        wp_die();
-    }
-
-    $action = sanitize_text_field($_POST['action']);
-
-    switch ($action) {
-        case 'create_new_post':
-            snefuru_ajax_create_new_post();
-            break;
-            
-        case 'update_post_field':
-            snefuru_ajax_update_post_field();
-            break;
-            
-        case 'create':
-        case 'edit':
-            snefuru_ajax_create_or_edit_post();
-            break;
-            
-        default:
-            echo json_encode(array('success' => false, 'message' => 'Invalid action'));
-    }
-    
-    wp_die();
-}
 
 /**
  * AJAX handler for creating new post inline
@@ -1466,31 +1498,6 @@ function snefuru_ajax_create_or_edit_post() {
     wp_die();
 }
 
-/**
- * Helper function to get posts and pages data - Complete BeamRayMar parity
- */
-function snefuru_get_posts_and_pages_data() {
-    global $wpdb;
-    
-    $results = $wpdb->get_results(
-        "SELECT p.ID, p.post_title, p.post_content, p.post_type, p.post_status, p.post_name, 
-                p.post_date, p.post_modified, p.post_author, p.post_parent, p.menu_order, 
-                p.comment_status, p.ping_status,
-                pm.meta_value as _elementor_data,
-                zop.rel_wp_post_id, zop.orbitpost_id, zop.redshift_datum, zop.rover_datum, 
-                zop.hudson_imgplanbatch_id, zop.is_pinned, zop.is_flagged, zop.is_starred, zop.is_squared,
-                zop.created_at, zop.updated_at
-         FROM {$wpdb->posts} p
-         LEFT JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id AND pm.meta_key = '_elementor_data'
-         LEFT JOIN {$wpdb->prefix}zen_orbitposts zop ON p.ID = zop.rel_wp_post_id
-         WHERE p.post_type IN ('post', 'page') 
-         AND p.post_status NOT IN ('trash', 'auto-draft') 
-         ORDER BY p.post_modified DESC",
-        ARRAY_A
-    );
-    
-    return $results ? $results : array();
-}
 
 /**
  * Helper function to render dynolan table rows - Complete BeamRayMar parity
