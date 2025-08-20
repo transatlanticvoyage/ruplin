@@ -76,7 +76,7 @@ function snefuru_handle_dynolan_ajax() {
 function snefuru_dynolan_page() {
     // FORCE IMMEDIATE ERROR OUTPUT TO SCREEN
     echo '<div style="background: yellow; padding: 20px; margin: 20px; border: 3px solid red;">';
-    echo '<h1>🔧 DYNOMAR DEBUG: Page Loading...</h1>';
+    echo '<h1>DYNOMAR DEBUG: Page Loading...</h1>';
     echo '<p>If you see this, the dynomar page is executing. Timestamp: ' . date('Y-m-d H:i:s') . '</p>';
     echo '</div>';
     
