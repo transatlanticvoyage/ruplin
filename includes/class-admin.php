@@ -6868,7 +6868,7 @@ class Snefuru_Admin {
      * Completely suppress all admin notices on specific pages
      * Used to create clean admin interfaces without WordPress plugin warnings/notices
      */
-    private function suppress_all_admin_notices() {
+    public function suppress_all_admin_notices() {
         // Remove all admin notices immediately
         add_action('admin_print_styles', function() {
             // Remove all notice actions
@@ -10284,7 +10284,7 @@ class Snefuru_Admin {
     /**
      * Display cache reports
      */
-    private function display_cache_reports() {
+    public function display_cache_reports() {
         try {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
             
