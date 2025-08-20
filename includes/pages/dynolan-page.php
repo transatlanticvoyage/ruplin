@@ -74,22 +74,34 @@ function snefuru_handle_dynolan_ajax() {
  * Main dynolan page function - completely independent with full BeamRayMar parity
  */
 function snefuru_dynolan_page() {
-    // Get the admin instance for accessing helper methods
-    global $snefuru_admin;
+    // DEBUGGING: Start error capture
+    error_log('=== SNEFURU DYNOMAR PAGE DEBUG START ===');
     
-    // AGGRESSIVE NOTICE SUPPRESSION - only if admin object exists and has the method
-    if ($snefuru_admin && method_exists($snefuru_admin, 'suppress_all_admin_notices')) {
-        $snefuru_admin->suppress_all_admin_notices();
-    }
+    try {
+        // Get the admin instance for accessing helper methods
+        global $snefuru_admin;
+        
+        error_log('SNEFURU DEBUG: Global admin object status: ' . ($snefuru_admin ? 'exists' : 'null'));
+        
+        // AGGRESSIVE NOTICE SUPPRESSION - only if admin object exists and has the method
+        if ($snefuru_admin && method_exists($snefuru_admin, 'suppress_all_admin_notices')) {
+            error_log('SNEFURU DEBUG: Calling suppress_all_admin_notices');
+            $snefuru_admin->suppress_all_admin_notices();
+        } else {
+            error_log('SNEFURU DEBUG: Skipping notice suppression - admin object or method not available');
+        }
     
-    // Handle AJAX requests
-    if (isset($_POST['action']) && in_array($_POST['action'], ['create_new_post', 'update_post_field', 'create', 'edit'])) {
-        snefuru_handle_dynolan_ajax();
-        return;
-    }
-    
-    // Get posts and pages data
-    $posts_pages = snefuru_get_posts_and_pages_data();
+        // Handle AJAX requests
+        if (isset($_POST['action']) && in_array($_POST['action'], ['create_new_post', 'update_post_field', 'create', 'edit'])) {
+            error_log('SNEFURU DEBUG: Handling AJAX request: ' . $_POST['action']);
+            snefuru_handle_dynolan_ajax();
+            return;
+        }
+        
+        error_log('SNEFURU DEBUG: Getting posts and pages data');
+        // Get posts and pages data
+        $posts_pages = snefuru_get_posts_and_pages_data();
+        error_log('SNEFURU DEBUG: Retrieved ' . count($posts_pages) . ' posts/pages');
     
     ?>
     <link rel="stylesheet" href="<?php echo SNEFURU_PLUGIN_URL; ?>assets/css/shared-table-styles.css">
@@ -1324,6 +1336,30 @@ function snefuru_dynolan_page() {
         </script>
     </div>
     <?php
+    
+    error_log('SNEFURU DEBUG: Dynomar page completed successfully');
+    
+    } catch (Error $e) {
+        error_log('SNEFURU DEBUG: Fatal Error in dynomar page: ' . $e->getMessage());
+        error_log('SNEFURU DEBUG: Error trace: ' . $e->getTraceAsString());
+        echo '<div style="background: red; color: white; padding: 20px; margin: 20px;">';
+        echo '<h2>DEBUG: Fatal Error in Dynomar Page</h2>';
+        echo '<p><strong>Error:</strong> ' . esc_html($e->getMessage()) . '</p>';
+        echo '<p><strong>File:</strong> ' . esc_html($e->getFile()) . ':' . $e->getLine() . '</p>';
+        echo '<details><summary>Stack Trace</summary><pre>' . esc_html($e->getTraceAsString()) . '</pre></details>';
+        echo '</div>';
+    } catch (Exception $e) {
+        error_log('SNEFURU DEBUG: Exception in dynomar page: ' . $e->getMessage());
+        error_log('SNEFURU DEBUG: Exception trace: ' . $e->getTraceAsString());
+        echo '<div style="background: orange; color: white; padding: 20px; margin: 20px;">';
+        echo '<h2>DEBUG: Exception in Dynomar Page</h2>';
+        echo '<p><strong>Error:</strong> ' . esc_html($e->getMessage()) . '</p>';
+        echo '<p><strong>File:</strong> ' . esc_html($e->getFile()) . ':' . $e->getLine() . '</p>';
+        echo '<details><summary>Stack Trace</summary><pre>' . esc_html($e->getTraceAsString()) . '</pre></details>';
+        echo '</div>';
+    }
+    
+    error_log('=== SNEFURU DYNOMAR PAGE DEBUG END ===');
 }
 
 /**
