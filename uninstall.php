@@ -18,6 +18,7 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-ruplin-wppma-database.p
 
 // Clean up options
 delete_option('snefuru_zen_db_version');
+delete_option('snefuru_plugin_db_version');
 delete_option('snefuru_upload_enabled');
 delete_option('snefuru_upload_max_size');
 delete_option('snefuru_ruplin_api_key_1');

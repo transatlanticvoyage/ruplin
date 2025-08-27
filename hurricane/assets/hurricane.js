@@ -350,18 +350,37 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             // Only fields with "driggs_" in the name, in order from rup_driggs_mar page
             var driggsFields = [
                 {key: 'driggs_industry', label: 'driggs_industry', type: 'text'},
+                {key: 'driggs_keywords', label: 'driggs_keywords', type: 'textarea'},
+                {key: 'driggs_category', label: 'driggs_category', type: 'text'},
                 {key: 'driggs_city', label: 'driggs_city', type: 'text'},
                 {key: 'driggs_brand_name', label: 'driggs_brand_name', type: 'text'},
                 {key: 'driggs_site_type_purpose', label: 'driggs_site_type_purpose', type: 'text'},
                 {key: 'driggs_email_1', label: 'driggs_email_1', type: 'email'},
-                {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
                 {key: 'driggs_phone_1', label: 'driggs_phone_1', type: 'text'},
+                {key: 'driggs_address_full', label: 'driggs_address_full', type: 'textarea'},
+                {key: 'driggs_street_1', label: 'driggs_street_1', type: 'text'},
+                {key: 'driggs_street_2', label: 'driggs_street_2', type: 'text'},
+                {key: 'driggs_state_code', label: 'driggs_state_code', type: 'text'},
+                {key: 'driggs_zip', label: 'driggs_zip', type: 'text'},
+                {key: 'driggs_state_full', label: 'driggs_state_full', type: 'text'},
+                {key: 'driggs_country', label: 'driggs_country', type: 'text'},
+                {key: 'driggs_payment_methods', label: 'driggs_payment_methods', type: 'textarea'},
+                {key: 'driggs_social_media_links', label: 'driggs_social_media_links', type: 'textarea'},
+                {key: 'driggs_hours', label: 'driggs_hours', type: 'textarea'},
+                {key: 'driggs_owner_name', label: 'driggs_owner_name', type: 'text'},
+                {key: 'driggs_short_descr', label: 'driggs_short_descr', type: 'textarea'},
+                {key: 'driggs_long_descr', label: 'driggs_long_descr', type: 'textarea'},
+                {key: 'driggs_year_opened', label: 'driggs_year_opened', type: 'number'},
+                {key: 'driggs_employees_qty', label: 'driggs_employees_qty', type: 'number'},
                 {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},
+                {key: 'driggs_logo_url', label: 'driggs_logo_url', type: 'text'},
                 {key: 'driggs_phone1_platform_id', label: 'driggs_phone1_platform_id', type: 'number'},
                 {key: 'driggs_cgig_id', label: 'driggs_cgig_id', type: 'number'},
                 {key: 'driggs_revenue_goal', label: 'driggs_revenue_goal', type: 'number'},
                 {key: 'driggs_address_species_id', label: 'driggs_address_species_id', type: 'number'},
-                {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'}
+                {key: 'driggs_address_species_note', label: 'driggs_address_species_note', type: 'textarea'},
+                {key: 'driggs_citations_done', label: 'driggs_citations_done', type: 'boolean'},
+                {key: 'driggs_social_profiles_done', label: 'driggs_social_profiles_done', type: 'boolean'}
             ];
             
             driggsFields.forEach(function(field) {

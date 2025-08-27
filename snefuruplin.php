@@ -3,7 +3,7 @@
  * Plugin Name: Snefuruplin
  * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
  * Description: WordPress plugin for handling image uploads to Snefuru system
- * Version: 4.2.0
+ * Version: 4.3.0
  * Author: Snefuru Team
  * License: GPL v2 or later
  * Text Domain: snefuruplin
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SNEFURU_PLUGIN_VERSION', '4.2.0');
+define('SNEFURU_PLUGIN_VERSION', '4.3.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -68,6 +68,7 @@ class SnefuruPlugin {
     private function init_hooks() {
         // Check and update database schema if needed
         Ruplin_WP_Database_Horse_Class::check_database_version();
+        $this->check_plugin_database_version();
         
         // Initialize components
         new Snefuru_API_Client();
@@ -198,12 +199,28 @@ class SnefuruPlugin {
             is_wp_site tinyint(1) DEFAULT 0,
             wp_rest_app_pass text,
             driggs_industry text,
+            driggs_keywords text,
+            driggs_category text,
             driggs_city text,
             driggs_brand_name text,
             driggs_site_type_purpose text,
             driggs_email_1 text,
-            driggs_address_full text,
             driggs_phone_1 text,
+            driggs_address_full text,
+            driggs_street_1 text,
+            driggs_street_2 text,
+            driggs_state_code text,
+            driggs_zip text,
+            driggs_state_full text,
+            driggs_country text,
+            driggs_payment_methods text,
+            driggs_social_media_links text,
+            driggs_hours text,
+            driggs_owner_name text,
+            driggs_short_descr text,
+            driggs_long_descr text,
+            driggs_year_opened int(11),
+            driggs_employees_qty int(11),
             driggs_special_note_for_ai_tool text,
             driggs_logo_url text,
             ns_full text,
@@ -216,6 +233,7 @@ class SnefuruPlugin {
             driggs_cgig_id int(11),
             driggs_revenue_goal int(11),
             driggs_address_species_id int(11),
+            driggs_address_species_note text,
             is_competitor tinyint(1) DEFAULT 0,
             is_external tinyint(1) DEFAULT 0,
             is_internal tinyint(1) DEFAULT 0,
@@ -228,6 +246,7 @@ class SnefuruPlugin {
             is_other1 tinyint(1) DEFAULT 0,
             is_other2 tinyint(1) DEFAULT 0,
             driggs_citations_done tinyint(1) DEFAULT 0,
+            driggs_social_profiles_done tinyint(1) DEFAULT 0,
             is_flylocal tinyint(1) DEFAULT 0,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
@@ -237,6 +256,9 @@ class SnefuruPlugin {
         ) $charset_collate;";
         
         dbDelta($zen_sitespren_sql);
+        
+        // Update plugin database version to trigger future schema updates
+        update_option('snefuru_plugin_db_version', SNEFURU_PLUGIN_VERSION);
         
         // Insert default record if styling table is empty
         $existing_records = $wpdb->get_var("SELECT COUNT(*) FROM $styling_table");
@@ -266,6 +288,22 @@ class SnefuruPlugin {
         if ($table_exists) {
             $wpdb->query("DROP TABLE IF EXISTS $zen_driggs_table");
             error_log('Snefuru: Removed unwanted zen_driggs table during activation');
+        }
+    }
+    
+    /**
+     * Check plugin database version and update schema if needed
+     */
+    private function check_plugin_database_version() {
+        $current_version = get_option('snefuru_plugin_db_version', '0.0.0');
+        
+        if (version_compare($current_version, SNEFURU_PLUGIN_VERSION, '<')) {
+            error_log("Snefuru: Updating plugin database schema from {$current_version} to " . SNEFURU_PLUGIN_VERSION);
+            
+            // Re-run the activation hook to update database schema
+            $this->on_activation();
+            
+            error_log('Snefuru: Plugin database schema updated successfully');
         }
     }
 }
