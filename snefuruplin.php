@@ -29,6 +29,7 @@ class SnefuruPlugin {
     
     public function __construct() {
         add_action('init', array($this, 'init'));
+        add_action('admin_init', array($this, 'check_petrifact_version'));
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
     }
@@ -56,6 +57,11 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
         
+        // Load Petrifact components
+        require_once SNEFURU_PLUGIN_PATH . 'includes/petrifact/class-petrifact-registry.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/petrifact/class-petrifact-generator.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/petrifact/class-petrifact-settings.php';
+        
         // Load Elementor components only if Elementor is available
         if (class_exists('Elementor\Plugin')) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
@@ -75,6 +81,7 @@ class SnefuruPlugin {
         new Snefuru_Data_Collector();
         new Snefuru_Admin();
         new Snefuru_Settings();
+        new Petrifact_Settings();
         new Snefuru_Upload_Handler();
         new Snefuru_Media_Tab();
         new Snefuru_CSS_Endpoint();
@@ -111,6 +118,9 @@ class SnefuruPlugin {
         
         // Create zen tables
         Ruplin_WP_Database_Horse_Class::create_tables();
+        
+        // Install/update Petrifact MU-plugin
+        $this->install_petrifact();
         
         // Schedule recurring events
         if (!wp_next_scheduled('snefuru_sync_data')) {
@@ -304,6 +314,44 @@ class SnefuruPlugin {
             $this->on_activation();
             
             error_log('Snefuru: Plugin database schema updated successfully');
+        }
+    }
+    
+    /**
+     * Check if Petrifact needs updating and update if necessary
+     */
+    public function check_petrifact_version() {
+        if (!class_exists('Petrifact_Registry')) {
+            return;
+        }
+        
+        if (Petrifact_Registry::needs_update()) {
+            $this->install_petrifact();
+        }
+    }
+    
+    /**
+     * Install or update Petrifact MU-plugin
+     */
+    private function install_petrifact() {
+        if (!class_exists('Petrifact_Generator')) {
+            require_once SNEFURU_PLUGIN_PATH . 'includes/petrifact/class-petrifact-generator.php';
+        }
+        
+        $result = Petrifact_Generator::generate_and_install();
+        
+        if (is_wp_error($result)) {
+            error_log('Snefuru: Failed to install Petrifact - ' . $result->get_error_message());
+        } else {
+            error_log('Snefuru: Petrifact MU-plugin installed successfully');
+        }
+        
+        // Set default persistence options
+        if (get_option('snefuru_petrifact_enabled') === false) {
+            update_option('snefuru_petrifact_enabled', 1);
+        }
+        if (get_option('snefuru_preserve_data_on_uninstall') === false) {
+            update_option('snefuru_preserve_data_on_uninstall', 1);
         }
     }
 }
