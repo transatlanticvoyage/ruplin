@@ -301,7 +301,7 @@ class SnefuruPlugin {
             error_log("Snefuru: Updating plugin database schema from {$current_version} to " . SNEFURU_PLUGIN_VERSION);
             
             // Re-run the activation hook to update database schema
-            $this->on_activation();
+            $this->activate();
             
             error_log('Snefuru: Plugin database schema updated successfully');
         }
