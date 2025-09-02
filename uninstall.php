@@ -13,7 +13,8 @@ if (!defined('WP_UNINSTALL_PLUGIN')) {
 // Load the Database Horse class
 require_once plugin_dir_path(__FILE__) . 'includes/class-ruplin-wppma-database.php';
 
-// Drop the zen tables (optional - comment out if you want to preserve data)
+// Preserve database tables and their data when plugin is uninstalled
+// Tables remain accessible for future use or backup plugins
 // Ruplin_WP_Database_Horse_Class::drop_tables();
 
 // Clean up options
