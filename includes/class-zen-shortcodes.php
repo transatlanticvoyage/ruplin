@@ -46,20 +46,34 @@ class Zen_Shortcodes {
     }
     
     /**
-     * Render services list
-     * Usage: [zen_services limit="5" template="grid" show_images="true" pinned_first="true"]
+     * Render services list or single service
+     * Usage: [zen_services limit="5" template="grid"] or [zen_services service_id="1" dbcol="service_name"]
      */
     public function render_services($atts) {
         $atts = shortcode_atts(array(
+            // Single service parameters
+            'id' => '', // Legacy parameter
+            'service_id' => '', // New parameter name
+            'field' => '', // Legacy parameter for column
+            'dbcol' => '', // New parameter for column
+            // List parameters
             'limit' => -1,
-            'template' => 'list', // list, grid, cards
+            'template' => 'list', // list, grid, cards, full
             'show_images' => 'false',
+            'show_image' => 'true', // For single service compatibility
             'pinned_first' => 'true',
             'order' => 'ASC',
             'orderby' => 'position_in_custom_order',
             'class' => '',
             'image_size' => 'thumbnail'
         ), $atts, 'zen_services');
+        
+        // Check if this is a single service request
+        $service_id = !empty($atts['service_id']) ? $atts['service_id'] : $atts['id'];
+        if (!empty($service_id)) {
+            // Call the single service handler
+            return $this->render_single_service($atts);
+        }
         
         $services = Ruplin_WP_Database_Horse_Class::get_services(array(
             'orderby' => $atts['orderby'],
@@ -89,31 +103,39 @@ class Zen_Shortcodes {
     
     /**
      * Render single service
-     * Usage: [zen_service id="1" field="service_name"] or [zen_service id="1" template="card"]
+     * Usage: [zen_service id="1" dbcol="service_name"] or [zen_service service_id="1" field="service_name"]
      */
     public function render_single_service($atts) {
         $atts = shortcode_atts(array(
-            'id' => '',
-            'field' => '', // specific field to display
+            'id' => '', // Legacy parameter
+            'service_id' => '', // New parameter name
+            'field' => '', // Legacy parameter for column
+            'dbcol' => '', // New parameter for column
             'template' => 'full',
             'show_image' => 'true',
             'image_size' => 'medium',
             'class' => ''
         ), $atts, 'zen_service');
         
-        if (empty($atts['id'])) {
+        // Support both 'service_id' (new) and 'id' (legacy) parameters
+        $service_id = !empty($atts['service_id']) ? $atts['service_id'] : $atts['id'];
+        
+        // Support both 'dbcol' (new) and 'field' (legacy) parameters
+        $column = !empty($atts['dbcol']) ? $atts['dbcol'] : $atts['field'];
+        
+        if (empty($service_id)) {
             return '<p>Service ID is required.</p>';
         }
         
-        $service = Ruplin_WP_Database_Horse_Class::get_service($atts['id']);
+        $service = Ruplin_WP_Database_Horse_Class::get_service($service_id);
         
         if (!$service) {
             return '<p>Service not found.</p>';
         }
         
         // If specific field requested, return just that field
-        if (!empty($atts['field'])) {
-            return isset($service->{$atts['field']}) ? esc_html($service->{$atts['field']}) : '';
+        if (!empty($column)) {
+            return isset($service->{$column}) ? esc_html($service->{$column}) : '';
         }
         
         return $this->render_service_item($service, $atts);
@@ -161,20 +183,34 @@ class Zen_Shortcodes {
     }
     
     /**
-     * Render locations list
-     * Usage: [zen_locations limit="3" template="grid" show_images="true"]
+     * Render locations list or single location
+     * Usage: [zen_locations limit="3" template="grid"] or [zen_locations location_id="1" dbcol="location_name"]
      */
     public function render_locations($atts) {
         $atts = shortcode_atts(array(
+            // Single location parameters
+            'id' => '', // Legacy parameter
+            'location_id' => '', // New parameter name
+            'field' => '', // Legacy parameter for column
+            'dbcol' => '', // New parameter for column
+            // List parameters
             'limit' => -1,
-            'template' => 'list',
+            'template' => 'list', // list, grid, cards, full
             'show_images' => 'false',
+            'show_image' => 'true', // For single location compatibility
             'pinned_first' => 'true',
             'order' => 'ASC',
             'orderby' => 'position_in_custom_order',
             'class' => '',
             'image_size' => 'thumbnail'
         ), $atts, 'zen_locations');
+        
+        // Check if this is a single location request
+        $location_id = !empty($atts['location_id']) ? $atts['location_id'] : $atts['id'];
+        if (!empty($location_id)) {
+            // Call the single location handler
+            return $this->render_single_location($atts);
+        }
         
         $locations = Ruplin_WP_Database_Horse_Class::get_locations(array(
             'orderby' => $atts['orderby'],
@@ -203,30 +239,38 @@ class Zen_Shortcodes {
     
     /**
      * Render single location
-     * Usage: [zen_location id="1" field="location_name"] or [zen_location id="1" template="card"]
+     * Usage: [zen_location id="1" dbcol="location_name"] or [zen_location location_id="1" field="location_name"]
      */
     public function render_single_location($atts) {
         $atts = shortcode_atts(array(
-            'id' => '',
-            'field' => '',
+            'id' => '', // Legacy parameter
+            'location_id' => '', // New parameter name
+            'field' => '', // Legacy parameter for column
+            'dbcol' => '', // New parameter for column
             'template' => 'full',
             'show_image' => 'true',
             'image_size' => 'medium',
             'class' => ''
         ), $atts, 'zen_location');
         
-        if (empty($atts['id'])) {
+        // Support both 'location_id' (new) and 'id' (legacy) parameters
+        $location_id = !empty($atts['location_id']) ? $atts['location_id'] : $atts['id'];
+        
+        // Support both 'dbcol' (new) and 'field' (legacy) parameters
+        $column = !empty($atts['dbcol']) ? $atts['dbcol'] : $atts['field'];
+        
+        if (empty($location_id)) {
             return '<p>Location ID is required.</p>';
         }
         
-        $location = Ruplin_WP_Database_Horse_Class::get_location($atts['id']);
+        $location = Ruplin_WP_Database_Horse_Class::get_location($location_id);
         
         if (!$location) {
             return '<p>Location not found.</p>';
         }
         
-        if (!empty($atts['field'])) {
-            return isset($location->{$atts['field']}) ? esc_html($location->{$atts['field']}) : '';
+        if (!empty($column)) {
+            return isset($location->{$column}) ? esc_html($location->{$column}) : '';
         }
         
         return $this->render_location_item($location, $atts);
@@ -492,26 +536,26 @@ class Zen_Shortcodes {
     
     /**
      * Render sitespren data
-     * Usage: [sitespren wppma_id="1" field="driggs_phone_1"]
+     * Usage: [sitespren dbcol="driggs_phone_1"] or [sitespren wppma_id="1" field="driggs_phone_1"]
      */
     public function render_sitespren($atts) {
         global $wpdb;
         
         $atts = shortcode_atts(array(
-            'wppma_id' => '',
-            'field' => '',
+            'wppma_id' => '1', // Default to 1 since table only has one row
+            'field' => '', // Legacy parameter
+            'dbcol' => '', // New parameter name
             'default' => '', // Default value if field is empty
             'format' => '', // Optional formatting (e.g., 'phone', 'currency', 'date')
             'class' => ''
         ), $atts, 'sitespren');
         
-        // Validate required parameters
-        if (empty($atts['wppma_id'])) {
-            return '<span class="sitespren-error">Sitespren wppma_id is required.</span>';
-        }
+        // Support both 'dbcol' (new) and 'field' (legacy) parameters
+        $column = !empty($atts['dbcol']) ? $atts['dbcol'] : $atts['field'];
         
-        if (empty($atts['field'])) {
-            return '<span class="sitespren-error">Sitespren field is required.</span>';
+        // Validate required parameters
+        if (empty($column)) {
+            return '<span class="sitespren-error">Sitespren dbcol or field is required.</span>';
         }
         
         // Get the sitespren record
@@ -526,12 +570,12 @@ class Zen_Shortcodes {
         }
         
         // Check if field exists
-        if (!property_exists($sitespren, $atts['field'])) {
+        if (!property_exists($sitespren, $column)) {
             return !empty($atts['default']) ? esc_html($atts['default']) : '<span class="sitespren-no-field">Field not found.</span>';
         }
         
         // Get the field value
-        $value = $sitespren->{$atts['field']};
+        $value = $sitespren->{$column};
         
         // Return default if value is empty
         if (empty($value) && !empty($atts['default'])) {
