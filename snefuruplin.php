@@ -3,7 +3,7 @@
  * Plugin Name: Snefuruplin
  * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
  * Description: WordPress plugin for handling image uploads to Snefuru system
- * Version: 4.3.0
+ * Version: 4.4.0
  * Author: Snefuru Team
  * License: GPL v2 or later
  * Text Domain: snefuruplin
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('SNEFURU_PLUGIN_VERSION', '4.3.0');
+define('SNEFURU_PLUGIN_VERSION', '4.4.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -248,6 +248,10 @@ class SnefuruPlugin {
             driggs_citations_done tinyint(1) DEFAULT 0,
             driggs_social_profiles_done tinyint(1) DEFAULT 0,
             is_flylocal tinyint(1) DEFAULT 0,
+            snailimage varchar(255) DEFAULT NULL,
+            snail_image_url text DEFAULT NULL,
+            snail_image_status varchar(50) DEFAULT NULL,
+            snail_image_error text DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
