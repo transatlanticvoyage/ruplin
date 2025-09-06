@@ -839,6 +839,35 @@ class Snefuru_Hurricane {
                                         run function_inject_content_5
                                     </button>
                                     
+                                    <!-- Toggle Switch for Auto Post Title Update -->
+                                    <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                                        <label class="snefuru-toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                                            <input type="checkbox" id="snefuru-auto-title-toggle" checked style="opacity: 0; width: 0; height: 0;">
+                                            <span class="snefuru-toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4CAF50; transition: .3s; border-radius: 24px;"></span>
+                                        </label>
+                                        <span style="font-size: 12px; color: #666;">replace wp_posts.post_title with the first line of text following the double-pound-sign "##" code in the submission</span>
+                                    </div>
+                                    
+                                    <style>
+                                    .snefuru-toggle-slider:before {
+                                        position: absolute;
+                                        content: "";
+                                        height: 18px;
+                                        width: 18px;
+                                        right: 3px;
+                                        bottom: 3px;
+                                        background-color: white;
+                                        transition: .3s;
+                                        border-radius: 50%;
+                                    }
+                                    #snefuru-auto-title-toggle:checked + .snefuru-toggle-slider:before {
+                                        transform: translateX(-26px);
+                                    }
+                                    #snefuru-auto-title-toggle:not(:checked) + .snefuru-toggle-slider {
+                                        background-color: #ccc;
+                                    }
+                                    </style>
+                                    
                                     <div id="snefuru-replex-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                 </div>
                                 
@@ -847,6 +876,7 @@ class Snefuru_Hurricane {
                                     $('#snefuru-replex-submit-btn').on('click', function() {
                                         var content = $('#snefuru-replex-content').val();
                                         var postId = $(this).data('post-id');
+                                        var autoUpdateTitle = $('#snefuru-auto-title-toggle').is(':checked');
                                         var $btn = $(this);
                                         var $result = $('#snefuru-replex-result');
                                         
@@ -867,6 +897,7 @@ class Snefuru_Hurricane {
                                                 action: 'snefuru_inject_replex_content',
                                                 post_id: postId,
                                                 replex_content: content,
+                                                auto_update_title: autoUpdateTitle ? 1 : 0,
                                                 nonce: '<?php echo wp_create_nonce('snefuru_inject_replex_content_nonce'); ?>'
                                             },
                                             success: function(response) {
