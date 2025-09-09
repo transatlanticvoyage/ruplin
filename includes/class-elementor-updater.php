@@ -392,6 +392,21 @@ class Snefuru_Elementor_Updater {
             // Get current settings to preserve them
             $current_settings = $document->get_settings();
             
+            // Log what we're about to update
+            $elements_count = is_array($data_array) ? count($data_array) : 0;
+            error_log("Snefuru: Updating {$elements_count} elements via native API for post {$post_id}");
+            
+            // Look for image URLs in the data being saved
+            $data_string = json_encode($data_array);
+            $image_url_matches = array();
+            if (preg_match_all('/https?:\/\/[^\s"\']+\.(jpg|jpeg|png|gif|webp)/i', $data_string, $matches)) {
+                $image_url_matches = array_unique($matches[0]);
+                error_log("Snefuru: Found " . count($image_url_matches) . " image URLs in update data");
+                foreach (array_slice($image_url_matches, 0, 5) as $i => $url) {
+                    error_log("Snefuru: Image URL " . ($i + 1) . ": " . $url);
+                }
+            }
+            
             // Update document with new elements and preserve settings
             $document->save(array(
                 'elements' => $data_array,
@@ -399,6 +414,38 @@ class Snefuru_Elementor_Updater {
             ));
             
             error_log("Snefuru: Successfully updated via native Elementor API for post {$post_id}");
+            
+            // Force comprehensive cache clearing and regeneration
+            if (class_exists('\Elementor\Core\Files\CSS\Post')) {
+                $css_file = \Elementor\Core\Files\CSS\Post::create($post_id);
+                if ($css_file) {
+                    $css_file->delete();
+                    $css_file->update();
+                    error_log("Snefuru: Forced CSS regeneration for post {$post_id}");
+                }
+            }
+            
+            // Clear WordPress object cache for this post
+            wp_cache_delete($post_id, 'posts');
+            wp_cache_delete($post_id, 'post_meta');
+            
+            // Clear any page caching if available
+            if (function_exists('wp_cache_flush')) {
+                wp_cache_flush();
+                error_log("Snefuru: Flushed WordPress cache");
+            }
+            
+            // Clear WP Rocket cache if available
+            if (function_exists('rocket_clean_post')) {
+                rocket_clean_post($post_id);
+                error_log("Snefuru: Cleared WP Rocket cache for post {$post_id}");
+            }
+            
+            // Clear W3 Total Cache if available  
+            if (function_exists('w3tc_pgcache_flush_post')) {
+                w3tc_pgcache_flush_post($post_id);
+                error_log("Snefuru: Cleared W3TC cache for post {$post_id}");
+            }
             
             return array(
                 'success' => true,
