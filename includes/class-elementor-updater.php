@@ -129,22 +129,35 @@ class Snefuru_Elementor_Updater {
                 return new WP_Error('invalid_structure', 'Invalid Elementor data structure', array('status' => 400));
             }
             
-            // Update all required Elementor meta keys
+            // CRITICAL: Trigger Elementor's before_save hook
+            do_action('elementor/editor/before_save', $post_id, $data_array);
+            
+            // Update post to trigger revision creation (BEFORE updating meta)
+            $post = get_post($post_id);
+            if ($post) {
+                // Force revision by updating post (even with same content)
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_content' => $post->post_content,
+                    'post_modified' => current_time('mysql'),
+                    'post_modified_gmt' => current_time('mysql', 1)
+                ), false);
+                
+                error_log("Snefuru: Created revision for post {$post_id}");
+            }
+            
+            // NOW update all required Elementor meta keys
             $meta_updates = $this->update_elementor_meta_keys($post_id, $elementor_data_to_store, $data_array);
             
             if (!$meta_updates['success']) {
                 return new WP_Error('meta_update_failed', $meta_updates['error'], array('status' => 500));
             }
             
+            // Trigger Elementor's after_save hook (critical for CSS regeneration)
+            do_action('elementor/editor/after_save', $post_id, $data_array);
+            
             // Perform comprehensive cache clearing and regeneration
             $cache_result = $this->clear_and_regenerate_caches($post_id);
-            
-            // Update post modified date to trigger cache invalidation
-            wp_update_post(array(
-                'ID' => $post_id,
-                'post_modified' => current_time('mysql'),
-                'post_modified_gmt' => current_time('mysql', 1)
-            ));
             
             error_log("Snefuru: Successfully completed enhanced elementor update for post {$post_id}");
             
