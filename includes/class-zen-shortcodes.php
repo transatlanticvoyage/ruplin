@@ -43,6 +43,9 @@ class Zen_Shortcodes {
         
         // Sitespren shortcode
         add_shortcode('sitespren', array($this, 'render_sitespren'));
+        
+        // Buffalo shortcodes
+        add_shortcode('buffalo phone number', array($this, 'render_buffalo_phone_number'));
     }
     
     /**
@@ -633,5 +636,32 @@ class Zen_Shortcodes {
         }
         
         return $value;
+    }
+    
+    /**
+     * Render buffalo phone number
+     * Usage: [buffalo phone number] or [buffalo phone number prefix="+1" text="Call us: "]
+     */
+    public function render_buffalo_phone_number($atts) {
+        $atts = shortcode_atts(array(
+            'wppma_id' => '1',
+            'prefix' => '+1',
+            'text' => 'Call us: '
+        ), $atts, 'buffalo phone number');
+        
+        // Get phone number from sitespren data using Snefuruplin's database pattern
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        $phone = $wpdb->get_var($wpdb->prepare(
+            "SELECT driggs_phone_1 FROM $table_name WHERE wppma_id = %d",
+            intval($atts['wppma_id'])
+        ));
+        
+        if (empty($phone)) {
+            return '<!-- No phone number found -->';
+        }
+        
+        return '<div class="phone-number"><a href="tel:' . esc_attr($atts['prefix']) . esc_attr($phone) . '">' . esc_html($atts['text']) . esc_html($phone) . '</a></div>';
     }
 }
