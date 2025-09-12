@@ -79,6 +79,30 @@ class Ruplin_WP_Database_Horse_Class {
                 KEY hudson_imgplanbatch_id (hudson_imgplanbatch_id)
             ) $charset_collate;";
             
+            // Create zen_factory_codes table
+            $factory_codes_table = $wpdb->prefix . 'zen_factory_codes';
+            $factory_codes_sql = "CREATE TABLE $factory_codes_table (
+                code_id INT(11) NOT NULL AUTO_INCREMENT,
+                code_slug VARCHAR(100) NOT NULL,
+                code_type VARCHAR(50) NOT NULL,
+                code_title VARCHAR(255) DEFAULT NULL,
+                code_description TEXT DEFAULT NULL,
+                code_snippet MEDIUMTEXT NOT NULL,
+                dependencies TEXT DEFAULT NULL,
+                usage_example TEXT DEFAULT NULL,
+                is_active BOOLEAN DEFAULT TRUE,
+                is_core BOOLEAN DEFAULT FALSE,
+                plugin_source VARCHAR(100) DEFAULT NULL,
+                wp_version_min VARCHAR(10) DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (code_id),
+                UNIQUE KEY unique_slug (code_slug),
+                KEY idx_type (code_type),
+                KEY idx_active (is_active),
+                KEY idx_source (plugin_source)
+            ) $charset_collate;";
+            
             // Create zen_cache_reports table
             $cache_reports_table = $wpdb->prefix . 'zen_cache_reports';
             $cache_reports_sql = "CREATE TABLE $cache_reports_table (
@@ -106,17 +130,20 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: Creating services table with SQL: ' . $services_sql);
             error_log('Snefuru: Creating locations table with SQL: ' . $locations_sql);
             error_log('Snefuru: Creating orbitposts table with SQL: ' . $orbitposts_sql);
+            error_log('Snefuru: Creating factory_codes table with SQL: ' . $factory_codes_sql);
             error_log('Snefuru: Creating cache_reports table with SQL: ' . $cache_reports_sql);
             
             $services_result = dbDelta($services_sql);
             $locations_result = dbDelta($locations_sql);
             $orbitposts_result = dbDelta($orbitposts_sql);
+            $factory_codes_result = dbDelta($factory_codes_sql);
             $cache_reports_result = dbDelta($cache_reports_sql);
             
             // Log dbDelta results
             error_log('Snefuru: Services table dbDelta result: ' . print_r($services_result, true));
             error_log('Snefuru: Locations table dbDelta result: ' . print_r($locations_result, true));
             error_log('Snefuru: Orbitposts table dbDelta result: ' . print_r($orbitposts_result, true));
+            error_log('Snefuru: Factory codes table dbDelta result: ' . print_r($factory_codes_result, true));
             error_log('Snefuru: Cache reports table dbDelta result: ' . print_r($cache_reports_result, true));
             
             // Update database version
@@ -126,15 +153,17 @@ class Ruplin_WP_Database_Horse_Class {
             $services_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'") == $services_table;
             $locations_exists = $wpdb->get_var("SHOW TABLES LIKE '$locations_table'") == $locations_table;
             $orbitposts_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
+            $factory_codes_exists = $wpdb->get_var("SHOW TABLES LIKE '$factory_codes_table'") == $factory_codes_table;
             $cache_reports_exists = $wpdb->get_var("SHOW TABLES LIKE '$cache_reports_table'") == $cache_reports_table;
             
             // Log verification results
             error_log('Snefuru: Services table exists: ' . ($services_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Locations table exists: ' . ($locations_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Orbitposts table exists: ' . ($orbitposts_exists ? 'YES' : 'NO'));
+            error_log('Snefuru: Factory codes table exists: ' . ($factory_codes_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Cache reports table exists: ' . ($cache_reports_exists ? 'YES' : 'NO'));
             
-            if ($services_exists && $locations_exists && $orbitposts_exists && $cache_reports_exists) {
+            if ($services_exists && $locations_exists && $orbitposts_exists && $factory_codes_exists && $cache_reports_exists) {
                 error_log('Snefuru: Zen tables created/updated successfully');
                 return true;
             } else {
