@@ -303,55 +303,8 @@ class SnefuruPlugin {
             );
         }
         
-        // Insert default hoof codes if table is empty
-        $existing_hoof_count = $wpdb->get_var("SELECT COUNT(*) FROM $zen_hoof_codes_table");
-        
-        if ($existing_hoof_count == 0) {
-            // Insert antelope_phone_piece
-            $wpdb->insert(
-                $zen_hoof_codes_table,
-                array(
-                    'hoof_slug' => 'antelope_phone_piece',
-                    'hoof_title' => 'Antelope Phone Piece',
-                    'hoof_content' => '<div class="phone-number">[beginning_a_code_moose] Call us: [phone_local]</a></div>',
-                    'hoof_description' => 'A complete phone link with local formatting wrapped in a div',
-                    'is_active' => 1,
-                    'is_system' => 1,
-                    'position_order' => 1
-                ),
-                array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
-            );
-            
-            // Insert lamb_phone_piece
-            $wpdb->insert(
-                $zen_hoof_codes_table,
-                array(
-                    'hoof_slug' => 'lamb_phone_piece',
-                    'hoof_title' => 'Lamb Phone Piece',
-                    'hoof_content' => '<button class="phone-button">[beginning_a_code_moose]📞 [phone_international]</a></button>',
-                    'hoof_description' => 'A phone button with international formatting and emoji',
-                    'is_active' => 1,
-                    'is_system' => 1,
-                    'position_order' => 2
-                ),
-                array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
-            );
-            
-            // Insert muskox_phone_hub
-            $wpdb->insert(
-                $zen_hoof_codes_table,
-                array(
-                    'hoof_slug' => 'muskox_phone_hub',
-                    'hoof_title' => 'Muskox Phone Hub',
-                    'hoof_content' => '<div class="phone-number">[beginning_a_code_moose] Call us: [phone_local]</a></div>',
-                    'hoof_description' => 'A phone hub with local formatting and call-to-action text',
-                    'is_active' => 1,
-                    'is_system' => 1,
-                    'position_order' => 3
-                ),
-                array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
-            );
-        }
+        // Insert default hoof codes using version-based migration
+        $this->migrate_default_hoof_codes();
     }
     
     /**
@@ -431,6 +384,76 @@ class SnefuruPlugin {
         } else {
             error_log("Snefuru: Sitespren table already has {$existing_count} records, skipping default data insertion");
         }
+    }
+    
+    /**
+     * Version-based migration system for default hoof codes
+     * Tracks which default entries have been installed and adds new ones on updates
+     */
+    private function migrate_default_hoof_codes() {
+        global $wpdb;
+        
+        $hoof_codes_table = $wpdb->prefix . 'zen_hoof_codes';
+        $installed_defaults = get_option('snefuru_hoof_defaults_version', '0.0.0');
+        
+        // Define default hoof codes with their introduction versions
+        $default_codes = array(
+            '1.0.0' => array(
+                array(
+                    'hoof_slug' => 'antelope_phone_piece',
+                    'hoof_title' => 'Antelope Phone Piece',
+                    'hoof_content' => '<div class="phone-number">[beginning_a_code_moose] Call us: [phone_local]</a></div>',
+                    'hoof_description' => 'A complete phone link with local formatting wrapped in a div',
+                    'is_active' => 1,
+                    'is_system' => 1,
+                    'position_order' => 1
+                ),
+                array(
+                    'hoof_slug' => 'lamb_phone_piece',
+                    'hoof_title' => 'Lamb Phone Piece',
+                    'hoof_content' => '<button class="phone-button">[beginning_a_code_moose]📞 [phone_international]</a></button>',
+                    'hoof_description' => 'A phone button with international formatting and emoji',
+                    'is_active' => 1,
+                    'is_system' => 1,
+                    'position_order' => 2
+                )
+            ),
+            '1.1.0' => array(
+                array(
+                    'hoof_slug' => 'muskox_phone_hub',
+                    'hoof_title' => 'Muskox Phone Hub',
+                    'hoof_content' => '<div class="phone-number">[beginning_a_code_moose] Call us: [phone_local]</a></div>',
+                    'hoof_description' => 'A phone hub with local formatting and call-to-action text',
+                    'is_active' => 1,
+                    'is_system' => 1,
+                    'position_order' => 3
+                )
+            )
+        );
+        
+        // Install missing default codes from each version
+        foreach ($default_codes as $version => $codes) {
+            if (version_compare($installed_defaults, $version, '<')) {
+                foreach ($codes as $code) {
+                    // Check if this specific code already exists
+                    $exists = $wpdb->get_var($wpdb->prepare(
+                        "SELECT COUNT(*) FROM $hoof_codes_table WHERE hoof_slug = %s",
+                        $code['hoof_slug']
+                    ));
+                    
+                    if (!$exists) {
+                        $wpdb->insert(
+                            $hoof_codes_table,
+                            $code,
+                            array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
+                        );
+                    }
+                }
+            }
+        }
+        
+        // Update the installed defaults version
+        update_option('snefuru_hoof_defaults_version', '1.1.0');
     }
 }
 
