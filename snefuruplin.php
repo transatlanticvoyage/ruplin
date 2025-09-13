@@ -336,6 +336,21 @@ class SnefuruPlugin {
                 ),
                 array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
             );
+            
+            // Insert muskox_phone_hub
+            $wpdb->insert(
+                $zen_hoof_codes_table,
+                array(
+                    'hoof_slug' => 'muskox_phone_hub',
+                    'hoof_title' => 'Muskox Phone Hub',
+                    'hoof_content' => '<div class="phone-number">[beginning_a_code_moose] Call us: [phone_local]</a></div>',
+                    'hoof_description' => 'A phone hub with local formatting and call-to-action text',
+                    'is_active' => 1,
+                    'is_system' => 1,
+                    'position_order' => 3
+                ),
+                array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
+            );
         }
     }
     
