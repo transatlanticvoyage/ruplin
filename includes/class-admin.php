@@ -4747,14 +4747,14 @@ class Snefuru_Admin {
                             </td>
                         </tr>
                         
-                        <tr data-type="driggsman" data-description="open /driggsman?PARAMETER">
+                        <tr data-type="drom" data-description="open /drom?PARAMETER">
                             <td style="text-align: center; padding: 12px 8px;">
-                                <input type="checkbox" class="pantheon-checkbox" value="driggsman-1" style="transform: scale(1.2);">
+                                <input type="checkbox" class="pantheon-checkbox" value="drom-1" style="transform: scale(1.2);">
                             </td>
                             <td style="padding: 12px;">
-                                <strong style="color: #0073aa;">open /driggsman?PARAMETER</strong>
+                                <strong style="color: #0073aa;">open /drom?PARAMETER</strong>
                                 <div style="color: #666; font-size: 12px; margin-top: 4px;">
-                                    Access Driggsman interface with parameter
+                                    Access Drom interface with parameter
                                 </div>
                             </td>
                             <td style="text-align: center; padding: 12px;">

@@ -372,7 +372,7 @@ class Snefuru_Hurricane {
                 if (empty($sitespren_base)) {
                     $sitespren_base = 'example.com'; // fallback if no data found
                 }
-                $driggsman_url = 'http://localhost:3000/driggsman?activefilterchamber=daylight&sitesentered=' . urlencode($sitespren_base);
+                $drom_url = 'http://localhost:3000/drom?activefilterchamber=daylight&sitesentered=' . urlencode($sitespren_base);
                 $sitejar4_url = 'http://localhost:3000/sitejar4?sitesentered=' . urlencode($sitespren_base);
                 ?>
                 
@@ -394,16 +394,16 @@ class Snefuru_Hurricane {
                 
                 <!-- Driggsman Button with Copy -->
                 <div style="display: flex; align-items: center; margin-left: 15px;">
-                    <a href="<?php echo esc_url($driggsman_url); ?>" 
+                    <a href="<?php echo esc_url($drom_url); ?>" 
                        target="_blank" 
                        style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
-                        open /driggsman
+                        open /drom
                     </a>
                     <button type="button" 
                             class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
-                            data-copy-url="<?php echo esc_url($driggsman_url); ?>"
+                            data-copy-url="<?php echo esc_url($drom_url); ?>"
                             style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
-                            title="Copy driggsman URL">
+                            title="Copy drom URL">
                         📋
                     </button>
                 </div>
@@ -1691,9 +1691,9 @@ y_</textarea>
                                                 </td>
                                             </tr>
                                             
-                                            <tr data-type="driggsman" data-description="open /driggsman?PARAMETER">
+                                            <tr data-type="drom" data-description="open /drom?PARAMETER">
                                                 <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
-                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="driggsman-1" style="width: 14px; height: 14px;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="drom-1" style="width: 14px; height: 14px;">
                                                 </td>
                                                 <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
                                                     <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
@@ -1701,7 +1701,7 @@ y_</textarea>
                                                     </a>
                                                 </td>
                                                 <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
-                                                    <strong style="color: #0073aa;">open /driggsman?PARAMETER</strong>
+                                                    <strong style="color: #0073aa;">open /drom?PARAMETER</strong>
                                                 </td>
                                                 <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
                                                     -
