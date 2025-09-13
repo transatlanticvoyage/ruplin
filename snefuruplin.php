@@ -112,6 +112,9 @@ class SnefuruPlugin {
         // Create zen tables
         Ruplin_WP_Database_Horse_Class::create_tables();
         
+        // Insert default sitespren data
+        $this->maybe_insert_default_sitespren_data();
+        
         // Schedule recurring events
         if (!wp_next_scheduled('snefuru_sync_data')) {
             wp_schedule_event(time(), 'hourly', 'snefuru_sync_data');
@@ -308,6 +311,53 @@ class SnefuruPlugin {
             $this->activate();
             
             error_log('Snefuru: Plugin database schema updated successfully');
+        }
+    }
+    
+    /**
+     * Insert default sitespren data if table is empty
+     * Populates sitespren_base with current site domain
+     */
+    private function maybe_insert_default_sitespren_data() {
+        global $wpdb;
+        
+        // Check if zen_sitespren table has any records
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        $existing_count = $wpdb->get_var("SELECT COUNT(*) FROM $sitespren_table");
+        
+        if ($existing_count == 0) {
+            // Extract domain from current site URL
+            $site_url = get_site_url();
+            $parsed_url = parse_url($site_url);
+            $domain = isset($parsed_url['host']) ? $parsed_url['host'] : 'localhost';
+            
+            // Remove www. prefix if present
+            if (strpos($domain, 'www.') === 0) {
+                $domain = substr($domain, 4);
+            }
+            
+            // Insert default record
+            $result = $wpdb->insert(
+                $sitespren_table,
+                array(
+                    'id' => wp_generate_uuid4(),
+                    'sitespren_base' => $domain,
+                    'driggs_brand_name' => get_option('blogname', 'My Site'),
+                    'driggs_site_type_purpose' => 'WordPress Site',
+                    'driggs_phone_country_code' => 1,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql')
+                ),
+                array('%s', '%s', '%s', '%s', '%d', '%s', '%s')
+            );
+            
+            if ($result) {
+                error_log("Snefuru: Created default sitespren record with domain: {$domain}");
+            } else {
+                error_log("Snefuru: Failed to create default sitespren record");
+            }
+        } else {
+            error_log("Snefuru: Sitespren table already has {$existing_count} records, skipping default data insertion");
         }
     }
 }
