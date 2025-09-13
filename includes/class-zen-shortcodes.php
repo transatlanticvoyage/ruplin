@@ -47,6 +47,9 @@ class Zen_Shortcodes {
         // Buffalo shortcodes
         add_shortcode('buffalo_phone_number', array($this, 'render_buffalo_phone_number'));
         add_shortcode('beginning_a_code_moose', array($this, 'render_beginning_a_code_moose'));
+        
+        // Register dynamic hoof shortcodes
+        $this->register_hoof_shortcodes();
     }
     
     /**
@@ -718,5 +721,82 @@ class Zen_Shortcodes {
         $class_attr = !empty($atts['class']) ? ' class="' . esc_attr($atts['class']) . '"' : '';
         
         return '<a href="tel:' . esc_attr($tel_link) . '"' . $class_attr . '>';
+    }
+    
+    /**
+     * Register dynamic hoof shortcodes from database
+     */
+    private function register_hoof_shortcodes() {
+        global $wpdb;
+        
+        $table = $wpdb->prefix . 'zen_hoof_codes';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table'") != $table) {
+            return;
+        }
+        
+        // Get all active hoof codes
+        $hoof_codes = $wpdb->get_results("SELECT hoof_slug FROM $table WHERE is_active = 1");
+        
+        if ($hoof_codes) {
+            foreach ($hoof_codes as $code) {
+                add_shortcode($code->hoof_slug, array($this, 'render_hoof_shortcode'));
+            }
+        }
+    }
+    
+    /**
+     * Render dynamic hoof shortcode
+     */
+    public function render_hoof_shortcode($atts, $content = null, $tag = '') {
+        global $wpdb;
+        
+        // Get the hoof code content from database
+        $table = $wpdb->prefix . 'zen_hoof_codes';
+        $hoof_content = $wpdb->get_var($wpdb->prepare(
+            "SELECT hoof_content FROM $table WHERE hoof_slug = %s AND is_active = 1",
+            $tag
+        ));
+        
+        if (!$hoof_content) {
+            return '<!-- Hoof code not found: ' . esc_html($tag) . ' -->';
+        }
+        
+        // Process any nested shortcodes in the content
+        return do_shortcode($hoof_content);
+    }
+    
+    /**
+     * Get all hoof codes for admin display
+     */
+    public static function get_hoof_codes() {
+        global $wpdb;
+        
+        $table = $wpdb->prefix . 'zen_hoof_codes';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table'") != $table) {
+            return array();
+        }
+        
+        return $wpdb->get_results("SELECT * FROM $table ORDER BY position_order ASC, hoof_id ASC");
+    }
+    
+    /**
+     * Update hoof code content
+     */
+    public static function update_hoof_code($hoof_id, $content) {
+        global $wpdb;
+        
+        $table = $wpdb->prefix . 'zen_hoof_codes';
+        
+        return $wpdb->update(
+            $table,
+            array('hoof_content' => $content),
+            array('hoof_id' => $hoof_id),
+            array('%s'),
+            array('%d')
+        );
     }
 }

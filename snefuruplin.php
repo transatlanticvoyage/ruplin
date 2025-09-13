@@ -264,6 +264,28 @@ class SnefuruPlugin {
         
         dbDelta($zen_sitespren_sql);
         
+        // Create zen_hoof_codes table for dynamic shortcodes (shared with Grove)
+        $zen_hoof_codes_table = $wpdb->prefix . 'zen_hoof_codes';
+        $zen_hoof_codes_sql = "CREATE TABLE IF NOT EXISTS $zen_hoof_codes_table (
+            hoof_id int(11) NOT NULL AUTO_INCREMENT,
+            hoof_slug varchar(100) NOT NULL,
+            hoof_title varchar(255) DEFAULT NULL,
+            hoof_content mediumtext NOT NULL,
+            hoof_description text DEFAULT NULL,
+            is_active tinyint(1) DEFAULT 1,
+            is_system tinyint(1) DEFAULT 0,
+            position_order int(11) DEFAULT 0,
+            created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+            updated_at timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (hoof_id),
+            UNIQUE KEY unique_slug (hoof_slug),
+            INDEX idx_active (is_active),
+            INDEX idx_system (is_system),
+            INDEX idx_position (position_order)
+        ) $charset_collate;";
+        
+        dbDelta($zen_hoof_codes_sql);
+        
         // Update plugin database version to trigger future schema updates
         update_option('snefuru_plugin_db_version', SNEFURU_PLUGIN_VERSION);
         
@@ -278,6 +300,41 @@ class SnefuruPlugin {
                     'styling_content' => "/* Bespoke CSS Editor - Add your custom styles here */\n\nbody {\n    /* Your custom styles */\n}",
                     'styling_end_url' => $default_url
                 )
+            );
+        }
+        
+        // Insert default hoof codes if table is empty
+        $existing_hoof_count = $wpdb->get_var("SELECT COUNT(*) FROM $zen_hoof_codes_table");
+        
+        if ($existing_hoof_count == 0) {
+            // Insert antelope_phone_piece
+            $wpdb->insert(
+                $zen_hoof_codes_table,
+                array(
+                    'hoof_slug' => 'antelope_phone_piece',
+                    'hoof_title' => 'Antelope Phone Piece',
+                    'hoof_content' => '<div class="phone-number">[beginning_a_code_moose] Call us: [phone_local]</a></div>',
+                    'hoof_description' => 'A complete phone link with local formatting wrapped in a div',
+                    'is_active' => 1,
+                    'is_system' => 1,
+                    'position_order' => 1
+                ),
+                array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
+            );
+            
+            // Insert lamb_phone_piece
+            $wpdb->insert(
+                $zen_hoof_codes_table,
+                array(
+                    'hoof_slug' => 'lamb_phone_piece',
+                    'hoof_title' => 'Lamb Phone Piece',
+                    'hoof_content' => '<button class="phone-button">[beginning_a_code_moose]📞 [phone_international]</a></button>',
+                    'hoof_description' => 'A phone button with international formatting and emoji',
+                    'is_active' => 1,
+                    'is_system' => 1,
+                    'position_order' => 2
+                ),
+                array('%s', '%s', '%s', '%s', '%d', '%d', '%d')
             );
         }
     }
