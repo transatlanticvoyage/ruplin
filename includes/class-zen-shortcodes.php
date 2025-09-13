@@ -46,6 +46,7 @@ class Zen_Shortcodes {
         
         // Buffalo shortcodes
         add_shortcode('buffalo_phone_number', array($this, 'render_buffalo_phone_number'));
+        add_shortcode('beginning_a_code_moose', array($this, 'render_beginning_a_code_moose'));
     }
     
     /**
@@ -673,5 +674,49 @@ class Zen_Shortcodes {
         }
         
         return '<div class="phone-number"><a href="tel:' . esc_attr($atts['prefix']) . esc_attr($phone) . '">' . esc_html($atts['text']) . esc_html($phone) . '</a></div>';
+    }
+    
+    /**
+     * Beginning A Code Moose Shortcode: [beginning_a_code_moose]
+     * Outputs opening <a> tag with tel: link using dynamic phone data
+     * User must manually close with </a> tag
+     */
+    public function render_beginning_a_code_moose($atts) {
+        global $wpdb;
+        
+        $atts = shortcode_atts(array(
+            'wppma_id' => '1',
+            'class' => ''
+        ), $atts, 'beginning_a_code_moose');
+        
+        // Get phone from database
+        $table = $wpdb->prefix . 'zen_sitespren';
+        $phone = $wpdb->get_var($wpdb->prepare(
+            "SELECT driggs_phone_1 FROM {$table} WHERE wppma_id = %d",
+            $atts['wppma_id']
+        ));
+        
+        if (!$phone) return '<!-- No phone number found -->';
+        
+        // Try to get country code, fallback to 1 if column doesn't exist or is null
+        $country_code = '1'; // Default
+        $country_code_result = $wpdb->get_var($wpdb->prepare(
+            "SELECT driggs_phone_country_code FROM {$table} WHERE wppma_id = %d",
+            $atts['wppma_id']
+        ));
+        
+        if ($country_code_result) {
+            $country_code = $country_code_result;
+        }
+        
+        $phone_clean = preg_replace('/[^0-9]/', '', $phone);
+        
+        // Create tel: link (always international format)
+        $tel_link = '+' . $country_code . $phone_clean;
+        
+        // Build opening <a> tag
+        $class_attr = !empty($atts['class']) ? ' class="' . esc_attr($atts['class']) . '"' : '';
+        
+        return '<a href="tel:' . esc_attr($tel_link) . '"' . $class_attr . '>';
     }
 }
