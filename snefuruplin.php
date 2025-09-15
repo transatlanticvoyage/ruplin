@@ -53,6 +53,7 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-dublish-api.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-vacuum-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
         
@@ -81,6 +82,7 @@ class SnefuruPlugin {
         new Snefuru_Barkro_Updater();
         new Snefuru_Elementor_Updater();
         new Snefuru_Dublish_API();
+        new Snefuru_Zen_Vacuum_API();
         new Zen_Shortcodes();
         
         // Initialize Elementor integrations
