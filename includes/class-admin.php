@@ -48,6 +48,16 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
         add_action('wp_ajax_rup_driggs_update_field', array($this, 'rup_driggs_update_field'));
         
+        // Export AJAX handlers
+        add_action('wp_ajax_rup_export_sharkintax', array($this, 'rup_export_sharkintax'));
+        add_action('wp_ajax_rup_export_walrustax', array($this, 'rup_export_walrustax'));
+        add_action('wp_ajax_rup_export_csv', array($this, 'rup_export_csv'));
+        add_action('wp_ajax_rup_export_xls', array($this, 'rup_export_xls'));
+        add_action('wp_ajax_rup_export_sql', array($this, 'rup_export_sql'));
+        add_action('wp_ajax_rup_export_nova_beluga_both', array($this, 'rup_export_nova_beluga_both'));
+        add_action('wp_ajax_rup_export_nova_beluga_friendly', array($this, 'rup_export_nova_beluga_friendly'));
+        add_action('wp_ajax_rup_get_all_friendly_names', array($this, 'rup_get_all_friendly_names'));
+        
         // Sitespren export AJAX action
         add_action('wp_ajax_export_sitespren', array($this, 'handle_sitespren_export'));
         
@@ -3640,6 +3650,67 @@ class Snefuru_Admin {
                     </div>
                 </div>
                 
+                <!-- Export Bar -->
+                <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <strong>Current Site:</strong> <?php echo esc_html($current_site_url); ?>
+                            
+                            <span style="margin: 0 5px;">|</span>
+                            
+                            <button id="copy-sharkintax" class="button button-secondary" style="margin-right: 5px;">copy all sharkintax</button>
+                            <button id="copy-walrustax" class="button button-secondary" style="margin-right: 5px;">copy all walrustax</button>
+                            <button id="export-xls" class="button button-secondary" style="margin-right: 5px;">xls</button>
+                            <button id="export-csv" class="button button-secondary" style="margin-right: 5px;">csv</button>
+                            <button id="export-sql" class="button button-secondary" style="margin-right: 5px;">sql</button>
+                            
+                            <!-- Nova Beluga Button with Dropdown -->
+                            <div style="position: relative; display: inline-block; margin-right: 5px;">
+                                <button id="nova-beluga-btn" class="button button-secondary" style="border-radius: 3px 0 0 3px;">nova beluga</button>
+                                <button id="nova-beluga-dropdown-btn" class="button button-secondary" style="border-radius: 0 3px 3px 0; border-left: none; padding: 6px 8px; min-width: 20px;">▼</button>
+                                
+                                <!-- Dropdown Menu -->
+                                <div id="nova-beluga-dropdown" style="display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd; border-radius: 3px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000; min-width: 250px;">
+                                    <table style="width: 100%; border-collapse: collapse;">
+                                        <tr>
+                                            <td colspan="2" style="padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #ddd; font-weight: bold; text-align: center;">Nova Beluga Export Options</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 8px 12px; border-right: 1px solid #eee; width: 50%;">
+                                                <div class="nova-option" data-action="both" style="cursor: pointer; padding: 4px; border-radius: 3px;" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">
+                                                    copy with both field name sets
+                                                </div>
+                                            </td>
+                                            <td style="padding: 8px 12px; width: 50%;">
+                                                <div class="nova-option" data-action="friendly" style="cursor: pointer; padding: 4px; border-radius: 3px;" onmouseover="this.style.backgroundColor='#f0f0f0'" onmouseout="this.style.backgroundColor='transparent'">
+                                                    copy with friendly_name_1_datum only
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <span style="margin: 0 10px; height: 20px; width: 1px; background: #ddd; display: inline-block;"></span>
+                            
+                            <!-- Checkbox Options -->
+                            <label style="display: flex; align-items: center; margin-right: 10px;">
+                                <input type="checkbox" id="omit-no-friendly" checked style="margin-right: 5px;">
+                                omit items w/o lighthouse friendly name 1
+                            </label>
+                            <label style="display: flex; align-items: center;">
+                                <input type="checkbox" id="use-custom-position" checked style="margin-right: 5px;">
+                                use custom_position_a to order
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <button id="save-all-changes" class="button button-primary">Save All Changes</button>
+                            <button id="reset-defaults" class="button button-secondary">Reset to Defaults</button>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Vertical Field Table -->
                 <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
                     <div style="overflow-x: auto;">
@@ -3652,6 +3723,7 @@ class Snefuru_Admin {
                                     <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 250px;">Field Name</th>
                                     <th style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">Value</th>
                                     <th style="padding: 0; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 20px;">stuff3</th>
+                                    <th class="dogsdogs" style="padding: 12px 8px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa;">_zen_lighthouse_friendly_names.friendly_name_1_datum</th>
                                 </tr>
                             </thead>
                             <tbody id="table-body">
@@ -3986,8 +4058,60 @@ class Snefuru_Admin {
                     stuff3Td.append(roaring_div);
                     tr.append(stuff3Td);
                     
+                    // Add lighthouse friendly name column
+                    let friendlyNameTd = $('<td style="padding: 8px; border: 1px solid #ddd; text-align: left;"></td>');
+                    friendlyNameTd.text(''); // Placeholder for friendly name - will be populated later
+                    tr.append(friendlyNameTd);
+                    
                     tbody.append(tr);
                 });
+                
+                // After table is built, populate friendly names
+                populateFriendlyNames();
+            }
+            
+            function populateFriendlyNames() {
+                // Get all field keys from the table
+                let fieldKeys = [];
+                $('#table-body tr').each(function() {
+                    let row = $(this);
+                    if (!row.find('td[colspan]').length) { // Skip separator rows
+                        let fieldNameCell = row.find('td:nth-child(2)'); // Field name is 2nd column
+                        if (fieldNameCell.length) {
+                            let fieldName = fieldNameCell.text().trim();
+                            if (fieldName) {
+                                fieldKeys.push({
+                                    element: row.find('td:last-child'), // Last column is friendly name
+                                    fieldName: fieldName
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                // Make single AJAX call to get all friendly names
+                if (fieldKeys.length > 0) {
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'rup_get_all_friendly_names',
+                            nonce: '<?php echo wp_create_nonce('rup_driggs_nonce'); ?>',
+                            field_names: fieldKeys.map(fk => fk.fieldName)
+                        },
+                        success: function(response) {
+                            if (response.success && response.data) {
+                                fieldKeys.forEach(function(fieldKey, index) {
+                                    let friendlyName = response.data[fieldKey.fieldName] || '';
+                                    fieldKey.element.text(friendlyName);
+                                });
+                            }
+                        },
+                        error: function() {
+                            console.log('Failed to load friendly names');
+                        }
+                    });
+                }
             }
             
             function createToggleSwitch(fieldKey, isChecked) {
@@ -4180,6 +4304,162 @@ class Snefuru_Admin {
             $('#select-all').change(function() {
                 $('input[data-field]').prop('checked', this.checked);
             });
+            
+            // Export functionality
+            $('#copy-sharkintax').click(function() {
+                exportData('rup_export_sharkintax', 'Sharkintax data copied to clipboard!');
+            });
+            
+            $('#copy-walrustax').click(function() {
+                exportData('rup_export_walrustax', 'Walrustax data copied to clipboard!');
+            });
+            
+            $('#export-csv').click(function() {
+                window.location = ajaxurl + '?action=rup_export_csv&nonce=<?php echo wp_create_nonce('rup_export_nonce'); ?>';
+            });
+            
+            $('#export-xls').click(function() {
+                exportData('rup_export_xls', null, true);
+            });
+            
+            $('#export-sql').click(function() {
+                exportData('rup_export_sql', 'SQL export copied to clipboard!');
+            });
+            
+            // Nova Beluga dropdown functionality
+            $('#nova-beluga-dropdown-btn').click(function(e) {
+                e.stopPropagation();
+                $('#nova-beluga-dropdown').toggle();
+            });
+            
+            $(document).click(function() {
+                $('#nova-beluga-dropdown').hide();
+            });
+            
+            $('#nova-beluga-dropdown').on('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Handle nova beluga option selection
+            $('.nova-option').on('click', function() {
+                const action = $(this).data('action');
+                $('#nova-beluga-dropdown').hide();
+                
+                if (action === 'both') {
+                    // Copy with both field name sets
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'rup_export_nova_beluga_both',
+                            nonce: '<?php echo wp_create_nonce('rup_export_nonce'); ?>',
+                            omit_no_friendly: $('#omit-no-friendly').is(':checked'),
+                            use_custom_position: $('#use-custom-position').is(':checked')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                copyToClipboard(response.data, 'Nova Beluga data (both field sets) copied to clipboard!');
+                            } else {
+                                alert('Error: ' + response.data);
+                            }
+                        },
+                        error: function() {
+                            alert('AJAX error occurred');
+                        }
+                    });
+                } else if (action === 'friendly') {
+                    // Copy with friendly_name_1_datum only
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'rup_export_nova_beluga_friendly',
+                            nonce: '<?php echo wp_create_nonce('rup_export_nonce'); ?>',
+                            omit_no_friendly: $('#omit-no-friendly').is(':checked'),
+                            use_custom_position: $('#use-custom-position').is(':checked')
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                copyToClipboard(response.data, 'Nova Beluga data (friendly names only) copied to clipboard!');
+                            } else {
+                                alert('Error: ' + response.data);
+                            }
+                        },
+                        error: function() {
+                            alert('AJAX error occurred');
+                        }
+                    });
+                }
+            });
+            
+            function exportData(action, successMessage, isDownload = false) {
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: action,
+                        nonce: '<?php echo wp_create_nonce('rup_export_nonce'); ?>'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            if (isDownload) {
+                                // Handle file download
+                                let blob = new Blob([response.data], { type: 'application/vnd.ms-excel' });
+                                let url = window.URL.createObjectURL(blob);
+                                let a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = 'sitespren_export.xls';
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                            } else if (successMessage) {
+                                copyToClipboard(response.data, successMessage);
+                            }
+                        } else {
+                            alert('Error: ' + response.data);
+                        }
+                    },
+                    error: function() {
+                        alert('AJAX error occurred');
+                    }
+                });
+            }
+            
+            function copyToClipboard(data, successMessage) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(data).then(function() {
+                        alert(successMessage);
+                    }).catch(function(err) {
+                        console.error('Failed to copy:', err);
+                        fallbackCopy(data, successMessage);
+                    });
+                } else {
+                    fallbackCopy(data, successMessage);
+                }
+            }
+            
+            function fallbackCopy(data, successMessage) {
+                // Create temporary textarea
+                let textArea = document.createElement('textarea');
+                textArea.value = data;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    alert(successMessage);
+                } catch (err) {
+                    alert('Failed to copy to clipboard. Please copy manually.');
+                    console.error('Fallback copy failed:', err);
+                }
+                
+                document.body.removeChild(textArea);
+            }
         });
         </script>
         
@@ -11398,5 +11678,480 @@ class Snefuru_Admin {
         // Include the independent bcenter page file
         require_once SNEFURU_PLUGIN_PATH . 'includes/pages/bcenter-page.php';
         snefuru_bcenter_page();
+    }
+    
+    /**
+     * Get all friendly names from lighthouse table
+     */
+    public function rup_get_all_friendly_names() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_driggs_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        $field_names = $_POST['field_names'] ?? array();
+        
+        if (!is_array($field_names) || empty($field_names)) {
+            wp_send_json_error('Missing field names');
+        }
+        
+        $friendly_names = array();
+        $table_name = 'sitespren';
+        
+        foreach ($field_names as $field_name) {
+            $field_name = sanitize_text_field($field_name);
+            $friendly_name = Ruplin_WPPMA_Database::get_friendly_name($table_name, $field_name);
+            $friendly_names[$field_name] = $friendly_name;
+        }
+        
+        wp_send_json_success($friendly_names);
+    }
+    
+    /**
+     * Export data as Sharkintax format
+     */
+    public function rup_export_sharkintax() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_export_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_send_json_error('No data found');
+        }
+        
+        // Generate sharkintax format (simple format for now)
+        $output = $this->generate_sharkintax_format($sitespren_data);
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Export data as Walrustax format
+     */
+    public function rup_export_walrustax() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_export_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_send_json_error('No data found');
+        }
+        
+        // Generate walrustax format (tab-separated)
+        $output = $this->generate_walrustax_format($sitespren_data);
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Export data as Nova Beluga format (both field name sets)
+     */
+    public function rup_export_nova_beluga_both() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_export_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_send_json_error('No data found');
+        }
+        
+        // Get checkbox options
+        $omit_no_friendly = isset($_POST['omit_no_friendly']) && $_POST['omit_no_friendly'] === 'true';
+        $use_custom_position = isset($_POST['use_custom_position']) && $_POST['use_custom_position'] === 'true';
+        
+        // Generate nova beluga format with both field sets
+        $output = $this->generate_nova_beluga_both($sitespren_data, $omit_no_friendly, $use_custom_position);
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Export data as Nova Beluga format (friendly names only)
+     */
+    public function rup_export_nova_beluga_friendly() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_export_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_send_json_error('No data found');
+        }
+        
+        // Get checkbox options
+        $omit_no_friendly = isset($_POST['omit_no_friendly']) && $_POST['omit_no_friendly'] === 'true';
+        $use_custom_position = isset($_POST['use_custom_position']) && $_POST['use_custom_position'] === 'true';
+        
+        // Generate nova beluga format with friendly names only
+        $output = $this->generate_nova_beluga_friendly($sitespren_data, $omit_no_friendly, $use_custom_position);
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Export data as CSV
+     */
+    public function rup_export_csv() {
+        // Verify nonce
+        if (!isset($_GET['nonce']) || !wp_verify_nonce($_GET['nonce'], 'rup_export_nonce')) {
+            wp_die('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_die('No data found');
+        }
+        
+        // Send CSV headers
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="sitespren_export.csv"');
+        header('Cache-Control: no-cache, must-revalidate');
+        
+        // Generate and output CSV
+        echo $this->generate_csv_format($sitespren_data);
+        exit;
+    }
+    
+    /**
+     * Export data as XLS
+     */
+    public function rup_export_xls() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_export_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_send_json_error('No data found');
+        }
+        
+        // Generate XLS format
+        $output = $this->generate_xls_format($sitespren_data);
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Export data as SQL
+     */
+    public function rup_export_sql() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rup_export_nonce')) {
+            wp_send_json_error('Invalid nonce');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        // Get the sitespren data
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $table_name WHERE wppma_id = 1", ARRAY_A);
+        
+        if (!$sitespren_data) {
+            wp_send_json_error('No data found');
+        }
+        
+        // Generate SQL format
+        $output = $this->generate_sql_format($sitespren_data);
+        
+        wp_send_json_success($output);
+    }
+    
+    /**
+     * Generate Sharkintax format
+     */
+    private function generate_sharkintax_format($data) {
+        $output = '';
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $output .= "===================================\n";
+                $output .= $key . "\n";
+                $output .= "-----------------------------------\n";
+                $output .= $value . "\n";
+            }
+        }
+        return $output;
+    }
+    
+    /**
+     * Generate Walrustax format
+     */
+    private function generate_walrustax_format($data) {
+        $output = '';
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $output .= $key . "\t" . $value . "\n";
+            }
+        }
+        return $output;
+    }
+    
+    /**
+     * Generate Nova Beluga format (both field name sets)
+     */
+    private function generate_nova_beluga_both($data, $omit_no_friendly = false, $use_custom_position = false) {
+        global $wpdb;
+        $output = '';
+        $fields = array();
+        
+        // Get all driggs and sitespren fields
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $fields[] = $key;
+            }
+        }
+        
+        // Sort by custom position if requested
+        if ($use_custom_position) {
+            $fields_with_positions = array();
+            foreach ($fields as $field) {
+                $position_result = $wpdb->get_var($wpdb->prepare(
+                    "SELECT friendly_name_1_custom_position_a FROM {$wpdb->prefix}zen_lighthouse_friendly_names 
+                     WHERE db_table_name = %s AND db_column_name = %s",
+                    'sitespren', $field
+                ));
+                $position = $position_result ? intval($position_result) : 999;
+                $fields_with_positions[] = array('field' => $field, 'position' => $position);
+            }
+            
+            usort($fields_with_positions, function($a, $b) {
+                return $a['position'] - $b['position'];
+            });
+            
+            $fields = array_column($fields_with_positions, 'field');
+        }
+        
+        foreach ($fields as $field) {
+            $friendly_name = Ruplin_WPPMA_Database::get_friendly_name('sitespren', $field);
+            
+            if ($omit_no_friendly && empty($friendly_name)) {
+                continue;
+            }
+            
+            $display_name = $friendly_name ? ($friendly_name . ' - ' . $field) : $field;
+            
+            $output .= "===================================\n";
+            $output .= $display_name . "\n";
+            $output .= "-----------------------------------\n";
+            $output .= (isset($data[$field]) ? $data[$field] : '') . "\n";
+        }
+        
+        return $output;
+    }
+    
+    /**
+     * Generate Nova Beluga format (friendly names only)
+     */
+    private function generate_nova_beluga_friendly($data, $omit_no_friendly = false, $use_custom_position = false) {
+        global $wpdb;
+        $output = '';
+        $fields = array();
+        
+        // Get all driggs and sitespren fields
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $fields[] = $key;
+            }
+        }
+        
+        // Sort by custom position if requested
+        if ($use_custom_position) {
+            $fields_with_positions = array();
+            foreach ($fields as $field) {
+                $position_result = $wpdb->get_var($wpdb->prepare(
+                    "SELECT friendly_name_1_custom_position_a FROM {$wpdb->prefix}zen_lighthouse_friendly_names 
+                     WHERE db_table_name = %s AND db_column_name = %s",
+                    'sitespren', $field
+                ));
+                $position = $position_result ? intval($position_result) : 999;
+                $fields_with_positions[] = array('field' => $field, 'position' => $position);
+            }
+            
+            usort($fields_with_positions, function($a, $b) {
+                return $a['position'] - $b['position'];
+            });
+            
+            $fields = array_column($fields_with_positions, 'field');
+        }
+        
+        foreach ($fields as $field) {
+            $friendly_name = Ruplin_WPPMA_Database::get_friendly_name('sitespren', $field);
+            
+            if (!$friendly_name || ($omit_no_friendly && empty($friendly_name))) {
+                continue;
+            }
+            
+            $output .= "===================================\n";
+            $output .= $friendly_name . "\n";
+            $output .= "-----------------------------------\n";
+            $output .= (isset($data[$field]) ? $data[$field] : '') . "\n";
+        }
+        
+        return $output;
+    }
+    
+    /**
+     * Generate CSV format
+     */
+    private function generate_csv_format($data) {
+        $fields = array();
+        $values = array();
+        
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $fields[] = '"' . str_replace('"', '""', $key) . '"';
+                $values[] = '"' . str_replace('"', '""', $value) . '"';
+            }
+        }
+        
+        return implode(',', $fields) . "\n" . implode(',', $values) . "\n";
+    }
+    
+    /**
+     * Generate XLS format
+     */
+    private function generate_xls_format($data) {
+        $xml = '<?xml version="1.0"?>' . "\n";
+        $xml .= '<?mso-application progid="Excel.Sheet"?>' . "\n";
+        $xml .= '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet">' . "\n";
+        $xml .= '<Worksheet ss:Name="Sitespren Data">' . "\n";
+        $xml .= '<Table>' . "\n";
+        
+        // Header row
+        $xml .= '<Row>' . "\n";
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $xml .= '<Cell><Data ss:Type="String">' . htmlspecialchars($key) . '</Data></Cell>' . "\n";
+            }
+        }
+        $xml .= '</Row>' . "\n";
+        
+        // Data row
+        $xml .= '<Row>' . "\n";
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'driggs_') === 0 || strpos($key, 'sitespren_') === 0) {
+                $type = is_numeric($value) ? 'Number' : 'String';
+                $xml .= '<Cell><Data ss:Type="' . $type . '">' . htmlspecialchars($value) . '</Data></Cell>' . "\n";
+            }
+        }
+        $xml .= '</Row>' . "\n";
+        
+        $xml .= '</Table>' . "\n";
+        $xml .= '</Worksheet>' . "\n";
+        $xml .= '</Workbook>' . "\n";
+        
+        return $xml;
+    }
+    
+    /**
+     * Generate SQL format
+     */
+    private function generate_sql_format($data) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_sitespren';
+        
+        $fields = array();
+        $values = array();
+        
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'wppma_') === 0) {
+                continue; // Skip WordPress-specific fields
+            }
+            
+            $fields[] = '`' . $key . '`';
+            
+            if ($value === null) {
+                $values[] = 'NULL';
+            } elseif (is_bool($value)) {
+                $values[] = $value ? '1' : '0';
+            } elseif (is_numeric($value)) {
+                $values[] = $value;
+            } else {
+                $values[] = "'" . esc_sql($value) . "'";
+            }
+        }
+        
+        return "INSERT INTO `{$table_name}` (\n    " . 
+               implode(",\n    ", $fields) . 
+               "\n) VALUES (\n    " . 
+               implode(",\n    ", $values) . 
+               "\n);";
     }
 } 
