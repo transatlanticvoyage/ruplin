@@ -138,6 +138,35 @@ class Ruplin_WP_Database_Horse_Class {
                 KEY idx_table_column (db_table_name(100), db_column_name(100))
             ) $charset_collate;";
             
+            // Create zen_general_shortcodes table
+            $general_shortcodes_table = $wpdb->prefix . 'zen_general_shortcodes';
+            $general_shortcodes_sql = "CREATE TABLE $general_shortcodes_table (
+                shortcode_id INT(11) NOT NULL AUTO_INCREMENT,
+                shortcode_name TEXT NOT NULL,
+                shortcode_slug TEXT NOT NULL,
+                shortcode_content LONGTEXT NOT NULL,
+                shortcode_description TEXT DEFAULT NULL,
+                shortcode_category TEXT DEFAULT NULL,
+                shortcode_type TEXT DEFAULT 'custom',
+                shortcode_usage_example TEXT DEFAULT NULL,
+                is_active TINYINT(1) DEFAULT 1,
+                is_system TINYINT(1) DEFAULT 0,
+                is_global TINYINT(1) DEFAULT 0,
+                position_order INT(11) DEFAULT 0,
+                author_user_id BIGINT(20) DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (shortcode_id),
+                KEY idx_shortcode_slug (shortcode_slug(100)),
+                KEY idx_active (is_active),
+                KEY idx_system (is_system),
+                KEY idx_global (is_global),
+                KEY idx_category (shortcode_category(100)),
+                KEY idx_type (shortcode_type(50)),
+                KEY idx_position (position_order),
+                KEY idx_author (author_user_id)
+            ) $charset_collate;";
+            
             // Use dbDelta to create/update tables
             require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
             
@@ -148,6 +177,7 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: Creating factory_codes table with SQL: ' . $factory_codes_sql);
             error_log('Snefuru: Creating cache_reports table with SQL: ' . $cache_reports_sql);
             error_log('Snefuru: Creating friendly_names table with SQL: ' . $friendly_names_sql);
+            error_log('Snefuru: Creating general_shortcodes table with SQL: ' . $general_shortcodes_sql);
             
             $services_result = dbDelta($services_sql);
             $locations_result = dbDelta($locations_sql);
@@ -155,6 +185,7 @@ class Ruplin_WP_Database_Horse_Class {
             $factory_codes_result = dbDelta($factory_codes_sql);
             $cache_reports_result = dbDelta($cache_reports_sql);
             $friendly_names_result = dbDelta($friendly_names_sql);
+            $general_shortcodes_result = dbDelta($general_shortcodes_sql);
             
             // Log dbDelta results
             error_log('Snefuru: Services table dbDelta result: ' . print_r($services_result, true));
@@ -163,6 +194,7 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: Factory codes table dbDelta result: ' . print_r($factory_codes_result, true));
             error_log('Snefuru: Cache reports table dbDelta result: ' . print_r($cache_reports_result, true));
             error_log('Snefuru: Friendly names table dbDelta result: ' . print_r($friendly_names_result, true));
+            error_log('Snefuru: General shortcodes table dbDelta result: ' . print_r($general_shortcodes_result, true));
             
             // Update database version
             update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
@@ -174,6 +206,7 @@ class Ruplin_WP_Database_Horse_Class {
             $factory_codes_exists = $wpdb->get_var("SHOW TABLES LIKE '$factory_codes_table'") == $factory_codes_table;
             $cache_reports_exists = $wpdb->get_var("SHOW TABLES LIKE '$cache_reports_table'") == $cache_reports_table;
             $friendly_names_exists = $wpdb->get_var("SHOW TABLES LIKE '$friendly_names_table'") == $friendly_names_table;
+            $general_shortcodes_exists = $wpdb->get_var("SHOW TABLES LIKE '$general_shortcodes_table'") == $general_shortcodes_table;
             
             // Log verification results
             error_log('Snefuru: Services table exists: ' . ($services_exists ? 'YES' : 'NO'));
@@ -182,8 +215,9 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: Factory codes table exists: ' . ($factory_codes_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Cache reports table exists: ' . ($cache_reports_exists ? 'YES' : 'NO'));
             error_log('Snefuru: Friendly names table exists: ' . ($friendly_names_exists ? 'YES' : 'NO'));
+            error_log('Snefuru: General shortcodes table exists: ' . ($general_shortcodes_exists ? 'YES' : 'NO'));
             
-            if ($services_exists && $locations_exists && $orbitposts_exists && $factory_codes_exists && $cache_reports_exists && $friendly_names_exists) {
+            if ($services_exists && $locations_exists && $orbitposts_exists && $factory_codes_exists && $cache_reports_exists && $friendly_names_exists && $general_shortcodes_exists) {
                 error_log('Snefuru: Zen tables created/updated successfully');
                 
                 // Migrate default friendly names
@@ -763,5 +797,152 @@ class Ruplin_WP_Database_Horse_Class {
                 array('%s', '%s', '%s')
             );
         }
+    }
+    
+    /**
+     * Get general shortcodes
+     */
+    public static function get_general_shortcodes($args = array()) {
+        global $wpdb;
+        
+        $defaults = array(
+            'orderby' => 'position_order',
+            'order' => 'ASC',
+            'type' => '',
+            'category' => '',
+            'active_only' => false,
+            'system_only' => false,
+            'limit' => -1,
+            'offset' => 0
+        );
+        
+        $args = wp_parse_args($args, $defaults);
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        
+        $sql = "SELECT * FROM $table_name WHERE 1=1";
+        
+        // Add filters
+        if (!empty($args['type'])) {
+            $sql .= $wpdb->prepare(" AND shortcode_type = %s", $args['type']);
+        }
+        
+        if (!empty($args['category'])) {
+            $sql .= $wpdb->prepare(" AND shortcode_category = %s", $args['category']);
+        }
+        
+        if ($args['active_only']) {
+            $sql .= " AND is_active = 1";
+        }
+        
+        if ($args['system_only']) {
+            $sql .= " AND is_system = 1";
+        }
+        
+        // Add ORDER BY clause
+        $sql .= " ORDER BY " . esc_sql($args['orderby']) . " " . esc_sql($args['order']);
+        
+        // Add LIMIT and OFFSET if specified
+        if ($args['limit'] > 0) {
+            $sql .= " LIMIT " . intval($args['limit']);
+            if ($args['offset'] > 0) {
+                $sql .= " OFFSET " . intval($args['offset']);
+            }
+        }
+        
+        return $wpdb->get_results($sql);
+    }
+    
+    /**
+     * Get single general shortcode by ID
+     */
+    public static function get_general_shortcode($shortcode_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE shortcode_id = %d",
+            $shortcode_id
+        ));
+    }
+    
+    /**
+     * Get general shortcode by slug
+     */
+    public static function get_general_shortcode_by_slug($shortcode_slug) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        return $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_name WHERE shortcode_slug = %s",
+            $shortcode_slug
+        ));
+    }
+    
+    /**
+     * Insert general shortcode
+     */
+    public static function insert_general_shortcode($data) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        return $wpdb->insert($table_name, $data);
+    }
+    
+    /**
+     * Update general shortcode
+     */
+    public static function update_general_shortcode($shortcode_id, $data) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        return $wpdb->update($table_name, $data, array('shortcode_id' => $shortcode_id));
+    }
+    
+    /**
+     * Delete general shortcode
+     */
+    public static function delete_general_shortcode($shortcode_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        return $wpdb->delete($table_name, array('shortcode_id' => $shortcode_id));
+    }
+    
+    /**
+     * Get general shortcodes count
+     */
+    public static function get_general_shortcodes_count($args = array()) {
+        global $wpdb;
+        
+        $defaults = array(
+            'type' => '',
+            'category' => '',
+            'active_only' => false,
+            'system_only' => false
+        );
+        
+        $args = wp_parse_args($args, $defaults);
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        
+        $sql = "SELECT COUNT(*) FROM $table_name WHERE 1=1";
+        
+        // Add filters
+        if (!empty($args['type'])) {
+            $sql .= $wpdb->prepare(" AND shortcode_type = %s", $args['type']);
+        }
+        
+        if (!empty($args['category'])) {
+            $sql .= $wpdb->prepare(" AND shortcode_category = %s", $args['category']);
+        }
+        
+        if ($args['active_only']) {
+            $sql .= " AND is_active = 1";
+        }
+        
+        if ($args['system_only']) {
+            $sql .= " AND is_system = 1";
+        }
+        
+        return $wpdb->get_var($sql);
     }
 }
