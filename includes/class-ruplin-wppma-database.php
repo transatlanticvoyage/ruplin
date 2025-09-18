@@ -37,6 +37,7 @@ class Ruplin_WP_Database_Horse_Class {
                 description1_short TEXT,
                 description1_long TEXT,
                 rel_image1_id INT(11),
+                service_slug_id TEXT,
                 is_pinned_service BOOLEAN DEFAULT FALSE,
                 position_in_custom_order INT(11),
                 PRIMARY KEY (service_id)
