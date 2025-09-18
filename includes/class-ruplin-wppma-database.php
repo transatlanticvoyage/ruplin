@@ -202,6 +202,9 @@ class Ruplin_WP_Database_Horse_Class {
             // Add any missing columns to existing tables
             self::add_missing_columns();
             
+            // Clean up any PHP code that was incorrectly inserted into shortcodes
+            self::clean_php_shortcodes();
+            
             // Update database version
             update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
             
@@ -228,9 +231,6 @@ class Ruplin_WP_Database_Horse_Class {
                 
                 // Migrate default friendly names
                 self::migrate_default_friendly_names();
-                
-                // Migrate default general shortcodes
-                self::migrate_default_general_shortcodes();
                 
                 return true;
             } else {
@@ -561,6 +561,27 @@ class Ruplin_WP_Database_Horse_Class {
         } else {
             error_log('Snefuru: service_slug_id column already exists in zen_services table');
         }
+    }
+    
+    /**
+     * Clean up PHP code that was incorrectly inserted into shortcode content
+     */
+    public static function clean_php_shortcodes() {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        
+        // Delete any shortcodes that contain PHP code (they shouldn't be in the database)
+        $result = $wpdb->query("DELETE FROM $table_name WHERE shortcode_content LIKE '%<?php%'");
+        
+        if ($result !== false && $result > 0) {
+            error_log("Snefuru: Removed $result PHP shortcode entries from database");
+        } else {
+            error_log("Snefuru: No PHP shortcode entries found to remove");
+        }
+        
+        // Reset the defaults version so no PHP code gets re-inserted
+        delete_option('snefuru_general_shortcodes_defaults_version');
     }
     
     /**
@@ -985,120 +1006,4 @@ class Ruplin_WP_Database_Horse_Class {
         return $wpdb->get_var($sql);
     }
     
-    /**
-     * Version-based migration system for default general shortcodes
-     * Tracks which default entries have been installed and adds new ones on updates
-     */
-    public static function migrate_default_general_shortcodes() {
-        global $wpdb;
-        
-        $general_shortcodes_table = $wpdb->prefix . 'zen_general_shortcodes';
-        $installed_defaults_version = get_option('snefuru_general_shortcodes_defaults_version', '0.0.0');
-        
-        // Define default general shortcodes with their introduction versions
-        $default_shortcodes = array(
-            '1.0.0' => array(
-                array(
-                    'shortcode_name' => 'Zen Service Box',
-                    'shortcode_slug' => 'zen_service_box',
-                    'shortcode_content' => '<div class="zen-service-box" style="border: 1px solid #ddd; padding: 20px; margin: 10px; border-radius: 8px; text-align: center;">
-    <div class="service-image" style="margin-bottom: 15px;">
-        [zen_service id="{id}" field="service_image"]
-    </div>
-    <h3 class="service-name" style="margin-bottom: 10px; color: #333;">
-        [zen_service id="{id}" field="service_name"]
-    </h3>
-    <p class="service-description" style="margin-bottom: 15px; color: #666;">
-        [zen_service id="{id}" field="description1_short"]
-    </p>
-    <a href="#" class="service-button" style="background: #0073aa; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; display: inline-block;">
-        Learn More
-    </a>
-</div>',
-                    'shortcode_description' => 'A complete service box with image, heading, description and button for Elementor. Replace {id} with actual service ID.',
-                    'shortcode_category' => 'elementor',
-                    'shortcode_type' => 'template',
-                    'shortcode_usage_example' => '[zen_service_box id="1"]',
-                    'is_active' => 1,
-                    'is_system' => 1,
-                    'is_global' => 1,
-                    'is_adminpublic' => 1,
-                    'position_order' => 1
-                ),
-                array(
-                    'shortcode_name' => 'Zen Service Field',
-                    'shortcode_slug' => 'zen_service',
-                    'shortcode_content' => '<?php
-// This shortcode pulls individual fields from zen_services table
-function zen_service_shortcode($atts) {
-    $atts = shortcode_atts(array(
-        "id" => "1",
-        "field" => "service_name"
-    ), $atts);
-    
-    global $wpdb;
-    $table = $wpdb->prefix . "zen_services";
-    
-    $service = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM $table WHERE service_id = %d", 
-        $atts["id"]
-    ));
-    
-    if (!$service) return "";
-    
-    switch($atts["field"]) {
-        case "service_name":
-            return esc_html($service->service_name);
-        case "service_image":
-            if ($service->rel_image1_id) {
-                return wp_get_attachment_image($service->rel_image1_id, "medium");
-            }
-            return "";
-        case "description1_short":
-            return esc_html($service->description1_short);
-        case "description1_long":
-            return wp_kses_post($service->description1_long);
-        default:
-            return "";
-    }
-}
-add_shortcode("zen_service", "zen_service_shortcode");
-?>',
-                    'shortcode_description' => 'Individual field access shortcode for zen_services table. Use with field parameter to get specific data.',
-                    'shortcode_category' => 'elementor',
-                    'shortcode_type' => 'shortcode',
-                    'shortcode_usage_example' => '[zen_service id="1" field="service_name"]',
-                    'is_active' => 1,
-                    'is_system' => 1,
-                    'is_global' => 1,
-                    'is_adminpublic' => 1,
-                    'position_order' => 2
-                )
-            )
-        );
-        
-        // Install missing default shortcodes from each version
-        foreach ($default_shortcodes as $version => $shortcodes) {
-            if (version_compare($installed_defaults_version, $version, '<')) {
-                foreach ($shortcodes as $shortcode) {
-                    // Check if this specific shortcode already exists
-                    $exists = $wpdb->get_var($wpdb->prepare(
-                        "SELECT COUNT(*) FROM $general_shortcodes_table WHERE shortcode_slug = %s",
-                        $shortcode['shortcode_slug']
-                    ));
-                    
-                    if (!$exists) {
-                        $wpdb->insert(
-                            $general_shortcodes_table,
-                            $shortcode,
-                            array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%d', '%d')
-                        );
-                    }
-                }
-            }
-        }
-        
-        // Update the installed defaults version
-        update_option('snefuru_general_shortcodes_defaults_version', '1.0.0');
-    }
 }
