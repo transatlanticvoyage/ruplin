@@ -199,6 +199,9 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: Friendly names table dbDelta result: ' . print_r($friendly_names_result, true));
             error_log('Snefuru: General shortcodes table dbDelta result: ' . print_r($general_shortcodes_result, true));
             
+            // Add any missing columns to existing tables
+            self::add_missing_columns();
+            
             // Update database version
             update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
             
@@ -282,6 +285,9 @@ class Ruplin_WP_Database_Horse_Class {
         
         if (version_compare($current_version, self::DB_VERSION, '<')) {
             self::create_tables();
+        } else {
+            // Even if version is current, check for missing columns
+            self::add_missing_columns();
         }
     }
     
@@ -527,6 +533,33 @@ class Ruplin_WP_Database_Horse_Class {
             return $wpdb->get_results($wpdb->prepare($query, $where_values));
         } else {
             return $wpdb->get_results($query);
+        }
+    }
+    
+    /**
+     * Add missing columns to existing tables
+     */
+    public static function add_missing_columns() {
+        global $wpdb;
+        
+        // Check and add service_slug_id to zen_services if it doesn't exist
+        $services_table = $wpdb->prefix . 'zen_services';
+        
+        $columns = $wpdb->get_results("DESCRIBE $services_table");
+        $column_names = array();
+        foreach ($columns as $column) {
+            $column_names[] = $column->Field;
+        }
+        
+        if (!in_array('service_slug_id', $column_names)) {
+            $result = $wpdb->query("ALTER TABLE $services_table ADD COLUMN service_slug_id TEXT AFTER rel_image1_id");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added service_slug_id column to zen_services table');
+            } else {
+                error_log('Snefuru: Failed to add service_slug_id column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: service_slug_id column already exists in zen_services table');
         }
     }
     
