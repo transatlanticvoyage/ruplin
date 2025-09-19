@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: Snefuruplin
- * Plugin URI: https://github.com/transatlanticvoyage/snefuru4
+ * Plugin Name: Ruplin
+ * Plugin URI: https://github.com/transatlanticvoyage/ruplin
  * Description: WordPress plugin for handling image uploads to Snefuru system
  * Version: 4.4.0
  * Author: Snefuru Team
  * License: GPL v2 or later
- * Text Domain: snefuruplin
+ * Text Domain: ruplin
  * 
  * Test comment: Git subtree setup completed successfully!
  */
