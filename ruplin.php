@@ -10,6 +10,7 @@
  * 
  * Test comment: Git subtree setup completed successfully!
  * Test comment 2: Testing git sync at 2025-09-19
+ * Test comment 7: Final VSCode dual visibility test - 2025-09-19 16:48
  */
 
 // Prevent direct access
