@@ -18,6 +18,45 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Self-correction: Ensure plugin is in correct directory
+add_action('admin_init', function() {
+    $current_dir = basename(dirname(__FILE__));
+    $expected_dir = 'ruplin';
+    
+    // Check if we're in the wrong directory
+    if ($current_dir !== $expected_dir && !defined('RUPLIN_RELOCATING')) {
+        $plugins_dir = WP_PLUGIN_DIR;
+        $current_path = $plugins_dir . '/' . $current_dir;
+        $correct_path = $plugins_dir . '/' . $expected_dir;
+        
+        // Only attempt relocation if target doesn't exist
+        if (!file_exists($correct_path) && file_exists($current_path)) {
+            // Define flag to prevent infinite loops
+            define('RUPLIN_RELOCATING', true);
+            
+            // Deactivate from wrong location
+            deactivate_plugins(plugin_basename(__FILE__));
+            
+            // Try to rename directory
+            if (@rename($current_path, $correct_path)) {
+                // Reactivate from correct location
+                activate_plugin($expected_dir . '/ruplin.php');
+                
+                // Redirect to plugins page with success message
+                wp_redirect(admin_url('plugins.php?ruplin_relocated=1'));
+                exit;
+            }
+        }
+    }
+});
+
+// Show admin notice after relocation
+add_action('admin_notices', function() {
+    if (isset($_GET['ruplin_relocated'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>Ruplin plugin has been relocated to the correct directory.</p></div>';
+    }
+});
+
 // Define plugin constants
 define('SNEFURU_PLUGIN_VERSION', '4.4.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
