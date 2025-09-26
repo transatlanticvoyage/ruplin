@@ -149,7 +149,7 @@ class Snefuru_Admin {
             'snefuru',
             array($this, 'admin_page'),
             'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>'),
-            30
+            3.6
         );
         
         // Add Cockpit as the first submenu item

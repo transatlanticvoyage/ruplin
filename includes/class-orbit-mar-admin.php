@@ -30,17 +30,16 @@ class Snefuru_Orbit_Mar_Admin {
     }
     
     /**
-     * Add admin menu page
+     * Add admin menu page as submenu under Ruplin
      */
     public function add_admin_menu() {
-        add_menu_page(
+        add_submenu_page(
+            'ruplin',
             'Orbit Mar',
             'Orbit Mar',
             'manage_options',
             'rup_orbit_mar',
-            array($this, 'render_admin_page'),
-            'dashicons-database',
-            30
+            array($this, 'render_admin_page')
         );
     }
     
@@ -48,7 +47,7 @@ class Snefuru_Orbit_Mar_Admin {
      * Enqueue assets for the admin page
      */
     public function enqueue_assets($hook) {
-        if ($hook !== 'toplevel_page_rup_orbit_mar') {
+        if ($hook !== 'ruplin_page_rup_orbit_mar') {
             return;
         }
         
