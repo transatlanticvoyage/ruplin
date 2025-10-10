@@ -310,6 +310,63 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             });
         });
         
+        // Handle cobalt submit button clicks
+        $(document).off('click.cobalt-submit').on('click.cobalt-submit', '#snefuru-cobalt-submit-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var content = $('#snefuru-cobalt-content').val();
+            var postId = $button.data('post-id');
+            var autoUpdateTitle = $('#snefuru-auto-title-toggle-cobalt').is(':checked');
+            var originalText = $button.text();
+            var $result = $('#snefuru-cobalt-result');
+            
+            if (!content.trim()) {
+                $result.removeClass('success error').addClass('error');
+                $result.html('<strong>Error:</strong> Please enter content to inject.');
+                $result.show();
+                return;
+            }
+            
+            // Disable button and show loading
+            $button.prop('disabled', true).text('Processing...');
+            $result.hide();
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'cobalt_inject_content',
+                    post_id: postId,
+                    content: content,
+                    auto_update_title: autoUpdateTitle,
+                    nonce: $('#hurricane-nonce').val() || '<?php echo wp_create_nonce("hurricane_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $result.removeClass('error').addClass('success');
+                        $result.html('<strong>Success:</strong> ' + response.data);
+                        console.log('Cobalt injection successful:', response.data);
+                    } else {
+                        $result.removeClass('success').addClass('error');
+                        $result.html('<strong>Error:</strong> ' + response.data);
+                        console.error('Cobalt injection failed:', response.data);
+                    }
+                    $result.show();
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error during cobalt injection:', error);
+                    $result.removeClass('success').addClass('error');
+                    $result.html('<strong>Error:</strong> AJAX request failed: ' + error);
+                    $result.show();
+                },
+                complete: function() {
+                    // Re-enable button
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
         // Handle copy button clicks for locations URL
         $(document).off('click.locations-copy-btn').on('click.locations-copy-btn', '.snefuru-locations-copy-btn', function(e) {
             e.preventDefault();

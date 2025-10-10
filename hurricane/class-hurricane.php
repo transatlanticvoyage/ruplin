@@ -9,12 +9,14 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Include Blueshift class
+// Include Blueshift and Cobalt classes
 require_once plugin_dir_path(__FILE__) . 'class-blueshift.php';
+require_once plugin_dir_path(__FILE__) . 'class-cobalt.php';
 
 class Snefuru_Hurricane {
     
     private $blueshift;
+    private $cobalt;
     
     public function __construct() {
         add_action('add_meta_boxes', array($this, 'add_hurricane_metabox'));
@@ -22,9 +24,11 @@ class Snefuru_Hurricane {
         add_action('edit_form_top', array($this, 'add_stellar_chamber'));
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
         add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
+        add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
         
-        // Initialize Blueshift
+        // Initialize Blueshift and Cobalt
         $this->blueshift = new Snefuru_Blueshift();
+        $this->cobalt = new Snefuru_Cobalt();
     }
     
     /**
@@ -32,6 +36,13 @@ class Snefuru_Hurricane {
      */
     public function ajax_refresh_blueshift_data() {
         $this->blueshift->ajax_refresh_blueshift_data();
+    }
+    
+    /**
+     * AJAX handler for Cobalt content injection
+     */
+    public function ajax_cobalt_inject_content() {
+        $this->cobalt->ajax_cobalt_inject_content();
     }
     
     /**
@@ -955,29 +966,32 @@ class Snefuru_Hurricane {
                                     <!-- Toggle Switch for Auto Post Title Update -->
                                     <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
                                         <label class="snefuru-toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
-                                            <input type="checkbox" id="snefuru-auto-title-toggle" checked style="opacity: 0; width: 0; height: 0;">
-                                            <span class="snefuru-toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4CAF50; transition: .3s; border-radius: 24px;"></span>
+                                            <input type="checkbox" id="snefuru-auto-title-toggle" style="opacity: 0; width: 0; height: 0;">
+                                            <span class="snefuru-toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; transition: .3s; border-radius: 24px;"></span>
                                         </label>
                                         <span style="font-size: 12px; color: #666;">replace wp_posts.post_title with the first line of text following the double-pound-sign "##" code in the submission</span>
                                     </div>
                                     
                                     <style>
+                                    .snefuru-toggle-slider {
+                                        background-color: #ccc !important;
+                                    }
                                     .snefuru-toggle-slider:before {
                                         position: absolute;
                                         content: "";
                                         height: 18px;
                                         width: 18px;
-                                        right: 3px;
+                                        left: 3px;
                                         bottom: 3px;
                                         background-color: white;
                                         transition: .3s;
                                         border-radius: 50%;
                                     }
-                                    #snefuru-auto-title-toggle:checked + .snefuru-toggle-slider:before {
-                                        transform: translateX(-26px);
+                                    #snefuru-auto-title-toggle:checked + .snefuru-toggle-slider {
+                                        background-color: #4CAF50 !important;
                                     }
-                                    #snefuru-auto-title-toggle:not(:checked) + .snefuru-toggle-slider {
-                                        background-color: #ccc;
+                                    #snefuru-auto-title-toggle:checked + .snefuru-toggle-slider:before {
+                                        transform: translateX(26px);
                                     }
                                     </style>
                                     
@@ -1053,7 +1067,60 @@ class Snefuru_Hurricane {
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                <strong>this is a test</strong>
+                                
+                                <!-- Cobalt Submit Box -->
+                                <div>
+                                    <label for="snefuru-cobalt-content" style="display: block; font-weight: bold; margin-bottom: 5px;">
+                                        cobalt_submit_box (target specific widgets by ID)
+                                    </label>
+                                    <textarea 
+                                        id="snefuru-cobalt-content" 
+                                        placeholder="Enter Blueshift Format 3 markup with ==widget1, ==widget2, ==item1, etc. to target specific widgets/items for content updates" 
+                                        style="width: 100%; height: 150px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #ccc; border-radius: 3px;"
+                                    ></textarea>
+                                    <button 
+                                        type="button" 
+                                        id="snefuru-cobalt-submit-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="margin-top: 10px; background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                                    >
+                                        run cobalt_function_inject_content
+                                    </button>
+                                    
+                                    <!-- Toggle Switch for Auto Post Title Update -->
+                                    <div style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
+                                        <label class="snefuru-toggle-switch-cobalt" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                                            <input type="checkbox" id="snefuru-auto-title-toggle-cobalt" style="opacity: 0; width: 0; height: 0;">
+                                            <span class="snefuru-toggle-slider-cobalt" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; transition: .3s; border-radius: 24px;"></span>
+                                        </label>
+                                        <span style="font-size: 12px; color: #666;">replace wp_posts.post_title with the first line of content from the first updated widget in the submission</span>
+                                    </div>
+                                    
+                                    <style>
+                                    .snefuru-toggle-slider-cobalt {
+                                        background-color: #ccc !important;
+                                    }
+                                    .snefuru-toggle-slider-cobalt:before {
+                                        position: absolute;
+                                        content: "";
+                                        height: 18px;
+                                        width: 18px;
+                                        left: 3px;
+                                        bottom: 3px;
+                                        background-color: white;
+                                        transition: .3s;
+                                        border-radius: 50%;
+                                    }
+                                    #snefuru-auto-title-toggle-cobalt:checked + .snefuru-toggle-slider-cobalt {
+                                        background-color: #4CAF50 !important;
+                                    }
+                                    #snefuru-auto-title-toggle-cobalt:checked + .snefuru-toggle-slider-cobalt:before {
+                                        transform: translateX(26px);
+                                    }
+                                    </style>
+                                    
+                                    <div id="snefuru-cobalt-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                                </div>
                             </div>
                             
                         </div>

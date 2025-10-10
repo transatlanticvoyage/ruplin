@@ -360,13 +360,13 @@ class Snefuru_Blueshift {
         $elementor_data = get_post_meta($post_id, '_elementor_data', true);
         
         if (empty($elementor_data)) {
-            return '##widget1' . "\n" . 'No Elementor data found for this page.';
+            return '==widget1' . "\n" . 'No Elementor data found for this page.';
         }
         
         // Decode JSON data
         $elements = json_decode($elementor_data, true);
         if (!$elements || !is_array($elements)) {
-            return '##widget1' . "\n" . 'Could not parse Elementor data.';
+            return '==widget1' . "\n" . 'Could not parse Elementor data.';
         }
         
         $extracted_content = array();
@@ -379,7 +379,7 @@ class Snefuru_Blueshift {
         
         // If no content found, return empty indicator
         if (empty($extracted_content)) {
-            return '##widget1' . "\n" . 'No widget content found.';
+            return '==widget1' . "\n" . 'No widget content found.';
         }
         
         // Join all content pieces
@@ -404,7 +404,7 @@ class Snefuru_Blueshift {
                 $css_info = $this->extract_css_classes_and_id($element);
                 
                 // Create widget marker with CSS info
-                $widget_marker = '##widget' . $widget_counter;
+                $widget_marker = '==widget' . $widget_counter;
                 if (!empty($css_info)) {
                     $widget_marker .= ' ' . $css_info;
                 }
@@ -420,8 +420,8 @@ class Snefuru_Blueshift {
                     
                     foreach ($lines as $line) {
                         if (strpos($line, '##item') === 0) {
-                            // Replace ##item with numbered version
-                            $processed_lines[] = '##item' . $item_counter;
+                            // Replace ##item with ==item numbered version
+                            $processed_lines[] = '==item' . $item_counter;
                             $item_counter++;
                         } else {
                             // Keep content line as-is
