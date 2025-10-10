@@ -9,13 +9,29 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
+// Include Blueshift class
+require_once plugin_dir_path(__FILE__) . 'class-blueshift.php';
+
 class Snefuru_Hurricane {
+    
+    private $blueshift;
     
     public function __construct() {
         add_action('add_meta_boxes', array($this, 'add_hurricane_metabox'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_hurricane_assets'));
         add_action('edit_form_top', array($this, 'add_stellar_chamber'));
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
+        add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
+        
+        // Initialize Blueshift
+        $this->blueshift = new Snefuru_Blueshift();
+    }
+    
+    /**
+     * AJAX handler for Blueshift data refresh
+     */
+    public function ajax_refresh_blueshift_data() {
+        $this->blueshift->ajax_refresh_blueshift_data();
     }
     
     /**
@@ -705,7 +721,104 @@ class Snefuru_Hurricane {
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                <!-- Content for column 3 will go here -->
+                                
+                                <!-- Operation Blueshift Label -->
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #333;">operation blueshift: get all text content output on frontend</span>
+                                
+                                <!-- Refresh Button -->
+                                <button type="button" 
+                                        id="refresh-blueshift-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    refresh blueshift data
+                                </button>
+                                
+                                <!-- Instance 1: Frontend Text Content -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation blueshift - format 1</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Frontend text content will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract Blueshift content using new approach
+                                            $blueshift_content = $this->blueshift->extract_elementor_blueshift_content($post->ID);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content) > 50000) {
+                                                $blueshift_content = substr($blueshift_content, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 2: Blueshift Format 2 -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation blueshift - format 2</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-2" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Frontend text content will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract Blueshift content with numbering for format 2
+                                            $blueshift_content_format2 = $this->blueshift->extract_elementor_blueshift_content_format2($post->ID);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_format2) > 50000) {
+                                                $blueshift_content_format2 = substr($blueshift_content_format2, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_format2);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-2" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 3: Blueshift Format 3 -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation blueshift - format 3</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-3" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Frontend text content will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract Blueshift content with CSS classes and IDs for format 3
+                                            $blueshift_content_format3 = $this->blueshift->extract_elementor_blueshift_content_format3($post->ID);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_format3) > 50000) {
+                                                $blueshift_content_format3 = substr($blueshift_content_format3, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_format3);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-3" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                         </div>

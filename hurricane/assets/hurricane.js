@@ -263,6 +263,53 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             });
         });
         
+        // Handle refresh blueshift data button clicks
+        $(document).off('click.refresh-blueshift').on('click.refresh-blueshift', '#refresh-blueshift-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var postId = $button.data('post-id');
+            var originalText = $button.text();
+            
+            // Disable button and show loading
+            $button.prop('disabled', true).text('refreshing...');
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'refresh_blueshift_data',
+                    post_id: postId,
+                    nonce: $('#hurricane-nonce').val() || '<?php echo wp_create_nonce("hurricane_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (response.data.content_format1) {
+                            $('#blueshift-content-textbox').val(response.data.content_format1);
+                        }
+                        if (response.data.content_format2) {
+                            $('#blueshift-content-textbox-2').val(response.data.content_format2);
+                        }
+                        if (response.data.content_format3) {
+                            $('#blueshift-content-textbox-3').val(response.data.content_format3);
+                        }
+                        console.log('Blueshift data refreshed successfully');
+                    } else {
+                        console.error('Failed to refresh blueshift data:', response.data);
+                        alert('Failed to refresh blueshift data: ' + (response.data || 'Unknown error'));
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error refreshing blueshift data:', error);
+                    alert('Error refreshing blueshift data: ' + error);
+                },
+                complete: function() {
+                    // Re-enable button
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
         // Handle copy button clicks for locations URL
         $(document).off('click.locations-copy-btn').on('click.locations-copy-btn', '.snefuru-locations-copy-btn', function(e) {
             e.preventDefault();
