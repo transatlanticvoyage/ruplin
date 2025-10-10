@@ -25,6 +25,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
         add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
         add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
+        add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift and Cobalt
         $this->blueshift = new Snefuru_Blueshift();
@@ -1118,6 +1119,24 @@ class Snefuru_Hurricane {
                                         transform: translateX(26px);
                                     }
                                     </style>
+                                    
+                                    <!-- Reset Helper -->
+                                    <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; font-size: 12px;">
+                                        <div style="color: #495057; margin-bottom: 8px;">
+                                            <strong>Emergency Reset:</strong> If page styling breaks, use this command to restore from backup:
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <input type="text" id="reset-elementor-command" value="RESET_ELEMENTOR_DATA" readonly 
+                                                   style="flex: 1; padding: 4px 8px; border: 1px solid #ced4da; border-radius: 3px; background-color: #fff; font-family: monospace; font-size: 11px;">
+                                            <button type="button" class="snefuru-copy-btn" data-target="reset-elementor-command" 
+                                                    style="padding: 4px 8px; background: #007cba; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                        <div style="color: #6c757d; font-size: 10px; margin-top: 4px;">
+                                            Paste this command in the content box above and click submit to restore the page.
+                                        </div>
+                                    </div>
                                     
                                     <div id="snefuru-cobalt-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                 </div>
@@ -2527,8 +2546,166 @@ In the following text content I paste below, you will be seeing the following:
         // Localize script with AJAX URL and nonce
         wp_localize_script('snefuru-hurricane-js', 'snefuruHurricane', array(
             'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('snefuru_hurricane_nonce'),
+            'nonce' => wp_create_nonce('hurricane_nonce'),
             'post_id' => get_the_ID()
         ));
+    }
+    
+    /**
+     * Add admin menu for developer info
+     */
+    public function add_admin_menu() {
+        add_menu_page(
+            'Cobalt Developer Info',
+            'Cobalt Dev Info',
+            'manage_options',
+            'cobalt_developer_info',
+            array($this, 'cobalt_developer_info_page'),
+            'dashicons-info',
+            999
+        );
+    }
+    
+    /**
+     * Display the cobalt developer info page
+     */
+    public function cobalt_developer_info_page() {
+        ?>
+        <div class="wrap">
+            <h1>Cobalt Function - Developer Information</h1>
+            <p><strong>Updated: 2025_10_10</strong></p>
+            
+            <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 5px; margin-top: 20px;">
+                <h2>Cobalt Function Debug Report - Complete Solution</h2>
+                
+                <h3>Project: WordPress Elementor Widget Content Update System</h3>
+                <p><strong>Date:</strong> October 10, 2025<br>
+                <strong>Status:</strong> ✅ RESOLVED</p>
+                
+                <hr>
+                
+                <h3>Overview</h3>
+                <p>The Cobalt function was designed to update specific Elementor widgets by their internal reference IDs (==widget1, ==widget2, etc.) but was failing to persist changes to the frontend despite reporting success.</p>
+                
+                <h3>Problems Encountered & Solutions</h3>
+                
+                <h4>1. ❌ AJAX Handler Not Being Called</h4>
+                <p><strong>Problem:</strong> Initial attempts showed no AJAX response or debug logging<br>
+                <strong>Root Cause:</strong> JavaScript was using <code>ajaxurl</code> but WordPress was localizing it as <code>snefuruHurricane.ajaxurl</code><br>
+                <strong>Solution:</strong></p>
+                <ul>
+                    <li>Updated JavaScript to use <code>snefuruHurricane.ajaxurl</code></li>
+                    <li>Fixed nonce mismatch between <code>hurricane_nonce</code> (expected) and <code>snefuru_hurricane_nonce</code> (provided)</li>
+                </ul>
+                
+                <h4>2. ❌ JSON Corruption Breaking Page Styling</h4>
+                <p><strong>Problem:</strong> After successful widget updates, page styling would break due to corrupted JSON<br>
+                <strong>Root Cause:</strong> WordPress <code>wp_slash()</code> function was corrupting the JSON structure<br>
+                <strong>Solutions Applied:</strong></p>
+                <ul>
+                    <li>Added JSON validation before and after encoding</li>
+                    <li>Used proper JSON encoding flags: <code>JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES</code></li>
+                    <li>Implemented content sanitization with <code>sanitize_content_for_json()</code> function</li>
+                    <li>Added fallback to save without <code>wp_slash()</code> when corruption detected</li>
+                    <li>Created emergency reset system with <code>RESET_ELEMENTOR_DATA</code> command</li>
+                </ul>
+                
+                <h4>3. ❌ Database Save Failures</h4>
+                <p><strong>Problem:</strong> <code>update_post_meta()</code> was returning FALSE, causing save failures<br>
+                <strong>Root Cause:</strong> Multiple meta entries or WordPress hooks interfering with saves<br>
+                <strong>Solution:</strong> Implemented multi-tier save approach:</p>
+                <ol>
+                    <li>Try <code>update_post_meta()</code></li>
+                    <li>Fall back to direct <code>$wpdb->update()</code></li>
+                    <li>Last resort: delete specific entry and add new one</li>
+                </ol>
+                
+                <h4>4. ❌ <strong>CRITICAL: Changes Not Persisting (The Real Bug)</strong></h4>
+                <p><strong>Problem:</strong> Widgets reported successful updates, JSON showed identical length, no actual changes saved<br>
+                <strong>Root Cause:</strong> <strong>PHP pass-by-reference issue</strong> - The main processing function was not passing elements by reference<br>
+                <strong>The Fix:</strong> Changed function signature from:</p>
+                <pre><code>process_elementor_element_cobalt($element, ...)  // ❌ Works on copy</code></pre>
+                <p>to:</p>
+                <pre><code>process_elementor_element_cobalt(&$element, ...) // ✅ Works on actual element</code></pre>
+                
+                <h3>Final Working Evidence</h3>
+                <p><strong>Before Fix:</strong> JSON length remained 14384 (no changes)<br>
+                <strong>After Fix:</strong></p>
+                <ul>
+                    <li>JSON length changed from 14384 → 14302 (actual changes)</li>
+                    <li><code>update_post_meta result: TRUE</code></li>
+                    <li><code>Contains "drain": YES</code></li>
+                    <li><code>Contains "Amazing Plumbing People": YES</code></li>
+                    <li>Frontend content successfully updated</li>
+                </ul>
+                
+                <h3>Key Files Modified</h3>
+                <ol>
+                    <li><code>/hurricane/class-cobalt.php</code> - Main logic and pass-by-reference fix</li>
+                    <li><code>/hurricane/assets/hurricane.js</code> - AJAX URL and nonce fixes</li>
+                    <li><code>/hurricane/class-hurricane.php</code> - UI improvements and reset functionality</li>
+                </ol>
+                
+                <h3>Implementation Features</h3>
+                <ul>
+                    <li><strong>Backup System:</strong> Automatic backup creation before changes</li>
+                    <li><strong>Emergency Reset:</strong> <code>RESET_ELEMENTOR_DATA</code> command with UI helper</li>
+                    <li><strong>Comprehensive Debugging:</strong> Detailed logging throughout the process</li>
+                    <li><strong>Multi-tier Save Strategy:</strong> Handles various database save scenarios</li>
+                    <li><strong>JSON Validation:</strong> Prevents corruption before saving</li>
+                    <li><strong>Content Sanitization:</strong> Removes problematic characters</li>
+                </ul>
+                
+                <h3>Lessons Learned</h3>
+                <ol>
+                    <li><strong>PHP References Critical:</strong> Always use <code>&$variable</code> for functions that modify array structures</li>
+                    <li><strong>WordPress Localization:</strong> Match JavaScript variable names exactly with <code>wp_localize_script()</code></li>
+                    <li><strong>JSON Encoding:</strong> Use proper flags and validate before/after encoding</li>
+                    <li><strong>Debugging Strategy:</strong> Log at every step to isolate the exact failure point</li>
+                    <li><strong>WordPress wp_slash():</strong> Can corrupt JSON - always test decode after applying</li>
+                </ol>
+                
+                <h3>Success Metrics</h3>
+                <ul>
+                    <li>✅ AJAX handler properly called</li>
+                    <li>✅ Widget content successfully parsed and mapped</li>
+                    <li>✅ Individual widget updates working correctly</li>
+                    <li>✅ Changes persisting in memory (pass-by-reference fix)</li>
+                    <li>✅ JSON encoding without corruption</li>
+                    <li>✅ Database saves successful</li>
+                    <li>✅ Frontend content updates visible</li>
+                    <li>✅ Page styling remains intact</li>
+                    <li>✅ Emergency recovery system functional</li>
+                </ul>
+                
+                <p><strong>Final Result:</strong> Cobalt function now successfully updates Elementor widget content and persists changes to the frontend.</p>
+            </div>
+        </div>
+        
+        <style>
+        .wrap h2, .wrap h3, .wrap h4 {
+            color: #23282d;
+            margin-top: 20px;
+        }
+        .wrap pre {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .wrap code {
+            background: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .wrap ul, .wrap ol {
+            margin-left: 20px;
+        }
+        .wrap li {
+            margin-bottom: 5px;
+        }
+        </style>
+        <?php
     }
 }

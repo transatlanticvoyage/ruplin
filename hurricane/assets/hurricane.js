@@ -236,12 +236,12 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             $button.prop('disabled', true).text('refreshing...');
             
             $.ajax({
-                url: ajaxurl,
+                url: snefuruHurricane.ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'refresh_redshift_data',
                     post_id: postId,
-                    nonce: $('#hurricane-nonce').val() || '<?php echo wp_create_nonce("hurricane_nonce"); ?>'
+                    nonce: $('#hurricane-nonce').val() || snefuruHurricane.nonce
                 },
                 success: function(response) {
                     if (response.success && response.data.content) {
@@ -275,12 +275,12 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             $button.prop('disabled', true).text('refreshing...');
             
             $.ajax({
-                url: ajaxurl,
+                url: snefuruHurricane.ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'refresh_blueshift_data',
                     post_id: postId,
-                    nonce: $('#hurricane-nonce').val() || '<?php echo wp_create_nonce("hurricane_nonce"); ?>'
+                    nonce: $('#hurricane-nonce').val() || snefuruHurricane.nonce
                 },
                 success: function(response) {
                     if (response.success) {
@@ -314,12 +314,19 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         $(document).off('click.cobalt-submit').on('click.cobalt-submit', '#snefuru-cobalt-submit-btn', function(e) {
             e.preventDefault();
             
+            console.log('Cobalt submit button clicked');
+            console.log('snefuruHurricane object:', snefuruHurricane);
+            
             var $button = $(this);
             var content = $('#snefuru-cobalt-content').val();
             var postId = $button.data('post-id');
             var autoUpdateTitle = $('#snefuru-auto-title-toggle-cobalt').is(':checked');
             var originalText = $button.text();
             var $result = $('#snefuru-cobalt-result');
+            
+            console.log('Content:', content);
+            console.log('Post ID:', postId);
+            console.log('Auto update title:', autoUpdateTitle);
             
             if (!content.trim()) {
                 $result.removeClass('success error').addClass('error');
@@ -332,20 +339,23 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             $button.prop('disabled', true).text('Processing...');
             $result.hide();
             
+            console.log('About to make AJAX request to:', snefuruHurricane.ajaxurl);
+            
             $.ajax({
-                url: ajaxurl,
+                url: snefuruHurricane.ajaxurl,
                 type: 'POST',
                 data: {
                     action: 'cobalt_inject_content',
                     post_id: postId,
                     content: content,
                     auto_update_title: autoUpdateTitle,
-                    nonce: $('#hurricane-nonce').val() || '<?php echo wp_create_nonce("hurricane_nonce"); ?>'
+                    nonce: $('#hurricane-nonce').val() || snefuruHurricane.nonce
                 },
                 success: function(response) {
+                    console.log('AJAX success response:', response);
                     if (response.success) {
                         $result.removeClass('error').addClass('success');
-                        $result.html('<strong>Success:</strong> ' + response.data);
+                        $result.html('<strong>Success:</strong> ' + response.data + '<br><a href="' + window.location.origin + '/wp-admin/admin.php?page=cobalt_developer_info" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 11px; margin-top: 5px; display: inline-block;">Developer Info On Cobalt Function</a>');
                         console.log('Cobalt injection successful:', response.data);
                     } else {
                         $result.removeClass('success').addClass('error');
@@ -356,6 +366,8 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
                 },
                 error: function(xhr, status, error) {
                     console.error('AJAX error during cobalt injection:', error);
+                    console.error('XHR:', xhr);
+                    console.error('Status:', status);
                     $result.removeClass('success').addClass('error');
                     $result.html('<strong>Error:</strong> AJAX request failed: ' + error);
                     $result.show();
