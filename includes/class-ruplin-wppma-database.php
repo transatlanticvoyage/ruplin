@@ -74,6 +74,8 @@ class Ruplin_WP_Database_Horse_Class {
                 is_flagged BOOLEAN DEFAULT FALSE,
                 is_starred BOOLEAN DEFAULT FALSE,
                 is_squared BOOLEAN DEFAULT FALSE,
+                ferret_header_code LONGTEXT DEFAULT NULL,
+                ferret_footer_code LONGTEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),

@@ -66,4 +66,114 @@
 
 #connection-status {
     margin-bottom: 15px;
+}
+
+/* Stellar Chamber Toggle Switch Styles */
+.stellar-chamber-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 160px;
+    height: 40px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.stellar-chamber-toggle-switch input[type="radio"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.stellar-chamber-toggle-slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ddd;
+    border-radius: 20px;
+    transition: .3s;
+    border: 2px solid #ccc;
+}
+
+.stellar-chamber-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 32px;
+    width: 32px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .3s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.stellar-chamber-toggle-switch input[type="radio"]:checked + .stellar-chamber-toggle-slider {
+    background-color: #0073aa;
+    border-color: #005a87;
+}
+
+.stellar-chamber-toggle-switch input[type="radio"]:checked + .stellar-chamber-toggle-slider:before {
+    transform: translateX(122px);
+}
+
+.stellar-chamber-toggle-label {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+}
+
+.stellar-chamber-toggle-label .expanded-label {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 78px;
+    text-align: center;
+    color: #333;
+    transition: opacity 0.3s;
+}
+
+.stellar-chamber-toggle-label .collapsed-label {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 78px;
+    text-align: center;
+    color: #333;
+    transition: opacity 0.3s;
+}
+
+/* Show only the active label */
+.stellar-chamber-toggle-switch input[type="radio"]:checked + .stellar-chamber-toggle-slider + .stellar-chamber-toggle-label .collapsed-label {
+    opacity: 0;
+}
+
+.stellar-chamber-toggle-switch input[type="radio"]:checked + .stellar-chamber-toggle-slider + .stellar-chamber-toggle-label .expanded-label {
+    color: white;
+    opacity: 1;
+}
+
+.stellar-chamber-toggle-switch input[type="radio"]:not(:checked) + .stellar-chamber-toggle-slider + .stellar-chamber-toggle-label .collapsed-label {
+    color: white;
+    opacity: 1;
+}
+
+.stellar-chamber-toggle-switch input[type="radio"]:not(:checked) + .stellar-chamber-toggle-slider + .stellar-chamber-toggle-label .expanded-label {
+    opacity: 0;
+}
+
+.stellar-chamber-toggle-switch:hover .stellar-chamber-toggle-slider {
+    background-color: #bbb;
+}
+
+.stellar-chamber-toggle-switch input[type="radio"]:checked:hover + .stellar-chamber-toggle-slider {
+    background-color: #005a87;
 } 

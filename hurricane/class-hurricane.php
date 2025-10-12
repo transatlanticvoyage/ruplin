@@ -1738,7 +1738,38 @@ y_</textarea>
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
-                                <!-- Content area left blank for now -->
+                                <!-- Stellar Chamber Default State Setting -->
+                                <div class="snefuru-stellar-chamber-settings" style="margin-bottom: 20px;">
+                                    <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">Stellar Chamber Default State</h4>
+                                    <p style="margin: 0 0 10px 0; font-size: 12px; color: #666;">Set whether the Stellar Chamber should be expanded or collapsed by default when editing posts/pages.</p>
+                                    
+                                    <div style="display: flex; align-items: center; gap: 15px;">
+                                        <label class="stellar-chamber-toggle-switch-editor">
+                                            <input type="radio" 
+                                                   name="ruplin_stellar_chamber_default_state_editor" 
+                                                   value="expanded" 
+                                                   <?php checked(get_option('ruplin_stellar_chamber_default_state', 'collapsed'), 'expanded'); ?> />
+                                            <span class="stellar-chamber-toggle-slider-editor"></span>
+                                            <span class="stellar-chamber-toggle-label-editor">
+                                                <span class="expanded-label-editor">Expanded</span>
+                                                <span class="collapsed-label-editor">Collapsed</span>
+                                            </span>
+                                        </label>
+                                        <input type="radio" 
+                                               name="ruplin_stellar_chamber_default_state_editor" 
+                                               value="collapsed" 
+                                               <?php checked(get_option('ruplin_stellar_chamber_default_state', 'collapsed'), 'collapsed'); ?> 
+                                               style="display: none;" />
+                                    </div>
+                                    
+                                    <button type="button" 
+                                            class="stellar-chamber-save-setting-btn"
+                                            style="margin-top: 10px; background: #0073aa; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                                        Save Setting
+                                    </button>
+                                    
+                                    <div class="stellar-chamber-message-editor" style="margin-top: 10px; display: none; padding: 8px; border-radius: 3px; font-size: 12px;"></div>
+                                </div>
                             </div>
                             
                             <!-- Denyeep Column Div 3 -->
@@ -2307,7 +2338,17 @@ In the following text content I paste below, you will be seeing the following:
         <script type="text/javascript">
         jQuery(document).ready(function($) {
             // Minimize/Expand Stellar Chamber functionality
-            var isStellarMinimized = false;
+            // Get default state from PHP setting
+            var defaultState = '<?php echo esc_js(get_option('ruplin_stellar_chamber_default_state', 'collapsed')); ?>';
+            var isStellarMinimized = (defaultState === 'collapsed');
+            
+            // Apply default state on page load
+            if (isStellarMinimized) {
+                var $content = $('#stellar-collapsible-content');
+                var $arrow = $('#stellar-minimize-arrow');
+                $content.hide(); // Start hidden
+                $arrow.css('transform', 'rotate(-90deg)');
+            }
             
             $('#stellar-minimize-btn').on('click', function() {
                 var $content = $('#stellar-collapsible-content');
@@ -2324,6 +2365,77 @@ In the following text content I paste below, you will be seeing the following:
                     $arrow.css('transform', 'rotate(-90deg)');
                     isStellarMinimized = true;
                 }
+            });
+            
+            // Stellar Chamber Default State Toggle (Editor Version) 
+            $('.stellar-chamber-toggle-switch-editor').on('click', function(e) {
+                var $switch = $(this);
+                var $radioExpanded = $switch.find('input[value="expanded"]');
+                var $radioCollapsed = $switch.next('input[value="collapsed"]');
+                
+                // Toggle the radio buttons - expanded=checked means "expanded" state (blue/right)
+                // and collapsed=checked means "collapsed" state (gray/left)
+                if ($radioExpanded.is(':checked')) {
+                    $radioExpanded.prop('checked', false);
+                    $radioCollapsed.prop('checked', true);
+                } else {
+                    $radioCollapsed.prop('checked', false);
+                    $radioExpanded.prop('checked', true);
+                }
+                
+                // Prevent default radio button behavior
+                e.preventDefault();
+            });
+            
+            // Save Stellar Chamber Setting Button
+            $('.stellar-chamber-save-setting-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                var $button = $(this);
+                var $message = $('.stellar-chamber-message-editor');
+                var selectedValue = $('input[name="ruplin_stellar_chamber_default_state_editor"]:checked').val();
+                
+                // Show loading state
+                $button.prop('disabled', true).text('Saving...');
+                $message.hide();
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'save_stellar_chamber_setting',
+                        nonce: $('#hurricane-nonce').val(),
+                        setting_value: selectedValue
+                    },
+                    success: function(response) {
+                        try {
+                            var data = typeof response === 'string' ? JSON.parse(response) : response;
+                            
+                            if (data.success) {
+                                $message.removeClass('error').addClass('success')
+                                       .text('Setting saved successfully!').fadeIn();
+                            } else {
+                                $message.removeClass('success').addClass('error')
+                                       .text(data.message || 'Error saving setting').fadeIn();
+                            }
+                        } catch (e) {
+                            $message.removeClass('success').addClass('error')
+                                   .text('Error processing response').fadeIn();
+                        }
+                    },
+                    error: function() {
+                        $message.removeClass('success').addClass('error')
+                               .text('Error saving setting').fadeIn();
+                    },
+                    complete: function() {
+                        $button.prop('disabled', false).text('Save Setting');
+                        
+                        // Hide message after 3 seconds
+                        setTimeout(function() {
+                            $message.fadeOut();
+                        }, 3000);
+                    }
+                });
             });
             
             // Stellar Chamber Pantheon Table functionality
@@ -2500,7 +2612,10 @@ In the following text content I paste below, you will be seeing the following:
                     <button type="button" class="snefuru-popup-close" onclick="window.snefuruCloseLightningPopup()">&times;</button>
                 </div>
                 <div class="snefuru-popup-content">
-                    <!-- Future content will go here -->
+                    <?php
+                    // Hook for other plugins/features to add content
+                    do_action('ruplin_lightning_popup_content');
+                    ?>
                 </div>
             </div>
         </div>

@@ -30,6 +30,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_snefuru_save_api_key', array($this, 'save_api_key'));
         add_action('wp_ajax_snefuru_clear_update_debug', array($this, 'clear_update_debug'));
         add_action('wp_ajax_snefuru_rebuild_zen_tables', array($this, 'rebuild_zen_tables'));
+        add_action('wp_ajax_save_stellar_chamber_setting', array($this, 'save_stellar_chamber_setting'));
         
         // Locations management AJAX actions
         add_action('wp_ajax_rup_locations_get_data', array($this, 'rup_locations_get_data'));
@@ -521,6 +522,19 @@ class Snefuru_Admin {
         // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
         $this->suppress_all_admin_notices();
         
+        // Handle stellar chamber settings form submission
+        if (isset($_POST['submit_stellar_chamber_settings'])) {
+            check_admin_referer('snefuru_stellar_chamber_settings_nonce');
+            
+            $default_state = sanitize_text_field($_POST['ruplin_stellar_chamber_default_state']);
+            if (in_array($default_state, array('expanded', 'collapsed'))) {
+                update_option('ruplin_stellar_chamber_default_state', $default_state);
+                echo '<div class="notice notice-success"><p>Stellar Chamber settings saved!</p></div>';
+            } else {
+                echo '<div class="notice notice-error"><p>Invalid stellar chamber state provided.</p></div>';
+            }
+        }
+        
         // Handle upload settings form submission
         if (isset($_POST['submit_upload_settings'])) {
             check_admin_referer('snefuru_upload_settings_nonce');
@@ -535,10 +549,43 @@ class Snefuru_Admin {
         $api_url = get_option('snefuru_api_url', 'https://your-app.vercel.app/api');
         $upload_enabled = get_option('snefuru_upload_enabled', 1);
         $upload_max_size = get_option('snefuru_upload_max_size', '10MB');
+        $stellar_chamber_default_state = get_option('ruplin_stellar_chamber_default_state', 'collapsed');
         
         ?>
         <div class="wrap">
             <h1>Snefuruplin Settings</h1>
+            
+            <!-- Stellar Chamber Settings Section -->
+            <div class="snefuru-card">
+                <h3>Stellar Chamber Settings</h3>
+                <p>Configure the default behavior of the Stellar Chamber interface.</p>
+                
+                <form method="post" action="">
+                    <?php wp_nonce_field('snefuru_stellar_chamber_settings_nonce'); ?>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">Default State</th>
+                            <td>
+                                <fieldset>
+                                    <label class="stellar-chamber-toggle-switch">
+                                        <input type="radio" name="ruplin_stellar_chamber_default_state" value="expanded" <?php checked($stellar_chamber_default_state, 'expanded'); ?> />
+                                        <span class="stellar-chamber-toggle-slider"></span>
+                                        <span class="stellar-chamber-toggle-label">
+                                            <span class="expanded-label">Expanded</span>
+                                            <span class="collapsed-label">Collapsed</span>
+                                        </span>
+                                    </label>
+                                    <input type="radio" name="ruplin_stellar_chamber_default_state" value="collapsed" <?php checked($stellar_chamber_default_state, 'collapsed'); ?> style="display: none;" />
+                                </fieldset>
+                                <p class="description">
+                                    Choose whether the Stellar Chamber should be expanded or collapsed by default when editing posts/pages.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                    <?php submit_button('Save Stellar Chamber Settings', 'primary', 'submit_stellar_chamber_settings'); ?>
+                </form>
+            </div>
             
             <div class="snefuru-card">
                 <h3>Ruplin API Configuration</h3>
@@ -874,6 +921,26 @@ class Snefuru_Admin {
                     });
                 }
             });
+            
+            // Stellar Chamber Toggle Switch functionality
+            $('.stellar-chamber-toggle-switch').on('click', function(e) {
+                var $switch = $(this);
+                var $radioExpanded = $switch.find('input[value="expanded"]');
+                var $radioCollapsed = $switch.next('input[value="collapsed"]');
+                
+                // Toggle the radio buttons - expanded=checked means "expanded" state (blue/right)
+                // and collapsed=checked means "collapsed" state (gray/left)
+                if ($radioExpanded.is(':checked')) {
+                    $radioExpanded.prop('checked', false);
+                    $radioCollapsed.prop('checked', true);
+                } else {
+                    $radioCollapsed.prop('checked', false);
+                    $radioExpanded.prop('checked', true);
+                }
+                
+                // Prevent default radio button behavior
+                e.preventDefault();
+            });
         });
         </script>
         <?php
@@ -1070,6 +1137,37 @@ class Snefuru_Admin {
         } else {
             // Still save the key but warn about connection
             wp_send_json_success(array('message' => 'API key saved. Warning: Could not verify connection with this key.'));
+        }
+    }
+    
+    /**
+     * AJAX: Save Stellar Chamber Default State Setting
+     */
+    public function save_stellar_chamber_setting() {
+        // Verify nonce
+        $nonce = sanitize_text_field($_POST['nonce']);
+        if (!wp_verify_nonce($nonce, 'hurricane_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+        
+        // Sanitize and validate input
+        $setting_value = sanitize_text_field($_POST['setting_value']);
+        if (!in_array($setting_value, array('expanded', 'collapsed'))) {
+            wp_send_json_error(array('message' => 'Invalid setting value'));
+        }
+        
+        // Save the setting
+        $result = update_option('ruplin_stellar_chamber_default_state', $setting_value);
+        
+        if ($result !== false) {
+            wp_send_json_success(array('message' => 'Stellar Chamber default state saved successfully'));
+        } else {
+            wp_send_json_error(array('message' => 'Failed to save setting'));
         }
     }
     

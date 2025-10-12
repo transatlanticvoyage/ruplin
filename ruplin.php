@@ -137,6 +137,10 @@ class SnefuruPlugin {
         // Initialize Hurricane feature
         new Snefuru_Hurricane();
         
+        // Initialize Ferret Snippets feature
+        require_once plugin_dir_path(__FILE__) . 'includes/ferret-snippets/class-ferret-snippets.php';
+        Ferret_Snippets::get_instance();
+        
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
         add_action('snefuru_sync_data', array($this, 'sync_data_to_cloud'));
