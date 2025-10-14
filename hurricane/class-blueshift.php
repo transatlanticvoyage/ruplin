@@ -510,6 +510,139 @@ class Snefuru_Blueshift {
     }
     
     /**
+     * Extract frontend content with multi-line separators for format 4
+     * Uses configurable separator character count from database
+     */
+    public function extract_elementor_blueshift_content_format4($post_id) {
+        // Get the saved separator count from database, default to 95
+        $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+        
+        // Create separator lines
+        $equal_separator = str_repeat('=', $separator_count);
+        $dash_separator = str_repeat('—', $separator_count);
+        
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            return $equal_separator . "\n" . 
+                   'widget1 .blueshift' . "\n" .
+                   $dash_separator . "\n" .
+                   'No Elementor data found for this page.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            return $equal_separator . "\n" . 
+                   'widget1 .blueshift' . "\n" .
+                   $dash_separator . "\n" .
+                   'Could not parse Elementor data.' . "\n" .
+                   $equal_separator;
+        }
+        
+        $extracted_content = array();
+        $widget_counter = 1;
+        
+        // Process each top-level element (sections/containers)
+        foreach ($elements as $element) {
+            $this->process_elementor_element_blueshift_format4($element, $extracted_content, $widget_counter, $equal_separator, $dash_separator);
+        }
+        
+        // If no content found, return empty indicator
+        if (empty($extracted_content)) {
+            return $equal_separator . "\n" . 
+                   'widget1 .blueshift' . "\n" .
+                   $dash_separator . "\n" .
+                   'No widget content found.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Build output with single separator between widgets
+        $output = '';
+        foreach ($extracted_content as $index => $content) {
+            if ($index === 0) {
+                // First widget starts with separator
+                $output .= $content;
+            } else {
+                // Subsequent widgets just continue (they already have their top separator)
+                $output .= "\n" . $content;
+            }
+        }
+        
+        // Add closing separator at the end
+        $output .= "\n" . $equal_separator;
+        
+        return $output;
+    }
+    
+    /**
+     * Recursively process Elementor elements for format 4 with multi-line separators
+     */
+    private function process_elementor_element_blueshift_format4($element, &$extracted_content, &$widget_counter, $equal_separator, $dash_separator) {
+        if (!is_array($element)) {
+            return;
+        }
+        
+        // Extract content if this is a widget
+        if (!empty($element['widgetType'])) {
+            // Get widget content
+            $widget_content = $this->extract_widget_html_content($element);
+            
+            if (!empty($widget_content)) {
+                // Extract custom CSS classes and ID
+                $css_info = $this->extract_css_classes_and_id($element);
+                
+                // Determine widget class suffix
+                $widget_class = '.blueshift'; // Default
+                if (strpos($css_info, 'guarded') !== false) {
+                    $widget_class = '.guarded';
+                }
+                
+                // Check if content has ##item markers
+                if (strpos($widget_content, '##item') !== false) {
+                    // This is a list widget - handle items specially
+                    $items = explode('##item', $widget_content);
+                    
+                    // First part is the widget header
+                    $formatted_output = $equal_separator . "\n" .
+                                      'widget' . $widget_counter . ' ' . $widget_class;
+                    
+                    // Process each item (skip first empty element from explode)
+                    $item_counter = 1;
+                    for ($i = 1; $i < count($items); $i++) {
+                        $item_content = trim($items[$i]);
+                        if (!empty($item_content)) {
+                            $formatted_output .= "\n" . $equal_separator . "\n" .
+                                               "widget" . $widget_counter . "-item" . $item_counter . "\n" .
+                                               $dash_separator . "\n" .
+                                               $item_content;
+                            $item_counter++;
+                        }
+                    }
+                } else {
+                    // Regular widget - use standard format
+                    $formatted_output = $equal_separator . "\n" .
+                                      'widget' . $widget_counter . ' ' . $widget_class . "\n" .
+                                      $dash_separator . "\n" .
+                                      $widget_content;
+                }
+                
+                $extracted_content[] = $formatted_output;
+                $widget_counter++;
+            }
+        }
+        
+        // Process child elements recursively
+        if (!empty($element['elements']) && is_array($element['elements'])) {
+            foreach ($element['elements'] as $child_element) {
+                $this->process_elementor_element_blueshift_format4($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator);
+            }
+        }
+    }
+    
+    /**
      * AJAX handler to refresh blueshift data
      */
     public function ajax_refresh_blueshift_data() {

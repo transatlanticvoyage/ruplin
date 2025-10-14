@@ -25,6 +25,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
         add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
         add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
+        add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift and Cobalt
@@ -44,6 +45,35 @@ class Snefuru_Hurricane {
      */
     public function ajax_cobalt_inject_content() {
         $this->cobalt->ajax_cobalt_inject_content();
+    }
+    
+    /**
+     * AJAX handler for saving Blueshift separator character count
+     */
+    public function ajax_save_blueshift_separator_count() {
+        // Check nonce for security
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'ruplin_ajax_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        // Get the count value
+        $count = isset($_POST['count']) ? intval($_POST['count']) : 95;
+        
+        // Validate the count (minimum 10, maximum 500)
+        if ($count < 10) {
+            $count = 10;
+        } elseif ($count > 500) {
+            $count = 500;
+        }
+        
+        // Save to database using WordPress options
+        update_option('ruplin_blueshift_separator_character_count', $count);
+        
+        // Return success response
+        wp_send_json_success(array(
+            'message' => 'Separator count saved successfully',
+            'count' => $count
+        ));
     }
     
     /**
@@ -506,6 +536,10 @@ class Snefuru_Hurricane {
                         Elementor Deployer
                     </button>
                     <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="old-elementor-elicitor">
+                        Old Elementor Elicitor
+                    </button>
+                    <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="gutenberg">
                         Gutenberg Elicitor
                     </button>
@@ -595,138 +629,103 @@ class Snefuru_Hurricane {
                         <!-- Column Container Wrapper -->
                         <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
                             
-                            <!-- Denyeep Column Div 1 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                            <!-- Denyeep Column Div 1 (Expanded to take up 2/3 width) -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 2; min-width: 600px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
-                                <!-- Replete Instance Wrapper -->
-                                <div class="snefuru-replete-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 20px;">
-                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">replete_instance</span>
-                                    <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                    
-                                    <!-- Copy All Instances Container -->
-                                    <div class="snefuru-copy-all-instances-container">
-                                        <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">copy all instances</span>
-                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                            <textarea 
-                                                id="copy-all-instances-textbox" 
-                                                class="snefuru-header303-db-mapping-textbox" 
-                                                readonly
-                                                style="height: 200px; flex: 1;"
-                                            ><?php 
-                                            // Combine all three instances into one text
-                                            $all_instances_text = $db_mapping_text . "\n\n———————————————————————\n\n" . $header303_content . "\n\n———————————————————————\n\n" . $formatted_data;
-                                            echo esc_textarea($all_instances_text); 
-                                            ?></textarea>
-                                            <button type="button" class="snefuru-copy-btn-right" data-target="copy-all-instances-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
-                                                Copy
-                                            </button>
-                                        </div>
-                                    </div>
+                                <!-- Character Count per Separator Control -->
+                                <?php 
+                                // Get the saved separator count from database, default to 95
+                                $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+                                ?>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    <span style="font-size: 16px; font-weight: bold;">qty of total characters per separator:</span>
+                                    <input 
+                                        type="text" 
+                                        id="blueshift-separator-char-count"
+                                        value="<?php echo esc_attr($separator_count); ?>"
+                                        style="width: 80px; padding: 5px 8px; font-size: 14px; border: 1px solid #ddd; border-radius: 3px;"
+                                    />
+                                    <button 
+                                        type="button"
+                                        id="blueshift-separator-save-btn"
+                                        style="padding: 5px 15px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                                    >
+                                        Save
+                                    </button>
+                                    <span id="blueshift-save-status" style="display: none; margin-left: 10px; color: green;"></span>
                                 </div>
                                 
-                                <!-- Instance 1 Wrapper: Header303 DB Mapping -->
-                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
-                                    <div class="snefuru-header303-db-mapping-container">
-                                        <span class="snefuru-header303-db-mapping-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303_db_mapping</span>
-                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                            <textarea 
-                                                id="header303-db-mapping-textbox" 
-                                                class="snefuru-header303-db-mapping-textbox" 
-                                                readonly
-                                                style="flex: 1;"
-                                            ><?php echo esc_textarea($db_mapping_text); ?></textarea>
-                                            <button type="button" class="snefuru-copy-btn-right" data-target="header303-db-mapping-textbox" style="height: 150px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
-                                                Copy
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- JavaScript for saving separator count -->
+                                <script type="text/javascript">
+                                jQuery(document).ready(function($) {
+                                    $('#blueshift-separator-save-btn').on('click', function() {
+                                        var count = $('#blueshift-separator-char-count').val();
+                                        var $btn = $(this);
+                                        var $status = $('#blueshift-save-status');
+                                        
+                                        // Disable button during save
+                                        $btn.prop('disabled', true);
+                                        
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'save_blueshift_separator_count',
+                                                count: count,
+                                                nonce: '<?php echo wp_create_nonce('ruplin_ajax_nonce'); ?>'
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    $status.text('Saved!').css('color', 'green').show();
+                                                    setTimeout(function() {
+                                                        $status.fadeOut();
+                                                    }, 2000);
+                                                } else {
+                                                    $status.text('Error saving').css('color', 'red').show();
+                                                }
+                                            },
+                                            error: function() {
+                                                $status.text('Error saving').css('color', 'red').show();
+                                            },
+                                            complete: function() {
+                                                $btn.prop('disabled', false);
+                                            }
+                                        });
+                                    });
+                                });
+                                </script>
                                 
-                                <!-- Instance 2 Wrapper: Header303 -->
-                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
-                                    <div class="snefuru-header303-container">
-                                        <span class="snefuru-header303-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303_filled</span>
-                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                            <textarea 
-                                                id="header303-textbox" 
-                                                class="snefuru-header303-textbox" 
-                                                readonly
-                                                style="flex: 1;"
-                                            ><?php echo esc_textarea($header303_content); ?></textarea>
-                                            <button type="button" class="snefuru-copy-btn-right" data-target="header303-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
-                                                Copy
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Instance 3 Wrapper: Elementor Data -->
-                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
-                                    <div class="snefuru-elementor-data-container">
-                                        <span class="snefuru-elementor-data-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">_elementor_data</span>
-                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
-                                            <textarea 
-                                                id="elementor-data-textbox" 
-                                                class="snefuru-elementor-data-textbox" 
-                                                readonly
-                                                placeholder="No Elementor data found for this page"
-                                                style="flex: 1;"
-                                            ><?php echo esc_textarea($formatted_data); ?></textarea>
-                                            <button type="button" class="snefuru-copy-btn-right" data-target="elementor-data-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
-                                                Copy
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                            </div>
-                            
-                            <!-- Denyeep Column Div 2 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
-                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                
-                                <!-- Operation Redshift Label -->
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #333;">operation redshift: get all text content output on frontend</span>
-                                
-                                <!-- Refresh Button -->
-                                <button type="button" 
-                                        id="refresh-redshift-btn"
-                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
-                                        style="background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 15px;">
-                                    refresh redshift data
-                                </button>
-                                
-                                <!-- Instance 1: Frontend Text Content -->
+                                <!-- Instance: Blueshift Format 4 (Expanded Width) -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
                                     <div class="snefuru-frontend-content-container">
-                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation redshift - format 1</span>
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation blueshift - format 4</span>
                                         <div style="display: flex; gap: 10px; align-items: flex-start;">
                                             <textarea 
-                                                id="frontend-content-textbox" 
-                                                class="snefuru-frontend-content-textbox" 
+                                                id="blueshift-content-textbox-4-expanded" 
+                                                class="snefuru-blueshift-content-textbox" 
                                                 readonly
                                                 placeholder="Frontend text content will be displayed here"
-                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                                style="flex: 1; height: 550px; font-family: monospace; font-size: 12px; line-height: 1.4;"
                                             ><?php 
-                                            // Extract frontend text content using new Elementor data parsing approach
-                                            $frontend_text_content = $this->extract_elementor_frontend_text($post->ID);
+                                            // Extract Blueshift content with multi-line separators for format 4
+                                            $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4($post->ID);
                                             
                                             // Limit length for display if too long
-                                            if (strlen($frontend_text_content) > 10000) {
-                                                $frontend_text_content = substr($frontend_text_content, 0, 10000) . "\n\n... [Content truncated at 10,000 characters]";
+                                            if (strlen($blueshift_content_format4) > 50000) {
+                                                $blueshift_content_format4 = substr($blueshift_content_format4, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
                                             }
                                             
-                                            echo esc_textarea($frontend_text_content);
+                                            echo esc_textarea($blueshift_content_format4);
                                             ?></textarea>
-                                            <button type="button" class="snefuru-copy-btn-right" data-target="frontend-content-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-4-expanded" style="height: 550px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
                                                 Copy
                                             </button>
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
                             
                             <!-- Denyeep Column Div 3 -->
@@ -1140,6 +1139,189 @@ class Snefuru_Hurricane {
                                     
                                     <div id="snefuru-cobalt-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                 </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="old-elementor-elicitor">
+                        <?php
+                        // Generate header303 content
+                        $post_id = $post->ID;
+                        $post_title = get_the_title($post_id);
+                        $post_status = get_post_status($post_id);
+                        $edit_link = admin_url('post.php?post=' . $post_id . '&action=edit');
+                        
+                        // Format the header303 content with two lines
+                        $header303_line1 = sprintf(
+                            'wp_posts.post_id = %d / %s / %s / %s',
+                            $post_id,
+                            $post_title,
+                            $post_status,
+                            $edit_link
+                        );
+                        $header303_content = $header303_line1 . "\nBELOW";
+                        
+                        // Get Elementor data for this post
+                        $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+                        $formatted_data = '';
+                        
+                        if (!empty($elementor_data)) {
+                            // Decode and pretty print the JSON for better readability
+                            $decoded = json_decode($elementor_data, true);
+                            if ($decoded !== null) {
+                                $formatted_data = json_encode($decoded, JSON_PRETTY_PRINT);
+                            } else {
+                                $formatted_data = $elementor_data;
+                            }
+                        }
+                        
+                        // Static mapping text for header303_db_mapping
+                        $db_mapping_text = "wp_posts.ID / wp_posts.post_title / wp_posts.post_status / admin_url('post.php?post=\$ID&action=edit')\n\nDatabase field mappings:\n- Post ID: wp_posts.ID (bigint unsigned, primary key)\n- Post Title: wp_posts.post_title (text field)\n- Post Status: wp_posts.post_status (varchar, values: publish/draft/pending/private/trash/auto-draft/inherit)\n- Edit Link: Dynamically generated using WordPress admin_url() function with wp_posts.ID";
+                        ?>
+                        
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Replete Instance Wrapper -->
+                                <div class="snefuru-replete-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 20px;">
+                                    <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">replete_instance</span>
+                                    <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                    
+                                    <!-- Copy All Instances Container -->
+                                    <div class="snefuru-copy-all-instances-container">
+                                        <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">copy all instances</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="old-elicitor-copy-all-instances-textbox" 
+                                                class="snefuru-header303-db-mapping-textbox" 
+                                                readonly
+                                                style="height: 200px; flex: 1;"
+                                            ><?php 
+                                            // Combine all three instances into one text
+                                            $all_instances_text = $db_mapping_text . "\n\n———————————————————————\n\n" . $header303_content . "\n\n———————————————————————\n\n" . $formatted_data;
+                                            echo esc_textarea($all_instances_text); 
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="old-elicitor-copy-all-instances-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 1 Wrapper: Header303 DB Mapping -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-header303-db-mapping-container">
+                                        <span class="snefuru-header303-db-mapping-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303_db_mapping</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="old-elicitor-header303-db-mapping-textbox" 
+                                                class="snefuru-header303-db-mapping-textbox" 
+                                                readonly
+                                                style="flex: 1;"
+                                            ><?php echo esc_textarea($db_mapping_text); ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="old-elicitor-header303-db-mapping-textbox" style="height: 150px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 2 Wrapper: Header303 -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-header303-container">
+                                        <span class="snefuru-header303-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">header303_filled</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="old-elicitor-header303-textbox" 
+                                                class="snefuru-header303-textbox" 
+                                                readonly
+                                                style="flex: 1;"
+                                            ><?php echo esc_textarea($header303_content); ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="old-elicitor-header303-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Instance 3 Wrapper: Elementor Data -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-elementor-data-container">
+                                        <span class="snefuru-elementor-data-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">_elementor_data</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="old-elicitor-elementor-data-textbox" 
+                                                class="snefuru-elementor-data-textbox" 
+                                                readonly
+                                                placeholder="No Elementor data found for this page"
+                                                style="flex: 1;"
+                                            ><?php echo esc_textarea($formatted_data); ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="old-elicitor-elementor-data-textbox" style="height: 100px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Operation Redshift Label -->
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #333;">operation redshift: get all text content output on frontend</span>
+                                
+                                <!-- Refresh Button -->
+                                <button type="button" 
+                                        id="old-elicitor-refresh-redshift-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    refresh redshift data
+                                </button>
+                                
+                                <!-- Instance 1: Frontend Text Content -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation redshift - format 1</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="old-elicitor-frontend-content-textbox" 
+                                                class="snefuru-frontend-content-textbox" 
+                                                readonly
+                                                placeholder="Frontend text content will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract frontend text content using new Elementor data parsing approach
+                                            $frontend_text_content = $this->extract_elementor_frontend_text($post->ID);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($frontend_text_content) > 10000) {
+                                                $frontend_text_content = substr($frontend_text_content, 0, 10000) . "\n\n... [Content truncated at 10,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($frontend_text_content);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="old-elicitor-frontend-content-textbox" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Content area left blank for now -->
                             </div>
                             
                         </div>
