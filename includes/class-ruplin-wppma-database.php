@@ -283,12 +283,30 @@ class Ruplin_WP_Database_Horse_Class {
      * Check and update database schema if needed
      */
     public static function check_database_version() {
-        $current_version = get_option(self::DB_VERSION_OPTION, '0.0.0');
+        global $wpdb;
         
-        if (version_compare($current_version, self::DB_VERSION, '<')) {
+        // Check if core tables actually exist, regardless of version option
+        $services_table = $wpdb->prefix . 'zen_services';
+        $locations_table = $wpdb->prefix . 'zen_locations';
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        $factory_codes_table = $wpdb->prefix . 'zen_factory_codes';
+        $cache_reports_table = $wpdb->prefix . 'zen_cache_reports';
+        $friendly_names_table = $wpdb->prefix . 'zen_lighthouse_friendly_names';
+        $general_shortcodes_table = $wpdb->prefix . 'zen_general_shortcodes';
+        
+        $services_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'") === $services_table;
+        $locations_exists = $wpdb->get_var("SHOW TABLES LIKE '$locations_table'") === $locations_table;
+        $orbitposts_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") === $orbitposts_table;
+        $factory_codes_exists = $wpdb->get_var("SHOW TABLES LIKE '$factory_codes_table'") === $factory_codes_table;
+        $cache_reports_exists = $wpdb->get_var("SHOW TABLES LIKE '$cache_reports_table'") === $cache_reports_table;
+        $friendly_names_exists = $wpdb->get_var("SHOW TABLES LIKE '$friendly_names_table'") === $friendly_names_table;
+        $general_shortcodes_exists = $wpdb->get_var("SHOW TABLES LIKE '$general_shortcodes_table'") === $general_shortcodes_table;
+        
+        // If any core table is missing, recreate all tables
+        if (!$services_exists || !$locations_exists || !$orbitposts_exists || !$factory_codes_exists || !$cache_reports_exists || !$friendly_names_exists || !$general_shortcodes_exists) {
             self::create_tables();
         } else {
-            // Even if version is current, check for missing columns
+            // All tables exist, just check for missing columns
             self::add_missing_columns();
         }
     }
