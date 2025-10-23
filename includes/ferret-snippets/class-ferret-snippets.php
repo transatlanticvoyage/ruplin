@@ -129,13 +129,14 @@ class Ferret_Snippets {
         <div id="ferret-snippets-container">
             <div class="ferret-tabs">
                 <button class="ferret-tab active" data-tab="header">
-                    header (before closing &lt;/head&gt; tag)
+                    ferret_header_code
                 </button>
                 <button class="ferret-tab" data-tab="header2">
-                    ferret_header_code_2
+                    ferret_header_code2<br>
+                    <span style="font-size: 11px; font-weight: normal;">(for multi page cache style push)</span>
                 </button>
                 <button class="ferret-tab" data-tab="footer">
-                    footer (before closing &lt;/body&gt; tag)
+                    ferret_footer_code
                 </button>
             </div>
             
