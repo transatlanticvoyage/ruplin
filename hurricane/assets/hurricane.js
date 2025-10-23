@@ -73,12 +73,28 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             snefuruCloseLightningPopup();
         });
         
-        // Close popup when clicking overlay background
-        $(document).off('click.hurricane-overlay').on('click.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
-            if (e.target === this) {
+        // Close popup when clicking overlay background (but not when interacting with content)
+        $(document).off('mousedown.hurricane-overlay').on('mousedown.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
+            // Store where the mousedown started
+            $(this).data('mousedown-target', e.target);
+        });
+        
+        $(document).off('mouseup.hurricane-overlay').on('mouseup.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
+            // Check if text is being selected - if so, don't close
+            var selection = window.getSelection();
+            if (selection && selection.toString().length > 0) {
+                console.log('Text selection detected, keeping popup open');
+                return;
+            }
+            
+            // Only close if both mousedown and mouseup were on the overlay itself (not the container or its contents)
+            var mousedownTarget = $(this).data('mousedown-target');
+            if (e.target === this && mousedownTarget === this) {
                 console.log('Overlay clicked');
                 snefuruCloseLightningPopup();
             }
+            // Clear the stored target
+            $(this).removeData('mousedown-target');
         });
         
         // Close popup with Escape key
