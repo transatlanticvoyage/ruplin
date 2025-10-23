@@ -695,8 +695,10 @@
 .snefuru-popup-header {
     background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
     color: white;
-    height: 40px;
-    padding: 0 20px;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 20px !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -734,7 +736,8 @@
 
 .snefuru-popup-content {
     flex: 1;
-    padding: 0;
+    padding: 0 !important;
+    margin: 0 !important;
     overflow-y: auto;
     background: #f9f9f9;
     display: flex;
@@ -744,6 +747,14 @@
 /* Prevent body scroll when popup is open */
 body.snefuru-popup-open {
     overflow: hidden;
+}
+
+/* Ensure ferret snippets container fills the popup content and starts at top */
+.snefuru-popup-content #ferret-snippets-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100%;
+    width: 100%;
 }
 
 /* Ensure column div headers are properly spaced and visible */
@@ -796,7 +807,8 @@ body.snefuru-popup-open {
     }
     
     .snefuru-popup-header {
-        padding: 15px;
+        height: 40px;
+        padding: 0 15px;
     }
     
     .snefuru-popup-title {
@@ -804,6 +816,6 @@ body.snefuru-popup-open {
     }
     
     .snefuru-popup-content {
-        padding: 15px;
+        padding: 0;
     }
 }

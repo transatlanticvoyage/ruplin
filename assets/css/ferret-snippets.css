@@ -16,7 +16,8 @@
 /* Tab bar styles */
 .ferret-tabs {
     display: flex;
-    margin: 0;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #f8f9fa;
     border: 1px solid #ccc;
     border-bottom: none;
