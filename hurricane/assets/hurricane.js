@@ -74,27 +74,40 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         });
         
         // Close popup when clicking overlay background (but not when interacting with content)
-        $(document).off('mousedown.hurricane-overlay').on('mousedown.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
-            // Store where the mousedown started
-            $(this).data('mousedown-target', e.target);
+        var isInteractingWithPopup = false;
+        
+        // Track if interaction starts within the popup container
+        $(document).off('mousedown.hurricane-container').on('mousedown.hurricane-container', '.snefuru-popup-container', function(e) {
+            isInteractingWithPopup = true;
+            e.stopPropagation(); // Prevent event from bubbling to overlay
         });
         
-        $(document).off('mouseup.hurricane-overlay').on('mouseup.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
-            // Check if text is being selected - if so, don't close
-            var selection = window.getSelection();
-            if (selection && selection.toString().length > 0) {
-                console.log('Text selection detected, keeping popup open');
-                return;
+        // Also prevent mouseup events within container from bubbling
+        $(document).off('mouseup.hurricane-container').on('mouseup.hurricane-container', '.snefuru-popup-container', function(e) {
+            e.stopPropagation(); // Prevent event from bubbling to overlay
+        });
+        
+        // Track mousedown on the overlay itself
+        $(document).off('mousedown.hurricane-overlay').on('mousedown.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
+            // Only set flag to false if clicking directly on overlay (not container)
+            if (e.target === this) {
+                isInteractingWithPopup = false;
             }
-            
-            // Only close if both mousedown and mouseup were on the overlay itself (not the container or its contents)
-            var mousedownTarget = $(this).data('mousedown-target');
-            if (e.target === this && mousedownTarget === this) {
-                console.log('Overlay clicked');
+        });
+        
+        // Handle mouseup on overlay
+        $(document).off('mouseup.hurricane-overlay').on('mouseup.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
+            // Only close if we're not interacting with the popup content
+            // and the click target is the overlay itself
+            if (!isInteractingWithPopup && e.target === this) {
+                console.log('Overlay clicked - closing popup');
                 snefuruCloseLightningPopup();
             }
-            // Clear the stored target
-            $(this).removeData('mousedown-target');
+            
+            // Reset the flag after a short delay to handle edge cases
+            setTimeout(function() {
+                isInteractingWithPopup = false;
+            }, 100);
         });
         
         // Close popup with Escape key
