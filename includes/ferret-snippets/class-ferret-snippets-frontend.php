@@ -29,6 +29,9 @@ class Ferret_Snippets_Frontend {
         // Header injection - high priority to ensure it runs
         add_action('wp_head', array($this, 'inject_header_code'), 999);
         
+        // Header2 injection - runs after main header code
+        add_action('wp_head', array($this, 'inject_header2_code'), 1000);
+        
         // Footer injection - high priority to ensure it runs
         add_action('wp_footer', array($this, 'inject_footer_code'), 999);
     }
@@ -42,6 +45,18 @@ class Ferret_Snippets_Frontend {
             echo "\n<!-- Ferret Snippets: Header Code -->\n";
             echo $code;
             echo "\n<!-- End Ferret Snippets: Header Code -->\n";
+        }
+    }
+    
+    /**
+     * Inject header2 code for current post/page
+     */
+    public function inject_header2_code() {
+        $code = $this->get_code_for_current_post('header2');
+        if (!empty($code)) {
+            echo "\n<!-- Ferret Snippets: Header Code 2 -->\n";
+            echo $code;
+            echo "\n<!-- End Ferret Snippets: Header Code 2 -->\n";
         }
     }
     
@@ -72,13 +87,19 @@ class Ferret_Snippets_Frontend {
         }
         
         // Validate type
-        if (!in_array($type, array('header', 'footer'))) {
+        if (!in_array($type, array('header', 'header2', 'footer'))) {
             return '';
         }
         
         global $wpdb;
         $table = $wpdb->prefix . 'zen_orbitposts';
-        $column = 'ferret_' . $type . '_code';
+        
+        // Map type to column name
+        if ($type === 'header2') {
+            $column = 'ferret_header_code_2';
+        } else {
+            $column = 'ferret_' . $type . '_code';
+        }
         
         $code = $wpdb->get_var($wpdb->prepare(
             "SELECT $column FROM $table WHERE rel_wp_post_id = %d",

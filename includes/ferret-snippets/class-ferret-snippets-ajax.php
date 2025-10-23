@@ -56,7 +56,7 @@ class Ferret_Snippets_Ajax {
         $snippet_type = sanitize_text_field($_POST['snippet_type']);
         $snippet_code = wp_unslash($_POST['snippet_code']); // Allow HTML/JS but unslash
         
-        if (!$post_id || !in_array($snippet_type, array('header', 'footer'))) {
+        if (!$post_id || !in_array($snippet_type, array('header', 'header2', 'footer'))) {
             wp_die(json_encode(array(
                 'success' => false,
                 'message' => 'Invalid parameters'
@@ -74,7 +74,12 @@ class Ferret_Snippets_Ajax {
         
         global $wpdb;
         $table = $wpdb->prefix . 'zen_orbitposts';
-        $column = 'ferret_' . $snippet_type . '_code';
+        // Map snippet type to column name
+        if ($snippet_type === 'header2') {
+            $column = 'ferret_header_code_2';
+        } else {
+            $column = 'ferret_' . $snippet_type . '_code';
+        }
         
         // Check if orbitpost record exists
         $existing = $wpdb->get_var($wpdb->prepare(
@@ -154,7 +159,7 @@ class Ferret_Snippets_Ajax {
         $table = $wpdb->prefix . 'zen_orbitposts';
         
         $result = $wpdb->get_row($wpdb->prepare(
-            "SELECT ferret_header_code, ferret_footer_code 
+            "SELECT ferret_header_code, ferret_header_code_2, ferret_footer_code 
              FROM $table 
              WHERE rel_wp_post_id = %d",
             $post_id
@@ -164,6 +169,7 @@ class Ferret_Snippets_Ajax {
             'success' => true,
             'data' => array(
                 'header' => $result['ferret_header_code'] ?? '',
+                'header2' => $result['ferret_header_code_2'] ?? '',
                 'footer' => $result['ferret_footer_code'] ?? ''
             )
         )));

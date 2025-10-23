@@ -75,6 +75,7 @@ class Ruplin_WP_Database_Horse_Class {
                 is_starred BOOLEAN DEFAULT FALSE,
                 is_squared BOOLEAN DEFAULT FALSE,
                 ferret_header_code LONGTEXT DEFAULT NULL,
+                ferret_header_code_2 LONGTEXT DEFAULT NULL,
                 ferret_footer_code LONGTEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -580,6 +581,26 @@ class Ruplin_WP_Database_Horse_Class {
             }
         } else {
             error_log('Snefuru: service_slug_id column already exists in zen_services table');
+        }
+        
+        // Check and add ferret_header_code_2 to zen_orbitposts if it doesn't exist
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        
+        $orbitposts_columns = $wpdb->get_results("DESCRIBE $orbitposts_table");
+        $orbitposts_column_names = array();
+        foreach ($orbitposts_columns as $column) {
+            $orbitposts_column_names[] = $column->Field;
+        }
+        
+        if (!in_array('ferret_header_code_2', $orbitposts_column_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD COLUMN ferret_header_code_2 LONGTEXT DEFAULT NULL AFTER ferret_header_code");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added ferret_header_code_2 column to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add ferret_header_code_2 column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: ferret_header_code_2 column already exists in zen_orbitposts table');
         }
     }
     

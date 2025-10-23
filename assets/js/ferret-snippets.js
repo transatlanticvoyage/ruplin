@@ -70,7 +70,8 @@
      */
     function saveSnippet($button) {
         var snippetType = $button.data('type');
-        var $textarea = $('#ferret-' + snippetType + '-code');
+        var textareaId = snippetType === 'header2' ? 'ferret-header2-code' : 'ferret-' + snippetType + '-code';
+        var $textarea = $('#' + textareaId);
         var code = $textarea.val();
         
         // Disable button during save
@@ -109,7 +110,8 @@
             },
             complete: function() {
                 // Re-enable button
-                $button.prop('disabled', false).text('Save ' + capitalizeFirst(snippetType) + ' Code');
+                var buttonText = snippetType === 'header2' ? 'Save Header Code 2' : 'Save ' + capitalizeFirst(snippetType) + ' Code';
+                $button.prop('disabled', false).text(buttonText);
             }
         });
     }
@@ -137,6 +139,7 @@
                     
                     if (data.success && data.data) {
                         $('#ferret-header-code').val(data.data.header || '');
+                        $('#ferret-header2-code').val(data.data.header2 || '');
                         $('#ferret-footer-code').val(data.data.footer || '');
                         
                         // Auto-resize textareas
