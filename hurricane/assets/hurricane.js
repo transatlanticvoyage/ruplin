@@ -408,6 +408,85 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             });
         });
         
+        // Handle titanium submit button clicks
+        $(document).off('click.titanium-submit').on('click.titanium-submit', '#snefuru-titanium-submit-btn', function(e) {
+            e.preventDefault();
+            
+            console.log('Titanium submit button clicked');
+            console.log('snefuruHurricane object:', snefuruHurricane);
+            
+            var $button = $(this);
+            var content = $('#snefuru-titanium-content').val();
+            var postId = $button.data('post-id');
+            var autoUpdateTitle = $('#snefuru-auto-title-toggle-titanium').is(':checked');
+            var originalText = $button.text();
+            var $result = $('#snefuru-titanium-result');
+            
+            console.log('Content:', content);
+            console.log('Post ID:', postId);
+            console.log('Auto update title:', autoUpdateTitle);
+            
+            if (!content.trim()) {
+                $result.removeClass('success error').addClass('error');
+                $result.html('<strong>Error:</strong> Please enter content to inject.');
+                $result.show();
+                return;
+            }
+            
+            // Disable button and show loading
+            $button.prop('disabled', true).text('Processing...');
+            $result.hide();
+            
+            // Make AJAX request
+            $.ajax({
+                url: snefuruHurricane.ajaxUrl || ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'titanium_inject_content',
+                    post_id: postId,
+                    content: content,
+                    auto_update_title: autoUpdateTitle,
+                    nonce: snefuruHurricane.nonce || $('#hurricane_nonce').val()
+                },
+                success: function(response) {
+                    console.log('Titanium response:', response);
+                    
+                    if (response.success) {
+                        $result.removeClass('error').addClass('success');
+                        $result.html('<strong>Success:</strong> ' + response.data);
+                        $result.css({
+                            'background-color': '#d4edda',
+                            'border': '1px solid #c3e6cb',
+                            'color': '#155724'
+                        });
+                        $result.show();
+                        
+                        // Clear the content after successful submission
+                        $('#snefuru-titanium-content').val('');
+                    } else {
+                        $result.removeClass('success').addClass('error');
+                        $result.html('<strong>Error:</strong> ' + (response.data || 'Unknown error occurred'));
+                        $result.css({
+                            'background-color': '#f8d7da',
+                            'border': '1px solid #f5c6cb',
+                            'color': '#721c24'
+                        });
+                        $result.show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', error);
+                    $result.removeClass('success').addClass('error');
+                    $result.html('<strong>Error:</strong> AJAX request failed: ' + error);
+                    $result.show();
+                },
+                complete: function() {
+                    // Re-enable button
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
         // Handle rollback revision button click
         $(document).off('click.rollback-revision').on('click.rollback-revision', '#rollback-revision-btn', function(e) {
             e.preventDefault();

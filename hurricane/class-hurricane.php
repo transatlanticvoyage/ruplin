@@ -12,6 +12,7 @@ if (!defined('ABSPATH')) {
 // Include Blueshift and Cobalt classes
 require_once plugin_dir_path(__FILE__) . 'class-blueshift.php';
 require_once plugin_dir_path(__FILE__) . 'class-cobalt.php';
+require_once plugin_dir_path(__FILE__) . 'class-titanium.php';
 
 class Snefuru_Hurricane {
     
@@ -27,13 +28,15 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_update_format4_filtered', array($this, 'ajax_update_format4_filtered'));
         add_action('wp_ajax_save_blueshift_all_options', array($this, 'ajax_save_blueshift_all_options'));
         add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
+        add_action('wp_ajax_titanium_inject_content', array($this, 'ajax_titanium_inject_content'));
         add_action('wp_ajax_rollback_revision', array($this, 'ajax_rollback_revision'));
         add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
-        // Initialize Blueshift and Cobalt
+        // Initialize Blueshift, Cobalt, and Titanium
         $this->blueshift = new Snefuru_Blueshift();
         $this->cobalt = new Snefuru_Cobalt();
+        $this->titanium = new Snefuru_Titanium();
     }
     
     /**
@@ -55,6 +58,13 @@ class Snefuru_Hurricane {
      */
     public function ajax_cobalt_inject_content() {
         $this->cobalt->ajax_cobalt_inject_content();
+    }
+    
+    /**
+     * AJAX handler for Titanium content injection
+     */
+    public function ajax_titanium_inject_content() {
+        $this->titanium->ajax_titanium_inject_content();
     }
     
     /**
@@ -1373,6 +1383,75 @@ class Snefuru_Hurricane {
                                     </div>
                                     
                                     <div id="snefuru-cobalt-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                                </div>
+                                
+                                <!-- Titanium Submit Box -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-top: 15px;">
+                                    <div class="snefuru-titanium-container">
+                                        <span class="snefuru-titanium-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">titanium_submit_box (target specific widgets by ID)</span>
+                                        <div style="margin-bottom: 10px; color: #666; font-size: 13px;">
+                                            Enter Blueshift Format 3 markup with ==widget1, ==widget2, ==item1, etc. to target specific widgets/items for content updates
+                                        </div>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 15px;">
+                                            <textarea 
+                                                id="snefuru-titanium-content" 
+                                                class="snefuru-titanium-textbox" 
+                                                placeholder="==widget1
+Your new heading text
+
+==widget2
+Your new content text
+
+==widget3
+==item1
+First list item
+==item2
+Second list item"
+                                                style="flex: 1; height: 400px; padding: 10px; border: 2px solid #e0e5eb; border-radius: 4px; font-family: monospace; font-size: 12px; line-height: 1.4; resize: vertical;"
+                                            ></textarea>
+                                            <button type="button" 
+                                                    id="snefuru-titanium-submit-btn" 
+                                                    data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                                    class="snefuru-submit-btn-right" 
+                                                    style="height: 400px; padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                run titanium_function_inject_content
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Auto Title Update Toggle for Titanium -->
+                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                        <label class="snefuru-toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                                            <input type="checkbox" id="snefuru-auto-title-toggle-titanium" checked style="opacity: 0; width: 0; height: 0;">
+                                            <span class="snefuru-toggle-slider-titanium" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4CAF50; transition: .4s; border-radius: 24px;"></span>
+                                        </label>
+                                        <span style="font-size: 12px; color: #666;">replace wp_posts.post_title with the first line of content from the first updated widget in the submission</span>
+                                    </div>
+                                    
+                                    <style>
+                                    .snefuru-toggle-slider-titanium {
+                                        background-color: #ccc !important;
+                                    }
+                                    .snefuru-toggle-slider-titanium:before {
+                                        position: absolute;
+                                        content: "";
+                                        height: 18px;
+                                        width: 18px;
+                                        left: 3px;
+                                        bottom: 3px;
+                                        background-color: white;
+                                        transition: .3s;
+                                        border-radius: 50%;
+                                    }
+                                    #snefuru-auto-title-toggle-titanium:checked + .snefuru-toggle-slider-titanium {
+                                        background-color: #4CAF50 !important;
+                                    }
+                                    #snefuru-auto-title-toggle-titanium:checked + .snefuru-toggle-slider-titanium:before {
+                                        transform: translateX(26px);
+                                    }
+                                    </style>
+                                    
+                                    <div id="snefuru-titanium-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                 </div>
                             </div>
                             
