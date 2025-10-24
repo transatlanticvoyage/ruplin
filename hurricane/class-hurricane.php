@@ -676,17 +676,28 @@ class Snefuru_Hurricane {
                                     <!-- Classes to Copy Table -->
                                     <table style="border: 1px solid gray; border-collapse: collapse;">
                                         <tr>
-                                            <td style="border: 1px solid gray; padding: 0;">
+                                            <td style="border: 1px solid gray; padding: 0; background-color: #f0e7bb;">
                                                 <div style="padding: 4px; font-weight: bold;">classes to copy</div>
                                             </td>
                                             <td style="border: 1px solid gray; padding: 0;">
-                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="exclude_from_blueshift">exclude_from_blueshift</div>
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="exclude_from_blueshift">
+                                                    <span style="display: inline-block; width: 10px; height: 10px; border: 1px solid red; color: red; font-size: 10px; line-height: 8px; text-align: center; margin-right: 4px;">✕</span>
+                                                    exclude_from_blueshift
+                                                </div>
                                             </td>
                                             <td style="border: 1px solid gray; padding: 0;">
-                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="guarded">guarded</div>
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="guarded">
+                                                    <svg width="10" height="10" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                                        <polygon points="5,0 9.5,3.5 7.5,9.5 2.5,9.5 0.5,3.5" fill="navy" />
+                                                    </svg>
+                                                    guarded
+                                                </div>
                                             </td>
                                             <td style="border: 1px solid gray; padding: 0;">
-                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="on_inject_create_p_tags">on_inject_create_p_tags</div>
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="on_inject_create_p_tags">
+                                                    <span style="color: #8a5fd7; margin-right: 4px;">•</span>
+                                                    on_inject_create_p_tags
+                                                </div>
                                             </td>
                                         </tr>
                                     </table>
