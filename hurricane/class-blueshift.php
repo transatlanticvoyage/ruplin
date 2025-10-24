@@ -814,8 +814,6 @@ class Snefuru_Blueshift {
         
         if (empty($elementor_data)) {
             return $equal_separator . "\n" . 
-                   'widget1' . "\n" .
-                   $dash_separator . "\n" .
                    'No Elementor data found for this page.' . "\n" .
                    $equal_separator;
         }
@@ -824,30 +822,29 @@ class Snefuru_Blueshift {
         $elements = json_decode($elementor_data, true);
         if (!$elements || !is_array($elements)) {
             return $equal_separator . "\n" . 
-                   'widget1' . "\n" .
-                   $dash_separator . "\n" .
                    'Could not parse Elementor data.' . "\n" .
                    $equal_separator;
         }
         
         $extracted_content = array();
-        $widget_counter = 1;
+        $widget_counter = 1; // This counter increments for ALL widgets to maintain proper numbering
+        $filtered_widgets = array(); // Store only the filtered widgets with their correct numbers
         
         // Process each top-level element (sections/containers)
         foreach ($elements as $element) {
-            $this->process_elementor_element_by_class($element, $extracted_content, $widget_counter, $class_filter, $equal_separator, $dash_separator);
+            $this->process_elementor_element_by_class($element, $extracted_content, $widget_counter, $class_filter, $equal_separator, $dash_separator, $filtered_widgets);
         }
         
         // If no content found, return empty indicator
-        if (empty($extracted_content)) {
+        if (empty($filtered_widgets)) {
             return $equal_separator . "\n" . 
                    'No widgets with class .' . $class_filter . ' found.' . "\n" .
                    $equal_separator;
         }
         
-        // Build output
+        // Build output from filtered widgets only
         $output = '';
-        foreach ($extracted_content as $index => $content) {
+        foreach ($filtered_widgets as $index => $content) {
             if ($index === 0) {
                 $output .= $content;
             } else {
@@ -864,23 +861,26 @@ class Snefuru_Blueshift {
     /**
      * Process Elementor elements filtering by specific class
      */
-    private function process_elementor_element_by_class($element, &$extracted_content, &$widget_counter, $class_filter, $equal_separator, $dash_separator) {
+    private function process_elementor_element_by_class($element, &$extracted_content, &$widget_counter, $class_filter, $equal_separator, $dash_separator, &$filtered_widgets) {
         if (!is_array($element)) {
             return;
         }
         
         // Extract content if this is a widget
         if (!empty($element['widgetType'])) {
-            // Check if widget has the specified class
-            $css_info = $this->extract_css_classes_and_id($element);
+            // Get widget content first
+            $widget_content = $this->extract_widget_html_content($element);
             
-            // Check if the class filter appears in the CSS info
-            if (strpos($css_info, '.' . $class_filter) !== false) {
-                // Get widget content
-                $widget_content = $this->extract_widget_html_content($element);
+            // Check if widget has content
+            if (!empty($widget_content)) {
+                // Extract CSS info
+                $css_info = $this->extract_css_classes_and_id($element);
                 
-                if (!empty($widget_content)) {
-                    // Create widget identifier with CSS info
+                // Check if the class filter appears in the CSS info
+                $has_filtered_class = (strpos($css_info, '.' . $class_filter) !== false);
+                
+                if ($has_filtered_class) {
+                    // Create widget identifier with CSS info using current counter
                     $widget_identifier = 'widget' . $widget_counter;
                     if (!empty($css_info)) {
                         $widget_identifier .= ' ' . $css_info;
@@ -915,16 +915,20 @@ class Snefuru_Blueshift {
                                           $widget_content;
                     }
                     
-                    $extracted_content[] = $formatted_output;
-                    $widget_counter++;
+                    // Add to filtered widgets array
+                    $filtered_widgets[] = $formatted_output;
                 }
+                
+                // Always increment counter regardless of whether widget was filtered
+                // This maintains consistent numbering with Format 4
+                $widget_counter++;
             }
         }
         
         // Process child elements recursively
         if (!empty($element['elements']) && is_array($element['elements'])) {
             foreach ($element['elements'] as $child_element) {
-                $this->process_elementor_element_by_class($child_element, $extracted_content, $widget_counter, $class_filter, $equal_separator, $dash_separator);
+                $this->process_elementor_element_by_class($child_element, $extracted_content, $widget_counter, $class_filter, $equal_separator, $dash_separator, $filtered_widgets);
             }
         }
     }
