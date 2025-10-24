@@ -526,7 +526,7 @@ class Snefuru_Blueshift {
         
         if (empty($elementor_data)) {
             return $equal_separator . "\n" . 
-                   'widget1 .blueshift' . "\n" .
+                   'widget1' . "\n" .
                    $dash_separator . "\n" .
                    'No Elementor data found for this page.' . "\n" .
                    $equal_separator;
@@ -536,7 +536,7 @@ class Snefuru_Blueshift {
         $elements = json_decode($elementor_data, true);
         if (!$elements || !is_array($elements)) {
             return $equal_separator . "\n" . 
-                   'widget1 .blueshift' . "\n" .
+                   'widget1' . "\n" .
                    $dash_separator . "\n" .
                    'Could not parse Elementor data.' . "\n" .
                    $equal_separator;
@@ -553,7 +553,7 @@ class Snefuru_Blueshift {
         // If no content found, return empty indicator
         if (empty($extracted_content)) {
             return $equal_separator . "\n" . 
-                   'widget1 .blueshift' . "\n" .
+                   'widget1' . "\n" .
                    $dash_separator . "\n" .
                    'No widget content found.' . "\n" .
                    $equal_separator;
@@ -594,10 +594,10 @@ class Snefuru_Blueshift {
                 // Extract custom CSS classes and ID
                 $css_info = $this->extract_css_classes_and_id($element);
                 
-                // Determine widget class suffix
-                $widget_class = '.blueshift'; // Default
-                if (strpos($css_info, 'guarded') !== false) {
-                    $widget_class = '.guarded';
+                // Create widget identifier with CSS info if present
+                $widget_identifier = 'widget' . $widget_counter;
+                if (!empty($css_info)) {
+                    $widget_identifier .= ' ' . $css_info;
                 }
                 
                 // Check if content has ##item markers
@@ -607,7 +607,7 @@ class Snefuru_Blueshift {
                     
                     // First part is the widget header
                     $formatted_output = $equal_separator . "\n" .
-                                      'widget' . $widget_counter . ' ' . $widget_class;
+                                      $widget_identifier;
                     
                     // Process each item (skip first empty element from explode)
                     $item_counter = 1;
@@ -624,7 +624,7 @@ class Snefuru_Blueshift {
                 } else {
                     // Regular widget - use standard format
                     $formatted_output = $equal_separator . "\n" .
-                                      'widget' . $widget_counter . ' ' . $widget_class . "\n" .
+                                      $widget_identifier . "\n" .
                                       $dash_separator . "\n" .
                                       $widget_content;
                 }
