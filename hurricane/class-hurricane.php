@@ -671,7 +671,6 @@ class Snefuru_Hurricane {
                                                 type="checkbox" 
                                                 id="show-exclude-from-blueshift"
                                                 class="blueshift-filter-checkbox"
-                                                checked
                                                 style="cursor: pointer;"
                                             />
                                             <span style="font-size: 14px;">show .exclude_from_blueshift</span>
@@ -742,7 +741,9 @@ class Snefuru_Hurricane {
                                                 style="flex: 1; height: 550px; font-family: monospace; font-size: 12px; line-height: 1.4;"
                                             ><?php 
                                             // Extract Blueshift content with multi-line separators for format 4
-                                            $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4($post->ID);
+                                            // Default: exclude_from_blueshift is NOT shown (unchecked by default)
+                                            $excluded_classes = array('exclude_from_blueshift');
+                                            $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4_filtered($post->ID, $excluded_classes);
                                             
                                             // Limit length for display if too long
                                             if (strlen($blueshift_content_format4) > 50000) {

@@ -671,6 +671,12 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         var showGuarded = $('#show-guarded').is(':checked');
         var postId = $('#refresh-blueshift-btn').data('post-id');
         
+        console.log('Checkbox changed:', {
+            showExcludeFromBlueshift: showExcludeFromBlueshift,
+            showGuarded: showGuarded,
+            postId: postId
+        });
+        
         // Update Format 4 content with filtering
         $.ajax({
             url: snefuruHurricane.ajaxurl,
@@ -683,17 +689,23 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
                 nonce: snefuruHurricane.nonce
             },
             success: function(response) {
+                console.log('AJAX response:', response);
                 if (response.success && response.data && response.data.content_format4 !== undefined) {
                     // Update Format 4 textarea
                     $('#blueshift-content-textbox-4-expanded').val(response.data.content_format4);
+                    console.log('Updated Format 4 content');
                     
                     // Also update the exclude_from_blueshift box when separator count changes
                     var separatorCount = $('#blueshift-separator-char-count').val();
                     updateExcludeFromBlueshiftBox(postId, separatorCount);
+                } else {
+                    console.error('Invalid response structure:', response);
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Error updating format 4 filtered content:', error);
+                console.error('XHR:', xhr);
+                console.error('Response Text:', xhr.responseText);
             }
         });
     });
