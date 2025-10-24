@@ -672,6 +672,25 @@ class Snefuru_Hurricane {
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 2; min-width: 600px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <span style="font-size: 16px; font-weight: bold;">denyeep column div 1</span>
+                                    
+                                    <!-- Classes to Copy Table -->
+                                    <table style="border: 1px solid gray; border-collapse: collapse;">
+                                        <tr>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div style="padding: 4px; font-weight: bold;">classes to copy</div>
+                                            </td>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="exclude_from_blueshift">exclude_from_blueshift</div>
+                                            </td>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="guarded">guarded</div>
+                                            </td>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="on_inject_create_p_tags">on_inject_create_p_tags</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
                                     <button 
                                         type="button"
                                         id="blueshift-save-all-options-btn"
@@ -756,6 +775,26 @@ class Snefuru_Hurricane {
                                 <!-- JavaScript for saving all options -->
                                 <script type="text/javascript">
                                 jQuery(document).ready(function($) {
+                                    // Handle copying class names to clipboard
+                                    $('.copyable-class').on('click', function() {
+                                        var className = $(this).data('class');
+                                        
+                                        // Create temporary textarea to copy text
+                                        var $temp = $('<textarea>');
+                                        $('body').append($temp);
+                                        $temp.val(className).select();
+                                        document.execCommand('copy');
+                                        $temp.remove();
+                                        
+                                        // Visual feedback
+                                        var $this = $(this);
+                                        var originalText = $this.text();
+                                        $this.text('Copied!').css('background-color', '#d4edda');
+                                        setTimeout(function() {
+                                            $this.text(originalText).css('background-color', '');
+                                        }, 1000);
+                                    });
+                                    
                                     // Handle Save Options button click
                                     $('#blueshift-save-all-options-btn').on('click', function() {
                                         var $btn = $(this);
