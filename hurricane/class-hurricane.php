@@ -27,6 +27,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_update_format4_filtered', array($this, 'ajax_update_format4_filtered'));
         add_action('wp_ajax_save_blueshift_all_options', array($this, 'ajax_save_blueshift_all_options'));
         add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
+        add_action('wp_ajax_rollback_revision', array($this, 'ajax_rollback_revision'));
         add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
@@ -54,6 +55,55 @@ class Snefuru_Hurricane {
      */
     public function ajax_cobalt_inject_content() {
         $this->cobalt->ajax_cobalt_inject_content();
+    }
+    
+    /**
+     * AJAX handler for rolling back to previous revision
+     */
+    public function ajax_rollback_revision() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Check if user can edit this post
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('You do not have permission to edit this post');
+        }
+        
+        // Get the latest revision
+        $revisions = wp_get_post_revisions($post_id, array(
+            'posts_per_page' => 1,
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ));
+        
+        if (empty($revisions)) {
+            wp_send_json_error('No revisions found for this post');
+        }
+        
+        // Get the first (latest) revision
+        $latest_revision = reset($revisions);
+        
+        // Restore the revision
+        $restore_result = wp_restore_post_revision($latest_revision->ID);
+        
+        if ($restore_result) {
+            // Clear Elementor cache if it exists
+            if (class_exists('\Elementor\Plugin')) {
+                \Elementor\Plugin::$instance->files_manager->clear_cache();
+            }
+            
+            wp_send_json_success('Successfully rolled back to previous version (Revision ID: ' . $latest_revision->ID . ')');
+        } else {
+            wp_send_json_error('Failed to restore revision');
+        }
     }
     
     /**
@@ -1309,6 +1359,16 @@ class Snefuru_Hurricane {
                                         </div>
                                         <div style="color: #6c757d; font-size: 10px; margin-top: 4px;">
                                             Paste this command in the content box above and click submit to restore the page.
+                                        </div>
+                                        
+                                        <!-- Rollback Button -->
+                                        <div style="margin-top: 10px;">
+                                            <button type="button" 
+                                                    id="rollback-revision-btn" 
+                                                    data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                                    style="padding: 8px 16px; background: #d63638; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 500;">
+                                                Rollback 1 Version In Revision History
+                                            </button>
                                         </div>
                                     </div>
                                     

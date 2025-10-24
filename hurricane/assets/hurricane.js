@@ -408,6 +408,55 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
             });
         });
         
+        // Handle rollback revision button click
+        $(document).off('click.rollback-revision').on('click.rollback-revision', '#rollback-revision-btn', function(e) {
+            e.preventDefault();
+            
+            var $button = $(this);
+            var postId = $button.data('post-id');
+            var originalText = $button.text();
+            
+            // Confirm action with user
+            if (!confirm('Are you sure you want to rollback to the previous version? This will restore the page to its last saved state.')) {
+                return;
+            }
+            
+            console.log('Rollback revision button clicked for post:', postId);
+            
+            // Disable button and show loading
+            $button.prop('disabled', true).text('Rolling back...');
+            
+            // Make AJAX request to rollback
+            $.ajax({
+                url: snefuruHurricane.ajaxUrl || ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'rollback_revision',
+                    post_id: postId,
+                    nonce: snefuruHurricane.nonce || $('#hurricane_nonce').val()
+                },
+                success: function(response) {
+                    console.log('Rollback response:', response);
+                    
+                    if (response.success) {
+                        alert('Success: ' + response.data);
+                        // Reload the page to show the rolled back content
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + (response.data || 'Failed to rollback revision'));
+                        // Re-enable button
+                        $button.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error during rollback:', error);
+                    alert('Error rolling back: ' + error);
+                    // Re-enable button
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
         // Handle copy button clicks for locations URL
         $(document).off('click.locations-copy-btn').on('click.locations-copy-btn', '.snefuru-locations-copy-btn', function(e) {
             e.preventDefault();
