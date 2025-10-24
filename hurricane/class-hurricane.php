@@ -635,7 +635,10 @@ class Snefuru_Hurricane {
                         Elementor Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
-                        Elementor Deployer
+                        Elementor Deployer 1
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor-deployer-2">
+                        Elementor Deployer 2
                     </button>
                     <div class="snefuru-stellar-tab-separator" style="width: 6px; background: #000; height: 40px; margin: 0 8px; border-radius: 2px; pointer-events: none; display: block; z-index: 10; opacity: 1; position: relative;"></div>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="old-elementor-elicitor">
@@ -1392,7 +1395,7 @@ class Snefuru_Hurricane {
                                         <div style="margin-bottom: 10px; color: #666; font-size: 13px;">
                                             Enter Blueshift Format 3 markup with ==widget1, ==widget2, ==item1, etc. to target specific widgets/items for content updates
                                         </div>
-                                        <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 15px;">
+                                        <div style="margin-bottom: 15px;">
                                             <textarea 
                                                 id="snefuru-titanium-content" 
                                                 class="snefuru-titanium-textbox" 
@@ -1407,13 +1410,15 @@ Your new content text
 First list item
 ==item2
 Second list item"
-                                                style="flex: 1; height: 400px; padding: 10px; border: 2px solid #e0e5eb; border-radius: 4px; font-family: monospace; font-size: 12px; line-height: 1.4; resize: vertical;"
+                                                style="width: 100%; height: 400px; padding: 10px; border: 2px solid #e0e5eb; border-radius: 4px; font-family: monospace; font-size: 12px; line-height: 1.4; resize: vertical;"
                                             ></textarea>
+                                        </div>
+                                        <div style="margin-bottom: 15px;">
                                             <button type="button" 
                                                     id="snefuru-titanium-submit-btn" 
                                                     data-post-id="<?php echo esc_attr($post->ID); ?>"
-                                                    class="snefuru-submit-btn-right" 
-                                                    style="height: 400px; padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                    class="snefuru-submit-btn-horizontal" 
+                                                    style="width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
                                                 run titanium_function_inject_content
                                             </button>
                                         </div>
@@ -1453,6 +1458,33 @@ Second list item"
                                     
                                     <div id="snefuru-titanium-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                 </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="elementor-deployer-2">
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                            </div>
+                            
+                            <!-- Denyeep Column Div 2 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
                             </div>
                             
                         </div>
