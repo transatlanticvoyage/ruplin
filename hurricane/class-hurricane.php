@@ -681,21 +681,21 @@ class Snefuru_Hurricane {
                                             </td>
                                             <td style="border: 1px solid gray; padding: 0;">
                                                 <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="exclude_from_blueshift">
-                                                    <span style="display: inline-block; width: 10px; height: 10px; border: 1px solid red; color: red; font-size: 10px; line-height: 8px; text-align: center; margin-right: 4px;">✕</span>
+                                                    <span style="display: inline-block; width: 10px; height: 10px; border: 1px solid red; background-color: white; color: red; font-size: 10px; line-height: 10px; text-align: center; margin-right: 4px; box-sizing: border-box;">✕</span>
                                                     exclude_from_blueshift
                                                 </div>
                                             </td>
                                             <td style="border: 1px solid gray; padding: 0;">
                                                 <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="guarded">
-                                                    <svg width="10" height="10" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
-                                                        <polygon points="5,0 9.5,3.5 7.5,9.5 2.5,9.5 0.5,3.5" fill="navy" />
+                                                    <svg width="13" height="13" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                                        <polygon points="6.5,1 12,4.5 10,11.5 3,11.5 1,4.5" fill="navy" />
                                                     </svg>
                                                     guarded
                                                 </div>
                                             </td>
                                             <td style="border: 1px solid gray; padding: 0;">
                                                 <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="on_inject_create_p_tags">
-                                                    <span style="color: #8a5fd7; margin-right: 4px;">•</span>
+                                                    <span style="color: #8a5fd7; margin-right: 4px; font-size: 16px; line-height: 1; vertical-align: middle;">•</span>
                                                     on_inject_create_p_tags
                                                 </div>
                                             </td>
