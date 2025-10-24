@@ -1722,6 +1722,128 @@ class Snefuru_Hurricane {
                             </div>
                         </div>
                     </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="other">
+                        <h2 style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">Snefuruplin Admin Links</h2>
+                        
+                        <div style="background: white; border: 1px solid #ddd; border-radius: 5px; padding: 20px;">
+                            <ul style="list-style: none; padding: 0; margin: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-kenli-sidebar-links'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        KenliSidebarLinks
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-settings'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Settings
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-logs'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Logs
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-dublish-logs'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        Dublish Logs
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuru-screen4-manage'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        screen 4 - manage
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=snefuruplin-bespoke-css-1'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        CSS Editor
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_locations_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_locations_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_services_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_services_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_driggs_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_driggs_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_service_tags_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_service_tags_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_location_tags_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_location_tags_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_kpages_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_kpages_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_duplicate_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_duplicate_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_horse_class_page'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_horse_class_page
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=document_outlook_aug9'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        document_outlook_aug9
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=dynamic_images_man'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        dynamic_images_man
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_orbit_mar'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #f0f0f0; border-radius: 4px; text-decoration: none; color: #333; transition: background 0.2s;">
+                                        rup_orbit_mar
+                                    </a>
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <a href="<?php echo admin_url('admin.php?page=rup_sitespren_export'); ?>" 
+                                       style="display: inline-block; padding: 8px 12px; background: #4CAF50; border-radius: 4px; text-decoration: none; color: #fff; transition: background 0.2s;">
+                                        📊 Sitespren Export
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="driggs">
                         <!-- Link to rup_driggs_mar page -->
                         <div style="margin-bottom: 15px;">
@@ -1945,6 +2067,222 @@ y_</textarea>
                                 <!-- Content area left blank for now -->
                             </div>
                             
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="pantheon-table">
+                        <div style="padding: 15px;">
+                            <h1 style="margin-bottom: 20px; font-size: 18px;">📋 Pantheon Table Management</h1>
+                        
+                            <!-- Control Bar (mimicking rup_locations_mar style) -->
+                            <div style="background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <button type="button" id="stellar-pantheon-process" class="button button-primary" style="font-size: 12px; padding: 8px 12px;">
+                                            🚀 Process Selected
+                                        </button>
+                                        <span id="stellar-pantheon-count" style="color: #666; font-size: 12px;">0 selected</span>
+                                    </div>
+                                    <div>
+                                        <a href="<?php echo admin_url('admin.php?page=rup_pantheon_mar'); ?>" class="button" style="font-size: 12px; padding: 6px 12px; background: #f0ad4e; color: #fff; text-decoration: none; border-color: #eea236;" target="_blank">
+                                            📋 Full Admin Page
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                <!-- Search Controls -->
+                                <div style="display: flex; justify-content: flex-end; align-items: center;">
+                                    <!-- Search -->
+                                    <div style="position: relative;">
+                                        <input type="text" id="stellar-pantheon-search" placeholder="Search descriptions..." style="padding: 8px 40px 8px 12px; border: 1px solid #ccc; border-radius: 4px; width: 200px; font-size: 12px;">
+                                        <button id="stellar-pantheon-clear" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ffeb3b; border: none; padding: 4px 6px; font-size: 10px; font-weight: bold; border-radius: 3px; cursor: pointer;">CL</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Main Table (matching rup_locations_mar style) -->
+                            <div style="background: white; border: 1px solid #ddd; border-radius: 5px; overflow: hidden;">
+                                <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                                    <table id="stellar-pantheon-table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                                        <thead style="background: #f8f9fa;">
+                                            <tr>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-align: center; background: #f0f0f0; width: 40px;">
+                                                    <input type="checkbox" id="stellar-pantheon-select-all" style="width: 16px; height: 16px;">
+                                                </th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 180px; font-size: 11px;">origin_page</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; font-size: 11px;">description</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 80px; font-size: 11px;">name</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 100px; font-size: 11px;">id_code_of_turtle</th>
+                                                <th style="padding: 10px 6px; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase; background: #f8f9fa; width: 100px; font-size: 11px;">related_entitites</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr data-type="chen" data-description="open chen page">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open chen page</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="chen" data-description="open chen page">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-2" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open chen page</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="chen" data-description="open chen page">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="chen-3" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open chen page</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="sitejar4" data-description="open /sitejar4?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="sitejar4-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /sitejar4?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="drom" data-description="open /drom?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="drom-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /drom?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="gcjar1" data-description="open /gcjar1?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="gcjar1-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /gcjar1?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                            
+                                            <tr data-type="nwjar1" data-description="open /nwjar1?PARAMETER">
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd;">
+                                                    <input type="checkbox" class="stellar-pantheon-checkbox" value="nwjar1-1" style="width: 14px; height: 14px;">
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 10px;">
+                                                    <a href="<?php echo admin_url('post.php?post=' . $post->ID . '&action=edit'); ?>" style="color: #0073aa; text-decoration: none; font-family: monospace;">
+                                                        <?php echo home_url(); ?>/wp-admin/post.php?post=<?php echo $post->ID; ?>&action=edit
+                                                    </a>
+                                                </td>
+                                                <td style="padding: 8px 6px; border: 1px solid #ddd; font-size: 11px;">
+                                                    <strong style="color: #0073aa;">open /nwjar1?PARAMETER</strong>
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                                <td style="text-align: center; padding: 8px 6px; border: 1px solid #ddd; color: #999; font-size: 10px;">
+                                                    -
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Messages -->
+                            <div id="stellar-pantheon-messages" style="margin-top: 15px;"></div>
                         </div>
                     </div>
                     <div class="snefuru-stellar-tab-panel" data-panel="duplicate-kpage">
