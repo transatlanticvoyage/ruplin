@@ -15,8 +15,8 @@ class Snefuru_Titanium {
     /**
      * Process titanium submission and update Elementor widgets
      */
-    public function process_titanium_submission($post_id, $titanium_content, $auto_update_title = true) {
-        file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] process_titanium_submission called with post_id: ' . $post_id . PHP_EOL, FILE_APPEND);
+    public function process_titanium_submission($post_id, $titanium_content, $auto_update_title = true, $run_wp_slash = true) {
+        file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] process_titanium_submission called with post_id: ' . $post_id . ', run_wp_slash: ' . ($run_wp_slash ? 'true' : 'false') . PHP_EOL, FILE_APPEND);
         
         // Special reset command to restore backup data
         if (trim($titanium_content) === 'RESET_ELEMENTOR_DATA') {
@@ -35,11 +35,25 @@ class Snefuru_Titanium {
         // Create backup before making changes
         $this->create_elementor_backup($post_id, $elementor_data);
         
+        // WordPress automatically unslashes data from get_post_meta
         // Decode JSON data
         $elements = json_decode($elementor_data, true);
         if (!$elements || !is_array($elements)) {
-            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] JSON decode failed, error: ' . json_last_error_msg() . PHP_EOL, FILE_APPEND);
-            return array('success' => false, 'message' => 'Could not parse Elementor data. JSON error: ' . json_last_error_msg());
+            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Initial decode failed, attempting stripslashes...' . PHP_EOL, FILE_APPEND);
+            
+            // If decode fails, data might be over-escaped from previous corrupted saves
+            // Try stripping slashes and decoding again
+            $elementor_data_stripped = stripslashes($elementor_data);
+            $elements = json_decode($elementor_data_stripped, true);
+            
+            if (!$elements || !is_array($elements)) {
+                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] JSON decode failed even after stripslashes, error: ' . json_last_error_msg() . PHP_EOL, FILE_APPEND);
+                return array('success' => false, 'message' => 'Could not parse Elementor data. JSON error: ' . json_last_error_msg());
+            }
+            
+            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Successfully decoded after stripslashes' . PHP_EOL, FILE_APPEND);
+        } else {
+            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Successfully decoded on first attempt' . PHP_EOL, FILE_APPEND);
         }
         
         // Parse titanium submission into widget/item mappings
@@ -105,56 +119,45 @@ class Snefuru_Titanium {
                 return array('success' => false, 'message' => 'Clean JSON decode failed: ' . json_last_error_msg());
             }
             
-            // Apply wp_slash
-            $updated_data = wp_slash($json_data);
-            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Applied wp_slash, length: ' . strlen($updated_data) . PHP_EOL, FILE_APPEND);
+            // WordPress's update_post_meta will call wp_unslash on the value before saving
+            // So we MUST use wp_slash to counteract this (matching Elementor's approach)
+            // See: elementor/core/base/document.php line 1349
+            // Comment from Elementor: "We need the `wp_slash` in order to avoid the unslashing during the `update_post_meta`"
             
-            // Test that our data can be decoded after wp_slash
-            $test_decode = json_decode($updated_data, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Post wp_slash decode failed: ' . json_last_error_msg() . PHP_EOL, FILE_APPEND);
-                
-                // Try without wp_slash
-                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Trying save without wp_slash...' . PHP_EOL, FILE_APPEND);
-                $updated_data = $json_data; // Use original without wp_slash
+            if ($run_wp_slash) {
+                // Apply wp_slash - THIS IS CORRECT and matches Elementor
+                $updated_data = wp_slash($json_data);
+                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Applied wp_slash (toggle ON) - matching Elementor\'s native approach' . PHP_EOL, FILE_APPEND);
+                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Original length: ' . strlen($json_data) . ', Slashed length: ' . strlen($updated_data) . PHP_EOL, FILE_APPEND);
+            } else {
+                // For testing: Skip wp_slash (WARNING: This will cause data corruption)
+                $updated_data = $json_data;
+                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] WARNING: Skipping wp_slash (toggle OFF) - this may corrupt data due to WordPress\'s automatic wp_unslash' . PHP_EOL, FILE_APPEND);
             }
             
-            // Try different approaches to save the data
-            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Trying update_post_meta...' . PHP_EOL, FILE_APPEND);
-            $save_result = update_post_meta($post_id, '_elementor_data', $updated_data);
-            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] update_post_meta result: ' . ($save_result ? 'TRUE' : 'FALSE') . PHP_EOL, FILE_APPEND);
+            // Use update_metadata instead of update_post_meta to match Elementor's approach exactly
+            // See: elementor/core/base/document.php line 1352
+            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Using update_metadata (Elementor\'s approach)...' . PHP_EOL, FILE_APPEND);
+            $save_result = update_metadata('post', $post_id, '_elementor_data', $updated_data);
+            file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] update_metadata result: ' . ($save_result ? 'TRUE (data updated)' : 'FALSE (no change or error)') . PHP_EOL, FILE_APPEND);
             
-            if (!$save_result) {
-                // Try direct database query instead of delete/add approach
-                global $wpdb;
-                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] update_post_meta failed, trying direct database update...' . PHP_EOL, FILE_APPEND);
-                $db_result = $wpdb->update(
-                    $wpdb->postmeta,
-                    array('meta_value' => $updated_data),
-                    array('post_id' => $post_id, 'meta_key' => '_elementor_data')
-                );
-                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Database update result: ' . $db_result . ' (0=no change, >0=success, false=error)' . PHP_EOL, FILE_APPEND);
+            // Verify the save was successful by checking if data can be retrieved and decoded
+            if ($save_result !== false) {
+                // Clear Elementor's CSS cache for this post
+                delete_post_meta($post_id, '_elementor_css');
                 
-                if ($db_result === false) {
-                    // Last resort: delete old and add new, but do it carefully
-                    file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Direct update failed, trying delete-specific and add...' . PHP_EOL, FILE_APPEND);
-                    
-                    // Get the current meta_id so we can delete the specific entry
-                    $current_meta = $wpdb->get_row($wpdb->prepare(
-                        "SELECT meta_id FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = '_elementor_data' LIMIT 1",
-                        $post_id
-                    ));
-                    
-                    if ($current_meta) {
-                        // Delete the specific meta entry by ID
-                        $delete_result = $wpdb->delete($wpdb->postmeta, array('meta_id' => $current_meta->meta_id));
-                        file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Deleted specific meta entry, result: ' . $delete_result . PHP_EOL, FILE_APPEND);
-                        
-                        // Add the new data
-                        $add_result = add_post_meta($post_id, '_elementor_data', $updated_data, true);
-                        file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] add_post_meta result: ' . ($add_result ? 'TRUE' : 'FALSE') . PHP_EOL, FILE_APPEND);
-                    }
+                // Verify saved data can be retrieved and decoded
+                $verify_data = get_post_meta($post_id, '_elementor_data', true);
+                $verify_decode = json_decode($verify_data, true);
+                
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] SUCCESS: Data saved and verified as valid JSON' . PHP_EOL, FILE_APPEND);
+                } else {
+                    file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] ERROR: Saved data cannot be decoded - JSON error: ' . json_last_error_msg() . PHP_EOL, FILE_APPEND);
+                    file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] First 500 chars of saved data: ' . substr($verify_data, 0, 500) . PHP_EOL, FILE_APPEND);
                 }
+            } else {
+                file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Note: update_metadata returned false (could mean no changes were needed)' . PHP_EOL, FILE_APPEND);
             }
             
             // Clear Elementor cache
@@ -724,9 +727,10 @@ class Snefuru_Titanium {
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
         $content = isset($_POST['content']) ? $_POST['content'] : '';
         $auto_update_title = isset($_POST['auto_update_title']) ? (bool)$_POST['auto_update_title'] : true;
+        $run_wp_slash = isset($_POST['run_wp_slash']) ? (bool)$_POST['run_wp_slash'] : true; // Default to true for backwards compatibility
         
-        // Process the actual titanium submission instead of just returning test message
-        $result = $this->process_titanium_submission($post_id, $content, $auto_update_title);
+        // Process the actual titanium submission with wp_slash option
+        $result = $this->process_titanium_submission($post_id, $content, $auto_update_title, $run_wp_slash);
         
         file_put_contents(WP_CONTENT_DIR . '/titanium-debug.log', '[' . date('Y-m-d H:i:s') . '] Process result: ' . print_r($result, true) . PHP_EOL, FILE_APPEND);
         

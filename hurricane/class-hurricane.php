@@ -31,6 +31,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_titanium_inject_content', array($this, 'ajax_titanium_inject_content'));
         add_action('wp_ajax_rollback_revision', array($this, 'ajax_rollback_revision'));
         add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
+        add_action('wp_ajax_save_stellar_default_tab', array($this, 'ajax_save_stellar_default_tab'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift, Cobalt, and Titanium
@@ -381,6 +382,206 @@ class Snefuru_Hurricane {
     }
     
     /**
+     * Generate base reference content showing widget mappings
+     * This shows the reference IDs (==widget1, ==widget2, etc.) that can be used
+     * in Cobalt/Titanium functions to target specific widgets
+     */
+    private function generate_base_reference_content($post_id) {
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (empty($elementor_data)) {
+            return "No Elementor data found for this page";
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            // Try stripslashes if initial decode fails
+            $elements = json_decode(stripslashes($elementor_data), true);
+            if (!$elements || !is_array($elements)) {
+                return "Could not parse Elementor data";
+            }
+        }
+        
+        // Build the reference mapping - just the widget list
+        $output = "";
+        $widget_counter = 1;
+        
+        // Process each top-level element
+        foreach ($elements as $element) {
+            $this->process_element_for_reference($element, $widget_counter, $output);
+        }
+        
+        return rtrim($output); // Remove trailing newline
+    }
+    
+    /**
+     * Process Elementor element recursively to build reference mapping
+     */
+    private function process_element_for_reference($element, &$widget_counter, &$output) {
+        // Check if this is a widget
+        if (isset($element['elType']) && $element['elType'] === 'widget') {
+            $widget_type = isset($element['widgetType']) ? $element['widgetType'] : 'unknown';
+            $widget_ref = "==widget" . $widget_counter;
+            
+            // Get custom CSS classes
+            $custom_classes = '';
+            if (!empty($element['settings']['_css_classes'])) {
+                $classes = trim($element['settings']['_css_classes']);
+                if ($classes) {
+                    // Format classes with dots
+                    $class_array = explode(' ', $classes);
+                    $formatted_classes = array_map(function($class) {
+                        return '.' . trim($class);
+                    }, $class_array);
+                    $custom_classes = ' → ' . implode(' ', $formatted_classes);
+                }
+            }
+            
+            // Get current content preview
+            $content_preview = $this->get_widget_content_preview($element);
+            
+            $output .= $widget_ref . " → " . $widget_type . " widget" . $custom_classes . "\n";
+            if (!empty($content_preview)) {
+                $output .= "  Current content: " . $content_preview . "\n";
+            }
+            
+            // Handle list-type widgets with items
+            if ($widget_type === 'icon-list' && !empty($element['settings']['icon_list'])) {
+                $item_counter = 1;
+                foreach ($element['settings']['icon_list'] as $item) {
+                    if (!empty($item['text'])) {
+                        $output .= "  ==item" . $item_counter . " → " . substr($item['text'], 0, 50);
+                        if (strlen($item['text']) > 50) {
+                            $output .= "...";
+                        }
+                        $output .= "\n";
+                        $item_counter++;
+                    }
+                }
+            } elseif (in_array($widget_type, ['tabs', 'accordion', 'toggle']) && !empty($element['settings']['tabs'])) {
+                $item_counter = 1;
+                foreach ($element['settings']['tabs'] as $tab) {
+                    if (!empty($tab['tab_title'])) {
+                        $output .= "  ==item" . $item_counter . " → Tab: " . substr($tab['tab_title'], 0, 40) . "\n";
+                        $item_counter++;
+                    }
+                }
+            }
+            
+            $output .= "\n";
+            $widget_counter++;
+        }
+        
+        // Process nested elements (sections, columns)
+        if (!empty($element['elements'])) {
+            foreach ($element['elements'] as $nested) {
+                $this->process_element_for_reference($nested, $widget_counter, $output);
+            }
+        }
+    }
+    
+    /**
+     * Get a preview of widget content for reference display
+     */
+    private function get_widget_content_preview($element) {
+        if (!isset($element['settings'])) {
+            return '';
+        }
+        
+        $settings = $element['settings'];
+        $widget_type = isset($element['widgetType']) ? $element['widgetType'] : '';
+        
+        // Extract preview based on widget type
+        switch ($widget_type) {
+            case 'heading':
+                return !empty($settings['title']) ? substr(strip_tags($settings['title']), 0, 60) : '';
+            
+            case 'text-editor':
+                return !empty($settings['editor']) ? substr(strip_tags($settings['editor']), 0, 60) : '';
+            
+            case 'button':
+                return !empty($settings['text']) ? substr($settings['text'], 0, 40) : '';
+            
+            case 'image':
+                if (!empty($settings['caption'])) {
+                    return "Caption: " . substr(strip_tags($settings['caption']), 0, 40);
+                }
+                return !empty($settings['url']) ? "[Image]" : '';
+            
+            case 'testimonial':
+                return !empty($settings['testimonial_content']) ? 
+                    substr(strip_tags($settings['testimonial_content']), 0, 50) : '';
+            
+            case 'icon-box':
+                return !empty($settings['title_text']) ? substr($settings['title_text'], 0, 40) : '';
+            
+            case 'html':
+                return !empty($settings['html']) ? "[HTML Code]" : '';
+            
+            case 'shortcode':
+                return !empty($settings['shortcode']) ? "[Shortcode: " . substr($settings['shortcode'], 0, 30) . "]" : '';
+            
+            default:
+                // Check common fields
+                $fields = ['title', 'text', 'content', 'description'];
+                foreach ($fields as $field) {
+                    if (!empty($settings[$field])) {
+                        $text = is_string($settings[$field]) ? $settings[$field] : '';
+                        return substr(strip_tags($text), 0, 50);
+                    }
+                }
+                return '';
+        }
+    }
+    
+    /**
+     * Get the total widget count for a post
+     */
+    private function get_widget_count($post_id) {
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        if (empty($elementor_data)) {
+            return "Total widgets found: 0";
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            // Try stripslashes if initial decode fails
+            $elements = json_decode(stripslashes($elementor_data), true);
+            if (!$elements || !is_array($elements)) {
+                return "Total widgets found: 0";
+            }
+        }
+        
+        // Count widgets
+        $widget_count = 0;
+        foreach ($elements as $element) {
+            $this->count_widgets_recursive($element, $widget_count);
+        }
+        
+        return "Total widgets found: " . $widget_count;
+    }
+    
+    /**
+     * Recursively count widgets in Elementor structure
+     */
+    private function count_widgets_recursive($element, &$count) {
+        // Check if this is a widget
+        if (isset($element['elType']) && $element['elType'] === 'widget') {
+            $count++;
+        }
+        
+        // Process nested elements
+        if (!empty($element['elements'])) {
+            foreach ($element['elements'] as $nested) {
+                $this->count_widgets_recursive($nested, $count);
+            }
+        }
+    }
+    
+    /**
      * AJAX handler to refresh redshift data
      */
     public function ajax_refresh_redshift_data() {
@@ -514,15 +715,25 @@ class Snefuru_Hurricane {
                 </div>
                 
                 <!-- Driggs Revenue Goal Display -->
-                <div style="display: flex; align-items: center; margin-left: 20px;">
-                    <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">driggs_revenue_goal</span>
-                    <span style="color: white; font-size: 16px; font-weight: bold;">
-                        <?php 
-                        global $wpdb;
-                        $driggs_revenue = $wpdb->get_var("SELECT driggs_revenue_goal FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
-                        echo '$' . esc_html($driggs_revenue ? number_format($driggs_revenue, 0) : '0') . '<span style="color: white; font-weight: bold;">/m</span>';
-                        ?>
-                    </span>
+                <div style="display: flex; flex-direction: column; margin-left: 20px;">
+                    <div style="display: flex; align-items: center;">
+                        <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">driggs_revenue_goal</span>
+                        <span style="color: white; font-size: 16px; font-weight: bold;">
+                            <?php 
+                            global $wpdb;
+                            $driggs_revenue = $wpdb->get_var("SELECT driggs_revenue_goal FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
+                            echo '$' . esc_html($driggs_revenue ? number_format($driggs_revenue, 0) : '0') . '<span style="color: white; font-weight: bold;">/m</span>';
+                            ?>
+                        </span>
+                    </div>
+                    <!-- Save Current Tab As Default Button -->
+                    <button type="button" 
+                            id="stellar-save-default-tab"
+                            style="background: #2271b1; color: white; border: none; padding: 4px 8px; margin-top: 5px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: normal; width: fit-content;"
+                            title="Save the currently active tab as the default tab">
+                        Save Current Tab As Default
+                    </button>
+                    <div id="stellar-save-tab-message" style="margin-top: 5px; display: none; color: white; font-size: 11px;"></div>
                 </div>
                 
                 <?php
@@ -1387,6 +1598,18 @@ class Snefuru_Hurricane {
                                     
                                     <div id="snefuru-cobalt-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                 </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="elementor-deployer-2">
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
                                 <!-- Titanium Submit Box -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-top: 15px;">
@@ -1418,10 +1641,43 @@ Second list item"
                                                     id="snefuru-titanium-submit-btn" 
                                                     data-post-id="<?php echo esc_attr($post->ID); ?>"
                                                     class="snefuru-submit-btn-horizontal" 
-                                                    style="width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">
+                                                    style="width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;"
+                                                    onclick="console.log('Titanium button clicked directly');">
                                                 run titanium_function_inject_content
                                             </button>
                                         </div>
+                                        
+                                        <!-- WP Slash Toggle for Titanium -->
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                            <label class="snefuru-toggle-switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                                                <input type="checkbox" id="snefuru-wp-slash-toggle-titanium" checked style="opacity: 0; width: 0; height: 0;">
+                                                <span class="snefuru-toggle-slider-wp-slash" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4CAF50; transition: .4s; border-radius: 24px;"></span>
+                                            </label>
+                                            <span style="font-size: 12px; color: #666;">run wp_slash process</span>
+                                        </div>
+                                        
+                                        <style>
+                                        .snefuru-toggle-slider-wp-slash {
+                                            background-color: #ccc !important;
+                                        }
+                                        .snefuru-toggle-slider-wp-slash:before {
+                                            position: absolute;
+                                            content: "";
+                                            height: 18px;
+                                            width: 18px;
+                                            left: 3px;
+                                            bottom: 3px;
+                                            background-color: white;
+                                            transition: .3s;
+                                            border-radius: 50%;
+                                        }
+                                        #snefuru-wp-slash-toggle-titanium:checked + .snefuru-toggle-slider-wp-slash {
+                                            background-color: #4CAF50 !important;
+                                        }
+                                        #snefuru-wp-slash-toggle-titanium:checked + .snefuru-toggle-slider-wp-slash:before {
+                                            transform: translateX(26px);
+                                        }
+                                        </style>
                                     </div>
                                     
                                     <!-- Auto Title Update Toggle for Titanium -->
@@ -1457,26 +1713,163 @@ Second list item"
                                     </style>
                                     
                                     <div id="snefuru-titanium-result" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+                                    
+                                    <!-- Inline Script for Titanium -->
+                                    <script type="text/javascript">
+                                    jQuery(document).ready(function($) {
+                                        // Ensure Titanium button handler is bound
+                                        $(document).off('click.titanium-submit').on('click.titanium-submit', '#snefuru-titanium-submit-btn', function(e) {
+                                            e.preventDefault();
+                                            
+                                            console.log('Titanium submit button clicked (inline handler)');
+                                            
+                                            var $button = $(this);
+                                            var content = $('#snefuru-titanium-content').val();
+                                            var postId = $button.data('post-id');
+                                            var autoUpdateTitle = $('#snefuru-auto-title-toggle-titanium').is(':checked');
+                                            var runWpSlash = $('#snefuru-wp-slash-toggle-titanium').is(':checked');
+                                            var originalText = $button.text();
+                                            var $result = $('#snefuru-titanium-result');
+                                            
+                                            console.log('Content:', content);
+                                            console.log('Post ID:', postId);
+                                            console.log('Auto update title:', autoUpdateTitle);
+                                            console.log('Run wp_slash:', runWpSlash);
+                                            
+                                            if (!content.trim()) {
+                                                $result.removeClass('success error').addClass('error');
+                                                $result.html('<strong>Error:</strong> Please enter content to inject.');
+                                                $result.show();
+                                                return;
+                                            }
+                                            
+                                            // Disable button and show loading
+                                            $button.prop('disabled', true).text('Processing...');
+                                            $result.hide();
+                                            
+                                            // Make AJAX request
+                                            $.ajax({
+                                                url: ajaxurl,
+                                                type: 'POST',
+                                                data: {
+                                                    action: 'titanium_inject_content',
+                                                    post_id: postId,
+                                                    content: content,
+                                                    auto_update_title: autoUpdateTitle,
+                                                    run_wp_slash: runWpSlash,
+                                                    nonce: '<?php echo wp_create_nonce('hurricane_nonce'); ?>'
+                                                },
+                                                success: function(response) {
+                                                    console.log('Titanium response:', response);
+                                                    
+                                                    if (response.success) {
+                                                        $result.removeClass('error').addClass('success');
+                                                        $result.html('<strong>Success:</strong> ' + response.data);
+                                                        $result.css({
+                                                            'background-color': '#d4edda',
+                                                            'border': '1px solid #c3e6cb',
+                                                            'color': '#155724'
+                                                        });
+                                                        $result.show();
+                                                        
+                                                        // Clear the content after successful submission
+                                                        $('#snefuru-titanium-content').val('');
+                                                    } else {
+                                                        $result.removeClass('success').addClass('error');
+                                                        $result.html('<strong>Error:</strong> ' + (response.data || 'Unknown error occurred'));
+                                                        $result.css({
+                                                            'background-color': '#f8d7da',
+                                                            'border': '1px solid #f5c6cb',
+                                                            'color': '#721c24'
+                                                        });
+                                                        $result.show();
+                                                    }
+                                                },
+                                                error: function(xhr, status, error) {
+                                                    console.error('AJAX error:', error);
+                                                    $result.removeClass('success').addClass('error');
+                                                    $result.html('<strong>Error:</strong> AJAX request failed: ' + error);
+                                                    $result.css({
+                                                        'background-color': '#f8d7da',
+                                                        'border': '1px solid #f5c6cb',
+                                                        'color': '#721c24'
+                                                    });
+                                                    $result.show();
+                                                },
+                                                complete: function() {
+                                                    // Re-enable button
+                                                    $button.prop('disabled', false).text(originalText);
+                                                }
+                                            });
+                                        });
+                                    });
+                                    </script>
                                 </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                    <div class="snefuru-stellar-tab-panel" data-panel="elementor-deployer-2">
-                        <!-- Column Container Wrapper -->
-                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
-                            
-                            <!-- Denyeep Column Div 1 -->
-                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
-                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
-                                
                             </div>
                             
                             <!-- Denyeep Column Div 2 -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Suelo Base Reference Content -->
+                                <div style="margin-top: 15px;">
+                                    <label style="display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px;">suelo_base_reference_content</label>
+                                    <textarea 
+                                        id="snefuru-suelo-base-reference" 
+                                        readonly
+                                        style="width: 100%; height: 300px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px; background-color: #f9f9f9; resize: vertical;"
+                                    ><?php
+                                        // Generate base reference content for current post
+                                        if ($post && $post->ID) {
+                                            echo esc_textarea($this->generate_base_reference_content($post->ID));
+                                        } else {
+                                            echo "No post ID available";
+                                        }
+                                    ?></textarea>
+                                </div>
+                                
+                                <!-- Additional Info Box -->
+                                <div style="margin-top: 15px;">
+                                    <textarea 
+                                        id="snefuru-suelo-info" 
+                                        readonly
+                                        style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px; background-color: #f5f5f5; resize: vertical;"
+                                    ><?php
+                                        // Output the header/footer info
+                                        echo "BASE REFERENCE CONTENT FOR COBALT/TITANIUM\n";
+                                        echo "==============================================\n\n";
+                                        echo "Widget Reference Mapping:\n";
+                                        echo "--------------------------\n\n";
+                                        echo "USAGE:\n";
+                                        echo "Use the widget references above (==widget1, ==widget2, etc.)\n";
+                                        echo "in Cobalt/Titanium submissions to target specific widgets.\n\n";
+                                        echo "EXAMPLE SUBMISSION:\n";
+                                        echo "==widget1\n";
+                                        echo "New heading text\n";
+                                        echo "==widget3\n";
+                                        echo "New button text\n";
+                                        echo "==widget5\n";
+                                        echo "==item2\n";
+                                        echo "Updated list item text\n";
+                                    ?></textarea>
+                                </div>
+                                
+                                <!-- Widget Count Box -->
+                                <div style="margin-top: 15px;">
+                                    <textarea 
+                                        id="snefuru-widget-count" 
+                                        readonly
+                                        style="width: 100%; height: 50px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px; background-color: #e8f4f8; resize: vertical;"
+                                    ><?php
+                                        // Get widget count
+                                        if ($post && $post->ID) {
+                                            echo esc_textarea($this->get_widget_count($post->ID));
+                                        } else {
+                                            echo "Total widgets found: 0";
+                                        }
+                                    ?></textarea>
+                                </div>
                                 
                             </div>
                             
@@ -2652,6 +3045,80 @@ In the following text content I paste below, you will be seeing the following:
                 }
             });
             
+            // Load default tab on page load
+            <?php 
+            $default_tab = get_option('stellar_chamber_default_tab', 'elicitor');
+            ?>
+            var defaultTab = '<?php echo esc_js($default_tab); ?>';
+            
+            // Auto-activate the saved default tab if it's not the first tab
+            if (defaultTab && defaultTab !== 'elicitor') {
+                // Find the button with the matching data-tab attribute
+                var $defaultTabBtn = $('.snefuru-stellar-tab-button[data-tab="' + defaultTab + '"]');
+                if ($defaultTabBtn.length > 0) {
+                    // Remove active class from all buttons and panels
+                    $('.snefuru-stellar-tab-button').removeClass('active');
+                    $('.snefuru-stellar-tab-panel').removeClass('active');
+                    
+                    // Add active class to the default tab button and its panel
+                    $defaultTabBtn.addClass('active');
+                    $('.snefuru-stellar-tab-panel[data-panel="' + defaultTab + '"]').addClass('active');
+                }
+            }
+            
+            // Handle "Save Current Tab As Default" button click
+            $('#stellar-save-default-tab').on('click', function() {
+                var $button = $(this);
+                var $message = $('#stellar-save-tab-message');
+                
+                // Find the currently active tab
+                var $activeTab = $('.snefuru-stellar-tab-button.active');
+                if ($activeTab.length === 0) {
+                    $message.text('No active tab found').css('color', '#ff6b6b').fadeIn();
+                    setTimeout(function() {
+                        $message.fadeOut();
+                    }, 3000);
+                    return;
+                }
+                
+                var currentTab = $activeTab.data('tab');
+                var tabLabel = $activeTab.text().trim();
+                
+                // Disable button and show loading state
+                $button.prop('disabled', true).text('Saving...');
+                $message.hide();
+                
+                // Send AJAX request to save the default tab
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'save_stellar_default_tab',
+                        nonce: $('#hurricane-nonce').val(),
+                        tab_value: currentTab
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $message.text('Default tab set to: ' + tabLabel).css('color', '#4ade80').fadeIn();
+                        } else {
+                            $message.text(response.data || 'Error saving default tab').css('color', '#ff6b6b').fadeIn();
+                        }
+                    },
+                    error: function() {
+                        $message.text('Error saving default tab').css('color', '#ff6b6b').fadeIn();
+                    },
+                    complete: function() {
+                        // Restore button state
+                        $button.prop('disabled', false).text('Save Current Tab As Default');
+                        
+                        // Hide message after 3 seconds
+                        setTimeout(function() {
+                            $message.fadeOut();
+                        }, 3000);
+                    }
+                });
+            });
+            
             // Stellar Chamber Default State Toggle (Editor Version) 
             $('.stellar-chamber-toggle-switch-editor').on('click', function(e) {
                 var $switch = $(this);
@@ -3107,5 +3574,63 @@ In the following text content I paste below, you will be seeing the following:
         }
         </style>
         <?php
+    }
+    
+    /**
+     * AJAX handler for saving the default stellar chamber tab
+     * 
+     * NOTE FOR FUTURE TAB RENAMING:
+     * If you rename tab labels in the UI, you must also update the corresponding
+     * saved values in the database. The stellar_chamber_default_tab option stores
+     * the data-tab attribute values (e.g., 'elicitor', 'elementor', 'elementor-deployer-2').
+     * 
+     * Tab mapping reference:
+     * - 'elicitor' => "Elementor Elicitor"
+     * - 'elementor' => "Elementor Deployer 1"
+     * - 'elementor-deployer-2' => "Elementor Deployer 2"
+     * - 'old-elementor-elicitor' => "Old Elementor Elicitor 1"
+     * - 'old-elementor-elicitor-2' => "Old Elementor Elicitor 2"
+     * - 'gutenberg' => "Gutenberg Elicitor"
+     * - 'gut-deployer' => "Gut. Deployer"
+     * - 'nimble' => "Nimble Elicitor"
+     * - 'nimble-deployer' => "Nimble Deployer"
+     * 
+     * When renaming tabs, ensure the data-tab attribute remains consistent
+     * or update existing saved values in the database accordingly.
+     */
+    public function ajax_save_stellar_default_tab() {
+        // Verify nonce for security
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Get the tab value from the request
+        $tab_value = isset($_POST['tab_value']) ? sanitize_text_field($_POST['tab_value']) : '';
+        
+        // Validate tab value - must match one of our known tab identifiers
+        $valid_tabs = array(
+            'elicitor',
+            'elementor',
+            'elementor-deployer-2',
+            'old-elementor-elicitor',
+            'old-elementor-elicitor-2',
+            'gutenberg',
+            'gut-deployer',
+            'nimble',
+            'nimble-deployer'
+        );
+        
+        if (!in_array($tab_value, $valid_tabs)) {
+            wp_send_json_error('Invalid tab value');
+        }
+        
+        // Save the option to the database
+        update_option('stellar_chamber_default_tab', $tab_value);
+        
+        // Return success response with the saved tab
+        wp_send_json_success(array(
+            'message' => 'Default tab saved successfully',
+            'saved_tab' => $tab_value
+        ));
     }
 }
