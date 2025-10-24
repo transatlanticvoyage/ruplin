@@ -802,6 +802,142 @@ class Snefuru_Blueshift {
     }
     
     /**
+     * Extract widgets that contain <p> tags in their content using format 4 style
+     * @param string $post_id The post ID
+     */
+    public function extract_elementor_widgets_with_p_tags($post_id) {
+        // Get the saved separator count from database, default to 95
+        $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+        
+        // Create separator lines
+        $equal_separator = str_repeat('=', $separator_count);
+        $dash_separator = str_repeat('—', $separator_count);
+        
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            return $equal_separator . "\n" . 
+                   'No Elementor data found for this page.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            return $equal_separator . "\n" . 
+                   'Could not parse Elementor data.' . "\n" .
+                   $equal_separator;
+        }
+        
+        $extracted_content = array();
+        $widget_counter = 1; // This counter increments for ALL widgets to maintain proper numbering
+        $filtered_widgets = array(); // Store only widgets with p tags
+        
+        // Process each top-level element (sections/containers)
+        foreach ($elements as $element) {
+            $this->process_elementor_element_for_p_tags($element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $filtered_widgets);
+        }
+        
+        // If no content found, return empty indicator
+        if (empty($filtered_widgets)) {
+            return $equal_separator . "\n" . 
+                   'No widgets with <p> tags found.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Build output from filtered widgets only
+        $output = '';
+        foreach ($filtered_widgets as $index => $content) {
+            if ($index === 0) {
+                $output .= $content;
+            } else {
+                $output .= "\n" . $content;
+            }
+        }
+        
+        // Add closing separator at the end
+        $output .= "\n" . $equal_separator;
+        
+        return $output;
+    }
+    
+    /**
+     * Process Elementor elements filtering for widgets with p tags
+     */
+    private function process_elementor_element_for_p_tags($element, &$extracted_content, &$widget_counter, $equal_separator, $dash_separator, &$filtered_widgets) {
+        if (!is_array($element)) {
+            return;
+        }
+        
+        // Extract content if this is a widget
+        if (!empty($element['widgetType'])) {
+            // Get widget content first
+            $widget_content = $this->extract_widget_html_content($element);
+            
+            // Check if widget has content
+            if (!empty($widget_content)) {
+                // Extract CSS info
+                $css_info = $this->extract_css_classes_and_id($element);
+                
+                // Check if content contains <p> or </p> tags
+                $has_p_tags = (preg_match('/<p[^>]*>|<\/p>/i', $widget_content) === 1);
+                
+                if ($has_p_tags) {
+                    // Create widget identifier with CSS info using current counter
+                    $widget_identifier = 'widget' . $widget_counter;
+                    if (!empty($css_info)) {
+                        $widget_identifier .= ' ' . $css_info;
+                    }
+                    
+                    // Check if content has ##item markers
+                    if (strpos($widget_content, '##item') !== false) {
+                        // This is a list widget - handle items specially
+                        $items = explode('##item', $widget_content);
+                        
+                        // First part is the widget header
+                        $formatted_output = $equal_separator . "\n" .
+                                          $widget_identifier;
+                        
+                        // Process each item (skip first empty element from explode)
+                        $item_counter = 1;
+                        for ($i = 1; $i < count($items); $i++) {
+                            $item_content = trim($items[$i]);
+                            if (!empty($item_content)) {
+                                $formatted_output .= "\n" . $equal_separator . "\n" .
+                                                   "widget" . $widget_counter . "-item" . $item_counter . "\n" .
+                                                   $dash_separator . "\n" .
+                                                   $item_content;
+                                $item_counter++;
+                            }
+                        }
+                    } else {
+                        // Regular widget - use standard format
+                        $formatted_output = $equal_separator . "\n" .
+                                          $widget_identifier . "\n" .
+                                          $dash_separator . "\n" .
+                                          $widget_content;
+                    }
+                    
+                    // Add to filtered widgets array
+                    $filtered_widgets[] = $formatted_output;
+                }
+                
+                // Always increment counter regardless of whether widget has p tags
+                // This maintains consistent numbering with Format 4
+                $widget_counter++;
+            }
+        }
+        
+        // Process child elements recursively
+        if (!empty($element['elements']) && is_array($element['elements'])) {
+            foreach ($element['elements'] as $child_element) {
+                $this->process_elementor_element_for_p_tags($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $filtered_widgets);
+            }
+        }
+    }
+    
+    /**
      * Extract frontend content for widgets with specific class using format 4 style
      * @param string $post_id The post ID
      * @param string $class_filter The class to filter by (e.g., 'exclude_from_blueshift')

@@ -840,6 +840,64 @@ class Snefuru_Hurricane {
                                     </div>
                                 </div>
                                 
+                                <!-- Widgets with class of .guarded -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">widgets with class of .guarded</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-guarded" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Widgets with .guarded class will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract only widgets with guarded class using format 4 style
+                                            $blueshift_content_guarded = $this->blueshift->extract_elementor_blueshift_content_by_class($post->ID, 'guarded');
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_guarded) > 50000) {
+                                                $blueshift_content_guarded = substr($blueshift_content_guarded, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_guarded);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-guarded" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Widgets that contain <p> and/or </p> tags -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">widgets that contain a &lt;p&gt; and/or &lt;/p&gt; tag</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-p-tags" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Widgets containing <p> tags will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract only widgets that contain <p> tags using format 4 style
+                                            $blueshift_content_p_tags = $this->blueshift->extract_elementor_widgets_with_p_tags($post->ID);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_p_tags) > 50000) {
+                                                $blueshift_content_p_tags = substr($blueshift_content_p_tags, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_p_tags);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-p-tags" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                             </div>
                             
                         </div>
