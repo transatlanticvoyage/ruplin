@@ -665,4 +665,56 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         });
     }
     
+    // Handle Blueshift filter checkboxes
+    $(document).on('change', '.blueshift-filter-checkbox', function() {
+        var showExcludeFromBlueshift = $('#show-exclude-from-blueshift').is(':checked');
+        var showGuarded = $('#show-guarded').is(':checked');
+        var postId = $('#refresh-blueshift-btn').data('post-id');
+        
+        // Update Format 4 content with filtering
+        $.ajax({
+            url: snefuruHurricane.ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'update_format4_filtered',
+                post_id: postId,
+                show_exclude_from_blueshift: showExcludeFromBlueshift,
+                show_guarded: showGuarded,
+                nonce: snefuruHurricane.nonce
+            },
+            success: function(response) {
+                if (response.success && response.data && response.data.content_format4 !== undefined) {
+                    // Update Format 4 textarea
+                    $('#blueshift-content-textbox-4-expanded').val(response.data.content_format4);
+                    
+                    // Also update the exclude_from_blueshift box when separator count changes
+                    var separatorCount = $('#blueshift-separator-char-count').val();
+                    updateExcludeFromBlueshiftBox(postId, separatorCount);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating format 4 filtered content:', error);
+            }
+        });
+    });
+    
+    // Function to update the exclude_from_blueshift box
+    function updateExcludeFromBlueshiftBox(postId, separatorCount) {
+        // This box always shows exclude_from_blueshift widgets regardless of checkboxes
+        // It uses the same separator count as Format 4
+        // Since it's PHP-rendered, we need to refresh it when separator count changes
+        // For now, it will update on page refresh or when using the refresh button
+    }
+    
+    // Also update exclude_from_blueshift box when separator count is saved
+    $(document).on('click', '#blueshift-separator-save-btn', function() {
+        var postId = $('#refresh-blueshift-btn').data('post-id');
+        var separatorCount = $('#blueshift-separator-char-count').val();
+        
+        // After saving separator count, also trigger update of Format 4 with current filters
+        setTimeout(function() {
+            $('.blueshift-filter-checkbox').first().trigger('change');
+        }, 500);
+    });
+    
 })(jQuery);

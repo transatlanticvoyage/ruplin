@@ -643,6 +643,293 @@ class Snefuru_Blueshift {
     }
     
     /**
+     * Extract frontend content with multi-line separators for format 4 with filtering
+     * @param int $post_id The post ID
+     * @param array $excluded_classes Classes to exclude from output
+     */
+    public function extract_elementor_blueshift_content_format4_filtered($post_id, $excluded_classes = array()) {
+        // Get the saved separator count from database, default to 95
+        $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+        
+        // Create separator lines
+        $equal_separator = str_repeat('=', $separator_count);
+        $dash_separator = str_repeat('—', $separator_count);
+        
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            return $equal_separator . "\n" . 
+                   'widget1' . "\n" .
+                   $dash_separator . "\n" .
+                   'No Elementor data found for this page.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            return $equal_separator . "\n" . 
+                   'widget1' . "\n" .
+                   $dash_separator . "\n" .
+                   'Could not parse Elementor data.' . "\n" .
+                   $equal_separator;
+        }
+        
+        $extracted_content = array();
+        $widget_counter = 1;
+        
+        // Process each top-level element (sections/containers)
+        foreach ($elements as $element) {
+            $this->process_elementor_element_blueshift_format4_filtered($element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes);
+        }
+        
+        // If no content found, return empty indicator
+        if (empty($extracted_content)) {
+            return $equal_separator . "\n" . 
+                   'widget1' . "\n" .
+                   $dash_separator . "\n" .
+                   'No widget content found.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Build output with single separator between widgets
+        $output = '';
+        foreach ($extracted_content as $index => $content) {
+            if ($index === 0) {
+                // First widget starts with separator
+                $output .= $content;
+            } else {
+                // Subsequent widgets just continue (they already have their top separator)
+                $output .= "\n" . $content;
+            }
+        }
+        
+        // Add closing separator at the end
+        $output .= "\n" . $equal_separator;
+        
+        return $output;
+    }
+    
+    /**
+     * Recursively process Elementor elements for format 4 with filtering
+     */
+    private function process_elementor_element_blueshift_format4_filtered($element, &$extracted_content, &$widget_counter, $equal_separator, $dash_separator, $excluded_classes) {
+        if (!is_array($element)) {
+            return;
+        }
+        
+        // Extract content if this is a widget
+        if (!empty($element['widgetType'])) {
+            // Check if widget should be excluded
+            $css_info = $this->extract_css_classes_and_id($element);
+            
+            // Check each excluded class
+            $should_exclude = false;
+            foreach ($excluded_classes as $class) {
+                if (strpos($css_info, '.' . $class) !== false) {
+                    $should_exclude = true;
+                    break;
+                }
+            }
+            
+            // If widget should be excluded, skip it
+            if ($should_exclude) {
+                // Process child elements recursively even if parent is excluded
+                if (!empty($element['elements']) && is_array($element['elements'])) {
+                    foreach ($element['elements'] as $child_element) {
+                        $this->process_elementor_element_blueshift_format4_filtered($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes);
+                    }
+                }
+                return;
+            }
+            
+            // Get widget content
+            $widget_content = $this->extract_widget_html_content($element);
+            
+            if (!empty($widget_content)) {
+                // Create widget identifier with CSS info if present
+                $widget_identifier = 'widget' . $widget_counter;
+                if (!empty($css_info)) {
+                    $widget_identifier .= ' ' . $css_info;
+                }
+                
+                // Check if content has ##item markers
+                if (strpos($widget_content, '##item') !== false) {
+                    // This is a list widget - handle items specially
+                    $items = explode('##item', $widget_content);
+                    
+                    // First part is the widget header
+                    $formatted_output = $equal_separator . "\n" .
+                                      $widget_identifier;
+                    
+                    // Process each item (skip first empty element from explode)
+                    $item_counter = 1;
+                    for ($i = 1; $i < count($items); $i++) {
+                        $item_content = trim($items[$i]);
+                        if (!empty($item_content)) {
+                            $formatted_output .= "\n" . $equal_separator . "\n" .
+                                               "widget" . $widget_counter . "-item" . $item_counter . "\n" .
+                                               $dash_separator . "\n" .
+                                               $item_content;
+                            $item_counter++;
+                        }
+                    }
+                } else {
+                    // Regular widget - use standard format
+                    $formatted_output = $equal_separator . "\n" .
+                                      $widget_identifier . "\n" .
+                                      $dash_separator . "\n" .
+                                      $widget_content;
+                }
+                
+                $extracted_content[] = $formatted_output;
+                $widget_counter++;
+            }
+        }
+        
+        // Process child elements recursively
+        if (!empty($element['elements']) && is_array($element['elements'])) {
+            foreach ($element['elements'] as $child_element) {
+                $this->process_elementor_element_blueshift_format4_filtered($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes);
+            }
+        }
+    }
+    
+    /**
+     * Extract frontend content for widgets with specific class using format 4 style
+     * @param string $post_id The post ID
+     * @param string $class_filter The class to filter by (e.g., 'exclude_from_blueshift')
+     */
+    public function extract_elementor_blueshift_content_by_class($post_id, $class_filter = 'exclude_from_blueshift') {
+        // Get the saved separator count from database, default to 95
+        $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+        
+        // Create separator lines
+        $equal_separator = str_repeat('=', $separator_count);
+        $dash_separator = str_repeat('—', $separator_count);
+        
+        // Get Elementor data
+        $elementor_data = get_post_meta($post_id, '_elementor_data', true);
+        
+        if (empty($elementor_data)) {
+            return $equal_separator . "\n" . 
+                   'widget1' . "\n" .
+                   $dash_separator . "\n" .
+                   'No Elementor data found for this page.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Decode JSON data
+        $elements = json_decode($elementor_data, true);
+        if (!$elements || !is_array($elements)) {
+            return $equal_separator . "\n" . 
+                   'widget1' . "\n" .
+                   $dash_separator . "\n" .
+                   'Could not parse Elementor data.' . "\n" .
+                   $equal_separator;
+        }
+        
+        $extracted_content = array();
+        $widget_counter = 1;
+        
+        // Process each top-level element (sections/containers)
+        foreach ($elements as $element) {
+            $this->process_elementor_element_by_class($element, $extracted_content, $widget_counter, $class_filter, $equal_separator, $dash_separator);
+        }
+        
+        // If no content found, return empty indicator
+        if (empty($extracted_content)) {
+            return $equal_separator . "\n" . 
+                   'No widgets with class .' . $class_filter . ' found.' . "\n" .
+                   $equal_separator;
+        }
+        
+        // Build output
+        $output = '';
+        foreach ($extracted_content as $index => $content) {
+            if ($index === 0) {
+                $output .= $content;
+            } else {
+                $output .= "\n" . $content;
+            }
+        }
+        
+        // Add closing separator at the end
+        $output .= "\n" . $equal_separator;
+        
+        return $output;
+    }
+    
+    /**
+     * Process Elementor elements filtering by specific class
+     */
+    private function process_elementor_element_by_class($element, &$extracted_content, &$widget_counter, $class_filter, $equal_separator, $dash_separator) {
+        if (!is_array($element)) {
+            return;
+        }
+        
+        // Extract content if this is a widget
+        if (!empty($element['widgetType'])) {
+            // Check if widget has the specified class
+            $css_info = $this->extract_css_classes_and_id($element);
+            
+            // Check if the class filter appears in the CSS info
+            if (strpos($css_info, '.' . $class_filter) !== false) {
+                // Get widget content
+                $widget_content = $this->extract_widget_html_content($element);
+                
+                if (!empty($widget_content)) {
+                    // Create widget identifier with CSS info
+                    $widget_identifier = 'widget' . $widget_counter;
+                    if (!empty($css_info)) {
+                        $widget_identifier .= ' ' . $css_info;
+                    }
+                    
+                    // Check if content has ##item markers
+                    if (strpos($widget_content, '##item') !== false) {
+                        // This is a list widget - handle items specially
+                        $items = explode('##item', $widget_content);
+                        
+                        // First part is the widget header
+                        $formatted_output = $equal_separator . "\n" .
+                                          $widget_identifier;
+                        
+                        // Process each item (skip first empty element from explode)
+                        $item_counter = 1;
+                        for ($i = 1; $i < count($items); $i++) {
+                            $item_content = trim($items[$i]);
+                            if (!empty($item_content)) {
+                                $formatted_output .= "\n" . $equal_separator . "\n" .
+                                                   "widget" . $widget_counter . "-item" . $item_counter . "\n" .
+                                                   $dash_separator . "\n" .
+                                                   $item_content;
+                                $item_counter++;
+                            }
+                        }
+                    } else {
+                        // Regular widget - use standard format
+                        $formatted_output = $equal_separator . "\n" .
+                                          $widget_identifier . "\n" .
+                                          $dash_separator . "\n" .
+                                          $widget_content;
+                    }
+                    
+                    $extracted_content[] = $formatted_output;
+                    $widget_counter++;
+                }
+            }
+        }
+        
+        // Process child elements recursively
+        if (!empty($element['elements']) && is_array($element['elements'])) {
+            foreach ($element['elements'] as $child_element) {
+                $this->process_elementor_element_by_class($child_element, $extracted_content, $widget_counter, $class_filter, $equal_separator, $dash_separator);
+            }
+        }
+    }
+    
+    /**
      * AJAX handler to refresh blueshift data
      */
     public function ajax_refresh_blueshift_data() {
@@ -678,6 +965,45 @@ class Snefuru_Blueshift {
             'content_format1' => $blueshift_content_format1,
             'content_format2' => $blueshift_content_format2,
             'content_format3' => $blueshift_content_format3
+        ));
+    }
+    
+    /**
+     * AJAX handler to update filtered format 4 content
+     */
+    public function ajax_update_format4_filtered() {
+        // Verify nonce for security
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Get excluded classes from POST
+        $excluded_classes = array();
+        
+        // Check which classes should be excluded (unchecked means exclude)
+        if (!isset($_POST['show_exclude_from_blueshift']) || $_POST['show_exclude_from_blueshift'] !== 'true') {
+            $excluded_classes[] = 'exclude_from_blueshift';
+        }
+        
+        if (!isset($_POST['show_guarded']) || $_POST['show_guarded'] !== 'true') {
+            $excluded_classes[] = 'guarded';
+        }
+        
+        // Extract format 4 content with filtering
+        $blueshift_content_format4 = $this->extract_elementor_blueshift_content_format4_filtered($post_id, $excluded_classes);
+        
+        // Limit length for display if too long
+        if (strlen($blueshift_content_format4) > 50000) {
+            $blueshift_content_format4 = substr($blueshift_content_format4, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+        }
+        
+        wp_send_json_success(array(
+            'content_format4' => $blueshift_content_format4
         ));
     }
 }

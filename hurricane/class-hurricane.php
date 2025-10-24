@@ -24,6 +24,7 @@ class Snefuru_Hurricane {
         add_action('edit_form_top', array($this, 'add_stellar_chamber'));
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
         add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
+        add_action('wp_ajax_update_format4_filtered', array($this, 'ajax_update_format4_filtered'));
         add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
         add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
@@ -38,6 +39,13 @@ class Snefuru_Hurricane {
      */
     public function ajax_refresh_blueshift_data() {
         $this->blueshift->ajax_refresh_blueshift_data();
+    }
+    
+    /**
+     * AJAX handler to update filtered format 4 content
+     */
+    public function ajax_update_format4_filtered() {
+        $this->blueshift->ajax_update_format4_filtered();
     }
     
     /**
@@ -655,6 +663,30 @@ class Snefuru_Hurricane {
                                         Save
                                     </button>
                                     <span id="blueshift-save-status" style="display: none; margin-left: 10px; color: green;"></span>
+                                    
+                                    <!-- Radio chips for filtering -->
+                                    <div style="display: flex; gap: 15px; margin-left: 20px;">
+                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                            <input 
+                                                type="checkbox" 
+                                                id="show-exclude-from-blueshift"
+                                                class="blueshift-filter-checkbox"
+                                                checked
+                                                style="cursor: pointer;"
+                                            />
+                                            <span style="font-size: 14px;">show .exclude_from_blueshift</span>
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                            <input 
+                                                type="checkbox" 
+                                                id="show-guarded"
+                                                class="blueshift-filter-checkbox"
+                                                checked
+                                                style="cursor: pointer;"
+                                            />
+                                            <span style="font-size: 14px;">show .guarded</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 
                                 <!-- JavaScript for saving separator count -->
@@ -743,6 +775,49 @@ class Snefuru_Hurricane {
                                         style="background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 15px;">
                                     refresh blueshift data
                                 </button>
+                                
+                                <!-- Label: widgets with class exclude_from_blueshift -->
+                                <div style="width: 100%; background: #f0f0f0; padding: 10px; margin-bottom: 15px;">
+                                    <div style="text-align: center; font-size: 16px; font-weight: bold; color: black;">
+                                        widgets with class exclude_from_blueshift
+                                    </div>
+                                </div>
+                                
+                                <!-- Widgets with class of .exclude_from_blueshift -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">widgets with class of .exclude_from_blueshift</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-exclude" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Widgets with .exclude_from_blueshift class will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract only widgets with exclude_from_blueshift class using format 4 style
+                                            $blueshift_content_exclude = $this->blueshift->extract_elementor_blueshift_content_by_class($post->ID, 'exclude_from_blueshift');
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_exclude) > 50000) {
+                                                $blueshift_content_exclude = substr($blueshift_content_exclude, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_exclude);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-exclude" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Label: other formats -->
+                                <div style="width: 100%; background: #f0f0f0; padding: 10px; margin-bottom: 15px;">
+                                    <div style="text-align: center; font-size: 16px; font-weight: bold; color: black;">
+                                        other formats
+                                    </div>
+                                </div>
                                 
                                 <!-- Instance 1: Frontend Text Content -->
                                 <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
