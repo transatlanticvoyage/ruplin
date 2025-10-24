@@ -25,6 +25,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
         add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
         add_action('wp_ajax_update_format4_filtered', array($this, 'ajax_update_format4_filtered'));
+        add_action('wp_ajax_save_blueshift_all_options', array($this, 'ajax_save_blueshift_all_options'));
         add_action('wp_ajax_cobalt_inject_content', array($this, 'ajax_cobalt_inject_content'));
         add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
@@ -53,6 +54,39 @@ class Snefuru_Hurricane {
      */
     public function ajax_cobalt_inject_content() {
         $this->cobalt->ajax_cobalt_inject_content();
+    }
+    
+    /**
+     * AJAX handler for saving all Blueshift options
+     */
+    public function ajax_save_blueshift_all_options() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_save_blueshift_options')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Save separator count
+        if (isset($_POST['separator_count'])) {
+            $count = intval($_POST['separator_count']);
+            if ($count < 1) $count = 1;
+            if ($count > 200) $count = 200;
+            update_option('ruplin_blueshift_separator_character_count', $count);
+        }
+        
+        // Save show_exclude_from_blueshift option
+        $show_exclude_from_blueshift = isset($_POST['show_exclude_from_blueshift']) && $_POST['show_exclude_from_blueshift'] === 'true';
+        update_option('ruplin_blueshift_show_exclude_from_blueshift', $show_exclude_from_blueshift);
+        
+        // Save show_guarded option
+        $show_guarded = isset($_POST['show_guarded']) && $_POST['show_guarded'] === 'true';
+        update_option('ruplin_blueshift_show_guarded', $show_guarded);
+        
+        // Save render_p_tags option
+        $render_p_tags = isset($_POST['render_p_tags']) && $_POST['render_p_tags'] === 'true';
+        update_option('ruplin_blueshift_render_p_tags', $render_p_tags);
+        
+        // Return success response
+        wp_send_json_success('Options saved successfully');
     }
     
     /**
@@ -636,13 +670,25 @@ class Snefuru_Hurricane {
                             
                             <!-- Denyeep Column Div 1 (Expanded to take up 2/3 width) -->
                             <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 2; min-width: 600px;">
-                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 1</span>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-size: 16px; font-weight: bold;">denyeep column div 1</span>
+                                    <button 
+                                        type="button"
+                                        id="blueshift-save-all-options-btn"
+                                        style="padding: 5px 15px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                                    >
+                                        Save Options
+                                    </button>
+                                </div>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
                                 <!-- Character Count per Separator Control -->
                                 <?php 
-                                // Get the saved separator count from database, default to 95
+                                // Get the saved options from database
                                 $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+                                $show_exclude_from_blueshift = get_option('ruplin_blueshift_show_exclude_from_blueshift', false);
+                                $show_guarded = get_option('ruplin_blueshift_show_guarded', true);
+                                $render_p_tags = get_option('ruplin_blueshift_render_p_tags', true);
                                 ?>
                                 <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
                                     <span style="font-size: 16px; font-weight: bold;">qty of total characters per separator:</span>
@@ -652,13 +698,6 @@ class Snefuru_Hurricane {
                                         value="<?php echo esc_attr($separator_count); ?>"
                                         style="width: 80px; padding: 5px 8px; font-size: 14px; border: 1px solid #ddd; border-radius: 3px;"
                                     />
-                                    <button 
-                                        type="button"
-                                        id="blueshift-separator-save-btn"
-                                        style="padding: 5px 15px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px;"
-                                    >
-                                        Save
-                                    </button>
                                     <span id="blueshift-save-status" style="display: none; margin-left: 10px; color: green;"></span>
                                     
                                     <!-- Radio chips for filtering -->
@@ -668,6 +707,7 @@ class Snefuru_Hurricane {
                                                 type="checkbox" 
                                                 id="show-exclude-from-blueshift"
                                                 class="blueshift-filter-checkbox"
+                                                <?php echo $show_exclude_from_blueshift ? 'checked' : ''; ?>
                                                 style="cursor: pointer;"
                                             />
                                             <span style="font-size: 14px;">show .exclude_from_blueshift</span>
@@ -677,7 +717,7 @@ class Snefuru_Hurricane {
                                                 type="checkbox" 
                                                 id="show-guarded"
                                                 class="blueshift-filter-checkbox"
-                                                checked
+                                                <?php echo $show_guarded ? 'checked' : ''; ?>
                                                 style="cursor: pointer;"
                                             />
                                             <span style="font-size: 14px;">show .guarded</span>
@@ -687,7 +727,7 @@ class Snefuru_Hurricane {
                                                 type="checkbox" 
                                                 id="render-p-tags"
                                                 class="blueshift-filter-checkbox"
-                                                checked
+                                                <?php echo $render_p_tags ? 'checked' : ''; ?>
                                                 style="cursor: pointer;"
                                             />
                                             <span style="font-size: 14px;">render &lt;p&gt;&lt;/p&gt; tags</span>
@@ -713,40 +753,52 @@ class Snefuru_Hurricane {
                                     </style>
                                 </div>
                                 
-                                <!-- JavaScript for saving separator count -->
+                                <!-- JavaScript for saving all options -->
                                 <script type="text/javascript">
                                 jQuery(document).ready(function($) {
-                                    $('#blueshift-separator-save-btn').on('click', function() {
-                                        var count = $('#blueshift-separator-char-count').val();
+                                    // Handle Save Options button click
+                                    $('#blueshift-save-all-options-btn').on('click', function() {
                                         var $btn = $(this);
                                         var $status = $('#blueshift-save-status');
                                         
+                                        // Get all option values
+                                        var separator_count = $('#blueshift-separator-char-count').val();
+                                        var show_exclude_from_blueshift = $('#show-exclude-from-blueshift').is(':checked');
+                                        var show_guarded = $('#show-guarded').is(':checked');
+                                        var render_p_tags = $('#render-p-tags').is(':checked');
+                                        
                                         // Disable button during save
                                         $btn.prop('disabled', true);
+                                        var originalText = $btn.text();
+                                        $btn.text('Saving...');
                                         
                                         $.ajax({
                                             url: ajaxurl,
                                             type: 'POST',
                                             data: {
-                                                action: 'save_blueshift_separator_count',
-                                                count: count,
-                                                nonce: '<?php echo wp_create_nonce('ruplin_ajax_nonce'); ?>'
+                                                action: 'save_blueshift_all_options',
+                                                separator_count: separator_count,
+                                                show_exclude_from_blueshift: show_exclude_from_blueshift,
+                                                show_guarded: show_guarded,
+                                                render_p_tags: render_p_tags,
+                                                nonce: '<?php echo wp_create_nonce('hurricane_save_blueshift_options'); ?>'
                                             },
                                             success: function(response) {
                                                 if (response.success) {
-                                                    $status.text('Saved!').css('color', 'green').show();
+                                                    $status.text('Options saved!').css('color', 'green').show();
                                                     setTimeout(function() {
                                                         $status.fadeOut();
                                                     }, 2000);
                                                 } else {
-                                                    $status.text('Error saving').css('color', 'red').show();
+                                                    $status.text('Error saving options').css('color', 'red').show();
                                                 }
                                             },
                                             error: function() {
-                                                $status.text('Error saving').css('color', 'red').show();
+                                                $status.text('Error saving options').css('color', 'red').show();
                                             },
                                             complete: function() {
                                                 $btn.prop('disabled', false);
+                                                $btn.text(originalText);
                                             }
                                         });
                                     });
@@ -766,10 +818,15 @@ class Snefuru_Hurricane {
                                                 style="flex: 1; height: 550px; font-family: monospace; font-size: 12px; line-height: 1.4;"
                                             ><?php 
                                             // Extract Blueshift content with multi-line separators for format 4
-                                            // Default: exclude_from_blueshift is NOT shown (unchecked by default)
-                                            // Default: p tags ARE rendered (checked by default, so strip_p_tags = false)
-                                            $excluded_classes = array('exclude_from_blueshift');
-                                            $strip_p_tags = false; // p tags are rendered by default
+                                            // Use saved options to determine what to show
+                                            $excluded_classes = array();
+                                            if (!$show_exclude_from_blueshift) {
+                                                $excluded_classes[] = 'exclude_from_blueshift';
+                                            }
+                                            if (!$show_guarded) {
+                                                $excluded_classes[] = 'guarded';
+                                            }
+                                            $strip_p_tags = !$render_p_tags; // Strip p tags if render_p_tags is false
                                             $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4_filtered($post->ID, $excluded_classes, $strip_p_tags);
                                             
                                             // Limit length for display if too long
