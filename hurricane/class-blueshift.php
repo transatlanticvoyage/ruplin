@@ -646,8 +646,9 @@ class Snefuru_Blueshift {
      * Extract frontend content with multi-line separators for format 4 with filtering
      * @param int $post_id The post ID
      * @param array $excluded_classes Classes to exclude from output
+     * @param bool $strip_p_tags Whether to strip <p> tags from content
      */
-    public function extract_elementor_blueshift_content_format4_filtered($post_id, $excluded_classes = array()) {
+    public function extract_elementor_blueshift_content_format4_filtered($post_id, $excluded_classes = array(), $strip_p_tags = false) {
         // Get the saved separator count from database, default to 95
         $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
         
@@ -681,7 +682,7 @@ class Snefuru_Blueshift {
         
         // Process each top-level element (sections/containers)
         foreach ($elements as $element) {
-            $this->process_elementor_element_blueshift_format4_filtered($element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes);
+            $this->process_elementor_element_blueshift_format4_filtered($element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes, $strip_p_tags);
         }
         
         // If no content found, return empty indicator
@@ -714,7 +715,7 @@ class Snefuru_Blueshift {
     /**
      * Recursively process Elementor elements for format 4 with filtering
      */
-    private function process_elementor_element_blueshift_format4_filtered($element, &$extracted_content, &$widget_counter, $equal_separator, $dash_separator, $excluded_classes) {
+    private function process_elementor_element_blueshift_format4_filtered($element, &$extracted_content, &$widget_counter, $equal_separator, $dash_separator, $excluded_classes, $strip_p_tags = false) {
         if (!is_array($element)) {
             return;
         }
@@ -740,6 +741,14 @@ class Snefuru_Blueshift {
                 
                 // If widget should NOT be excluded, add it to output
                 if (!$should_exclude) {
+                    // Strip <p> tags if requested
+                    if ($strip_p_tags) {
+                        // Remove opening <p> tags with any attributes
+                        $widget_content = preg_replace('/<p[^>]*>/i', '', $widget_content);
+                        // Remove closing </p> tags
+                        $widget_content = str_ireplace('</p>', '', $widget_content);
+                    }
+                    
                     // Create widget identifier with CSS info if present
                     $widget_identifier = 'widget' . $widget_counter;
                     if (!empty($css_info)) {
@@ -787,7 +796,7 @@ class Snefuru_Blueshift {
         // Process child elements recursively
         if (!empty($element['elements']) && is_array($element['elements'])) {
             foreach ($element['elements'] as $child_element) {
-                $this->process_elementor_element_blueshift_format4_filtered($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes);
+                $this->process_elementor_element_blueshift_format4_filtered($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes, $strip_p_tags);
             }
         }
     }
@@ -994,8 +1003,11 @@ class Snefuru_Blueshift {
             $excluded_classes[] = 'guarded';
         }
         
+        // Check if p tags should be stripped (unchecked means strip them)
+        $strip_p_tags = (!isset($_POST['render_p_tags']) || $_POST['render_p_tags'] !== 'true');
+        
         // Extract format 4 content with filtering
-        $blueshift_content_format4 = $this->extract_elementor_blueshift_content_format4_filtered($post_id, $excluded_classes);
+        $blueshift_content_format4 = $this->extract_elementor_blueshift_content_format4_filtered($post_id, $excluded_classes, $strip_p_tags);
         
         // Limit length for display if too long
         if (strlen($blueshift_content_format4) > 50000) {

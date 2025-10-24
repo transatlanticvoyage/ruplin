@@ -669,11 +669,13 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
     $(document).on('change', '.blueshift-filter-checkbox', function() {
         var showExcludeFromBlueshift = $('#show-exclude-from-blueshift').is(':checked');
         var showGuarded = $('#show-guarded').is(':checked');
+        var renderPTags = $('#render-p-tags').is(':checked');
         var postId = $('#refresh-blueshift-btn').data('post-id');
         
         console.log('Checkbox changed:', {
             showExcludeFromBlueshift: showExcludeFromBlueshift,
             showGuarded: showGuarded,
+            renderPTags: renderPTags,
             postId: postId
         });
         
@@ -686,6 +688,7 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
                 post_id: postId,
                 show_exclude_from_blueshift: showExcludeFromBlueshift,
                 show_guarded: showGuarded,
+                render_p_tags: renderPTags,
                 nonce: snefuruHurricane.nonce
             },
             success: function(response) {

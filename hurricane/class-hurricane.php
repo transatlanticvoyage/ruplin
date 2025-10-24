@@ -665,8 +665,8 @@ class Snefuru_Hurricane {
                                     <span id="blueshift-save-status" style="display: none; margin-left: 10px; color: green;"></span>
                                     
                                     <!-- Radio chips for filtering -->
-                                    <div style="display: flex; gap: 15px; margin-left: 20px;">
-                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                    <div style="display: flex; gap: 10px; margin-left: 20px;">
+                                        <label class="blueshift-chip" style="display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #808080; border-radius: 4px; padding: 4px 8px; background-color: #c3c3c3; transition: background-color 0.2s;">
                                             <input 
                                                 type="checkbox" 
                                                 id="show-exclude-from-blueshift"
@@ -675,7 +675,7 @@ class Snefuru_Hurricane {
                                             />
                                             <span style="font-size: 14px;">show .exclude_from_blueshift</span>
                                         </label>
-                                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                        <label class="blueshift-chip" style="display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #808080; border-radius: 4px; padding: 4px 8px; background-color: #d1f7e4; transition: background-color 0.2s;">
                                             <input 
                                                 type="checkbox" 
                                                 id="show-guarded"
@@ -685,7 +685,35 @@ class Snefuru_Hurricane {
                                             />
                                             <span style="font-size: 14px;">show .guarded</span>
                                         </label>
+                                        <label class="blueshift-chip blueshift-chip-p-tags" style="display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #808080; border-radius: 4px; padding: 4px 8px; background-color: #9bb3e9; transition: background-color 0.2s;">
+                                            <input 
+                                                type="checkbox" 
+                                                id="render-p-tags"
+                                                class="blueshift-filter-checkbox"
+                                                checked
+                                                style="cursor: pointer;"
+                                            />
+                                            <span style="font-size: 14px;">render &lt;p&gt;&lt;/p&gt; tags</span>
+                                        </label>
                                     </div>
+                                    
+                                    <style>
+                                        .blueshift-chip:hover {
+                                            background-color: yellow !important;
+                                        }
+                                        .blueshift-chip:has(input:checked):not(.blueshift-chip-p-tags) {
+                                            background-color: #d1f7e4 !important;
+                                        }
+                                        .blueshift-chip:has(input:not(:checked)):not(.blueshift-chip-p-tags) {
+                                            background-color: #c3c3c3 !important;
+                                        }
+                                        .blueshift-chip-p-tags:has(input:checked) {
+                                            background-color: #9bb3e9 !important;
+                                        }
+                                        .blueshift-chip-p-tags:has(input:not(:checked)) {
+                                            background-color: #c3c3c3 !important;
+                                        }
+                                    </style>
                                 </div>
                                 
                                 <!-- JavaScript for saving separator count -->
@@ -742,8 +770,10 @@ class Snefuru_Hurricane {
                                             ><?php 
                                             // Extract Blueshift content with multi-line separators for format 4
                                             // Default: exclude_from_blueshift is NOT shown (unchecked by default)
+                                            // Default: p tags ARE rendered (checked by default, so strip_p_tags = false)
                                             $excluded_classes = array('exclude_from_blueshift');
-                                            $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4_filtered($post->ID, $excluded_classes);
+                                            $strip_p_tags = false; // p tags are rendered by default
+                                            $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4_filtered($post->ID, $excluded_classes, $strip_p_tags);
                                             
                                             // Limit length for display if too long
                                             if (strlen($blueshift_content_format4) > 50000) {
