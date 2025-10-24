@@ -721,69 +721,65 @@ class Snefuru_Blueshift {
         
         // Extract content if this is a widget
         if (!empty($element['widgetType'])) {
-            // Check if widget should be excluded
-            $css_info = $this->extract_css_classes_and_id($element);
-            
-            // Check each excluded class
-            $should_exclude = false;
-            foreach ($excluded_classes as $class) {
-                if (strpos($css_info, '.' . $class) !== false) {
-                    $should_exclude = true;
-                    break;
-                }
-            }
-            
-            // If widget should be excluded, skip it
-            if ($should_exclude) {
-                // Process child elements recursively even if parent is excluded
-                if (!empty($element['elements']) && is_array($element['elements'])) {
-                    foreach ($element['elements'] as $child_element) {
-                        $this->process_elementor_element_blueshift_format4_filtered($child_element, $extracted_content, $widget_counter, $equal_separator, $dash_separator, $excluded_classes);
-                    }
-                }
-                return;
-            }
-            
-            // Get widget content
+            // Get widget content first
             $widget_content = $this->extract_widget_html_content($element);
             
+            // Only process if widget has content
             if (!empty($widget_content)) {
-                // Create widget identifier with CSS info if present
-                $widget_identifier = 'widget' . $widget_counter;
-                if (!empty($css_info)) {
-                    $widget_identifier .= ' ' . $css_info;
-                }
+                // Extract CSS info
+                $css_info = $this->extract_css_classes_and_id($element);
                 
-                // Check if content has ##item markers
-                if (strpos($widget_content, '##item') !== false) {
-                    // This is a list widget - handle items specially
-                    $items = explode('##item', $widget_content);
-                    
-                    // First part is the widget header
-                    $formatted_output = $equal_separator . "\n" .
-                                      $widget_identifier;
-                    
-                    // Process each item (skip first empty element from explode)
-                    $item_counter = 1;
-                    for ($i = 1; $i < count($items); $i++) {
-                        $item_content = trim($items[$i]);
-                        if (!empty($item_content)) {
-                            $formatted_output .= "\n" . $equal_separator . "\n" .
-                                               "widget" . $widget_counter . "-item" . $item_counter . "\n" .
-                                               $dash_separator . "\n" .
-                                               $item_content;
-                            $item_counter++;
-                        }
+                // Check each excluded class
+                $should_exclude = false;
+                foreach ($excluded_classes as $class) {
+                    if (strpos($css_info, '.' . $class) !== false) {
+                        $should_exclude = true;
+                        break;
                     }
-                } else {
-                    // Regular widget - use standard format
-                    $formatted_output = $equal_separator . "\n" .
-                                      $widget_identifier . "\n" .
-                                      $dash_separator . "\n" .
-                                      $widget_content;
                 }
                 
-                $extracted_content[] = $formatted_output;
+                // If widget should NOT be excluded, add it to output
+                if (!$should_exclude) {
+                    // Create widget identifier with CSS info if present
+                    $widget_identifier = 'widget' . $widget_counter;
+                    if (!empty($css_info)) {
+                        $widget_identifier .= ' ' . $css_info;
+                    }
+                    
+                    // Check if content has ##item markers
+                    if (strpos($widget_content, '##item') !== false) {
+                        // This is a list widget - handle items specially
+                        $items = explode('##item', $widget_content);
+                        
+                        // First part is the widget header
+                        $formatted_output = $equal_separator . "\n" .
+                                          $widget_identifier;
+                        
+                        // Process each item (skip first empty element from explode)
+                        $item_counter = 1;
+                        for ($i = 1; $i < count($items); $i++) {
+                            $item_content = trim($items[$i]);
+                            if (!empty($item_content)) {
+                                $formatted_output .= "\n" . $equal_separator . "\n" .
+                                                   "widget" . $widget_counter . "-item" . $item_counter . "\n" .
+                                                   $dash_separator . "\n" .
+                                                   $item_content;
+                                $item_counter++;
+                            }
+                        }
+                    } else {
+                        // Regular widget - use standard format
+                        $formatted_output = $equal_separator . "\n" .
+                                          $widget_identifier . "\n" .
+                                          $dash_separator . "\n" .
+                                          $widget_content;
+                    }
+                    
+                    $extracted_content[] = $formatted_output;
+                }
+                
+                // ALWAYS increment counter regardless of whether widget was excluded
+                // This maintains the original widget numbering scheme
                 $widget_counter++;
             }
         }
