@@ -701,18 +701,6 @@ class Snefuru_Hurricane {
                     </g>
                 </svg>
                 
-                <!-- Sitespren Base Display -->
-                <div style="display: flex; align-items: center; margin-left: 20px;">
-                    <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">sitespren_base</span>
-                    <span style="color: white; font-size: 16px; font-weight: bold;">
-                        <?php 
-                        global $wpdb;
-                        $sitespren_base_value = $wpdb->get_var("SELECT sitespren_base FROM {$wpdb->prefix}zen_sitespren WHERE wppma_id = 1");
-                        echo esc_html($sitespren_base_value ? $sitespren_base_value : 'No data');
-                        ?>
-                    </span>
-                </div>
-                
                 <!-- Driggs Revenue Goal Display -->
                 <div style="display: flex; flex-direction: column; margin-left: 20px;">
                     <div style="display: flex; align-items: center;">
@@ -763,7 +751,7 @@ class Snefuru_Hurricane {
                 </div>
                 
                 <!-- Driggsman Button with Copy -->
-                <div style="display: flex; align-items: center; margin-left: 15px;">
+                <div style="display: flex; align-items: center; margin-left: 5px;">
                     <a href="<?php echo esc_url($drom_url); ?>" 
                        target="_blank" 
                        style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
@@ -779,7 +767,7 @@ class Snefuru_Hurricane {
                 </div>
                 
                 <!-- SiteJar4 Button with Copy -->
-                <div style="display: flex; align-items: center; margin-left: 15px;">
+                <div style="display: flex; align-items: center; margin-left: 5px;">
                     <a href="<?php echo esc_url($sitejar4_url); ?>" 
                        target="_blank" 
                        style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
@@ -3352,7 +3340,7 @@ In the following text content I paste below, you will be seeing the following:
                 <button type="button" class="button button-primary snefuru-lightning-popup-btn" onclick="window.snefuruOpenLightningPopup()">
                     ⚡ Lightning Popup
                 </button>
-                <button type="button" class="button button-primary snefuru-thunder-popup-btn" onclick="window.snefuruOpenThunderPopup()" style="margin-top: 8px;">
+                <button type="button" class="button button-primary snefuru-thunder-popup-btn" style="margin-top: 8px;">
                     ⛈️ Thunder Button (papyrus)
                 </button>
             </div>
@@ -3379,7 +3367,7 @@ In the following text content I paste below, you will be seeing the following:
             <div class="snefuru-popup-container">
                 <div class="snefuru-popup-header">
                     <h2 class="snefuru-popup-title">Thunder (Papyrus)</h2>
-                    <button type="button" class="snefuru-popup-close" onclick="window.snefuruCloseThunderPopup()">&times;</button>
+                    <button type="button" class="snefuru-popup-close">&times;</button>
                 </div>
                 <div class="snefuru-popup-content">
                     <!-- Tab Navigation -->
@@ -3418,7 +3406,7 @@ In the following text content I paste below, you will be seeing the following:
                                 ?></textarea>
                             </div>
                             <div style="text-align: right;">
-                                <button type="button" class="button button-primary" onclick="window.saveThunderPapyrusData()">
+                                <button type="button" class="button button-primary save-thunder-papyrus-btn">
                                     Save Papyrus Data
                                 </button>
                             </div>

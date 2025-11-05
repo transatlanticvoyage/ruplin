@@ -216,6 +216,13 @@ window.saveThunderPapyrusData = saveThunderPapyrusData;
             console.log('Switched to tab:', tabId);
         });
         
+        // Save Thunder papyrus data handler
+        $(document).off('click.save-thunder').on('click.save-thunder', '.save-thunder-papyrus-btn', function(e) {
+            e.preventDefault();
+            console.log('Save Thunder papyrus button clicked');
+            saveThunderPapyrusData();
+        });
+        
         // Ensure Hurricane metabox stays at top of sidebar
         setTimeout(moveHurricaneToTop, 500);
         
