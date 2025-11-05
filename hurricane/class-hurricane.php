@@ -3374,6 +3374,8 @@ In the following text content I paste below, you will be seeing the following:
                     <div class="snefuru-thunder-tabs">
                         <button type="button" class="thunder-tab-btn active" data-tab="papyrus-page-level">wp_zen_orbitposts.<br>papyrus_page_level_insert</button>
                         <button type="button" class="thunder-tab-btn" data-tab="grove-vault-papyrus">grove_vault_papyrus_1</button>
+                        <button type="button" class="thunder-tab-btn" data-tab="grove-vault-raw">grove_vault_papyrus_1 (raw)</button>
+                        <button type="button" class="thunder-tab-btn" data-tab="grove-vault-rendered">grove_vault_papyrus_1 (rendered)</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab2">tab 2</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab3">tab 3</button>
                     </div>
@@ -3447,6 +3449,116 @@ In the following text content I paste below, you will be seeing the following:
                             </div>
                             <div style="text-align: right; color: #666; font-size: 12px;">
                                 <em>This content is stored in Grove vault: /grove/vaults/papyrus/papyrus-1.vault.php</em>
+                            </div>
+                        </div>
+                        
+                        <!-- Grove Vault Papyrus 1 Raw Tab -->
+                        <div id="grove-vault-raw-content" class="thunder-tab-pane" style="display: none;">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                                    Grove Vault: Papyrus 1 (Raw)
+                                    <span style="font-weight: normal; color: #666; font-size: 12px; margin-left: 10px;">
+                                        (Raw template from Grove vault)
+                                    </span>
+                                </label>
+                                <textarea style="width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f5f5f5;"
+                                          readonly><?php
+                                    // Retrieve RAW content from Grove vault
+                                    if (function_exists('grove_vault')) {
+                                        $vault_raw_content = grove_vault('papyrus/papyrus-1');
+                                        if ($vault_raw_content) {
+                                            echo esc_textarea($vault_raw_content);
+                                        } else {
+                                            echo '// Grove vault content not available. Ensure Grove plugin is active.';
+                                        }
+                                    } else if (class_exists('Grove_Vault_Keeper')) {
+                                        $vault_raw_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus-1');
+                                        if ($vault_raw_content) {
+                                            echo esc_textarea($vault_raw_content);
+                                        } else {
+                                            echo '// Unable to retrieve vault content.';
+                                        }
+                                    } else {
+                                        echo '// Grove plugin not active. Cannot retrieve vault content.';
+                                    }
+                                ?></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Grove Vault Papyrus 1 Rendered Tab -->
+                        <div id="grove-vault-rendered-content" class="thunder-tab-pane" style="display: none;">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                                    Grove Vault: Papyrus 1 (Rendered)
+                                    <span style="font-weight: normal; color: #666; font-size: 12px; margin-left: 10px;">
+                                        (With database values inserted for this post)
+                                    </span>
+                                </label>
+                                <textarea style="width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f5f5f5;"
+                                          readonly><?php
+                                    // Get the raw vault content first
+                                    $rendered_content = '';
+                                    if (function_exists('grove_vault')) {
+                                        $rendered_content = grove_vault('papyrus/papyrus-1');
+                                    } else if (class_exists('Grove_Vault_Keeper')) {
+                                        $rendered_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus-1');
+                                    }
+                                    
+                                    if ($rendered_content) {
+                                        global $post, $wpdb;
+                                        
+                                        // Replace SITE-LEVEL driggs data
+                                        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+                                        $sitespren_data = $wpdb->get_row("SELECT * FROM $sitespren_table LIMIT 1", ARRAY_A);
+                                        
+                                        $flag1_columns = array(
+                                            'sitespren_base',
+                                            'driggs_brand_name',
+                                            'driggs_phone_1',
+                                            'driggs_city',
+                                            'driggs_state_code',
+                                            'driggs_industry',
+                                            'driggs_site_type_purpose',
+                                            'driggs_email_1'
+                                        );
+                                        
+                                        $site_level_text = '';
+                                        foreach ($flag1_columns as $column) {
+                                            $value = isset($sitespren_data[$column]) ? $sitespren_data[$column] : '';
+                                            $site_level_text .= $column . "\t" . $value . "\n";
+                                        }
+                                        $site_level_text = trim($site_level_text);
+                                        
+                                        // Replace site-level placeholder
+                                        $search_site = '(INSERT HERE - MAIN SITE LEVEL DRIGGS DATA - flag1 ai chat for content generation)';
+                                        $rendered_content = str_replace($search_site, $site_level_text, $rendered_content);
+                                        
+                                        // Replace PAGE-LEVEL papyrus_page_level_insert data
+                                        $page_level_text = '';
+                                        if ($post && $post->ID) {
+                                            $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+                                            $orbitpost = $wpdb->get_row($wpdb->prepare(
+                                                "SELECT papyrus_page_level_insert FROM $orbitposts_table WHERE rel_wp_post_id = %d",
+                                                $post->ID
+                                            ));
+                                            if ($orbitpost && $orbitpost->papyrus_page_level_insert) {
+                                                $page_level_text = $orbitpost->papyrus_page_level_insert;
+                                            } else {
+                                                $page_level_text = '// No papyrus_page_level_insert data for this post';
+                                            }
+                                        } else {
+                                            $page_level_text = '// Post ID not available';
+                                        }
+                                        
+                                        // Replace page-level placeholder
+                                        $search_page = '[INSERT DB COLUMN VALUE FROM orbitposts.papyrus_page_level_insert]';
+                                        $rendered_content = str_replace($search_page, $page_level_text, $rendered_content);
+                                        
+                                        echo esc_textarea($rendered_content);
+                                    } else {
+                                        echo '// Grove vault content not available.';
+                                    }
+                                ?></textarea>
                             </div>
                         </div>
                         
