@@ -23,9 +23,63 @@ function snefuruCloseLightningPopup() {
     console.log('Lightning popup closed');
 }
 
+// Thunder popup functions
+function snefuruOpenThunderPopup() {
+    console.log('Opening thunder popup...');
+    var popup = jQuery('#snefuru-thunder-popup');
+    if (popup.length) {
+        popup.show().fadeIn(300);
+        jQuery('body').addClass('snefuru-popup-open');
+        console.log('Thunder popup opened successfully');
+    } else {
+        console.error('Thunder popup element not found!');
+    }
+}
+
+function snefuruCloseThunderPopup() {
+    console.log('Closing thunder popup...');
+    jQuery('#snefuru-thunder-popup').fadeOut(300);
+    jQuery('body').removeClass('snefuru-popup-open');
+    console.log('Thunder popup closed');
+}
+
+function saveThunderPapyrusData() {
+    var content = jQuery('#papyrus-page-level-textarea').val();
+    var postId = snefuruHurricane.post_id;
+    
+    console.log('Saving papyrus data for post:', postId);
+    
+    jQuery.ajax({
+        url: snefuruHurricane.ajaxurl,
+        type: 'POST',
+        data: {
+            action: 'save_thunder_papyrus_data',
+            nonce: snefuruHurricane.nonce,
+            post_id: postId,
+            papyrus_content: content
+        },
+        success: function(response) {
+            if (response.success) {
+                console.log('Papyrus data saved successfully');
+                alert('Papyrus data saved successfully!');
+            } else {
+                console.error('Failed to save papyrus data:', response.data);
+                alert('Failed to save papyrus data: ' + response.data);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX error:', error);
+            alert('Error saving papyrus data');
+        }
+    });
+}
+
 // Make functions available on window object
 window.snefuruOpenLightningPopup = snefuruOpenLightningPopup;
 window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
+window.snefuruOpenThunderPopup = snefuruOpenThunderPopup;
+window.snefuruCloseThunderPopup = snefuruCloseThunderPopup;
+window.saveThunderPapyrusData = saveThunderPapyrusData;
 
 (function($) {
     'use strict';
@@ -112,10 +166,54 @@ window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
         
         // Close popup with Escape key
         $(document).off('keydown.hurricane').on('keydown.hurricane', function(e) {
-            if (e.keyCode === 27 && $('#snefuru-lightning-popup').is(':visible')) {
-                console.log('Escape pressed');
-                snefuruCloseLightningPopup();
+            if (e.keyCode === 27) {
+                if ($('#snefuru-lightning-popup').is(':visible')) {
+                    console.log('Escape pressed - closing lightning popup');
+                    snefuruCloseLightningPopup();
+                } else if ($('#snefuru-thunder-popup').is(':visible')) {
+                    console.log('Escape pressed - closing thunder popup');
+                    snefuruCloseThunderPopup();
+                }
             }
+        });
+        
+        // Thunder popup handlers
+        $(document).off('click.thunder').on('click.thunder', '.snefuru-thunder-popup-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Thunder button clicked!');
+            snefuruOpenThunderPopup();
+        });
+        
+        // Thunder popup close handlers
+        $(document).off('click.thunder-close').on('click.thunder-close', '#snefuru-thunder-popup .snefuru-popup-close', function(e) {
+            e.preventDefault();
+            console.log('Thunder close button clicked');
+            snefuruCloseThunderPopup();
+        });
+        
+        // Thunder popup overlay click
+        $(document).off('mouseup.thunder-overlay').on('mouseup.thunder-overlay', '#snefuru-thunder-popup', function(e) {
+            if (!isInteractingWithPopup && e.target === this) {
+                console.log('Thunder overlay clicked - closing popup');
+                snefuruCloseThunderPopup();
+            }
+        });
+        
+        // Thunder tab switching
+        $(document).off('click.thunder-tabs').on('click.thunder-tabs', '.thunder-tab-btn', function(e) {
+            e.preventDefault();
+            var tabId = $(this).data('tab');
+            
+            // Update active states
+            $('.thunder-tab-btn').removeClass('active');
+            $(this).addClass('active');
+            
+            // Switch content
+            $('.thunder-tab-pane').hide();
+            $('#' + tabId + '-content').show();
+            
+            console.log('Switched to tab:', tabId);
         });
         
         // Ensure Hurricane metabox stays at top of sidebar

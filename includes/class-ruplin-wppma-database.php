@@ -1,4 +1,5 @@
 <?php
+// Git test trigger comment: 2025-10-26
 
 /**
  * Ruplin WP Database Horse Class
@@ -10,7 +11,7 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '2.0.0';
+    const DB_VERSION = '2.1.0';
     
     /**
      * Option name for storing database version
@@ -77,6 +78,7 @@ class Ruplin_WP_Database_Horse_Class {
                 ferret_header_code LONGTEXT DEFAULT NULL,
                 ferret_header_code_2 LONGTEXT DEFAULT NULL,
                 ferret_footer_code LONGTEXT DEFAULT NULL,
+                papyrus_page_level_insert TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),

@@ -32,6 +32,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_rollback_revision', array($this, 'ajax_rollback_revision'));
         add_action('wp_ajax_save_blueshift_separator_count', array($this, 'ajax_save_blueshift_separator_count'));
         add_action('wp_ajax_save_stellar_default_tab', array($this, 'ajax_save_stellar_default_tab'));
+        add_action('wp_ajax_save_thunder_papyrus_data', array($this, 'ajax_save_thunder_papyrus_data'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift, Cobalt, and Titanium
@@ -443,19 +444,15 @@ class Snefuru_Hurricane {
             
             $output .= $widget_ref . " → " . $widget_type . " widget" . $custom_classes . "\n";
             if (!empty($content_preview)) {
-                $output .= "  Current content: " . $content_preview . "\n";
+                $output .= $content_preview . "\n";
             }
             
-            // Handle list-type widgets with items
+            // Handle list-type widgets with items - NO TRUNCATION
             if ($widget_type === 'icon-list' && !empty($element['settings']['icon_list'])) {
                 $item_counter = 1;
                 foreach ($element['settings']['icon_list'] as $item) {
                     if (!empty($item['text'])) {
-                        $output .= "  ==item" . $item_counter . " → " . substr($item['text'], 0, 50);
-                        if (strlen($item['text']) > 50) {
-                            $output .= "...";
-                        }
-                        $output .= "\n";
+                        $output .= "  ==item" . $item_counter . " → " . $item['text'] . "\n";
                         $item_counter++;
                     }
                 }
@@ -463,7 +460,10 @@ class Snefuru_Hurricane {
                 $item_counter = 1;
                 foreach ($element['settings']['tabs'] as $tab) {
                     if (!empty($tab['tab_title'])) {
-                        $output .= "  ==item" . $item_counter . " → Tab: " . substr($tab['tab_title'], 0, 40) . "\n";
+                        $output .= "  ==item" . $item_counter . " → Tab: " . $tab['tab_title'] . "\n";
+                        if (!empty($tab['tab_content'])) {
+                            $output .= "    Content: " . $tab['tab_content'] . "\n";
+                        }
                         $item_counter++;
                     }
                 }
@@ -482,7 +482,7 @@ class Snefuru_Hurricane {
     }
     
     /**
-     * Get a preview of widget content for reference display
+     * Get full widget content for reference display - NO TRUNCATION
      */
     private function get_widget_content_preview($element) {
         if (!isset($element['settings'])) {
@@ -492,43 +492,42 @@ class Snefuru_Hurricane {
         $settings = $element['settings'];
         $widget_type = isset($element['widgetType']) ? $element['widgetType'] : '';
         
-        // Extract preview based on widget type
+        // Extract FULL content based on widget type - NO TRUNCATION
         switch ($widget_type) {
             case 'heading':
-                return !empty($settings['title']) ? substr(strip_tags($settings['title']), 0, 60) : '';
+                return !empty($settings['title']) ? $settings['title'] : '';
             
             case 'text-editor':
-                return !empty($settings['editor']) ? substr(strip_tags($settings['editor']), 0, 60) : '';
+                return !empty($settings['editor']) ? $settings['editor'] : '';
             
             case 'button':
-                return !empty($settings['text']) ? substr($settings['text'], 0, 40) : '';
+                return !empty($settings['text']) ? $settings['text'] : '';
             
             case 'image':
                 if (!empty($settings['caption'])) {
-                    return "Caption: " . substr(strip_tags($settings['caption']), 0, 40);
+                    return "Caption: " . $settings['caption'];
                 }
                 return !empty($settings['url']) ? "[Image]" : '';
             
             case 'testimonial':
-                return !empty($settings['testimonial_content']) ? 
-                    substr(strip_tags($settings['testimonial_content']), 0, 50) : '';
+                return !empty($settings['testimonial_content']) ? $settings['testimonial_content'] : '';
             
             case 'icon-box':
-                return !empty($settings['title_text']) ? substr($settings['title_text'], 0, 40) : '';
+                return !empty($settings['title_text']) ? $settings['title_text'] : '';
             
             case 'html':
-                return !empty($settings['html']) ? "[HTML Code]" : '';
+                return !empty($settings['html']) ? $settings['html'] : '';
             
             case 'shortcode':
-                return !empty($settings['shortcode']) ? "[Shortcode: " . substr($settings['shortcode'], 0, 30) . "]" : '';
+                return !empty($settings['shortcode']) ? "[Shortcode: " . $settings['shortcode'] . "]" : '';
             
             default:
-                // Check common fields
+                // Check common fields - return FULL content
                 $fields = ['title', 'text', 'content', 'description'];
                 foreach ($fields as $field) {
                     if (!empty($settings[$field])) {
                         $text = is_string($settings[$field]) ? $settings[$field] : '';
-                        return substr(strip_tags($text), 0, 50);
+                        return $text; // Return full text, no truncation
                     }
                 }
                 return '';
@@ -3353,6 +3352,9 @@ In the following text content I paste below, you will be seeing the following:
                 <button type="button" class="button button-primary snefuru-lightning-popup-btn" onclick="window.snefuruOpenLightningPopup()">
                     ⚡ Lightning Popup
                 </button>
+                <button type="button" class="button button-primary snefuru-thunder-popup-btn" onclick="window.snefuruOpenThunderPopup()" style="margin-top: 8px;">
+                    ⛈️ Thunder Button (papyrus)
+                </button>
             </div>
         </div>
         
@@ -3371,6 +3373,113 @@ In the following text content I paste below, you will be seeing the following:
                 </div>
             </div>
         </div>
+        
+        <!-- Thunder Popup Modal (Papyrus) -->
+        <div id="snefuru-thunder-popup" class="snefuru-popup-overlay" style="display: none;">
+            <div class="snefuru-popup-container">
+                <div class="snefuru-popup-header">
+                    <h2 class="snefuru-popup-title">Thunder (Papyrus)</h2>
+                    <button type="button" class="snefuru-popup-close" onclick="window.snefuruCloseThunderPopup()">&times;</button>
+                </div>
+                <div class="snefuru-popup-content">
+                    <!-- Tab Navigation -->
+                    <div class="snefuru-thunder-tabs">
+                        <button type="button" class="thunder-tab-btn active" data-tab="papyrus-page-level">papyrus_page_level_insert</button>
+                        <button type="button" class="thunder-tab-btn" data-tab="thunder-tab2">tab 2</button>
+                        <button type="button" class="thunder-tab-btn" data-tab="thunder-tab3">tab 3</button>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="thunder-tab-content">
+                        <!-- Papyrus Page Level Insert Tab -->
+                        <div id="papyrus-page-level-content" class="thunder-tab-pane active">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                                    Papyrus Page Level Insert
+                                    <span style="font-weight: normal; color: #666; font-size: 12px; margin-left: 10px;">
+                                        (zen_orbitposts.papyrus_page_level_insert)
+                                    </span>
+                                </label>
+                                <textarea id="papyrus-page-level-textarea" 
+                                          style="width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                                          placeholder="Enter papyrus page level insert content..."><?php
+                                    // Get current post ID and load existing content
+                                    global $post, $wpdb;
+                                    if ($post && $post->ID) {
+                                        $table_name = $wpdb->prefix . 'zen_orbitposts';
+                                        $orbitpost = $wpdb->get_row($wpdb->prepare(
+                                            "SELECT papyrus_page_level_insert FROM $table_name WHERE rel_wp_post_id = %d",
+                                            $post->ID
+                                        ));
+                                        if ($orbitpost && $orbitpost->papyrus_page_level_insert) {
+                                            echo esc_textarea($orbitpost->papyrus_page_level_insert);
+                                        }
+                                    }
+                                ?></textarea>
+                            </div>
+                            <div style="text-align: right;">
+                                <button type="button" class="button button-primary" onclick="window.saveThunderPapyrusData()">
+                                    Save Papyrus Data
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab 2 -->
+                        <div id="thunder-tab2-content" class="thunder-tab-pane" style="display: none;">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Tab 2 Content</label>
+                                <textarea style="width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                                          placeholder="Tab 2 content (not connected to database)..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab 3 -->
+                        <div id="thunder-tab3-content" class="thunder-tab-pane" style="display: none;">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Tab 3 Content</label>
+                                <textarea style="width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"
+                                          placeholder="Tab 3 content (not connected to database)..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add Thunder-specific styles -->
+        <style>
+        .snefuru-thunder-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        
+        .thunder-tab-btn {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .thunder-tab-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .thunder-tab-btn.active {
+            background: #0073aa;
+            color: white;
+            border-color: #0073aa;
+        }
+        
+        .thunder-tab-pane {
+            padding: 10px;
+        }
+        </style>
         <?php
     }
     
@@ -3632,5 +3741,73 @@ In the following text content I paste below, you will be seeing the following:
             'message' => 'Default tab saved successfully',
             'saved_tab' => $tab_value
         ));
+    }
+    
+    /**
+     * AJAX handler for saving Thunder papyrus data
+     */
+    public function ajax_save_thunder_papyrus_data() {
+        // Verify nonce for security
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Get the post ID and papyrus content from the request
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $papyrus_content = isset($_POST['papyrus_content']) ? wp_kses_post($_POST['papyrus_content']) : '';
+        
+        // Validate post ID
+        if (!$post_id || !get_post($post_id)) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('You do not have permission to edit this post');
+        }
+        
+        global $wpdb;
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if orbitpost record exists for this post
+        $orbitpost_exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT orbitpost_id FROM $orbitposts_table WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($orbitpost_exists) {
+            // Update existing record
+            $result = $wpdb->update(
+                $orbitposts_table,
+                array(
+                    'papyrus_page_level_insert' => $papyrus_content,
+                    'updated_at' => current_time('mysql')
+                ),
+                array('rel_wp_post_id' => $post_id),
+                array('%s', '%s'),
+                array('%d')
+            );
+        } else {
+            // Create new orbitpost record
+            $result = $wpdb->insert(
+                $orbitposts_table,
+                array(
+                    'rel_wp_post_id' => $post_id,
+                    'papyrus_page_level_insert' => $papyrus_content,
+                    'created_at' => current_time('mysql'),
+                    'updated_at' => current_time('mysql')
+                ),
+                array('%d', '%s', '%s', '%s')
+            );
+        }
+        
+        if ($result !== false) {
+            wp_send_json_success(array(
+                'message' => 'Papyrus data saved successfully',
+                'post_id' => $post_id
+            ));
+        } else {
+            wp_send_json_error('Failed to save papyrus data: ' . $wpdb->last_error);
+        }
     }
 }
