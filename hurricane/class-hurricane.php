@@ -3372,7 +3372,7 @@ In the following text content I paste below, you will be seeing the following:
                 <div class="snefuru-popup-content">
                     <!-- Tab Navigation -->
                     <div class="snefuru-thunder-tabs">
-                        <button type="button" class="thunder-tab-btn active" data-tab="papyrus-page-level">papyrus_page_level_insert</button>
+                        <button type="button" class="thunder-tab-btn active" data-tab="papyrus-page-level">wp_zen_orbitposts.<br>papyrus_page_level_insert</button>
                         <button type="button" class="thunder-tab-btn" data-tab="grove-vault-papyrus">grove_vault_papyrus_1</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab2">tab 2</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab3">tab 3</button>
