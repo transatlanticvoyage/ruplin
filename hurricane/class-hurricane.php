@@ -3373,6 +3373,7 @@ In the following text content I paste below, you will be seeing the following:
                     <!-- Tab Navigation -->
                     <div class="snefuru-thunder-tabs">
                         <button type="button" class="thunder-tab-btn active" data-tab="papyrus-page-level">papyrus_page_level_insert</button>
+                        <button type="button" class="thunder-tab-btn" data-tab="grove-vault-papyrus">grove_vault_papyrus_1</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab2">tab 2</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab3">tab 3</button>
                     </div>
@@ -3409,6 +3410,43 @@ In the following text content I paste below, you will be seeing the following:
                                 <button type="button" class="button button-primary save-thunder-papyrus-btn">
                                     Save Papyrus Data
                                 </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Grove Vault Papyrus 1 Tab -->
+                        <div id="grove-vault-papyrus-content" class="thunder-tab-pane" style="display: none;">
+                            <div style="margin-bottom: 10px;">
+                                <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                                    Grove Vault: Papyrus 1
+                                    <span style="font-weight: normal; color: #666; font-size: 12px; margin-left: 10px;">
+                                        (Read-only from Grove vault system)
+                                    </span>
+                                </label>
+                                <textarea style="width: 100%; height: 400px; font-family: 'Courier New', Courier, monospace; font-size: 13px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f5f5f5;"
+                                          readonly><?php
+                                    // Retrieve content from Grove vault
+                                    if (function_exists('grove_vault')) {
+                                        $vault_content = grove_vault('papyrus/papyrus-1');
+                                        if ($vault_content) {
+                                            echo esc_textarea($vault_content);
+                                        } else {
+                                            echo '// Grove vault content not available. Ensure Grove plugin is active.';
+                                        }
+                                    } else if (class_exists('Grove_Vault_Keeper')) {
+                                        // Fallback to direct class access
+                                        $vault_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus-1');
+                                        if ($vault_content) {
+                                            echo esc_textarea($vault_content);
+                                        } else {
+                                            echo '// Unable to retrieve vault content.';
+                                        }
+                                    } else {
+                                        echo '// Grove plugin not active. Cannot retrieve vault content.';
+                                    }
+                                ?></textarea>
+                            </div>
+                            <div style="text-align: right; color: #666; font-size: 12px;">
+                                <em>This content is stored in Grove vault: /grove/vaults/papyrus/papyrus-1.vault.php</em>
                             </div>
                         </div>
                         
