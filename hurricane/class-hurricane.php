@@ -3340,7 +3340,7 @@ In the following text content I paste below, you will be seeing the following:
                 <button type="button" class="button button-primary snefuru-lightning-popup-btn" onclick="window.snefuruOpenLightningPopup()">
                     ⚡ Lightning Popup
                 </button>
-                <button type="button" class="button button-primary snefuru-thunder-popup-btn" style="margin-top: 8px;">
+                <button type="button" class="button button-primary snefuru-thunder-popup-btn" onclick="window.snefuruOpenThunderPopup()" style="margin-top: 8px;">
                     ⛈️ Thunder Button (papyrus)
                 </button>
             </div>
