@@ -637,41 +637,6 @@ class Snefuru_Hurricane {
                     </div>
                     <span style="color: white; font-size: 16px; font-weight: bold;">top_bar_area</span>
                 </div>
-                <svg class="snefuru-rocket-icon" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100" style="display: inline-block; margin-left: 10px; transform: rotate(-30deg) scaleX(-1);">
-                    <!-- Rocket body -->
-                    <path d="M50 10 Q60 20 60 40 L60 55 Q50 65 40 55 L40 40 Q40 20 50 10" fill="white" stroke="#333" stroke-width="2"/>
-                    <!-- Rocket tip -->
-                    <path d="M50 10 Q55 5 50 0 Q45 5 50 10" fill="#333"/>
-                    <!-- Rocket window -->
-                    <circle cx="50" cy="30" r="6" fill="#87ceeb" stroke="#333" stroke-width="1"/>
-                    <!-- Rocket fins -->
-                    <path d="M40 45 L30 55 L35 50 L40 50 Z" fill="#666" stroke="#333" stroke-width="1"/>
-                    <path d="M60 45 L70 55 L65 50 L60 50 Z" fill="#666" stroke="#333" stroke-width="1"/>
-                    <!-- Fire/flames -->
-                    <g class="rocket-flames">
-                        <path d="M45 55 Q42 65 43 70 Q45 68 47 70 Q48 65 45 55" fill="#ff9500" opacity="0.9">
-                            <animate attributeName="d" 
-                                values="M45 55 Q42 65 43 70 Q45 68 47 70 Q48 65 45 55;
-                                        M45 55 Q41 66 44 72 Q46 69 48 72 Q49 66 45 55;
-                                        M45 55 Q42 65 43 70 Q45 68 47 70 Q48 65 45 55"
-                                dur="0.3s" repeatCount="indefinite"/>
-                        </path>
-                        <path d="M50 55 Q48 68 50 75 Q52 68 50 55" fill="#ff4500" opacity="0.8">
-                            <animate attributeName="d" 
-                                values="M50 55 Q48 68 50 75 Q52 68 50 55;
-                                        M50 55 Q47 70 50 78 Q53 70 50 55;
-                                        M50 55 Q48 68 50 75 Q52 68 50 55"
-                                dur="0.4s" repeatCount="indefinite"/>
-                        </path>
-                        <path d="M55 55 Q58 65 57 70 Q55 68 53 70 Q52 65 55 55" fill="#ff9500" opacity="0.9">
-                            <animate attributeName="d" 
-                                values="M55 55 Q58 65 57 70 Q55 68 53 70 Q52 65 55 55;
-                                        M55 55 Q59 66 56 72 Q54 69 52 72 Q51 66 55 55;
-                                        M55 55 Q58 65 57 70 Q55 68 53 70 Q52 65 55 55"
-                                dur="0.35s" repeatCount="indefinite"/>
-                        </path>
-                    </g>
-                </svg>
                 
                 <!-- Save Default Tab Container -->
                 <div style="display: flex; flex-direction: column; margin-left: 20px;">
@@ -3097,7 +3062,7 @@ In the following text content I paste below, you will be seeing the following:
                     data: {
                         action: 'save_stellar_chamber_setting',
                         nonce: '<?php echo wp_create_nonce('hurricane_nonce'); ?>',
-                        default_state: currentState
+                        setting_value: currentState  // Changed from default_state to setting_value
                     },
                     success: function(response) {
                         if (response.success) {
@@ -3107,11 +3072,13 @@ In the following text content I paste below, you will be seeing the following:
                             // Update button state
                             updateExpandStateButton();
                         } else {
-                            $message.text(response.data || 'Error saving expand state').css('color', '#ff6b6b').fadeIn();
+                            // Fixed error message display - response.data.message contains the error message
+                            var errorMsg = (response.data && response.data.message) ? response.data.message : 'Error saving expand state';
+                            $message.text(errorMsg).css('color', '#ff6b6b').fadeIn();
                         }
                     },
-                    error: function() {
-                        $message.text('Error saving expand state').css('color', '#ff6b6b').fadeIn();
+                    error: function(xhr, status, error) {
+                        $message.text('Error saving expand state: ' + error).css('color', '#ff6b6b').fadeIn();
                     },
                     complete: function() {
                         // Restore button text
