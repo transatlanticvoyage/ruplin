@@ -833,9 +833,9 @@ class Snefuru_Hurricane {
                 <div class="snefuru-stellar-tab-content">
                     <div class="snefuru-stellar-tab-panel active" data-panel="kiosk-system">
                         <!-- Kiosk System Content with Sub-tabs -->
-                        <div class="kiosk-system-container" style="padding: 20px;">
+                        <div class="kiosk-system-container" style="padding: 0;">
                             <!-- Sub-tab Navigation -->
-                            <div class="kiosk-sub-tabs" style="border-bottom: 2px solid #ddd; margin-bottom: 20px;">
+                            <div class="kiosk-sub-tabs" style="border-bottom: 2px solid #ddd;">
                                 <div class="kiosk-sub-tab-navigation" style="display: flex; gap: 0;">
                                     <button type="button" class="kiosk-sub-tab-button active" data-kiosk-tab="papyrus" 
                                             style="padding: 10px 20px; background: #2271b1; color: white; border: none; border-radius: 4px 4px 0 0; cursor: pointer; font-weight: 600; font-size: 14px; margin-right: 2px;">
@@ -861,10 +861,10 @@ class Snefuru_Hurricane {
                             </div>
                             
                             <!-- Sub-tab Content Panels -->
-                            <div class="kiosk-sub-tab-content">
+                            <div class="kiosk-sub-tab-content" style="padding: 0;">
                                 <!-- Papyrus Panel -->
                                 <div class="kiosk-sub-tab-panel active" data-kiosk-panel="papyrus" style="display: block;">
-                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 500px;">
+                                    <div style="padding: 20px; background: #f9f9f9; min-height: 500px;">
                                         <!-- Directory Path Header -->
                                         <div style="font-size: 16px; font-weight: bold; color: black; margin-bottom: 20px;">
                                             /grove/vaults/papyrus
@@ -1047,7 +1047,7 @@ class Snefuru_Hurricane {
                                 
                                 <!-- REMC Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="remc" style="display: none;">
-                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 300px;">
+                                    <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
                                         <h4 style="margin: 0 0 10px 0; color: #666;">REMC</h4>
                                         <p style="color: #999; font-style: italic;">Content to be added...</p>
                                     </div>
@@ -1055,7 +1055,7 @@ class Snefuru_Hurricane {
                                 
                                 <!-- Ink Manual Adjunctive Notes Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="ink-manual" style="display: none;">
-                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 300px;">
+                                    <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
                                         <h4 style="margin: 0 0 10px 0; color: #666;">Ink Manual Adjunctive Notes</h4>
                                         <p style="color: #999; font-style: italic;">Content to be added...</p>
                                     </div>
@@ -1063,7 +1063,7 @@ class Snefuru_Hurricane {
                                 
                                 <!-- Phased Creation Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="phased-creation" style="display: none;">
-                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 500px;">
+                                    <div style="padding: 20px; background: #f9f9f9; min-height: 500px;">
                                         <!-- Directory Path Header -->
                                         <div style="font-size: 16px; font-weight: bold; color: black; margin-bottom: 20px;">
                                             /grove/vaults/phased_creation
@@ -1246,7 +1246,7 @@ class Snefuru_Hurricane {
                                 
                                 <!-- AGGREGATE Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="aggregate" style="display: none;">
-                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 300px;">
+                                    <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
                                         <h4 style="margin: 0 0 10px 0; color: #666;">AGGREGATE</h4>
                                         <p style="color: #999; font-style: italic;">Content to be added...</p>
                                     </div>
