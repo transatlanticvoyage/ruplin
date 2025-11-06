@@ -4140,21 +4140,16 @@ In the following text content I paste below, you will be seeing the following:
         // Get the tab value from the request
         $tab_value = isset($_POST['tab_value']) ? sanitize_text_field($_POST['tab_value']) : '';
         
-        // Validate tab value - must match one of our known tab identifiers
-        $valid_tabs = array(
-            'elicitor',
-            'elementor',
-            'elementor-deployer-2',
-            'old-elementor-elicitor',
-            'old-elementor-elicitor-2',
-            'gutenberg',
-            'gut-deployer',
-            'nimble',
-            'nimble-deployer'
-        );
+        // Basic validation - just ensure we have a non-empty string
+        // Allow any tab value since tabs are dynamically added
+        if (empty($tab_value)) {
+            wp_send_json_error('Invalid tab value: tab cannot be empty');
+        }
         
-        if (!in_array($tab_value, $valid_tabs)) {
-            wp_send_json_error('Invalid tab value');
+        // Optional: Ensure the tab value only contains safe characters
+        // This allows letters, numbers, hyphens, and underscores
+        if (!preg_match('/^[a-zA-Z0-9_-]+$/', $tab_value)) {
+            wp_send_json_error('Invalid tab value: contains invalid characters');
         }
         
         // Save the option to the database
