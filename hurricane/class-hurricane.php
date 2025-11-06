@@ -1756,7 +1756,7 @@ class Snefuru_Hurricane {
                                                     }
                                                     
                                                     // 4. Get currently selected text from Phased Creation tab
-                                                    var phasedText = $('#phased-editor').val() || '';
+                                                    var phasedText = $('#phased-creation-editor').val() || '';
                                                     if (phasedText) {
                                                         if (aggregateText) aggregateText += '\n';
                                                         aggregateText += phasedText;
