@@ -4022,7 +4022,7 @@ In the following text content I paste below, you will be seeing the following:
                                           readonly><?php
                                     // Retrieve content from Grove vault
                                     if (function_exists('grove_vault')) {
-                                        $vault_content = grove_vault('papyrus/papyrus-1');
+                                        $vault_content = grove_vault('papyrus/papyrus_1');
                                         if ($vault_content) {
                                             echo esc_textarea($vault_content);
                                         } else {
@@ -4030,7 +4030,7 @@ In the following text content I paste below, you will be seeing the following:
                                         }
                                     } else if (class_exists('Grove_Vault_Keeper')) {
                                         // Fallback to direct class access
-                                        $vault_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus-1');
+                                        $vault_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus_1');
                                         if ($vault_content) {
                                             echo esc_textarea($vault_content);
                                         } else {
@@ -4042,7 +4042,7 @@ In the following text content I paste below, you will be seeing the following:
                                 ?></textarea>
                             </div>
                             <div style="text-align: right; color: #666; font-size: 12px;">
-                                <em>This content is stored in Grove vault: /grove/vaults/papyrus/papyrus-1.vault.php</em>
+                                <em>This content is stored in Grove vault: /grove/vaults/papyrus/papyrus_1.txt</em>
                             </div>
                         </div>
                         
@@ -4059,14 +4059,14 @@ In the following text content I paste below, you will be seeing the following:
                                           readonly><?php
                                     // Retrieve RAW content from Grove vault
                                     if (function_exists('grove_vault')) {
-                                        $vault_raw_content = grove_vault('papyrus/papyrus-1');
+                                        $vault_raw_content = grove_vault('papyrus/papyrus_1');
                                         if ($vault_raw_content) {
                                             echo esc_textarea($vault_raw_content);
                                         } else {
                                             echo '// Grove vault content not available. Ensure Grove plugin is active.';
                                         }
                                     } else if (class_exists('Grove_Vault_Keeper')) {
-                                        $vault_raw_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus-1');
+                                        $vault_raw_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus_1');
                                         if ($vault_raw_content) {
                                             echo esc_textarea($vault_raw_content);
                                         } else {
@@ -4093,9 +4093,9 @@ In the following text content I paste below, you will be seeing the following:
                                     // Get the raw vault content first
                                     $rendered_content = '';
                                     if (function_exists('grove_vault')) {
-                                        $rendered_content = grove_vault('papyrus/papyrus-1');
+                                        $rendered_content = grove_vault('papyrus/papyrus_1');
                                     } else if (class_exists('Grove_Vault_Keeper')) {
-                                        $rendered_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus-1');
+                                        $rendered_content = Grove_Vault_Keeper::retrieve('papyrus/papyrus_1');
                                     }
                                     
                                     if ($rendered_content) {
