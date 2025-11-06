@@ -3595,6 +3595,9 @@ In the following text content I paste below, you will be seeing the following:
                     popup.show().fadeIn(300);
                     jQuery('body').addClass('snefuru-popup-open');
                     console.log('Thunder popup opened successfully');
+                    
+                    // Initialize tab handlers when popup opens
+                    initThunderTabHandlers();
                 } else {
                     console.error('Thunder popup element not found!');
                 }
@@ -3608,6 +3611,90 @@ In the following text content I paste below, you will be seeing the following:
                 jQuery('body').removeClass('snefuru-popup-open');
             };
         }
+        
+        // Initialize Thunder tab handlers
+        function initThunderTabHandlers() {
+            // Remove any existing handlers first
+            jQuery('.thunder-tab-btn').off('click.thunder-tabs');
+            
+            // Add tab switching functionality
+            jQuery('.thunder-tab-btn').on('click.thunder-tabs', function(e) {
+                e.preventDefault();
+                var tabId = jQuery(this).data('tab');
+                console.log('Switching to tab:', tabId);
+                
+                // Update active states
+                jQuery('.thunder-tab-btn').removeClass('active');
+                jQuery(this).addClass('active');
+                
+                // Switch content
+                jQuery('.thunder-tab-pane').hide();
+                jQuery('#' + tabId + '-content').show();
+            });
+            
+            // Remove existing save handlers and add new one
+            jQuery('.save-thunder-papyrus-btn').off('click.save-thunder');
+            jQuery('.save-thunder-papyrus-btn').on('click.save-thunder', function(e) {
+                e.preventDefault();
+                console.log('Save button clicked');
+                saveThunderPapyrusData();
+            });
+            
+            // Close button handler
+            jQuery('#snefuru-thunder-popup .snefuru-popup-close').off('click.thunder-close');
+            jQuery('#snefuru-thunder-popup .snefuru-popup-close').on('click.thunder-close', function(e) {
+                e.preventDefault();
+                window.snefuruCloseThunderPopup();
+            });
+        }
+        
+        // Define save function if not exists
+        if (typeof window.saveThunderPapyrusData === 'undefined') {
+            window.saveThunderPapyrusData = function() {
+                var content = jQuery('#papyrus-page-level-textarea').val();
+                var postId = <?php echo get_the_ID() ? get_the_ID() : '0'; ?>;
+                
+                console.log('Saving papyrus data for post:', postId);
+                
+                // Show saving indicator
+                jQuery('.save-thunder-papyrus-btn').text('Saving...').prop('disabled', true);
+                
+                jQuery.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'save_thunder_papyrus_data',
+                        nonce: '<?php echo wp_create_nonce('thunder_papyrus_nonce'); ?>',
+                        post_id: postId,
+                        papyrus_content: content
+                    },
+                    success: function(response) {
+                        jQuery('.save-thunder-papyrus-btn').text('Save Papyrus Data').prop('disabled', false);
+                        if (response.success) {
+                            console.log('Papyrus data saved successfully');
+                            // Show success message
+                            alert('Papyrus data saved successfully!');
+                        } else {
+                            console.error('Failed to save papyrus data:', response.data);
+                            alert('Failed to save papyrus data: ' + (response.data || 'Unknown error'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        jQuery('.save-thunder-papyrus-btn').text('Save Papyrus Data').prop('disabled', false);
+                        console.error('AJAX error:', error);
+                        alert('Error saving papyrus data: ' + error);
+                    }
+                });
+            };
+        }
+        
+        // Initialize handlers on document ready
+        jQuery(document).ready(function() {
+            // Also initialize when Thunder popup is opened via any method
+            jQuery(document).on('click', '.snefuru-thunder-popup-btn', function() {
+                setTimeout(initThunderTabHandlers, 100);
+            });
+        });
         </script>
         
         <!-- Add Thunder-specific styles -->
