@@ -3664,7 +3664,7 @@ In the following text content I paste below, you will be seeing the following:
                     type: 'POST',
                     data: {
                         action: 'save_thunder_papyrus_data',
-                        nonce: '<?php echo wp_create_nonce('thunder_papyrus_nonce'); ?>',
+                        nonce: '<?php echo wp_create_nonce('hurricane_nonce'); ?>',
                         post_id: postId,
                         papyrus_content: content
                     },
