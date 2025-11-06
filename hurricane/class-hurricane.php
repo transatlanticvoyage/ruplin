@@ -35,6 +35,8 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_save_thunder_papyrus_data', array($this, 'ajax_save_thunder_papyrus_data'));
         add_action('wp_ajax_load_phased_creation_file', array($this, 'ajax_load_phased_creation_file'));
         add_action('wp_ajax_save_phased_creation_file', array($this, 'ajax_save_phased_creation_file'));
+        add_action('wp_ajax_load_papyrus_file', array($this, 'ajax_load_papyrus_file'));
+        add_action('wp_ajax_save_papyrus_file', array($this, 'ajax_save_papyrus_file'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift, Cobalt, and Titanium
@@ -862,10 +864,185 @@ class Snefuru_Hurricane {
                             <div class="kiosk-sub-tab-content">
                                 <!-- Papyrus Panel -->
                                 <div class="kiosk-sub-tab-panel active" data-kiosk-panel="papyrus" style="display: block;">
-                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 300px;">
-                                        <h4 style="margin: 0 0 10px 0; color: #666;">Papyrus</h4>
-                                        <p style="color: #999; font-style: italic;">Content to be added...</p>
+                                    <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; min-height: 500px;">
+                                        <!-- Directory Path Header -->
+                                        <div style="font-size: 16px; font-weight: bold; color: black; margin-bottom: 20px;">
+                                            /grove/vaults/papyrus
+                                        </div>
+                                        
+                                        <!-- Two-column layout -->
+                                        <div style="display: flex; gap: 20px; height: 450px;">
+                                            <!-- Left side: File List -->
+                                            <div style="flex: 0 0 40%; background: white; border: 1px solid #ddd; border-radius: 4px; padding: 15px; overflow-y: auto;">
+                                                <div id="papyrus-file-list">
+                                                    <?php
+                                                    // Get the papyrus directory path
+                                                    $grove_plugin_path = WP_PLUGIN_DIR . '/grove';
+                                                    $papyrus_dir = $grove_plugin_path . '/vaults/papyrus';
+                                                    
+                                                    // Check if directory exists, if not create it
+                                                    if (!file_exists($papyrus_dir)) {
+                                                        wp_mkdir_p($papyrus_dir);
+                                                    }
+                                                    
+                                                    // Scan directory for files
+                                                    $files = array();
+                                                    if (is_dir($papyrus_dir)) {
+                                                        $scan = scandir($papyrus_dir);
+                                                        foreach ($scan as $file) {
+                                                            if ($file != '.' && $file != '..' && is_file($papyrus_dir . '/' . $file)) {
+                                                                $files[] = $file;
+                                                            }
+                                                        }
+                                                    }
+                                                    
+                                                    // Display files
+                                                    if (empty($files)) {
+                                                        echo '<p style="color: #999; font-style: italic;">No files found in directory</p>';
+                                                    } else {
+                                                        foreach ($files as $file) {
+                                                            ?>
+                                                            <div class="papyrus-file-item" style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 3px; display: flex; align-items: center;"
+                                                                 data-filename="<?php echo esc_attr($file); ?>">
+                                                                <input type="radio" name="papyrus-file-select" 
+                                                                       class="papyrus-file-radio"
+                                                                       value="<?php echo esc_attr($file); ?>"
+                                                                       style="margin-right: 10px; cursor: pointer;">
+                                                                <label style="cursor: pointer; margin: 0; flex-grow: 1;">
+                                                                    <?php echo esc_html($file); ?>
+                                                                </label>
+                                                            </div>
+                                                            <?php
+                                                        }
+                                                    }
+                                                    ?>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Right side: File Viewer/Editor -->
+                                            <div style="flex: 1; background: white; border: 1px solid #ddd; border-radius: 4px; padding: 15px; display: flex; flex-direction: column;">
+                                                <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                                    <span id="papyrus-editor-filename" style="font-weight: bold; color: #333;">No file selected</span>
+                                                    <button type="button" id="papyrus-save-btn" 
+                                                            style="background: #2271b1; color: white; border: none; padding: 5px 15px; border-radius: 3px; cursor: pointer; display: none;"
+                                                            onclick="savePapyrusFile()">
+                                                        Save Changes
+                                                    </button>
+                                                </div>
+                                                <textarea id="papyrus-editor" 
+                                                          style="flex: 1; width: 100%; padding: 10px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; border: 1px solid #ddd; border-radius: 3px; resize: none;"
+                                                          placeholder="Select a file to view/edit its contents"></textarea>
+                                                <div id="papyrus-save-message" style="margin-top: 10px; display: none;"></div>
+                                            </div>
+                                        </div>
                                     </div>
+                                    
+                                    <script type="text/javascript">
+                                    // Handle file selection for Papyrus
+                                    jQuery(document).ready(function($) {
+                                        // Click on file item (including checkbox)
+                                        $('.papyrus-file-item').on('click', function(e) {
+                                            var $item = $(this);
+                                            var filename = $item.data('filename');
+                                            var $radio = $item.find('.papyrus-file-radio');
+                                            
+                                            // Select the radio button
+                                            $radio.prop('checked', true);
+                                            
+                                            // Highlight selected item
+                                            $('.papyrus-file-item').css('background', 'transparent');
+                                            $item.css('background', '#f0f7ff');
+                                            
+                                            // Load file content
+                                            loadPapyrusFile(filename);
+                                        });
+                                        
+                                        // Prevent label from triggering twice
+                                        $('.papyrus-file-item label').on('click', function(e) {
+                                            e.stopPropagation();
+                                            $(this).parent().click();
+                                        });
+                                    });
+                                    
+                                    function loadPapyrusFile(filename) {
+                                        var $ = jQuery;
+                                        
+                                        // Update editor header
+                                        $('#papyrus-editor-filename').text('Loading: ' + filename + '...');
+                                        $('#papyrus-save-btn').hide();
+                                        $('#papyrus-editor').prop('disabled', true);
+                                        
+                                        // AJAX request to load file content
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'load_papyrus_file',
+                                                filename: filename,
+                                                nonce: $('#hurricane-nonce').val()
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    $('#papyrus-editor').val(response.data.content);
+                                                    $('#papyrus-editor-filename').text(filename).data('current-file', filename);
+                                                    $('#papyrus-save-btn').show();
+                                                    $('#papyrus-editor').prop('disabled', false);
+                                                } else {
+                                                    $('#papyrus-editor').val('Error loading file: ' + (response.data || 'Unknown error'));
+                                                    $('#papyrus-editor-filename').text('Error loading: ' + filename);
+                                                }
+                                            },
+                                            error: function() {
+                                                $('#papyrus-editor').val('Error: Could not load file');
+                                                $('#papyrus-editor-filename').text('Error loading: ' + filename);
+                                            }
+                                        });
+                                    }
+                                    
+                                    function savePapyrusFile() {
+                                        var $ = jQuery;
+                                        var filename = $('#papyrus-editor-filename').data('current-file');
+                                        var content = $('#papyrus-editor').val();
+                                        var $message = $('#papyrus-save-message');
+                                        var $saveBtn = $('#papyrus-save-btn');
+                                        
+                                        if (!filename) {
+                                            alert('No file selected');
+                                            return;
+                                        }
+                                        
+                                        // Disable save button during save
+                                        $saveBtn.prop('disabled', true).text('Saving...');
+                                        
+                                        // AJAX request to save file content
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'save_papyrus_file',
+                                                filename: filename,
+                                                content: content,
+                                                nonce: $('#hurricane-nonce').val()
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    $message.text('File saved successfully!').css('color', '#4ade80').fadeIn();
+                                                } else {
+                                                    $message.text('Error: ' + (response.data || 'Could not save file')).css('color', '#ff6b6b').fadeIn();
+                                                }
+                                            },
+                                            error: function() {
+                                                $message.text('Error: Could not save file').css('color', '#ff6b6b').fadeIn();
+                                            },
+                                            complete: function() {
+                                                $saveBtn.prop('disabled', false).text('Save Changes');
+                                                setTimeout(function() {
+                                                    $message.fadeOut();
+                                                }, 3000);
+                                            }
+                                        });
+                                    }
+                                    </script>
                                 </div>
                                 
                                 <!-- REMC Panel -->
@@ -4683,6 +4860,110 @@ In the following text content I paste below, you will be seeing the following:
         // Create directory if it doesn't exist
         if (!file_exists($phased_creation_dir)) {
             wp_mkdir_p($phased_creation_dir);
+        }
+        
+        // Save file content
+        $result = file_put_contents($file_path, $content);
+        if ($result === false) {
+            wp_send_json_error('Could not save file');
+        }
+        
+        wp_send_json_success(array(
+            'message' => 'File saved successfully',
+            'filename' => $filename,
+            'bytes_written' => $result
+        ));
+    }
+    
+    /**
+     * AJAX handler for loading papyrus files
+     */
+    public function ajax_load_papyrus_file() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        // Get and validate filename
+        $filename = isset($_POST['filename']) ? sanitize_file_name($_POST['filename']) : '';
+        if (empty($filename)) {
+            wp_send_json_error('Invalid filename');
+        }
+        
+        // Get the file path
+        $grove_plugin_path = WP_PLUGIN_DIR . '/grove';
+        $papyrus_dir = $grove_plugin_path . '/vaults/papyrus';
+        $file_path = $papyrus_dir . '/' . $filename;
+        
+        // Security check - ensure file is within the allowed directory
+        $real_dir = realpath($papyrus_dir);
+        $real_file = realpath($file_path);
+        
+        if ($real_file === false || strpos($real_file, $real_dir) !== 0) {
+            wp_send_json_error('Invalid file path');
+        }
+        
+        // Check if file exists
+        if (!file_exists($file_path)) {
+            wp_send_json_error('File not found');
+        }
+        
+        // Read file content
+        $content = file_get_contents($file_path);
+        if ($content === false) {
+            wp_send_json_error('Could not read file');
+        }
+        
+        wp_send_json_success(array(
+            'content' => $content,
+            'filename' => $filename
+        ));
+    }
+    
+    /**
+     * AJAX handler for saving papyrus files
+     */
+    public function ajax_save_papyrus_file() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        // Get and validate filename
+        $filename = isset($_POST['filename']) ? sanitize_file_name($_POST['filename']) : '';
+        if (empty($filename)) {
+            wp_send_json_error('Invalid filename');
+        }
+        
+        // Get content
+        $content = isset($_POST['content']) ? wp_unslash($_POST['content']) : '';
+        
+        // Get the file path
+        $grove_plugin_path = WP_PLUGIN_DIR . '/grove';
+        $papyrus_dir = $grove_plugin_path . '/vaults/papyrus';
+        $file_path = $papyrus_dir . '/' . $filename;
+        
+        // Security check - ensure file is within the allowed directory
+        $real_dir = realpath($papyrus_dir);
+        $real_file_dir = realpath(dirname($file_path));
+        
+        if ($real_file_dir === false || strpos($real_file_dir, $real_dir) !== 0) {
+            wp_send_json_error('Invalid file path');
+        }
+        
+        // Create directory if it doesn't exist
+        if (!file_exists($papyrus_dir)) {
+            wp_mkdir_p($papyrus_dir);
         }
         
         // Save file content
