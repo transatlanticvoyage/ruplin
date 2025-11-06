@@ -3584,6 +3584,32 @@ In the following text content I paste below, you will be seeing the following:
             </div>
         </div>
         
+        <!-- Inline Thunder Functions for reliability -->
+        <script type="text/javascript">
+        // Define Thunder functions inline to ensure they're available
+        if (typeof window.snefuruOpenThunderPopup === 'undefined') {
+            window.snefuruOpenThunderPopup = function() {
+                console.log('Opening thunder popup (inline)...');
+                var popup = jQuery('#snefuru-thunder-popup');
+                if (popup.length) {
+                    popup.show().fadeIn(300);
+                    jQuery('body').addClass('snefuru-popup-open');
+                    console.log('Thunder popup opened successfully');
+                } else {
+                    console.error('Thunder popup element not found!');
+                }
+            };
+        }
+        
+        if (typeof window.snefuruCloseThunderPopup === 'undefined') {
+            window.snefuruCloseThunderPopup = function() {
+                console.log('Closing thunder popup (inline)...');
+                jQuery('#snefuru-thunder-popup').fadeOut(300);
+                jQuery('body').removeClass('snefuru-popup-open');
+            };
+        }
+        </script>
+        
         <!-- Add Thunder-specific styles -->
         <style>
         .snefuru-thunder-tabs {
