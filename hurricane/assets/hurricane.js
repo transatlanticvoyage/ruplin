@@ -296,6 +296,9 @@ window.saveThunderPapyrusData = saveThunderPapyrusData;
             // Show the corresponding panel
             $('.snefuru-stellar-tab-panel[data-panel="' + tabName + '"]').addClass('active');
             
+            // Trigger custom event for tab change
+            $(document).trigger('stellarTabChanged');
+            
             // Initialize driggs tab when it's first activated
             if (tabName === 'driggs' && $('#driggs-stellar-data').attr('data-initialized') === 'false') {
                 initDriggsTab();

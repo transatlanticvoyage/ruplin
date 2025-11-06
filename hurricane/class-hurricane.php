@@ -2974,6 +2974,39 @@ In the following text content I paste below, you will be seeing the following:
             $default_tab = get_option('stellar_chamber_default_tab', 'elicitor');
             ?>
             var defaultTab = '<?php echo esc_js($default_tab); ?>';
+            var savedDefaultTab = defaultTab; // Track the saved default tab
+            
+            // Function to update the default tab button's enabled/disabled state
+            function updateDefaultTabButton() {
+                var $activeTab = $('.snefuru-stellar-tab-button.active');
+                var $button = $('#stellar-save-default-tab');
+                
+                if ($activeTab.length === 0) {
+                    return;
+                }
+                
+                var currentTab = $activeTab.data('tab');
+                
+                if (currentTab === savedDefaultTab) {
+                    // Current tab matches saved default - disable button
+                    $button.prop('disabled', true)
+                           .css({
+                               'background': '#94a3b8',
+                               'cursor': 'not-allowed',
+                               'opacity': '0.6'
+                           })
+                           .attr('title', 'Current tab already saved as default');
+                } else {
+                    // Tabs differ - enable button
+                    $button.prop('disabled', false)
+                           .css({
+                               'background': '#2271b1',
+                               'cursor': 'pointer',
+                               'opacity': '1'
+                           })
+                           .attr('title', 'Save the currently active tab as the default tab');
+                }
+            }
             
             // Auto-activate the saved default tab if it's not the first tab
             if (defaultTab && defaultTab !== 'elicitor') {
@@ -2989,6 +3022,14 @@ In the following text content I paste below, you will be seeing the following:
                     $('.snefuru-stellar-tab-panel[data-panel="' + defaultTab + '"]').addClass('active');
                 }
             }
+            
+            // Initial button state
+            updateDefaultTabButton();
+            
+            // Update button state when tabs are clicked
+            $(document).on('stellarTabChanged', function() {
+                updateDefaultTabButton();
+            });
             
             // Handle "Save Current Tab As Default" button click
             $('#stellar-save-default-tab').on('click', function() {
@@ -3024,6 +3065,10 @@ In the following text content I paste below, you will be seeing the following:
                     success: function(response) {
                         if (response.success) {
                             $message.text('Default tab set to: ' + tabLabel).css('color', '#4ade80').fadeIn();
+                            // Update the saved default tab variable
+                            savedDefaultTab = currentTab;
+                            // Update button state
+                            updateDefaultTabButton();
                         } else {
                             $message.text(response.data || 'Error saving default tab').css('color', '#ff6b6b').fadeIn();
                         }
@@ -3032,8 +3077,8 @@ In the following text content I paste below, you will be seeing the following:
                         $message.text('Error saving default tab').css('color', '#ff6b6b').fadeIn();
                     },
                     complete: function() {
-                        // Restore button state
-                        $button.prop('disabled', false).text('Save Current Tab As Default');
+                        // Restore button text
+                        $button.text('Save Current Tab As Default');
                         
                         // Hide message after 3 seconds
                         setTimeout(function() {
