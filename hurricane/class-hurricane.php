@@ -1443,13 +1443,16 @@ class Snefuru_Hurricane {
                                     <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
                                         <h4 style="margin: 0 0 20px 0; color: #666;">Ink Manual Adjunctive Notes</h4>
                                         
-                                        <!-- Save Button -->
-                                        <button type="button" 
-                                                id="ink-notes-save-btn" 
-                                                style="background: #2271b1; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 15px;">
-                                            Save Ink Notes
-                                        </button>
-                                        <div id="ink-notes-save-status" style="display: inline-block; margin-left: 10px; color: green;"></div>
+                                        <!-- Save Button and DB Reference -->
+                                        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 15px;">
+                                            <button type="button" 
+                                                    id="ink-notes-save-btn" 
+                                                    style="background: #2271b1; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                                                Save Ink Notes
+                                            </button>
+                                            <div id="ink-notes-save-status" style="color: green;"></div>
+                                            <span style="font-size: 14px; font-weight: bold; color: black;">wp_zen_orbitposts.ink_notes</span>
+                                        </div>
                                         
                                         <!-- Large Text Box -->
                                         <textarea 
@@ -1704,8 +1707,96 @@ class Snefuru_Hurricane {
                                 <!-- AGGREGATE Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="aggregate" style="display: none;">
                                     <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
-                                        <h4 style="margin: 0 0 10px 0; color: #666;">AGGREGATE</h4>
-                                        <p style="color: #999; font-style: italic;">Content to be added...</p>
+                                        <h4 style="margin: 0 0 20px 0; color: #666;">AGGREGATE</h4>
+                                        
+                                        <!-- Copy Aggregate Button -->
+                                        <button type="button" 
+                                                id="copy-aggregate-btn" 
+                                                style="background: #2271b1; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 15px;">
+                                            Copy Aggregate Text of All Tabs
+                                        </button>
+                                        
+                                        <!-- Feedback Message -->
+                                        <div id="aggregate-copy-status" style="color: #4ade80; font-size: 14px; display: none;"></div>
+                                        
+                                        <script type="text/javascript">
+                                        jQuery(document).ready(function($) {
+                                            $('#copy-aggregate-btn').on('click', function() {
+                                                var $btn = $(this);
+                                                var $status = $('#aggregate-copy-status');
+                                                var aggregateText = '';
+                                                var lineCount = 0;
+                                                
+                                                // Disable button during processing
+                                                $btn.prop('disabled', true).text('Copying...');
+                                                $status.hide();
+                                                
+                                                try {
+                                                    // 1. Get currently selected text from Papyrus tab
+                                                    var papyrusText = $('#papyrus-editor').val() || '';
+                                                    if (papyrusText) {
+                                                        aggregateText += papyrusText;
+                                                        lineCount += (papyrusText.match(/\n/g) || []).length + 1;
+                                                    }
+                                                    
+                                                    // 2. Get current text from REMC tab (operation blueshift - format 4)
+                                                    var blueshiftText = $('#blueshift-content-textbox-4-expanded').val() || '';
+                                                    if (blueshiftText) {
+                                                        if (aggregateText) aggregateText += '\n';
+                                                        aggregateText += blueshiftText;
+                                                        lineCount += (blueshiftText.match(/\n/g) || []).length + 1;
+                                                    }
+                                                    
+                                                    // 3. Get current ink manual notes
+                                                    var inkNotesText = $('#ink-notes-content').val() || '';
+                                                    if (inkNotesText) {
+                                                        if (aggregateText) aggregateText += '\n';
+                                                        aggregateText += inkNotesText;
+                                                        lineCount += (inkNotesText.match(/\n/g) || []).length + 1;
+                                                    }
+                                                    
+                                                    // 4. Get currently selected text from Phased Creation tab
+                                                    var phasedText = $('#phased-editor').val() || '';
+                                                    if (phasedText) {
+                                                        if (aggregateText) aggregateText += '\n';
+                                                        aggregateText += phasedText;
+                                                        lineCount += (phasedText.match(/\n/g) || []).length + 1;
+                                                    }
+                                                    
+                                                    // Copy to clipboard
+                                                    if (aggregateText) {
+                                                        // Create temporary textarea for copying
+                                                        var $temp = $('<textarea>');
+                                                        $('body').append($temp);
+                                                        $temp.val(aggregateText).select();
+                                                        
+                                                        var success = document.execCommand('copy');
+                                                        $temp.remove();
+                                                        
+                                                        if (success) {
+                                                            $status.text('Copied ' + lineCount + ' total lines to clipboard successfully!').fadeIn();
+                                                        } else {
+                                                            $status.text('Copy failed - please try again').css('color', '#ff6b6b').fadeIn();
+                                                        }
+                                                    } else {
+                                                        $status.text('No content found to copy').css('color', '#ff6b6b').fadeIn();
+                                                    }
+                                                    
+                                                } catch (error) {
+                                                    console.error('Copy error:', error);
+                                                    $status.text('Copy failed - please try again').css('color', '#ff6b6b').fadeIn();
+                                                }
+                                                
+                                                // Re-enable button
+                                                $btn.prop('disabled', false).text('Copy Aggregate Text of All Tabs');
+                                                
+                                                // Hide status after 3 seconds
+                                                setTimeout(function() {
+                                                    $status.fadeOut();
+                                                }, 3000);
+                                            });
+                                        });
+                                        </script>
                                     </div>
                                 </div>
                             </div>
