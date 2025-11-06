@@ -606,7 +606,7 @@ class Snefuru_Hurricane {
     }
     
     /**
-     * Add Stellar Chamber element above the title bar
+     * Add Hurricane Chamber element above the title bar
      */
     public function add_stellar_chamber($post) {
         // Only show on post and page edit screens
@@ -616,34 +616,6 @@ class Snefuru_Hurricane {
         ?>
         <div class="snefuru-stellar-chamber">
             <div class="snefuru-stellar-chamber-header" style="display: flex; align-items: center; justify-content: flex-start;">
-                <!-- Hurricane Editor Section -->
-                <div style="display: inline-block; width: fit-content; margin-right: 30px; border-bottom: 2px solid white; padding-bottom: 8px;">
-                    <div style="display: flex; align-items: center;">
-                        <!-- Hurricane Logo SVG -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 100 100" style="margin-right: 10px;">
-                            <!-- Hurricane spiral -->
-                            <g fill="none" stroke="white" stroke-width="3">
-                                <!-- Outer spiral -->
-                                <path d="M50,20 Q70,30 65,50 Q60,70 40,65 Q20,60 25,40 Q30,20 50,25" opacity="0.8"/>
-                                <!-- Middle spiral -->
-                                <path d="M50,30 Q60,35 58,50 Q55,65 42,62 Q30,58 32,45 Q35,32 50,35" opacity="0.6"/>
-                                <!-- Inner spiral -->
-                                <path d="M50,40 Q55,42 54,50 Q52,58 46,57 Q40,55 41,49 Q42,43 50,44" opacity="0.4"/>
-                                <!-- Center eye -->
-                                <circle cx="50" cy="50" r="3" fill="white"/>
-                            </g>
-                            <!-- Wind lines -->
-                            <g stroke="white" stroke-width="2" opacity="0.6">
-                                <path d="M15,25 Q25,22 20,28" fill="none"/>
-                                <path d="M80,75 Q90,72 85,78" fill="none"/>
-                                <path d="M20,75 Q30,78 25,72" fill="none"/>
-                                <path d="M85,25 Q75,28 80,22" fill="none"/>
-                            </g>
-                        </svg>
-                        <span style="color: white; font-size: 28px; font-weight: bold; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">Hurricane Editor</span>
-                    </div>
-                </div>
-                
                 <div style="display: flex; flex-direction: column;">
                     <div class="beamray_banner1">
                         <svg class="stellar-galactic-logo" viewBox="0 0 24 24" fill="currentColor" style="width: 8px; height: 8px;">
@@ -661,7 +633,7 @@ class Snefuru_Hurricane {
                             <circle cx="16" cy="16" r="0.7" fill="white" opacity="0.7"/>
                             <circle cx="8" cy="18" r="0.5" fill="white" opacity="0.5"/>
                         </svg>
-                        Stellar Chamber
+                        Hurricane Chamber
                     </div>
                     <span style="color: white; font-size: 16px; font-weight: bold;">top_bar_area</span>
                 </div>
@@ -701,18 +673,8 @@ class Snefuru_Hurricane {
                     </g>
                 </svg>
                 
-                <!-- Driggs Revenue Goal Display -->
+                <!-- Save Default Tab Container -->
                 <div style="display: flex; flex-direction: column; margin-left: 20px;">
-                    <div style="display: flex; align-items: center;">
-                        <span style="color: white; font-size: 16px; font-weight: bold; margin-right: 10px;">driggs_revenue_goal</span>
-                        <span style="color: white; font-size: 16px; font-weight: bold;">
-                            <?php 
-                            global $wpdb;
-                            $driggs_revenue = $wpdb->get_var("SELECT driggs_revenue_goal FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
-                            echo '$' . esc_html($driggs_revenue ? number_format($driggs_revenue, 0) : '0') . '<span style="color: white; font-weight: bold;">/m</span>';
-                            ?>
-                        </span>
-                    </div>
                     <!-- Save Current Tab As Default Button -->
                     <button type="button" 
                             id="stellar-save-default-tab"
@@ -819,7 +781,7 @@ class Snefuru_Hurricane {
                     <button type="button" 
                             id="stellar-minimize-btn"
                             style="background: transparent; color: white; border: none; padding: 8px 10px; cursor: pointer; font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;"
-                            title="Minimize/Expand Stellar Chamber">
+                            title="Minimize/Expand Hurricane Chamber">
                         <span id="stellar-minimize-arrow" style="display: inline-block; transition: transform 0.3s ease;">▼</span>
                     </button>
                 </div>
@@ -2619,10 +2581,10 @@ y_</textarea>
                                 <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 2</span>
                                 <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
                                 
-                                <!-- Stellar Chamber Default State Setting -->
+                                <!-- Hurricane Chamber Default State Setting -->
                                 <div class="snefuru-stellar-chamber-settings" style="margin-bottom: 20px;">
-                                    <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">Stellar Chamber Default State</h4>
-                                    <p style="margin: 0 0 10px 0; font-size: 12px; color: #666;">Set whether the Stellar Chamber should be expanded or collapsed by default when editing posts/pages.</p>
+                                    <h4 style="margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">Hurricane Chamber Default State</h4>
+                                    <p style="margin: 0 0 10px 0; font-size: 12px; color: #666;">Set whether the Hurricane Chamber should be expanded or collapsed by default when editing posts/pages.</p>
                                     
                                     <div style="display: flex; align-items: center; gap: 15px;">
                                         <label class="stellar-chamber-toggle-switch-editor">
@@ -3318,7 +3280,7 @@ In the following text content I paste below, you will be seeing the following:
         if ($screen && in_array($screen->base, array('post')) && in_array($screen->post_type, array('post', 'page'))) {
             add_meta_box(
                 'snefuru-hurricane',
-                'Hurricane',
+                'Tsunami',
                 array($this, 'render_hurricane_metabox'),
                 array('post', 'page'),
                 'side', // This places it in the sidebar (right side)
@@ -3334,7 +3296,7 @@ In the following text content I paste below, you will be seeing the following:
         ?>
         <div class="snefuru-hurricane-container">
             <div class="snefuru-hurricane-content">
-                Hurricane
+                Tsunami
             </div>
             <div class="snefuru-hurricane-controls">
                 <button type="button" class="button button-primary snefuru-lightning-popup-btn" onclick="window.snefuruOpenLightningPopup()">
