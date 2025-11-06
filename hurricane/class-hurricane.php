@@ -37,6 +37,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_save_phased_creation_file', array($this, 'ajax_save_phased_creation_file'));
         add_action('wp_ajax_load_papyrus_file', array($this, 'ajax_load_papyrus_file'));
         add_action('wp_ajax_save_papyrus_file', array($this, 'ajax_save_papyrus_file'));
+        add_action('wp_ajax_save_ink_notes', array($this, 'ajax_save_ink_notes'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift, Cobalt, and Titanium
@@ -901,12 +902,14 @@ class Snefuru_Hurricane {
                                                         echo '<p style="color: #999; font-style: italic;">No files found in directory</p>';
                                                     } else {
                                                         foreach ($files as $file) {
+                                                            $is_default = ($file === 'papyrus_1.txt');
                                                             ?>
-                                                            <div class="papyrus-file-item" style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 3px; display: flex; align-items: center;"
+                                                            <div class="papyrus-file-item" style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 3px; display: flex; align-items: center; <?php echo $is_default ? 'background: #f0f7ff;' : ''; ?>"
                                                                  data-filename="<?php echo esc_attr($file); ?>">
                                                                 <input type="radio" name="papyrus-file-select" 
                                                                        class="papyrus-file-radio"
                                                                        value="<?php echo esc_attr($file); ?>"
+                                                                       <?php echo $is_default ? 'checked' : ''; ?>
                                                                        style="margin-right: 10px; cursor: pointer;">
                                                                 <label style="cursor: pointer; margin: 0; flex-grow: 1;">
                                                                     <?php echo esc_html($file); ?>
@@ -962,6 +965,12 @@ class Snefuru_Hurricane {
                                             e.stopPropagation();
                                             $(this).parent().click();
                                         });
+                                        
+                                        // Auto-load papyrus_1.txt on page load
+                                        var $defaultFile = $('.papyrus-file-radio:checked');
+                                        if ($defaultFile.length > 0) {
+                                            loadPapyrusFile($defaultFile.val());
+                                        }
                                     });
                                     
                                     function loadPapyrusFile(filename) {
@@ -1432,8 +1441,72 @@ class Snefuru_Hurricane {
                                 <!-- Ink Manual Adjunctive Notes Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="ink-manual" style="display: none;">
                                     <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
-                                        <h4 style="margin: 0 0 10px 0; color: #666;">Ink Manual Adjunctive Notes</h4>
-                                        <p style="color: #999; font-style: italic;">Content to be added...</p>
+                                        <h4 style="margin: 0 0 20px 0; color: #666;">Ink Manual Adjunctive Notes</h4>
+                                        
+                                        <!-- Save Button -->
+                                        <button type="button" 
+                                                id="ink-notes-save-btn" 
+                                                style="background: #2271b1; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-bottom: 15px;">
+                                            Save Ink Notes
+                                        </button>
+                                        <div id="ink-notes-save-status" style="display: inline-block; margin-left: 10px; color: green;"></div>
+                                        
+                                        <!-- Large Text Box -->
+                                        <textarea 
+                                            id="ink-notes-content" 
+                                            placeholder="Enter your ink manual adjunctive notes here..."
+                                            style="width: 700px; height: 700px; padding: 15px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"
+                                        ><?php 
+                                        // Load existing ink notes for this post
+                                        global $wpdb;
+                                        $orbitpost_data = $wpdb->get_row($wpdb->prepare(
+                                            "SELECT ink_notes FROM {$wpdb->prefix}zen_orbitposts WHERE rel_wp_post_id = %d",
+                                            $post->ID
+                                        ));
+                                        echo esc_textarea($orbitpost_data ? $orbitpost_data->ink_notes : '');
+                                        ?></textarea>
+                                        
+                                        <script type="text/javascript">
+                                        jQuery(document).ready(function($) {
+                                            $('#ink-notes-save-btn').on('click', function() {
+                                                var $btn = $(this);
+                                                var $status = $('#ink-notes-save-status');
+                                                var content = $('#ink-notes-content').val();
+                                                
+                                                // Disable button during save
+                                                $btn.prop('disabled', true).text('Saving...');
+                                                $status.hide();
+                                                
+                                                // AJAX request to save ink notes
+                                                $.ajax({
+                                                    url: ajaxurl,
+                                                    type: 'POST',
+                                                    data: {
+                                                        action: 'save_ink_notes',
+                                                        post_id: <?php echo $post->ID; ?>,
+                                                        ink_notes: content,
+                                                        nonce: $('#hurricane-nonce').val()
+                                                    },
+                                                    success: function(response) {
+                                                        if (response.success) {
+                                                            $status.text('Notes saved successfully!').css('color', '#4ade80').fadeIn();
+                                                        } else {
+                                                            $status.text('Error: ' + (response.data || 'Could not save notes')).css('color', '#ff6b6b').fadeIn();
+                                                        }
+                                                    },
+                                                    error: function() {
+                                                        $status.text('Error: Could not save notes').css('color', '#ff6b6b').fadeIn();
+                                                    },
+                                                    complete: function() {
+                                                        $btn.prop('disabled', false).text('Save Ink Notes');
+                                                        setTimeout(function() {
+                                                            $status.fadeOut();
+                                                        }, 3000);
+                                                    }
+                                                });
+                                            });
+                                        });
+                                        </script>
                                     </div>
                                 </div>
                                 
@@ -1476,12 +1549,14 @@ class Snefuru_Hurricane {
                                                         echo '<p style="color: #999; font-style: italic;">No files found in directory</p>';
                                                     } else {
                                                         foreach ($files as $file) {
+                                                            $is_default = ($file === 'halves_designation.txt');
                                                             ?>
-                                                            <div class="phased-file-item" style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 3px; display: flex; align-items: center;"
+                                                            <div class="phased-file-item" style="margin-bottom: 10px; cursor: pointer; padding: 5px; border-radius: 3px; display: flex; align-items: center; <?php echo $is_default ? 'background: #f0f7ff;' : ''; ?>"
                                                                  data-filename="<?php echo esc_attr($file); ?>">
                                                                 <input type="radio" name="phased-file-select" 
                                                                        class="phased-file-radio"
                                                                        value="<?php echo esc_attr($file); ?>"
+                                                                       <?php echo $is_default ? 'checked' : ''; ?>
                                                                        style="margin-right: 10px; cursor: pointer;">
                                                                 <label style="cursor: pointer; margin: 0; flex-grow: 1;">
                                                                     <?php echo esc_html($file); ?>
@@ -1537,6 +1612,12 @@ class Snefuru_Hurricane {
                                             e.stopPropagation();
                                             $(this).parent().click();
                                         });
+                                        
+                                        // Auto-load halves_designation.txt on page load
+                                        var $defaultFile = $('.phased-file-radio:checked');
+                                        if ($defaultFile.length > 0) {
+                                            loadPhasedCreationFile($defaultFile.val());
+                                        }
                                     });
                                     
                                     function loadPhasedCreationFile(filename) {
@@ -5352,6 +5433,70 @@ In the following text content I paste below, you will be seeing the following:
             'message' => 'File saved successfully',
             'filename' => $filename,
             'bytes_written' => $result
+        ));
+    }
+    
+    /**
+     * AJAX handler for saving ink notes
+     */
+    public function ajax_save_ink_notes() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        // Get and validate post ID
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        if (empty($post_id)) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Get ink notes content
+        $ink_notes = isset($_POST['ink_notes']) ? wp_unslash($_POST['ink_notes']) : '';
+        
+        // Get database access
+        global $wpdb;
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if an orbitpost record exists for this post
+        $existing_record = $wpdb->get_row($wpdb->prepare(
+            "SELECT orbitpost_id FROM $orbitposts_table WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing_record) {
+            // Update existing record
+            $result = $wpdb->update(
+                $orbitposts_table,
+                array('ink_notes' => $ink_notes),
+                array('rel_wp_post_id' => $post_id),
+                array('%s'),
+                array('%d')
+            );
+        } else {
+            // Create new record
+            $result = $wpdb->insert(
+                $orbitposts_table,
+                array(
+                    'rel_wp_post_id' => $post_id,
+                    'ink_notes' => $ink_notes
+                ),
+                array('%d', '%s')
+            );
+        }
+        
+        if ($result === false) {
+            wp_send_json_error('Could not save ink notes: ' . $wpdb->last_error);
+        }
+        
+        wp_send_json_success(array(
+            'message' => 'Ink notes saved successfully',
+            'post_id' => $post_id
         ));
     }
 }

@@ -79,6 +79,7 @@ class Ruplin_WP_Database_Horse_Class {
                 ferret_header_code_2 LONGTEXT DEFAULT NULL,
                 ferret_footer_code LONGTEXT DEFAULT NULL,
                 papyrus_page_level_insert TEXT DEFAULT NULL,
+                ink_notes TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),
@@ -603,6 +604,18 @@ class Ruplin_WP_Database_Horse_Class {
             }
         } else {
             error_log('Snefuru: ferret_header_code_2 column already exists in zen_orbitposts table');
+        }
+        
+        // Check and add ink_notes to zen_orbitposts if it doesn't exist
+        if (!in_array('ink_notes', $orbitposts_column_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD COLUMN ink_notes TEXT DEFAULT NULL AFTER papyrus_page_level_insert");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added ink_notes column to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add ink_notes column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: ink_notes column already exists in zen_orbitposts table');
         }
     }
     
