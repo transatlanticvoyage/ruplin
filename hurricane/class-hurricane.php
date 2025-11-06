@@ -682,6 +682,13 @@ class Snefuru_Hurricane {
                             title="Save the currently active tab as the default tab">
                         Save Current Tab As Default
                     </button>
+                    <!-- Save Current Expand State Button -->
+                    <button type="button" 
+                            id="stellar-save-expand-state"
+                            style="background: #2271b1; color: white; border: none; padding: 4px 8px; margin-top: 5px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: normal; width: fit-content;"
+                            title="Save the current expand/collapse state as default">
+                        Save Current Expand State
+                    </button>
                     <div id="stellar-save-tab-message" style="margin-top: 5px; display: none; color: white; font-size: 11px;"></div>
                 </div>
                 
@@ -716,13 +723,13 @@ class Snefuru_Hurricane {
                 <div style="display: flex; align-items: center; margin-left: 5px;">
                     <a href="<?php echo esc_url($drom_url); ?>" 
                        target="_blank" 
-                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                       style="background: #3e0d7b; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
                         open /drom
                     </a>
                     <button type="button" 
                             class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
                             data-copy-url="<?php echo esc_url($drom_url); ?>"
-                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
+                            style="background: #3e0d7b; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
                             title="Copy drom URL">
                         📋
                     </button>
@@ -732,13 +739,13 @@ class Snefuru_Hurricane {
                 <div style="display: flex; align-items: center; margin-left: 5px;">
                     <a href="<?php echo esc_url($sitejar4_url); ?>" 
                        target="_blank" 
-                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                       style="background: #2b6ebf; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
                         open /sitejar4
                     </a>
                     <button type="button" 
                             class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
                             data-copy-url="<?php echo esc_url($sitejar4_url); ?>"
-                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
+                            style="background: #2b6ebf; color: white; border: none; padding: 8px 4px; margin-left: 2px; border-radius: 0 4px 4px 0; cursor: pointer; width: 10px; font-size: 12px;"
                             title="Copy sitejar4 URL">
                         📋
                     </button>
@@ -764,13 +771,13 @@ class Snefuru_Hurricane {
                 <div style="display: flex; align-items: center; margin-left: 15px;">
                     <a href="<?php echo esc_url(get_permalink($post->ID)); ?>" 
                        target="_blank" 
-                       style="background: #800000; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px 0 0 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                       style="background: #222222; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px 0 0 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
                         livefrontend screen
                     </a>
                     <button type="button" 
                             class="snefuru-copy-btn-right snefuru-locations-copy-btn" 
                             data-copy-url="<?php echo esc_url(get_permalink($post->ID)); ?>"
-                            style="background: #800000; color: white; border: none; padding: 8px 4px; margin-left: 0; border-radius: 0 4px 4px 0; cursor: pointer; width: 20px; font-size: 12px;"
+                            style="background: #222222; color: white; border: none; padding: 8px 4px; margin-left: 0; border-radius: 0 4px 4px 0; cursor: pointer; width: 20px; font-size: 12px;"
                             title="Copy live frontend URL">
                         📋
                     </button>
@@ -2992,6 +2999,9 @@ In the following text content I paste below, you will be seeing the following:
                     $arrow.css('transform', 'rotate(-90deg)');
                     isStellarMinimized = true;
                 }
+                
+                // Trigger custom event for state change
+                $(document).trigger('stellarStateChanged');
             });
             
             // Load default tab on page load
@@ -3066,6 +3076,90 @@ In the following text content I paste below, you will be seeing the following:
                         }, 3000);
                     }
                 });
+            });
+            
+            // Handle "Save Current Expand State" button click
+            $('#stellar-save-expand-state').on('click', function() {
+                var $button = $(this);
+                var $message = $('#stellar-save-tab-message');
+                
+                // Get the current expand/collapse state
+                var currentState = isStellarMinimized ? 'collapsed' : 'expanded';
+                
+                // Disable button and show loading state
+                $button.prop('disabled', true).text('Saving...');
+                $message.hide();
+                
+                // Send AJAX request to save the expand state
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'save_stellar_chamber_setting',
+                        nonce: '<?php echo wp_create_nonce('hurricane_nonce'); ?>',
+                        default_state: currentState
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            $message.text('Default expand state set to: ' + currentState).css('color', '#4ade80').fadeIn();
+                            // Update the saved state variable
+                            savedExpandState = currentState;
+                            // Update button state
+                            updateExpandStateButton();
+                        } else {
+                            $message.text(response.data || 'Error saving expand state').css('color', '#ff6b6b').fadeIn();
+                        }
+                    },
+                    error: function() {
+                        $message.text('Error saving expand state').css('color', '#ff6b6b').fadeIn();
+                    },
+                    complete: function() {
+                        // Restore button text
+                        $button.text('Save Current Expand State');
+                        
+                        // Hide message after 3 seconds
+                        setTimeout(function() {
+                            $message.fadeOut();
+                        }, 3000);
+                    }
+                });
+            });
+            
+            // Track the saved expand state
+            var savedExpandState = '<?php echo esc_js(get_option('ruplin_stellar_chamber_default_state', 'collapsed')); ?>';
+            
+            // Function to update the expand state button's enabled/disabled state
+            function updateExpandStateButton() {
+                var currentState = isStellarMinimized ? 'collapsed' : 'expanded';
+                var $button = $('#stellar-save-expand-state');
+                
+                if (currentState === savedExpandState) {
+                    // Current state matches saved state - disable button
+                    $button.prop('disabled', true)
+                           .css({
+                               'background': '#94a3b8',
+                               'cursor': 'not-allowed',
+                               'opacity': '0.6'
+                           })
+                           .attr('title', 'Current state already saved as default');
+                } else {
+                    // States differ - enable button
+                    $button.prop('disabled', false)
+                           .css({
+                               'background': '#2271b1',
+                               'cursor': 'pointer',
+                               'opacity': '1'
+                           })
+                           .attr('title', 'Save the current expand/collapse state as default');
+                }
+            }
+            
+            // Initial button state
+            updateExpandStateButton();
+            
+            // Add handler to existing minimize button to update state
+            $(document).on('stellarStateChanged', function() {
+                updateExpandStateButton();
             });
             
             // Stellar Chamber Default State Toggle (Editor Version) 
