@@ -1048,8 +1048,384 @@ class Snefuru_Hurricane {
                                 <!-- REMC Panel -->
                                 <div class="kiosk-sub-tab-panel" data-kiosk-panel="remc" style="display: none;">
                                     <div style="padding: 20px; background: #f9f9f9; min-height: 300px;">
-                                        <h4 style="margin: 0 0 10px 0; color: #666;">REMC</h4>
-                                        <p style="color: #999; font-style: italic;">Content to be added...</p>
+                        <?php
+                        // Generate header303 content
+                        $post_id = $post->ID;
+                        $post_title = get_the_title($post_id);
+                        $post_status = get_post_status($post_id);
+                        $edit_link = admin_url('post.php?post=' . $post_id . '&action=edit');
+                        
+                        // Format the header303 content with two lines
+                        $header303_line1 = sprintf(
+                            'wp_posts.post_id = %d / %s / %s / %s',
+                            $post_id,
+                            $post_title,
+                            $post_status,
+                            $edit_link
+                        );
+                        $header303_content = $header303_line1 . "\nBELOW";
+                        
+                        // Get Elementor data for this post
+                        $elementor_data = get_post_meta($post->ID, '_elementor_data', true);
+                        $formatted_data = '';
+                        
+                        if (!empty($elementor_data)) {
+                            // Decode and pretty print the JSON for better readability
+                            $decoded = json_decode($elementor_data, true);
+                            if ($decoded !== null) {
+                                $formatted_data = json_encode($decoded, JSON_PRETTY_PRINT);
+                            } else {
+                                $formatted_data = $elementor_data;
+                            }
+                        }
+                        
+                        // Static mapping text for header303_db_mapping
+                        $db_mapping_text = "wp_posts.ID / wp_posts.post_title / wp_posts.post_status / admin_url('post.php?post=\$ID&action=edit')\n\nDatabase field mappings:\n- Post ID: wp_posts.ID (bigint unsigned, primary key)\n- Post Title: wp_posts.post_title (text field)\n- Post Status: wp_posts.post_status (varchar, values: publish/draft/pending/private/trash/auto-draft/inherit)\n- Edit Link: Dynamically generated using WordPress admin_url() function with wp_posts.ID";
+                        ?>
+                        
+                        <!-- Column Container Wrapper -->
+                        <div class="snefuru-denyeep-columns-wrapper" style="display: flex; gap: 15px; margin-top: 10px;">
+                            
+                            <!-- Denyeep Column Div 1 (Expanded to take up 2/3 width) -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 2; min-width: 600px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-size: 16px; font-weight: bold;">denyeep column div 1</span>
+                                    
+                                    <!-- Classes to Copy Table -->
+                                    <table style="border: 1px solid gray; border-collapse: collapse;">
+                                        <tr>
+                                            <td style="border: 1px solid gray; padding: 0; background-color: #f0e7bb;">
+                                                <div style="padding: 4px; font-weight: bold;">classes to copy</div>
+                                            </td>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="exclude_from_blueshift">
+                                                    <span style="display: inline-block; width: 10px; height: 10px; border: 1px solid red; background-color: white; color: red; font-size: 10px; line-height: 10px; text-align: center; margin-right: 4px; box-sizing: border-box;">✕</span>
+                                                    exclude_from_blueshift
+                                                </div>
+                                            </td>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="guarded">
+                                                    <svg width="13" height="13" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                                        <polygon points="6.5,1 12,4.5 10,11.5 3,11.5 1,4.5" fill="navy" />
+                                                    </svg>
+                                                    guarded
+                                                </div>
+                                            </td>
+                                            <td style="border: 1px solid gray; padding: 0;">
+                                                <div class="copyable-class" style="padding: 4px; cursor: pointer;" data-class="on_inject_create_p_tags">
+                                                    <span style="color: #8a5fd7; margin-right: 4px; font-size: 16px; line-height: 1; vertical-align: middle;">•</span>
+                                                    on_inject_create_p_tags
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <button 
+                                        type="button"
+                                        id="blueshift-save-all-options-btn"
+                                        style="padding: 5px 15px; background: #0073aa; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 14px;"
+                                    >
+                                        Save Options
+                                    </button>
+                                </div>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Character Count per Separator Control -->
+                                <?php 
+                                // Get the saved options from database
+                                $separator_count = get_option('ruplin_blueshift_separator_character_count', 95);
+                                $show_exclude_from_blueshift = get_option('ruplin_blueshift_show_exclude_from_blueshift', false);
+                                $show_guarded = get_option('ruplin_blueshift_show_guarded', true);
+                                $render_p_tags = get_option('ruplin_blueshift_render_p_tags', true);
+                                ?>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                    <span style="font-size: 16px; font-weight: bold;">qty of total characters per separator:</span>
+                                    <input 
+                                        type="text" 
+                                        id="blueshift-separator-char-count"
+                                        value="<?php echo esc_attr($separator_count); ?>"
+                                        style="width: 80px; padding: 5px 8px; font-size: 14px; border: 1px solid #ddd; border-radius: 3px;"
+                                    />
+                                    <span id="blueshift-save-status" style="display: none; margin-left: 10px; color: green;"></span>
+                                    
+                                    <!-- Radio chips for filtering -->
+                                    <div style="display: flex; gap: 10px; margin-left: 20px;">
+                                        <label class="blueshift-chip" style="display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #808080; border-radius: 4px; padding: 4px 8px; background-color: #c3c3c3; transition: background-color 0.2s;">
+                                            <input 
+                                                type="checkbox" 
+                                                id="show-exclude-from-blueshift"
+                                                class="blueshift-filter-checkbox"
+                                                <?php echo $show_exclude_from_blueshift ? 'checked' : ''; ?>
+                                                style="cursor: pointer;"
+                                            />
+                                            <span style="font-size: 14px;">show .exclude_from_blueshift</span>
+                                        </label>
+                                        <label class="blueshift-chip" style="display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #808080; border-radius: 4px; padding: 4px 8px; background-color: #d1f7e4; transition: background-color 0.2s;">
+                                            <input 
+                                                type="checkbox" 
+                                                id="show-guarded"
+                                                class="blueshift-filter-checkbox"
+                                                <?php echo $show_guarded ? 'checked' : ''; ?>
+                                                style="cursor: pointer;"
+                                            />
+                                            <span style="font-size: 14px;">show .guarded</span>
+                                        </label>
+                                        <label class="blueshift-chip blueshift-chip-p-tags" style="display: flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid #808080; border-radius: 4px; padding: 4px 8px; background-color: #9bb3e9; transition: background-color 0.2s;">
+                                            <input 
+                                                type="checkbox" 
+                                                id="render-p-tags"
+                                                class="blueshift-filter-checkbox"
+                                                <?php echo $render_p_tags ? 'checked' : ''; ?>
+                                                style="cursor: pointer;"
+                                            />
+                                            <span style="font-size: 14px;">render &lt;p&gt;&lt;/p&gt; tags</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <style>
+                                        .blueshift-chip:hover {
+                                            background-color: yellow !important;
+                                        }
+                                        .blueshift-chip:has(input:checked):not(.blueshift-chip-p-tags) {
+                                            background-color: #d1f7e4 !important;
+                                        }
+                                        .blueshift-chip:has(input:not(:checked)):not(.blueshift-chip-p-tags) {
+                                            background-color: #c3c3c3 !important;
+                                        }
+                                        .blueshift-chip-p-tags:has(input:checked) {
+                                            background-color: #9bb3e9 !important;
+                                        }
+                                        .blueshift-chip-p-tags:has(input:not(:checked)) {
+                                            background-color: #c3c3c3 !important;
+                                        }
+                                    </style>
+                                </div>
+                                
+                                <!-- JavaScript for saving all options -->
+                                <script type="text/javascript">
+                                jQuery(document).ready(function($) {
+                                    // Handle copying class names to clipboard
+                                    $('.copyable-class').on('click', function() {
+                                        var className = $(this).data('class');
+                                        
+                                        // Create temporary textarea to copy text
+                                        var $temp = $('<textarea>');
+                                        $('body').append($temp);
+                                        $temp.val(className).select();
+                                        document.execCommand('copy');
+                                        $temp.remove();
+                                        
+                                        // Visual feedback
+                                        var $this = $(this);
+                                        var originalText = $this.text();
+                                        $this.text('Copied!').css('background-color', '#d4edda');
+                                        setTimeout(function() {
+                                            $this.text(originalText).css('background-color', '');
+                                        }, 1000);
+                                    });
+                                    
+                                    // Handle Save Options button click
+                                    $('#blueshift-save-all-options-btn').on('click', function() {
+                                        var $btn = $(this);
+                                        var $status = $('#blueshift-save-status');
+                                        
+                                        // Get all option values
+                                        var separator_count = $('#blueshift-separator-char-count').val();
+                                        var show_exclude_from_blueshift = $('#show-exclude-from-blueshift').is(':checked');
+                                        var show_guarded = $('#show-guarded').is(':checked');
+                                        var render_p_tags = $('#render-p-tags').is(':checked');
+                                        
+                                        // Disable button during save
+                                        $btn.prop('disabled', true);
+                                        var originalText = $btn.text();
+                                        $btn.text('Saving...');
+                                        
+                                        $.ajax({
+                                            url: ajaxurl,
+                                            type: 'POST',
+                                            data: {
+                                                action: 'save_blueshift_all_options',
+                                                separator_count: separator_count,
+                                                show_exclude_from_blueshift: show_exclude_from_blueshift,
+                                                show_guarded: show_guarded,
+                                                render_p_tags: render_p_tags,
+                                                nonce: '<?php echo wp_create_nonce('hurricane_save_blueshift_options'); ?>'
+                                            },
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    $status.text('Options saved!').css('color', 'green').show();
+                                                    setTimeout(function() {
+                                                        $status.fadeOut();
+                                                    }, 2000);
+                                                } else {
+                                                    $status.text('Error saving options').css('color', 'red').show();
+                                                }
+                                            },
+                                            error: function() {
+                                                $status.text('Error saving options').css('color', 'red').show();
+                                            },
+                                            complete: function() {
+                                                $btn.prop('disabled', false);
+                                                $btn.text(originalText);
+                                            }
+                                        });
+                                    });
+                                });
+                                </script>
+                                
+                                <!-- Instance: Blueshift Format 4 (Expanded Width) -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">operation blueshift - format 4</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-4-expanded" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Frontend text content will be displayed here"
+                                                style="flex: 1; height: 550px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract Blueshift content with multi-line separators for format 4
+                                            // Use saved options to determine what to show
+                                            $excluded_classes = array();
+                                            if (!$show_exclude_from_blueshift) {
+                                                $excluded_classes[] = 'exclude_from_blueshift';
+                                            }
+                                            if (!$show_guarded) {
+                                                $excluded_classes[] = 'guarded';
+                                            }
+                                            $strip_p_tags = !$render_p_tags; // Strip p tags if render_p_tags is false
+                                            $blueshift_content_format4 = $this->blueshift->extract_elementor_blueshift_content_format4_filtered($post->ID, $excluded_classes, $strip_p_tags);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_format4) > 50000) {
+                                                $blueshift_content_format4 = substr($blueshift_content_format4, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_format4);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-4-expanded" style="height: 550px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            
+                            <!-- Denyeep Column Div 3 -->
+                            <div class="snefuru-denyeep-column" style="border: 1px solid black; padding: 10px; flex: 1; min-width: 420px;">
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">denyeep column div 3</span>
+                                <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ccc;">
+                                
+                                <!-- Operation Blueshift Label -->
+                                <span style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #333;">operation blueshift: get all text content output on frontend</span>
+                                
+                                <!-- Refresh Button -->
+                                <button type="button" 
+                                        id="refresh-blueshift-btn"
+                                        data-post-id="<?php echo esc_attr($post->ID); ?>"
+                                        style="background: #007cba; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    refresh blueshift data
+                                </button>
+                                
+                                <!-- Label: widgets with class exclude_from_blueshift -->
+                                <div style="width: 100%; background: #f0f0f0; padding: 10px; margin-bottom: 15px;">
+                                    <div style="text-align: center; font-size: 16px; font-weight: bold; color: black;">
+                                        widgets with class exclude_from_blueshift
+                                    </div>
+                                </div>
+                                
+                                <!-- Widgets with class of .exclude_from_blueshift -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">widgets with class of .exclude_from_blueshift</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-exclude" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Widgets with .exclude_from_blueshift class will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract only widgets with exclude_from_blueshift class using format 4 style
+                                            $blueshift_content_exclude = $this->blueshift->extract_elementor_blueshift_content_by_class($post->ID, 'exclude_from_blueshift');
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_exclude) > 50000) {
+                                                $blueshift_content_exclude = substr($blueshift_content_exclude, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_exclude);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-exclude" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Widgets with class of .guarded -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">widgets with class of .guarded</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-guarded" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Widgets with .guarded class will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract only widgets with guarded class using format 4 style
+                                            $blueshift_content_guarded = $this->blueshift->extract_elementor_blueshift_content_by_class($post->ID, 'guarded');
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_guarded) > 50000) {
+                                                $blueshift_content_guarded = substr($blueshift_content_guarded, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_guarded);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-guarded" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Widgets that contain <p> and/or </p> tags -->
+                                <div class="snefuru-instance-wrapper" style="border: 1px solid black; padding: 10px; margin-bottom: 15px;">
+                                    <div class="snefuru-frontend-content-container">
+                                        <span class="snefuru-frontend-content-label" style="display: block; font-size: 16px; font-weight: bold; margin-bottom: 10px;">widgets that contain a &lt;p&gt; and/or &lt;/p&gt; tag</span>
+                                        <div style="display: flex; gap: 10px; align-items: flex-start;">
+                                            <textarea 
+                                                id="blueshift-content-textbox-p-tags" 
+                                                class="snefuru-blueshift-content-textbox" 
+                                                readonly
+                                                placeholder="Widgets containing <p> tags will be displayed here"
+                                                style="flex: 1; height: 200px; font-family: monospace; font-size: 12px; line-height: 1.4;"
+                                            ><?php 
+                                            // Extract only widgets that contain <p> tags using format 4 style
+                                            $blueshift_content_p_tags = $this->blueshift->extract_elementor_widgets_with_p_tags($post->ID);
+                                            
+                                            // Limit length for display if too long
+                                            if (strlen($blueshift_content_p_tags) > 50000) {
+                                                $blueshift_content_p_tags = substr($blueshift_content_p_tags, 0, 50000) . "\n\n... [Content truncated at 50,000 characters]";
+                                            }
+                                            
+                                            echo esc_textarea($blueshift_content_p_tags);
+                                            ?></textarea>
+                                            <button type="button" class="snefuru-copy-btn-right" data-target="blueshift-content-textbox-p-tags" style="height: 200px; padding: 8px 12px; background: linear-gradient(135deg, #3582c4 0%, #2271b1 100%); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; writing-mode: vertical-rl; text-orientation: mixed;">
+                                                Copy
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            
+                        </div>
                                     </div>
                                 </div>
                                 
