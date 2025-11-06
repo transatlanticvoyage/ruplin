@@ -763,7 +763,10 @@ class Snefuru_Hurricane {
             <div id="stellar-collapsible-content" style="transition: all 0.3s ease;">
             <div class="snefuru-stellar-tabs">
                 <div class="snefuru-stellar-tab-navigation">
-                    <button type="button" class="snefuru-stellar-tab-button active" data-tab="elicitor">
+                    <button type="button" class="snefuru-stellar-tab-button active" data-tab="kiosk-system">
+                        Kiosk System
+                    </button>
+                    <button type="button" class="snefuru-stellar-tab-button" data-tab="elicitor">
                         Elementor Elicitor
                     </button>
                     <button type="button" class="snefuru-stellar-tab-button" data-tab="elementor">
@@ -824,7 +827,13 @@ class Snefuru_Hurricane {
                     </button>
                 </div>
                 <div class="snefuru-stellar-tab-content">
-                    <div class="snefuru-stellar-tab-panel active" data-panel="elicitor">
+                    <div class="snefuru-stellar-tab-panel active" data-panel="kiosk-system">
+                        <!-- Kiosk System Content - Currently Blank -->
+                        <div style="padding: 20px; color: #666; font-style: italic;">
+                            Kiosk System - Content to be added
+                        </div>
+                    </div>
+                    <div class="snefuru-stellar-tab-panel" data-panel="elicitor">
                         <?php
                         // Generate header303 content
                         $post_id = $post->ID;
@@ -2973,7 +2982,8 @@ In the following text content I paste below, you will be seeing the following:
             
             // Load default tab on page load
             <?php 
-            $default_tab = get_option('stellar_chamber_default_tab', 'elicitor');
+            // Update default to kiosk-system since it's now the first tab
+            $default_tab = get_option('stellar_chamber_default_tab', 'kiosk-system');
             ?>
             var defaultTab = '<?php echo esc_js($default_tab); ?>';
             var savedDefaultTab = defaultTab; // Track the saved default tab
@@ -3015,7 +3025,7 @@ In the following text content I paste below, you will be seeing the following:
             }
             
             // Auto-activate the saved default tab if it's not the first tab
-            if (defaultTab && defaultTab !== 'elicitor') {
+            if (defaultTab && defaultTab !== 'kiosk-system') {
                 // Find the button with the matching data-tab attribute
                 var $defaultTabBtn = $('.snefuru-stellar-tab-button[data-tab="' + defaultTab + '"]');
                 if ($defaultTabBtn.length > 0) {
