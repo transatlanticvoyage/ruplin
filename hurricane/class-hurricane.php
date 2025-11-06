@@ -2981,11 +2981,13 @@ In the following text content I paste below, you will be seeing the following:
                 var $activeTab = $('.snefuru-stellar-tab-button.active');
                 var $button = $('#stellar-save-default-tab');
                 
-                if ($activeTab.length === 0) {
+                if ($activeTab.length === 0 || $button.length === 0) {
+                    console.log('Default tab button update: No active tab or button not found');
                     return;
                 }
                 
                 var currentTab = $activeTab.data('tab');
+                console.log('Current tab:', currentTab, 'Saved default:', savedDefaultTab);
                 
                 if (currentTab === savedDefaultTab) {
                     // Current tab matches saved default - disable button
@@ -2996,6 +2998,7 @@ In the following text content I paste below, you will be seeing the following:
                                'opacity': '0.6'
                            })
                            .attr('title', 'Current tab already saved as default');
+                    console.log('Button disabled - on default tab');
                 } else {
                     // Tabs differ - enable button
                     $button.prop('disabled', false)
@@ -3005,6 +3008,7 @@ In the following text content I paste below, you will be seeing the following:
                                'opacity': '1'
                            })
                            .attr('title', 'Save the currently active tab as the default tab');
+                    console.log('Button enabled - not on default tab');
                 }
             }
             
@@ -3023,12 +3027,19 @@ In the following text content I paste below, you will be seeing the following:
                 }
             }
             
-            // Initial button state
-            updateDefaultTabButton();
+            // Make function globally available
+            window.updateDefaultTabButton = updateDefaultTabButton;
+            
+            // Initial button state - wait for DOM to be ready
+            setTimeout(function() {
+                updateDefaultTabButton();
+                // Also try again a bit later in case tabs haven't initialized
+                setTimeout(updateDefaultTabButton, 500);
+            }, 100);
             
             // Update button state when tabs are clicked
             $(document).on('stellarTabChanged', function() {
-                updateDefaultTabButton();
+                setTimeout(updateDefaultTabButton, 50); // Small delay to ensure DOM is updated
             });
             
             // Handle "Save Current Tab As Default" button click
