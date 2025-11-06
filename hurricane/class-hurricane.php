@@ -3375,7 +3375,13 @@ In the following text content I paste below, you will be seeing the following:
                         <button type="button" class="thunder-tab-btn active" data-tab="papyrus-page-level">wp_zen_orbitposts.<br>papyrus_page_level_insert</button>
                         <button type="button" class="thunder-tab-btn" data-tab="grove-vault-papyrus">grove_vault_papyrus_1</button>
                         <button type="button" class="thunder-tab-btn" data-tab="grove-vault-raw">grove_vault_papyrus_1 (raw)</button>
-                        <button type="button" class="thunder-tab-btn" data-tab="grove-vault-rendered">grove_vault_papyrus_1 (rendered)</button>
+                        <button type="button" class="thunder-tab-btn" data-tab="grove-vault-rendered">
+                            <span style="color: red; cursor: help; margin-right: 5px;" 
+                                  title="WARNING: the logic involved here in the RUPLIN plugin may be DUPLICATED from the GROVE plugin's grove_papyrus_hub page (prone to errors when updating - must remember to update both)"
+                                  onclick="event.stopPropagation(); alert('WARNING: the logic involved here in the RUPLIN plugin may be DUPLICATED from the GROVE plugin\'s grove_papyrus_hub page (prone to errors when updating - must remember to update both)'); return false;">
+                                ⚠️
+                            </span>grove_vault_papyrus_1 (rendered)
+                        </button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab2">tab 2</button>
                         <button type="button" class="thunder-tab-btn" data-tab="thunder-tab3">tab 3</button>
                     </div>
@@ -3714,12 +3720,38 @@ In the following text content I paste below, you will be seeing the following:
             // Replace the placeholder with the current value
             var renderedContent = rawContent;
             
+            // Replace site-level placeholder with the actual driggs data
+            var siteLevelData = <?php 
+                global $wpdb;
+                $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+                $sitespren_data = $wpdb->get_row("SELECT * FROM $sitespren_table LIMIT 1", ARRAY_A);
+                
+                $flag1_columns = array(
+                    'sitespren_base',
+                    'driggs_brand_name',
+                    'driggs_phone_1',
+                    'driggs_city',
+                    'driggs_state_code',
+                    'driggs_industry',
+                    'driggs_site_type_purpose',
+                    'driggs_email_1'
+                );
+                
+                $site_level_text = '';
+                foreach ($flag1_columns as $column) {
+                    $value = isset($sitespren_data[$column]) ? $sitespren_data[$column] : '';
+                    $site_level_text .= $column . "\t" . $value . "\n";
+                }
+                $site_level_text = trim($site_level_text);
+                echo json_encode($site_level_text);
+            ?>;
+            
+            var searchSite = '(INSERT HERE - MAIN SITE LEVEL DRIGGS DATA - flag1 ai chat for content generation)';
+            renderedContent = renderedContent.replace(searchSite, siteLevelData);
+            
             // Replace page-level placeholder
             var searchPage = '[INSERT DB COLUMN VALUE FROM orbitposts.papyrus_page_level_insert]';
             renderedContent = renderedContent.replace(searchPage, currentPapyrusContent);
-            
-            // Also replace the site-level data (this is already rendered server-side, but we keep it)
-            // The site-level data doesn't change during the session so we don't need to update it
             
             // Update the textarea
             textarea.val(renderedContent);
