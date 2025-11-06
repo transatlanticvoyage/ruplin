@@ -3769,9 +3769,9 @@ In the following text content I paste below, you will be seeing the following:
                                         }
                                         $site_level_text = trim($site_level_text);
                                         
-                                        // Replace site-level placeholder
-                                        $search_site = '(INSERT HERE - MAIN SITE LEVEL DRIGGS DATA - flag1 ai chat for content generation)';
-                                        $rendered_content = str_replace($search_site, $site_level_text, $rendered_content);
+                                        // Replace site-level placeholder - handle both brackets and parentheses
+                                        // Replace [actual insert here] with dynamic content but keep the reference code
+                                        $rendered_content = str_replace('[actual insert here]', $site_level_text, $rendered_content);
                                         
                                         // Replace PAGE-LEVEL papyrus_page_level_insert data
                                         $page_level_text = '';
@@ -3790,9 +3790,38 @@ In the following text content I paste below, you will be seeing the following:
                                             $page_level_text = '// Post ID not available';
                                         }
                                         
-                                        // Replace page-level placeholder
-                                        $search_page = '[INSERT DB COLUMN VALUE FROM orbitposts.papyrus_page_level_insert]';
-                                        $rendered_content = str_replace($search_page, $page_level_text, $rendered_content);
+                                        // Process pappycode shortcodes
+                                        // Find all pappycodes and their corresponding [actual insert here] placeholders
+                                        $lines = explode("\n", $rendered_content);
+                                        $result_lines = array();
+                                        $next_line_replacement = null;
+                                        
+                                        foreach ($lines as $line) {
+                                            // Check if this line contains a pappycode
+                                            if (preg_match('/\[pappycode(\d+)[^\]]*\]/', $line, $matches)) {
+                                                $pappycode_num = $matches[1];
+                                                
+                                                // Determine what content to insert based on pappycode number
+                                                if ($pappycode_num == '13') {
+                                                    $next_line_replacement = $site_level_text;
+                                                } else if ($pappycode_num == '14') {
+                                                    $next_line_replacement = $page_level_text;
+                                                }
+                                            }
+                                            
+                                            // Add the current line
+                                            $result_lines[] = $line;
+                                            
+                                            // If this line is [actual insert here] and we have a replacement ready
+                                            if (trim($line) === '[actual insert here]' && $next_line_replacement !== null) {
+                                                // Replace this line with the actual content
+                                                array_pop($result_lines); // Remove the [actual insert here] line
+                                                $result_lines[] = $next_line_replacement;
+                                                $next_line_replacement = null;
+                                            }
+                                        }
+                                        
+                                        $rendered_content = implode("\n", $result_lines);
                                         
                                         echo esc_textarea($rendered_content);
                                     } else {
@@ -3980,12 +4009,39 @@ In the following text content I paste below, you will be seeing the following:
                 echo json_encode($site_level_text);
             ?>;
             
-            var searchSite = '(INSERT HERE - MAIN SITE LEVEL DRIGGS DATA - flag1 ai chat for content generation)';
-            renderedContent = renderedContent.replace(searchSite, siteLevelData);
+            // Process pappycode shortcodes
+            var lines = renderedContent.split('\n');
+            var resultLines = [];
+            var nextLineReplacement = null;
             
-            // Replace page-level placeholder
-            var searchPage = '[INSERT DB COLUMN VALUE FROM orbitposts.papyrus_page_level_insert]';
-            renderedContent = renderedContent.replace(searchPage, currentPapyrusContent);
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                
+                // Check if this line contains a pappycode
+                var pappyMatch = line.match(/\[pappycode(\d+)[^\]]*\]/);
+                if (pappyMatch) {
+                    var pappycodeNum = pappyMatch[1];
+                    
+                    // Determine what content to insert based on pappycode number
+                    if (pappycodeNum === '13') {
+                        nextLineReplacement = siteLevelData;
+                    } else if (pappycodeNum === '14') {
+                        nextLineReplacement = currentPapyrusContent;
+                    }
+                }
+                
+                // Check if this line is [actual insert here] and we have a replacement
+                if (line.trim() === '[actual insert here]' && nextLineReplacement !== null) {
+                    // Replace with actual content
+                    resultLines.push(nextLineReplacement);
+                    nextLineReplacement = null;
+                } else {
+                    // Keep the original line
+                    resultLines.push(line);
+                }
+            }
+            
+            renderedContent = resultLines.join('\n');
             
             // Update the textarea
             textarea.val(renderedContent);
