@@ -2936,6 +2936,8 @@ In the following text content I paste below, you will be seeing the following:
         
         <script type="text/javascript">
         jQuery(document).ready(function($) {
+            console.log('Hurricane Chamber inline script initializing...');
+            
             // Minimize/Expand Stellar Chamber functionality
             // Get default state from PHP setting
             var defaultState = '<?php echo esc_js(get_option('ruplin_stellar_chamber_default_state', 'collapsed')); ?>';
@@ -3030,17 +3032,30 @@ In the following text content I paste below, you will be seeing the following:
             // Make function globally available
             window.updateDefaultTabButton = updateDefaultTabButton;
             
-            // Initial button state - wait for DOM to be ready
-            setTimeout(function() {
+            // Initial button state - wait for tabs to be ready
+            function initializeDefaultTabButton() {
+                console.log('Initializing default tab button state...');
+                
+                // Check if tabs are ready
+                var $tabs = $('.snefuru-stellar-tab-button');
+                if ($tabs.length === 0) {
+                    console.log('Tabs not ready yet, retrying...');
+                    setTimeout(initializeDefaultTabButton, 200);
+                    return;
+                }
+                
+                // Run the update
                 updateDefaultTabButton();
-                // Also try again a bit later in case tabs haven't initialized
-                setTimeout(updateDefaultTabButton, 500);
-            }, 100);
+                
+                // Set up listener for tab changes
+                $(document).off('stellarTabChanged.defaultButton').on('stellarTabChanged.defaultButton', function() {
+                    console.log('Tab changed event detected');
+                    setTimeout(updateDefaultTabButton, 50);
+                });
+            }
             
-            // Update button state when tabs are clicked
-            $(document).on('stellarTabChanged', function() {
-                setTimeout(updateDefaultTabButton, 50); // Small delay to ensure DOM is updated
-            });
+            // Start initialization after a delay
+            setTimeout(initializeDefaultTabButton, 500);
             
             // Handle "Save Current Tab As Default" button click
             $('#stellar-save-default-tab').on('click', function() {
