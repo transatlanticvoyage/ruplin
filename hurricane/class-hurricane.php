@@ -38,6 +38,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_load_papyrus_file', array($this, 'ajax_load_papyrus_file'));
         add_action('wp_ajax_save_papyrus_file', array($this, 'ajax_save_papyrus_file'));
         add_action('wp_ajax_save_ink_notes', array($this, 'ajax_save_ink_notes'));
+        add_action('wp_ajax_render_papyrus_content', array($this, 'ajax_render_papyrus_content'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift, Cobalt, and Titanium
@@ -992,7 +993,39 @@ class Snefuru_Hurricane {
                                             },
                                             success: function(response) {
                                                 if (response.success) {
-                                                    $('#papyrus-editor').val(response.data.content);
+                                                    var rawContent = response.data.content;
+                                                    // Store raw content for saving
+                                                    $('#papyrus-editor').data('raw-content', rawContent);
+                                                    
+                                                    // Render the content with pappycode processing
+                                                    $.ajax({
+                                                        url: ajaxurl,
+                                                        type: 'POST',
+                                                        data: {
+                                                            action: 'render_papyrus_content',
+                                                            content: rawContent,
+                                                            post_id: <?php echo $post->ID; ?>,
+                                                            nonce: $('#hurricane-nonce').val()
+                                                        },
+                                                        success: function(renderResponse) {
+                                                            if (renderResponse.success) {
+                                                                // Display rendered content
+                                                                $('#papyrus-editor').val(renderResponse.data.rendered_content);
+                                                                // Store rendered content for aggregate copy
+                                                                $('#papyrus-editor').data('rendered-content', renderResponse.data.rendered_content);
+                                                            } else {
+                                                                // Fall back to raw content if rendering fails
+                                                                $('#papyrus-editor').val(rawContent);
+                                                                $('#papyrus-editor').data('rendered-content', rawContent);
+                                                            }
+                                                        },
+                                                        error: function() {
+                                                            // Fall back to raw content if rendering fails
+                                                            $('#papyrus-editor').val(rawContent);
+                                                            $('#papyrus-editor').data('rendered-content', rawContent);
+                                                        }
+                                                    });
+                                                    
                                                     $('#papyrus-editor-filename').text(filename).data('current-file', filename);
                                                     $('#papyrus-save-btn').show();
                                                     $('#papyrus-editor').prop('disabled', false);
@@ -1011,7 +1044,8 @@ class Snefuru_Hurricane {
                                     function savePapyrusFile() {
                                         var $ = jQuery;
                                         var filename = $('#papyrus-editor-filename').data('current-file');
-                                        var content = $('#papyrus-editor').val();
+                                        // Use raw content for saving (preserving pappycode placeholders)
+                                        var content = $('#papyrus-editor').data('raw-content') || $('#papyrus-editor').val();
                                         var $message = $('#papyrus-save-message');
                                         var $saveBtn = $('#papyrus-save-btn');
                                         
@@ -1732,8 +1766,8 @@ class Snefuru_Hurricane {
                                                 $status.hide();
                                                 
                                                 try {
-                                                    // 1. Get currently selected text from Papyrus tab
-                                                    var papyrusText = $('#papyrus-editor').val() || '';
+                                                    // 1. Get currently selected text from Papyrus tab (use rendered content)
+                                                    var papyrusText = $('#papyrus-editor').data('rendered-content') || $('#papyrus-editor').val() || '';
                                                     if (papyrusText) {
                                                         aggregateText += papyrusText;
                                                         lineCount += (papyrusText.match(/\n/g) || []).length + 1;
@@ -5588,6 +5622,100 @@ In the following text content I paste below, you will be seeing the following:
         wp_send_json_success(array(
             'message' => 'Ink notes saved successfully',
             'post_id' => $post_id
+        ));
+    }
+    
+    /**
+     * AJAX handler for rendering papyrus content with pappycode processing
+     */
+    public function ajax_render_papyrus_content() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hurricane_nonce')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        // Get content and post ID
+        $content = isset($_POST['content']) ? wp_unslash($_POST['content']) : '';
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (empty($content) || empty($post_id)) {
+            wp_send_json_error('Missing content or post ID');
+        }
+        
+        global $wpdb;
+        
+        // Get site-level data for pappycode13
+        $site_level_text = '';
+        $sitespren_table = $wpdb->prefix . 'sitespren';
+        
+        // Check if sitespren table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$sitespren_table'") == $sitespren_table) {
+            $driggs_columns = $wpdb->get_row("SELECT * FROM $sitespren_table LIMIT 1", ARRAY_A);
+            if ($driggs_columns) {
+                foreach ($driggs_columns as $column => $value) {
+                    if (strpos($column, 'driggs_') === 0 && !empty($value)) {
+                        $site_level_text .= $column . "\t" . $value . "\n";
+                    }
+                }
+                $site_level_text = trim($site_level_text);
+            }
+        } else {
+            $site_level_text = '// Sitespren table not found';
+        }
+        
+        // Get page-level data for pappycode14
+        $page_level_text = '';
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        $orbitpost = $wpdb->get_row($wpdb->prepare(
+            "SELECT papyrus_page_level_insert FROM $orbitposts_table WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($orbitpost && $orbitpost->papyrus_page_level_insert) {
+            $page_level_text = $orbitpost->papyrus_page_level_insert;
+        } else {
+            $page_level_text = '// No page-level data available';
+        }
+        
+        // Process pappycode shortcodes
+        $lines = explode("\n", $content);
+        $result_lines = array();
+        $next_line_replacement = null;
+        
+        foreach ($lines as $line) {
+            // Check if this line contains a pappycode
+            if (preg_match('/\[pappycode(\d+)[^\]]*\]/', $line, $matches)) {
+                $pappycode_num = $matches[1];
+                
+                // Determine what content to insert based on pappycode number
+                if ($pappycode_num === '13') {
+                    $next_line_replacement = $site_level_text;
+                } else if ($pappycode_num === '14') {
+                    $next_line_replacement = $page_level_text;
+                }
+            }
+            
+            // Add the current line
+            $result_lines[] = $line;
+            
+            // If this line is [actual insert here] and we have a replacement ready
+            if (trim($line) === '[actual insert here]' && $next_line_replacement !== null) {
+                // Replace this line with the actual content
+                array_pop($result_lines); // Remove the [actual insert here] line
+                $result_lines[] = $next_line_replacement;
+                $next_line_replacement = null;
+            }
+        }
+        
+        $rendered_content = implode("\n", $result_lines);
+        
+        wp_send_json_success(array(
+            'rendered_content' => $rendered_content
         ));
     }
 }
