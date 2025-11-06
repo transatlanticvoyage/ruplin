@@ -3047,10 +3047,19 @@ In the following text content I paste below, you will be seeing the following:
                 // Run the update
                 updateDefaultTabButton();
                 
-                // Set up listener for tab changes
+                // Set up listener for tab changes using event delegation
                 $(document).off('stellarTabChanged.defaultButton').on('stellarTabChanged.defaultButton', function() {
                     console.log('Tab changed event detected');
                     setTimeout(updateDefaultTabButton, 50);
+                });
+                
+                // Also listen directly to tab button clicks as a backup
+                $(document).off('click.defaultTabUpdate').on('click.defaultTabUpdate', '.snefuru-stellar-tab-button', function() {
+                    console.log('Tab button clicked, updating default tab button...');
+                    // Wait for active class to be applied
+                    setTimeout(function() {
+                        updateDefaultTabButton();
+                    }, 100);
                 });
             }
             
