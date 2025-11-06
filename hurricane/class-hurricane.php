@@ -3630,6 +3630,11 @@ In the following text content I paste below, you will be seeing the following:
                 // Switch content
                 jQuery('.thunder-tab-pane').hide();
                 jQuery('#' + tabId + '-content').show();
+                
+                // If switching to rendered tab, update the content dynamically
+                if (tabId === 'grove-vault-rendered') {
+                    updateRenderedContent();
+                }
             });
             
             // Remove existing save handlers and add new one
@@ -3672,6 +3677,8 @@ In the following text content I paste below, you will be seeing the following:
                         jQuery('.save-thunder-papyrus-btn').text('Save Papyrus Data').prop('disabled', false);
                         if (response.success) {
                             console.log('Papyrus data saved successfully');
+                            // Update the rendered content if that tab exists
+                            updateRenderedContent();
                             // Show success message
                             alert('Papyrus data saved successfully!');
                         } else {
@@ -3686,6 +3693,37 @@ In the following text content I paste below, you will be seeing the following:
                     }
                 });
             };
+        }
+        
+        // Function to update rendered content dynamically
+        function updateRenderedContent() {
+            var textarea = jQuery('#grove-vault-rendered-content textarea');
+            if (textarea.length === 0) return;
+            
+            // Get the current papyrus_page_level_insert value from the editable field
+            var currentPapyrusContent = jQuery('#papyrus-page-level-textarea').val() || '// No papyrus_page_level_insert data for this post';
+            
+            // Get the raw vault content (stored in a data attribute or fetch it)
+            var rawContent = jQuery('#grove-vault-raw-content textarea').val();
+            
+            if (!rawContent) {
+                console.log('No raw content available');
+                return;
+            }
+            
+            // Replace the placeholder with the current value
+            var renderedContent = rawContent;
+            
+            // Replace page-level placeholder
+            var searchPage = '[INSERT DB COLUMN VALUE FROM orbitposts.papyrus_page_level_insert]';
+            renderedContent = renderedContent.replace(searchPage, currentPapyrusContent);
+            
+            // Also replace the site-level data (this is already rendered server-side, but we keep it)
+            // The site-level data doesn't change during the session so we don't need to update it
+            
+            // Update the textarea
+            textarea.val(renderedContent);
+            console.log('Rendered content updated');
         }
         
         // Initialize handlers on document ready
