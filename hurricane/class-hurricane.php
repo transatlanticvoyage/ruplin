@@ -5651,21 +5651,34 @@ In the following text content I paste below, you will be seeing the following:
         
         // Get site-level data for pappycode13
         $site_level_text = '';
-        $sitespren_table = $wpdb->prefix . 'sitespren';
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
         
-        // Check if sitespren table exists
-        if ($wpdb->get_var("SHOW TABLES LIKE '$sitespren_table'") == $sitespren_table) {
-            $driggs_columns = $wpdb->get_row("SELECT * FROM $sitespren_table LIMIT 1", ARRAY_A);
-            if ($driggs_columns) {
-                foreach ($driggs_columns as $column => $value) {
-                    if (strpos($column, 'driggs_') === 0 && !empty($value)) {
-                        $site_level_text .= $column . "\t" . $value . "\n";
-                    }
+        // Get the first row from zen_sitespren (matching Grove logic)
+        $sitespren_data = $wpdb->get_row("SELECT * FROM $sitespren_table LIMIT 1", ARRAY_A);
+        
+        if ($sitespren_data) {
+            // Define the columns we want to display (same as Grove)
+            $flag1_columns = array(
+                'sitespren_base',
+                'driggs_brand_name',
+                'driggs_phone_1',
+                'driggs_city',
+                'driggs_state_code',
+                'driggs_industry',
+                'driggs_site_type_purpose',
+                'driggs_email_1'
+            );
+            
+            // Build the output with tabs (same format as Grove)
+            foreach ($flag1_columns as $column) {
+                $value = isset($sitespren_data[$column]) ? $sitespren_data[$column] : '';
+                if (!empty($value)) {
+                    $site_level_text .= $column . "\t" . $value . "\n";
                 }
-                $site_level_text = trim($site_level_text);
             }
+            $site_level_text = trim($site_level_text);
         } else {
-            $site_level_text = '// Sitespren table not found';
+            $site_level_text = '// No sitespren data found';
         }
         
         // Get page-level data for pappycode14
