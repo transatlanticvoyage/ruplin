@@ -5700,15 +5700,14 @@ In the following text content I paste below, you will be seeing the following:
                 }
             }
             
-            // Add the current line
-            $result_lines[] = $line;
-            
             // If this line is [actual insert here] and we have a replacement ready
             if (trim($line) === '[actual insert here]' && $next_line_replacement !== null) {
-                // Replace this line with the actual content
-                array_pop($result_lines); // Remove the [actual insert here] line
+                // Replace with the actual content
                 $result_lines[] = $next_line_replacement;
                 $next_line_replacement = null;
+            } else {
+                // Keep the original line (including pappycode reference lines)
+                $result_lines[] = $line;
             }
         }
         
