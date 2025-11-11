@@ -1044,8 +1044,8 @@ class Snefuru_Hurricane {
                                     function savePapyrusFile() {
                                         var $ = jQuery;
                                         var filename = $('#papyrus-editor-filename').data('current-file');
-                                        // Use raw content for saving (preserving pappycode placeholders)
-                                        var content = $('#papyrus-editor').data('raw-content') || $('#papyrus-editor').val();
+                                        // Save exactly what the user edited in the textarea
+                                        var content = $('#papyrus-editor').val();
                                         var $message = $('#papyrus-save-message');
                                         var $saveBtn = $('#papyrus-save-btn');
                                         
@@ -5431,23 +5431,40 @@ In the following text content I paste below, you will be seeing the following:
         $phased_creation_dir = $grove_plugin_path . '/vaults/phased_creation';
         $file_path = $phased_creation_dir . '/' . $filename;
         
+        // Debug logging
+        error_log('Phased Creation save attempt: ' . $file_path);
+        error_log('Directory exists: ' . (file_exists($phased_creation_dir) ? 'YES' : 'NO'));
+        error_log('Directory writable: ' . (is_writable($phased_creation_dir) ? 'YES' : 'NO'));
+        
         // Security check - ensure file is within the allowed directory
         $real_dir = realpath($phased_creation_dir);
         $real_file_dir = realpath(dirname($file_path));
         
         if ($real_file_dir === false || strpos($real_file_dir, $real_dir) !== 0) {
-            wp_send_json_error('Invalid file path');
+            wp_send_json_error('Invalid file path: ' . $file_path);
         }
         
         // Create directory if it doesn't exist
         if (!file_exists($phased_creation_dir)) {
-            wp_mkdir_p($phased_creation_dir);
+            $mkdir_result = wp_mkdir_p($phased_creation_dir);
+            error_log('Phased Creation directory creation result: ' . ($mkdir_result ? 'SUCCESS' : 'FAILED'));
+            if (!$mkdir_result) {
+                wp_send_json_error('Could not create directory: ' . $phased_creation_dir);
+            }
+        }
+        
+        // Check file permissions before writing
+        if (file_exists($file_path) && !is_writable($file_path)) {
+            wp_send_json_error('File is not writable: ' . $file_path);
         }
         
         // Save file content
         $result = file_put_contents($file_path, $content);
+        error_log('Phased Creation file write result: ' . ($result !== false ? $result . ' bytes' : 'FAILED'));
+        
         if ($result === false) {
-            wp_send_json_error('Could not save file');
+            $error = error_get_last();
+            wp_send_json_error('Could not save file. Last error: ' . ($error ? $error['message'] : 'Unknown error'));
         }
         
         wp_send_json_success(array(
@@ -5535,23 +5552,40 @@ In the following text content I paste below, you will be seeing the following:
         $papyrus_dir = $grove_plugin_path . '/vaults/papyrus';
         $file_path = $papyrus_dir . '/' . $filename;
         
+        // Debug logging
+        error_log('Papyrus save attempt: ' . $file_path);
+        error_log('Directory exists: ' . (file_exists($papyrus_dir) ? 'YES' : 'NO'));
+        error_log('Directory writable: ' . (is_writable($papyrus_dir) ? 'YES' : 'NO'));
+        
         // Security check - ensure file is within the allowed directory
         $real_dir = realpath($papyrus_dir);
         $real_file_dir = realpath(dirname($file_path));
         
         if ($real_file_dir === false || strpos($real_file_dir, $real_dir) !== 0) {
-            wp_send_json_error('Invalid file path');
+            wp_send_json_error('Invalid file path: ' . $file_path);
         }
         
         // Create directory if it doesn't exist
         if (!file_exists($papyrus_dir)) {
-            wp_mkdir_p($papyrus_dir);
+            $mkdir_result = wp_mkdir_p($papyrus_dir);
+            error_log('Directory creation result: ' . ($mkdir_result ? 'SUCCESS' : 'FAILED'));
+            if (!$mkdir_result) {
+                wp_send_json_error('Could not create directory: ' . $papyrus_dir);
+            }
+        }
+        
+        // Check file permissions before writing
+        if (file_exists($file_path) && !is_writable($file_path)) {
+            wp_send_json_error('File is not writable: ' . $file_path);
         }
         
         // Save file content
         $result = file_put_contents($file_path, $content);
+        error_log('File write result: ' . ($result !== false ? $result . ' bytes' : 'FAILED'));
+        
         if ($result === false) {
-            wp_send_json_error('Could not save file');
+            $error = error_get_last();
+            wp_send_json_error('Could not save file. Last error: ' . ($error ? $error['message'] : 'Unknown error'));
         }
         
         wp_send_json_success(array(
