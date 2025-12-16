@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: Ruplin
+ * Plugin Name: Ruplin (Elementor-Safe v4.5)
  * Plugin URI: https://github.com/transatlanticvoyage/ruplin
- * Description: WordPress plugin for handling image uploads to Snefuru system
- * Version: 4.4.0
+ * Description: WordPress plugin for handling image uploads to Snefuru system - Now works with or without Elementor
+ * Version: 4.5.0
  * Author: Snefuru Team
  * License: GPL v2 or later
  * Text Domain: ruplin
@@ -59,7 +59,7 @@ add_action('admin_notices', function() {
 });
 
 // Define plugin constants
-define('SNEFURU_PLUGIN_VERSION', '4.4.0');
+define('SNEFURU_PLUGIN_VERSION', '4.5.0');
 define('SNEFURU_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -69,13 +69,30 @@ define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 // Main plugin class
 class SnefuruPlugin {
     
+    private $elementor_available = false;
+    
     public function __construct() {
         add_action('init', array($this, 'init'));
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
     }
     
+    /**
+     * Check if Elementor is available and active
+     */
+    private function is_elementor_available() {
+        return class_exists('Elementor\\Plugin') && is_plugin_active('elementor/elementor.php');
+    }
+    
     public function init() {
+        // Check Elementor availability
+        $this->elementor_available = $this->is_elementor_available();
+        
+        // Define constant for global access
+        if (!defined('RUPLIN_ELEMENTOR_AVAILABLE')) {
+            define('RUPLIN_ELEMENTOR_AVAILABLE', $this->elementor_available);
+        }
+        
         // Load plugin components
         $this->load_dependencies();
         $this->init_hooks();
@@ -90,7 +107,6 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-media-tab.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-css-endpoint.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-barkro-updater.php';
-        require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-settings.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ketch-api.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-debug-log-viewer.php';
@@ -100,7 +116,8 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
         
         // Load Elementor components only if Elementor is available
-        if (class_exists('Elementor\Plugin')) {
+        if ($this->elementor_available) {
+            require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-dynamic-tags.php';
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-media-workaround.php';
         }
@@ -122,18 +139,22 @@ class SnefuruPlugin {
         new Snefuru_Media_Tab();
         new Snefuru_CSS_Endpoint();
         new Snefuru_Barkro_Updater();
-        new Snefuru_Elementor_Updater();
         new Snefuru_Dublish_API();
         new Snefuru_Zen_Vacuum_API();
         new Zen_Shortcodes();
         
-        // Initialize Elementor integrations
-        if (did_action('elementor/loaded')) {
-            new Zen_Elementor_Dynamic_Tags();
+        // Initialize Elementor integrations only if available
+        if ($this->elementor_available) {
+            new Snefuru_Elementor_Updater();
+            
+            // Initialize Elementor Dynamic Tags if Elementor is loaded
+            if (did_action('elementor/loaded')) {
+                new Zen_Elementor_Dynamic_Tags();
+            }
+            
+            // Initialize media library workaround for Elementor
+            new Zen_Elementor_Media_Workaround();
         }
-        
-        // Initialize media library workaround (always load for potential Elementor use)
-        new Zen_Elementor_Media_Workaround();
         
         // Initialize Hurricane feature
         new Snefuru_Hurricane();
@@ -142,9 +163,74 @@ class SnefuruPlugin {
         require_once plugin_dir_path(__FILE__) . 'includes/ferret-snippets/class-ferret-snippets.php';
         Ferret_Snippets::get_instance();
         
+        // Register fallback shortcodes for non-Elementor mode
+        $this->register_fallback_shortcodes();
+        
         // Add cron jobs for periodic data sync
         add_action('wp', array($this, 'schedule_events'));
         add_action('snefuru_sync_data', array($this, 'sync_data_to_cloud'));
+    }
+    
+    /**
+     * Register fallback shortcodes for non-Elementor mode
+     */
+    private function register_fallback_shortcodes() {
+        if (!$this->elementor_available) {
+            // Register fallback shortcodes that would normally be handled by Elementor
+            add_shortcode('ruplin_dynamic', array($this, 'ruplin_dynamic_shortcode'));
+            add_shortcode('ruplin_content', array($this, 'ruplin_content_shortcode'));
+        }
+    }
+    
+    /**
+     * Fallback shortcode for dynamic content
+     */
+    public function ruplin_dynamic_shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'type' => '',
+            'key' => '',
+            'default' => ''
+        ), $atts);
+        
+        // Get dynamic content based on type
+        switch ($atts['type']) {
+            case 'meta':
+                $value = get_post_meta(get_the_ID(), $atts['key'], true);
+                break;
+            case 'option':
+                $value = get_option($atts['key'], $atts['default']);
+                break;
+            default:
+                $value = $atts['default'];
+        }
+        
+        return !empty($value) ? $value : $atts['default'];
+    }
+    
+    /**
+     * Fallback shortcode for content blocks
+     */
+    public function ruplin_content_shortcode($atts) {
+        $atts = shortcode_atts(array(
+            'id' => '',
+            'field' => '',
+            'default' => ''
+        ), $atts);
+        
+        if (empty($atts['id'])) {
+            return $atts['default'];
+        }
+        
+        // Get content from database
+        global $wpdb;
+        $table = $wpdb->prefix . 'ruplin_content_blocks';
+        $content = $wpdb->get_var($wpdb->prepare(
+            "SELECT content FROM $table WHERE block_id = %s AND field_name = %s",
+            $atts['id'],
+            $atts['field']
+        ));
+        
+        return !empty($content) ? do_shortcode($content) : $atts['default'];
     }
     
     public function activate() {
