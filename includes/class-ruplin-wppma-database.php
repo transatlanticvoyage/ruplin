@@ -80,11 +80,16 @@ class Ruplin_WP_Database_Horse_Class {
                 ferret_footer_code LONGTEXT DEFAULT NULL,
                 papyrus_page_level_insert TEXT DEFAULT NULL,
                 ink_notes TEXT DEFAULT NULL,
+                plasma_page_id INTEGER DEFAULT NULL,
+                plasma_page_archetype TEXT DEFAULT NULL,
+                plasma_page_label_name TEXT DEFAULT NULL,
+                plasma_page_title TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (orbitpost_id),
                 KEY rel_wp_post_id (rel_wp_post_id),
-                KEY hudson_imgplanbatch_id (hudson_imgplanbatch_id)
+                KEY hudson_imgplanbatch_id (hudson_imgplanbatch_id),
+                KEY plasma_page_id (plasma_page_id)
             ) $charset_collate;";
             
             // Create zen_factory_codes table
@@ -616,6 +621,72 @@ class Ruplin_WP_Database_Horse_Class {
             }
         } else {
             error_log('Snefuru: ink_notes column already exists in zen_orbitposts table');
+        }
+        
+        // Check and add plasma_page_id to zen_orbitposts if it doesn't exist
+        if (!in_array('plasma_page_id', $orbitposts_column_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD COLUMN plasma_page_id INTEGER DEFAULT NULL AFTER ink_notes");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added plasma_page_id column to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add plasma_page_id column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: plasma_page_id column already exists in zen_orbitposts table');
+        }
+        
+        // Check and add plasma_page_archetype to zen_orbitposts if it doesn't exist
+        if (!in_array('plasma_page_archetype', $orbitposts_column_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD COLUMN plasma_page_archetype TEXT DEFAULT NULL AFTER plasma_page_id");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added plasma_page_archetype column to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add plasma_page_archetype column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: plasma_page_archetype column already exists in zen_orbitposts table');
+        }
+        
+        // Check and add plasma_page_label_name to zen_orbitposts if it doesn't exist
+        if (!in_array('plasma_page_label_name', $orbitposts_column_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD COLUMN plasma_page_label_name TEXT DEFAULT NULL AFTER plasma_page_archetype");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added plasma_page_label_name column to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add plasma_page_label_name column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: plasma_page_label_name column already exists in zen_orbitposts table');
+        }
+        
+        // Check and add plasma_page_title to zen_orbitposts if it doesn't exist
+        if (!in_array('plasma_page_title', $orbitposts_column_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD COLUMN plasma_page_title TEXT DEFAULT NULL AFTER plasma_page_label_name");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added plasma_page_title column to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add plasma_page_title column: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: plasma_page_title column already exists in zen_orbitposts table');
+        }
+        
+        // Add index for plasma_page_id if it doesn't exist
+        $indexes = $wpdb->get_results("SHOW INDEX FROM $orbitposts_table");
+        $index_names = array();
+        foreach ($indexes as $index) {
+            $index_names[] = $index->Key_name;
+        }
+        
+        if (!in_array('plasma_page_id', $index_names)) {
+            $result = $wpdb->query("ALTER TABLE $orbitposts_table ADD KEY plasma_page_id (plasma_page_id)");
+            if ($result !== false) {
+                error_log('Snefuru: Successfully added plasma_page_id index to zen_orbitposts table');
+            } else {
+                error_log('Snefuru: Failed to add plasma_page_id index: ' . $wpdb->last_error);
+            }
+        } else {
+            error_log('Snefuru: plasma_page_id index already exists in zen_orbitposts table');
         }
     }
     
