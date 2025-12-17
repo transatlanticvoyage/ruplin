@@ -420,6 +420,42 @@ class SnefuruPlugin {
         
         dbDelta($zen_hoof_codes_sql);
         
+        // Create wp_pylons table for page content blocks
+        $pylons_table = $wpdb->prefix . 'pylons';
+        $pylons_sql = "CREATE TABLE IF NOT EXISTS $pylons_table (
+            pylon_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            rel_wp_post_id BIGINT(20) UNSIGNED DEFAULT NULL,
+            rel_plasma_page_id BIGINT(20) UNSIGNED DEFAULT NULL,
+            hero_mainheading TEXT DEFAULT NULL,
+            hero_subheading TEXT DEFAULT NULL,
+            chenblock_card1_title TEXT DEFAULT NULL,
+            chenblock_card1_desc TEXT DEFAULT NULL,
+            chenblock_card2_title TEXT DEFAULT NULL,
+            chenblock_card2_desc TEXT DEFAULT NULL,
+            chenblock_card3_title TEXT DEFAULT NULL,
+            chenblock_card3_desc TEXT DEFAULT NULL,
+            cta_zarl_heading TEXT DEFAULT NULL,
+            cta_zarl_phone TEXT DEFAULT NULL,
+            cta_zarl_availability TEXT DEFAULT NULL,
+            cta_zarl_wait_time TEXT DEFAULT NULL,
+            cta_zarl_rating TEXT DEFAULT NULL,
+            cta_zarl_review_count TEXT DEFAULT NULL,
+            sidebar_zebby_title TEXT DEFAULT NULL,
+            sidebar_zebby_description TEXT DEFAULT NULL,
+            sidebar_zebby_button_text_line_1 TEXT DEFAULT NULL,
+            sidebar_zebby_button_text_line_2 TEXT DEFAULT NULL,
+            sidebar_zebby_availability TEXT DEFAULT NULL,
+            sidebar_zebby_wait_time TEXT DEFAULT NULL,
+            baynar1_main TEXT DEFAULT NULL,
+            baynar2_main TEXT DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (pylon_id),
+            KEY rel_wp_post_id (rel_wp_post_id),
+            KEY rel_plasma_page_id (rel_plasma_page_id)
+        ) $charset_collate;";
+        
+        dbDelta($pylons_sql);
+        
         // Update plugin database version to trigger future schema updates
         update_option('snefuru_plugin_db_version', SNEFURU_PLUGIN_VERSION);
         
