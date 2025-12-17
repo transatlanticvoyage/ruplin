@@ -22,7 +22,10 @@ class Snefuru_Hurricane {
     public function __construct() {
         add_action('add_meta_boxes', array($this, 'add_hurricane_metabox'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_hurricane_assets'));
-        add_action('edit_form_top', array($this, 'add_stellar_chamber'));
+        add_action('edit_form_top', array($this, 'add_stellar_chamber'), 10);
+        add_action('edit_form_top', array($this, 'add_plasma_page_label_input'), 15);
+        add_action('edit_form_top', array($this, 'add_post_title_label'), 20);
+        add_action('edit_form_after_editor', array($this, 'add_post_content_label'));
         add_action('wp_ajax_refresh_redshift_data', array($this, 'ajax_refresh_redshift_data'));
         add_action('wp_ajax_refresh_blueshift_data', array($this, 'ajax_refresh_blueshift_data'));
         add_action('wp_ajax_update_format4_filtered', array($this, 'ajax_update_format4_filtered'));
@@ -39,6 +42,7 @@ class Snefuru_Hurricane {
         add_action('wp_ajax_save_papyrus_file', array($this, 'ajax_save_papyrus_file'));
         add_action('wp_ajax_save_ink_notes', array($this, 'ajax_save_ink_notes'));
         add_action('wp_ajax_render_papyrus_content', array($this, 'ajax_render_papyrus_content'));
+        add_action('wp_ajax_save_plasma_page_label', array($this, 'ajax_save_plasma_page_label'));
         add_action('admin_menu', array($this, 'add_admin_menu'));
         
         // Initialize Blueshift, Cobalt, and Titanium
@@ -4455,6 +4459,140 @@ In the following text content I paste below, you will be seeing the following:
     }
     
     /**
+     * Add plasma page label input above the title field
+     */
+    public function add_plasma_page_label_input($post) {
+        // Only show on post and page edit screens
+        if (!in_array($post->post_type, array('post', 'page'))) {
+            return;
+        }
+        
+        // Get the current value from database
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_orbitposts';
+        $current_value = '';
+        
+        // Check if table exists and get the value
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$table_name}'") == $table_name) {
+            $current_value = $wpdb->get_var($wpdb->prepare(
+                "SELECT plasma_page_label_name FROM {$table_name} WHERE post_id = %d",
+                $post->ID
+            ));
+        }
+        ?>
+        <div style="margin-top: 10px; margin-bottom: 5px;">
+            <div style="margin-bottom: 3px;">
+                <span style="font-size: 15px; font-weight: bold; color: #555;">wp_zen_orbitposts.plasma_page_label_name</span>
+            </div>
+            <input type="text" 
+                   id="plasma_page_label_name" 
+                   name="plasma_page_label_name" 
+                   value="<?php echo esc_attr($current_value); ?>"
+                   style="width: 100%; padding: 3px 8px; line-height: 1.4; font-size: 1.7em; font-weight: normal; height: 1.7em; border: 1px solid #dcdcde; background-color: #fff; box-shadow: 0 0 0 transparent; border-radius: 4px; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;"
+                   placeholder="Enter plasma page label name">
+        </div>
+        <script>
+        jQuery(document).ready(function($) {
+            var saveTimeout;
+            $('#plasma_page_label_name').on('input', function() {
+                var $input = $(this);
+                clearTimeout(saveTimeout);
+                
+                // Add saving indicator
+                $input.css('background-color', '#fffbcc');
+                
+                saveTimeout = setTimeout(function() {
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'save_plasma_page_label',
+                            post_id: <?php echo intval($post->ID); ?>,
+                            plasma_page_label_name: $input.val(),
+                            nonce: '<?php echo wp_create_nonce('save_plasma_page_label'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                $input.css('background-color', '#d4ffcc');
+                                setTimeout(function() {
+                                    $input.css('background-color', '#fff');
+                                }, 1000);
+                            } else {
+                                $input.css('background-color', '#ffcccc');
+                                setTimeout(function() {
+                                    $input.css('background-color', '#fff');
+                                }, 1000);
+                            }
+                        },
+                        error: function() {
+                            $input.css('background-color', '#ffcccc');
+                            setTimeout(function() {
+                                $input.css('background-color', '#fff');
+                            }, 1000);
+                        }
+                    });
+                }, 500); // Save after 500ms of no typing
+            });
+        });
+        </script>
+        <?php
+    }
+    
+    /**
+     * Add post title label above the title field
+     */
+    public function add_post_title_label($post) {
+        // Only show on post and page edit screens
+        if (!in_array($post->post_type, array('post', 'page'))) {
+            return;
+        }
+        ?>
+        <div style="margin-top: 5px; margin-bottom: 0; padding: 0;">
+            <span style="font-size: 15px; font-weight: bold; color: #555;">wp_posts.post_title</span>
+        </div>
+        <style>
+            #poststuff {
+                padding-top: 2px !important;
+            }
+        </style>
+        <?php
+    }
+    
+    /**
+     * Add post content label above the content area
+     */
+    public function add_post_content_label($post) {
+        // Only show on post and page edit screens
+        if (!in_array($post->post_type, array('post', 'page'))) {
+            return;
+        }
+        ?>
+        <script>
+        jQuery(document).ready(function($) {
+            // Wait for the page to fully load
+            setTimeout(function() {
+                // Find the Add Media button and insert the label after it
+                var addMediaBtn = $('#insert-media-button');
+                if (addMediaBtn.length > 0) {
+                    // Create the label element
+                    var contentLabel = $('<span style="margin-left: 15px; font-size: 15px; font-weight: bold; color: #555;">wp_posts.post_content</span>');
+                    // Insert it after the Add Media button
+                    addMediaBtn.after(contentLabel);
+                } else {
+                    // Fallback: If Add Media button not found, add it before the content area
+                    var contentArea = $('#content');
+                    if (contentArea.length > 0) {
+                        var labelDiv = $('<div style="margin-bottom: 5px; padding: 10px 0;"><span style="font-size: 15px; font-weight: bold; color: #555;">wp_posts.post_content</span></div>');
+                        contentArea.before(labelDiv);
+                    }
+                }
+            }, 100);
+        });
+        </script>
+        <?php
+    }
+    
+    /**
      * Render Stellar Chamber as standalone component for dioptra page
      */
     public function render_stellar_chamber_standalone($post) {
@@ -5763,5 +5901,81 @@ In the following text content I paste below, you will be seeing the following:
         wp_send_json_success(array(
             'rendered_content' => $rendered_content
         ));
+    }
+    
+    /**
+     * AJAX handler for saving plasma page label
+     */
+    public function ajax_save_plasma_page_label() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'save_plasma_page_label')) {
+            wp_send_json_error('Security check failed');
+        }
+        
+        // Get post ID and label value
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $plasma_page_label_name = isset($_POST['plasma_page_label_name']) ? sanitize_text_field($_POST['plasma_page_label_name']) : '';
+        
+        if (!$post_id) {
+            wp_send_json_error('Invalid post ID');
+        }
+        
+        // Check user permissions
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error('You do not have permission to edit this post');
+        }
+        
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if table exists, if not create it
+        if ($wpdb->get_var("SHOW TABLES LIKE '{$table_name}'") != $table_name) {
+            $charset_collate = $wpdb->get_charset_collate();
+            $sql = "CREATE TABLE {$table_name} (
+                id mediumint(9) NOT NULL AUTO_INCREMENT,
+                post_id bigint(20) NOT NULL,
+                plasma_page_label_name text,
+                created_at datetime DEFAULT CURRENT_TIMESTAMP,
+                updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY  (id),
+                UNIQUE KEY post_id (post_id)
+            ) {$charset_collate};";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+        
+        // Check if record exists for this post
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$table_name} WHERE post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            // Update existing record
+            $result = $wpdb->update(
+                $table_name,
+                array('plasma_page_label_name' => $plasma_page_label_name),
+                array('post_id' => $post_id),
+                array('%s'),
+                array('%d')
+            );
+        } else {
+            // Insert new record
+            $result = $wpdb->insert(
+                $table_name,
+                array(
+                    'post_id' => $post_id,
+                    'plasma_page_label_name' => $plasma_page_label_name
+                ),
+                array('%d', '%s')
+            );
+        }
+        
+        if ($result !== false) {
+            wp_send_json_success('Plasma page label saved successfully');
+        } else {
+            wp_send_json_error('Failed to save plasma page label');
+        }
     }
 }
