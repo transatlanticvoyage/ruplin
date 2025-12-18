@@ -446,6 +446,8 @@ class SnefuruPlugin {
             sidebar_zebby_button_text_line_2 TEXT DEFAULT NULL,
             sidebar_zebby_availability TEXT DEFAULT NULL,
             sidebar_zebby_wait_time TEXT DEFAULT NULL,
+            trustblock_vezzy_title TEXT DEFAULT NULL,
+            trustblock_vezzy_desc TEXT DEFAULT NULL,
             baynar1_main TEXT DEFAULT NULL,
             baynar2_main TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
