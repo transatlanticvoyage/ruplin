@@ -124,7 +124,6 @@ class Snefuru_Admin {
             'logs-page.php',
             'rupcacheman-page.php',
             'cssmar-page.php',
-            'dioptra-page.php',
             'beamraymar-page.php',
             'rup-locations-mar-page.php',
             'rup-services-mar-page.php',
@@ -372,15 +371,6 @@ class Snefuru_Admin {
             'manage_options',
             'cssmar',
             array($this, 'cssmar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'dioptra',
-            'dioptra',
-            'manage_options',
-            'dioptra',
-            array($this, 'dioptra_page')
         );
     }
     
@@ -10946,15 +10936,6 @@ class Snefuru_Admin {
         } else {
             wp_send_json_error(array('message' => 'Failed to save CSS file'));
         }
-    }
-    
-    /**
-     * dioptra page - Standalone Stellar Chamber view
-     */
-    public function dioptra_page() {
-        // Include the separate page file
-        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/dioptra-page.php';
-        snefuru_dioptra_page();
     }
     
     /**
