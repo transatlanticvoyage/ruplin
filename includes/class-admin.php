@@ -32,6 +32,7 @@ class Snefuru_Admin {
         add_action('wp_ajax_snefuru_clear_update_debug', array($this, 'clear_update_debug'));
         add_action('wp_ajax_snefuru_rebuild_zen_tables', array($this, 'rebuild_zen_tables'));
         add_action('wp_ajax_save_stellar_chamber_setting', array($this, 'save_stellar_chamber_setting'));
+        add_action('wp_ajax_silkweaver_optimize_indexes', array($this, 'silkweaver_optimize_indexes'));
         
         // Locations management AJAX actions
         add_action('wp_ajax_rup_locations_get_data', array($this, 'rup_locations_get_data'));
@@ -45,6 +46,9 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_services_update_field', array($this, 'rup_services_update_field'));
         add_action('wp_ajax_rup_services_create', array($this, 'rup_services_create'));
         add_action('wp_ajax_rup_services_get_image_url', array($this, 'rup_services_get_image_url'));
+        
+        // Add dioptra button to admin toolbar
+        add_action('admin_bar_menu', array($this, 'add_dioptra_toolbar_button'), 999);
         
         // Driggs management AJAX actions
         add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
@@ -106,6 +110,10 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_force_asset_reload', array($this, 'rup_force_asset_reload'));
         add_action('wp_ajax_rup_nuclear_cache_flush', array($this, 'rup_nuclear_cache_flush'));
         add_action('wp_ajax_rup_get_cache_reports', array($this, 'rup_get_cache_reports'));
+        
+        // Dioptra AJAX actions
+        add_action('wp_ajax_create_missing_pylon', array($this, 'handle_create_missing_pylon'));
+        add_action('wp_ajax_dioptra_save_data', array($this, 'handle_dioptra_save_data'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -371,6 +379,24 @@ class Snefuru_Admin {
             'manage_options',
             'cssmar',
             array($this, 'cssmar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Silkweaver',
+            'Silkweaver',
+            'manage_options',
+            'silkweaver_mar',
+            array($this, 'silkweaver_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Dioptra',
+            'Dioptra',
+            'manage_options',
+            'dioptra',
+            array($this, 'dioptra_page')
         );
     }
     
@@ -1208,6 +1234,47 @@ class Snefuru_Admin {
             wp_send_json_error(array(
                 'message' => 'Error rebuilding tables: ' . $e->getMessage()
             ));
+        }
+    }
+    
+    /**
+     * AJAX: Optimize database indexes for Silkweaver menu performance
+     */
+    public function silkweaver_optimize_indexes() {
+        check_ajax_referer('snefuru_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        global $wpdb;
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
+        try {
+            // Add index on rel_wp_post_id for fast lookups
+            $wpdb->query("ALTER TABLE {$pylons_table} ADD INDEX idx_rel_wp_post_id (rel_wp_post_id)");
+            
+            // Add index on pylon_archetype for filtering by type (servicepage, locationpage, etc)
+            $wpdb->query("ALTER TABLE {$pylons_table} ADD INDEX idx_pylon_archetype (pylon_archetype)");
+            
+            // Add composite index for optimal JOIN queries (most important)
+            $wpdb->query("ALTER TABLE {$pylons_table} ADD INDEX idx_archetype_post_exempt (pylon_archetype, rel_wp_post_id, exempt_from_silkweaver_menu_dynamical)");
+            
+            wp_send_json_success(array(
+                'message' => 'Silkweaver database indexes optimized successfully! Menu queries will now be much faster.'
+            ));
+            
+        } catch (Exception $e) {
+            // Indexes might already exist, that's okay
+            if (strpos($e->getMessage(), 'Duplicate key name') !== false) {
+                wp_send_json_success(array(
+                    'message' => 'Silkweaver indexes already exist and are optimized.'
+                ));
+            } else {
+                wp_send_json_error(array(
+                    'message' => 'Error creating indexes: ' . $e->getMessage()
+                ));
+            }
         }
     }
     
@@ -10935,6 +11002,228 @@ class Snefuru_Admin {
             wp_send_json_success(array('message' => 'CSS file saved successfully'));
         } else {
             wp_send_json_error(array('message' => 'Failed to save CSS file'));
+        }
+    }
+    
+    /**
+     * Silkweaver page - Menu System Configuration
+     */
+    public function silkweaver_page() {
+        // Include the silkweaver admin page file
+        require_once SNEFURU_PLUGIN_PATH . 'silkweaver_menu/silkweaver_admin_page.php';
+        silkweaver_render_admin_page();
+    }
+    
+    /**
+     * Add Dioptra button to WordPress admin toolbar on frontend
+     */
+    public function add_dioptra_toolbar_button($wp_admin_bar) {
+        // Only show on frontend pages that have a post ID
+        if (is_admin() || !is_singular()) {
+            return;
+        }
+        
+        global $post;
+        if (!$post || !$post->ID) {
+            return;
+        }
+        
+        $wp_admin_bar->add_node(array(
+            'id'     => 'dioptra',
+            'title'  => 'dioptra',
+            'href'   => admin_url('admin.php?page=dioptra&post=' . $post->ID),
+            'parent' => false
+        ));
+    }
+    
+    /**
+     * Dioptra page - Main Dioptra system interface
+     */
+    public function dioptra_page() {
+        // IMMEDIATE notice suppression - before any output
+        remove_all_actions('admin_notices');
+        remove_all_actions('all_admin_notices');
+        remove_all_actions('network_admin_notices');
+        remove_all_actions('user_admin_notices');
+        
+        // Aggressive notice suppression for any that remain
+        $this->suppress_all_admin_notices();
+        
+        // Early CSS injection to hide notices immediately
+        echo '<style>
+            .notice, .notice-warning, .notice-error, .notice-success, .notice-info,
+            .updated, .error, .update-nag, .admin-notice,
+            div.notice, div.updated, div.error, div.update-nag,
+            .wrap > .notice, .wrap > .updated, .wrap > .error,
+            #wpbody-content > .notice, #wpbody-content > .updated, #wpbody-content > .error,
+            #update-nag, #deprecation-warning {
+                display: none !important;
+                visibility: hidden !important;
+            }
+        </style>';
+        
+        // Include the dioptra screen file
+        require_once SNEFURU_PLUGIN_PATH . 'dioptra/dioptra_screen.php';
+        ruplin_render_dioptra_screen();
+    }
+    
+    /**
+     * AJAX handler for creating missing pylon
+     */
+    public function handle_create_missing_pylon() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'create_pylon_nonce')) {
+            wp_send_json_error(['message' => 'Security check failed']);
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions']);
+            return;
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error(['message' => 'Invalid post ID']);
+            return;
+        }
+        
+        global $wpdb;
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
+        // Check if pylon already exists (unique constraint)
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            wp_send_json_error(['message' => 'Pylon already exists for this post']);
+            return;
+        }
+        
+        // Create new pylon record
+        $result = $wpdb->insert(
+            $pylons_table,
+            [
+                'rel_wp_post_id' => $post_id,
+                'rel_plasma_page_id' => null
+            ]
+        );
+        
+        if ($result === false) {
+            wp_send_json_error(['message' => 'Database error: ' . $wpdb->last_error]);
+            return;
+        }
+        
+        wp_send_json_success(['message' => 'Pylon created successfully', 'pylon_id' => $wpdb->insert_id]);
+    }
+    
+    /**
+     * AJAX handler for saving dioptra data
+     */
+    public function handle_dioptra_save_data() {
+        // Debug: Log all POST data
+        error_log("Dioptra save attempt - POST data: " . json_encode($_POST));
+        
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dioptra_save_nonce')) {
+            error_log("Dioptra save failed: Security check failed");
+            wp_send_json_error(['message' => 'Security check failed']);
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Insufficient permissions']);
+            return;
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error(['message' => 'Invalid post ID']);
+            return;
+        }
+        
+        global $wpdb;
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
+        // Get the existing pylon record
+        $pylon_data = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            $post_id
+        ), ARRAY_A);
+        
+        if (!$pylon_data) {
+            wp_send_json_error(['message' => 'No pylon found for this post']);
+            return;
+        }
+        
+        $update_data = array();
+        $post_update_data = array();
+        
+        // Process field updates
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'field_') === 0) {
+                $field_name = str_replace('field_', '', $key);
+                
+                // Determine if this is a posts field or pylons field
+                if (strpos($field_name, 'post_') === 0) {
+                    // wp_posts field
+                    $post_update_data[$field_name] = sanitize_text_field($value);
+                } else {
+                    // wp_pylons field
+                    $update_data[$field_name] = sanitize_text_field($value);
+                }
+            }
+        }
+        
+        $success_messages = array();
+        
+        error_log("Dioptra save - Post update data: " . json_encode($post_update_data));
+        error_log("Dioptra save - Pylon update data: " . json_encode($update_data));
+        
+        // Update wp_posts fields if any
+        if (!empty($post_update_data)) {
+            $post_result = $wpdb->update(
+                $wpdb->posts,
+                $post_update_data,
+                array('ID' => $post_id),
+                array('%s'),
+                array('%d')
+            );
+            
+            error_log("Dioptra save - Post update result: " . ($post_result !== false ? 'SUCCESS' : 'FAILED') . " - " . $wpdb->last_error);
+            
+            if ($post_result !== false) {
+                $success_messages[] = 'Post data updated';
+            }
+        }
+        
+        // Update wp_pylons fields if any
+        if (!empty($update_data)) {
+            $pylon_result = $wpdb->update(
+                $pylons_table,
+                $update_data,
+                array('rel_wp_post_id' => $post_id),
+                array('%s'),
+                array('%d')
+            );
+            
+            error_log("Dioptra save - Pylon update result: " . ($pylon_result !== false ? 'SUCCESS' : 'FAILED') . " - " . $wpdb->last_error);
+            
+            if ($pylon_result !== false) {
+                $success_messages[] = 'Pylon data updated';
+            }
+        }
+        
+        if (!empty($success_messages)) {
+            wp_send_json_success(['message' => implode(', ', $success_messages)]);
+        } else {
+            wp_send_json_error(['message' => 'No data to update or update failed']);
         }
     }
     

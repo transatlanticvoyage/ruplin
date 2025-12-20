@@ -742,6 +742,15 @@ class Snefuru_Hurricane {
                     </button>
                 </div>
                 
+                <!-- Dioptra Button -->
+                <div style="display: flex; align-items: center; margin-left: 15px;">
+                    <a href="<?php echo admin_url('admin.php?page=dioptra&post=' . $post->ID); ?>" 
+                       target="_blank" 
+                       style="background: #4a90e2; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
+                        =dioptra
+                    </a>
+                </div>
+                
                 <!-- Live Frontend Screen Button with Copy -->
                 <div style="display: flex; align-items: center; margin-left: 15px;">
                     <a href="<?php echo esc_url(get_permalink($post->ID)); ?>" 
