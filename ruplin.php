@@ -468,6 +468,9 @@ class SnefuruPlugin {
         
         dbDelta($pylons_sql);
         
+        // Handle database migrations for existing wp_pylons tables
+        $this->migrate_pylons_table();
+        
         // Update plugin database version to trigger future schema updates
         update_option('snefuru_plugin_db_version', SNEFURU_PLUGIN_VERSION);
         
@@ -636,6 +639,60 @@ class SnefuruPlugin {
         
         // Update the installed defaults version
         update_option('snefuru_hoof_defaults_version', '1.1.0');
+    }
+    
+    /**
+     * Migrate existing wp_pylons table to add new columns
+     */
+    private function migrate_pylons_table() {
+        global $wpdb;
+        
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$pylons_table'") === $pylons_table;
+        if (!$table_exists) {
+            return; // Table doesn't exist, no migration needed
+        }
+        
+        // Check current migration version
+        $migration_version = get_option('snefuru_pylons_migration_version', '0.0.0');
+        
+        // Migration for version 1.5.0 - Add new columns
+        if (version_compare($migration_version, '1.5.0', '<')) {
+            // Check and add moniker column
+            $moniker_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'moniker'");
+            if (empty($moniker_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN moniker TEXT DEFAULT NULL");
+            }
+            
+            // Check and add exempt_from_silkweaver_menu_dynamical column
+            $exempt_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'exempt_from_silkweaver_menu_dynamical'");
+            if (empty($exempt_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN exempt_from_silkweaver_menu_dynamical TINYINT(1) DEFAULT NULL");
+            }
+            
+            // Check and add paragon_featured_image_id column
+            $image_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'paragon_featured_image_id'");
+            if (empty($image_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN paragon_featured_image_id BIGINT(20) UNSIGNED DEFAULT NULL");
+            }
+            
+            // Check and add paragon_description column
+            $desc_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'paragon_description'");
+            if (empty($desc_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN paragon_description TEXT DEFAULT NULL");
+            }
+            
+            // Check and add our_services_box_title column
+            $title_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'our_services_box_title'");
+            if (empty($title_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN our_services_box_title TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '1.5.0');
+        }
     }
 }
 

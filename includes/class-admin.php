@@ -114,6 +114,7 @@ class Snefuru_Admin {
         // Dioptra AJAX actions
         add_action('wp_ajax_create_missing_pylon', array($this, 'handle_create_missing_pylon'));
         add_action('wp_ajax_dioptra_save_data', array($this, 'handle_dioptra_save_data'));
+        add_action('wp_ajax_dioptra_get_services_list', array($this, 'handle_dioptra_get_services_list'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -11172,11 +11173,21 @@ class Snefuru_Admin {
                 
                 // Determine if this is a posts field or pylons field
                 if (strpos($field_name, 'post_') === 0) {
-                    // wp_posts field
-                    $post_update_data[$field_name] = sanitize_text_field($value);
+                    // wp_posts field - use appropriate sanitization
+                    if ($field_name === 'post_content') {
+                        // Preserve content integrity for post_content
+                        $post_update_data[$field_name] = wp_kses_post($value);
+                    } else {
+                        $post_update_data[$field_name] = sanitize_text_field($value);
+                    }
                 } else {
-                    // wp_pylons field
-                    $update_data[$field_name] = sanitize_text_field($value);
+                    // wp_pylons field - check for content fields that need special handling
+                    if (in_array($field_name, ['paragon_description', 'hero_mainheading', 'hero_subheading'])) {
+                        // Allow basic HTML for description fields
+                        $update_data[$field_name] = wp_kses_post($value);
+                    } else {
+                        $update_data[$field_name] = sanitize_text_field($value);
+                    }
                 }
             }
         }
@@ -12522,5 +12533,85 @@ class Snefuru_Admin {
                "\n) VALUES (\n    " . 
                implode(",\n    ", $values) . 
                "\n);";
+    }
+    
+    /**
+     * AJAX handler for getting services list for dioptra configuration
+     */
+    public function handle_dioptra_get_services_list() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'dioptra_nonce')) {
+            wp_send_json_error('Invalid security token');
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+        }
+        
+        global $wpdb;
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
+        // Get all service pages
+        $services = $wpdb->get_results("
+            SELECT 
+                p.ID, 
+                p.post_title, 
+                py.moniker, 
+                py.paragon_description,
+                py.paragon_featured_image_id,
+                py.created_at
+            FROM {$wpdb->posts} p 
+            INNER JOIN {$pylons_table} py ON p.ID = py.rel_wp_post_id 
+            WHERE py.pylon_archetype = 'servicepage' 
+            AND p.post_status = 'publish'
+            ORDER BY py.created_at ASC, 
+                     CASE WHEN py.moniker IS NULL OR py.moniker = '' THEN p.post_title ELSE py.moniker END ASC
+        ");
+        
+        if (empty($services)) {
+            $html = '<p style="color: #666; font-style: italic;">No service pages found. Create some service pages with pylon_archetype = "servicepage" first.</p>';
+        } else {
+            $html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 15px;">';
+            $html .= '<strong>' . count($services) . ' service pages found</strong>';
+            $html .= '</div>';
+            
+            $html .= '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+            $html .= '<thead><tr style="background: #e9ecef;">';
+            $html .= '<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">Service Name</th>';
+            $html .= '<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">Description</th>';
+            $html .= '<th style="padding: 8px; border: 1px solid #dee2e6; text-align: left;">Image</th>';
+            $html .= '<th style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">Actions</th>';
+            $html .= '</tr></thead><tbody>';
+            
+            foreach ($services as $service) {
+                $service_title = !empty($service->moniker) ? $service->moniker : $service->post_title;
+                $description = !empty($service->paragon_description) ? $service->paragon_description : '<em>No description</em>';
+                $image_status = !empty($service->paragon_featured_image_id) ? '✅ Set' : '❌ Missing';
+                
+                $html .= '<tr>';
+                $html .= '<td style="padding: 8px; border: 1px solid #dee2e6;"><strong>' . esc_html($service_title) . '</strong><br><small>ID: ' . $service->ID . '</small></td>';
+                $html .= '<td style="padding: 8px; border: 1px solid #dee2e6; max-width: 200px;">' . esc_html(substr($description, 0, 100)) . (strlen($description) > 100 ? '...' : '') . '</td>';
+                $html .= '<td style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">' . $image_status . '</td>';
+                $html .= '<td style="padding: 8px; border: 1px solid #dee2e6; text-align: center;">';
+                $html .= '<a href="' . admin_url('admin.php?page=dioptra&post=' . $service->ID) . '" style="color: #0073aa; text-decoration: none;">Edit</a>';
+                $html .= '</td>';
+                $html .= '</tr>';
+            }
+            
+            $html .= '</tbody></table>';
+            
+            $html .= '<div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-left: 4px solid #0073aa; border-radius: 0 4px 4px 0;">';
+            $html .= '<h4 style="margin: 0 0 10px 0; color: #0073aa;">Configuration Instructions:</h4>';
+            $html .= '<ul style="margin: 0; padding-left: 20px; color: #555;">';
+            $html .= '<li>Each service page needs a <strong>paragon_description</strong> to appear in the Our Services section</li>';
+            $html .= '<li>Set a <strong>paragon_featured_image_id</strong> for custom images (falls back to WordPress featured image)</li>';
+            $html .= '<li>Use the <strong>moniker</strong> field to override the post title in displays</li>';
+            $html .= '<li>Services are ordered by creation date, then alphabetically</li>';
+            $html .= '</ul>';
+            $html .= '</div>';
+        }
+        
+        wp_send_json_success(array('html' => $html));
     }
 } 

@@ -93,13 +93,29 @@ function silkweaver_render_admin_page() {
 target_url=/derby anchor=Derby, UK
 target_url=/termites anchor=Termite Extermination
 pull_all_service_pages_dynamically
-pull_all_location_pages_dynamically</pre>
+pull_all_service_pages_dynamically custom_raw_link=/saginaw Saginaw
+pull_all_service_pages_dynamically custom_raw_link_pinned=/emergency Emergency Service
+pull_all_location_pages_dynamically
+pull_all_location_pages_dynamically custom_raw_link=/ Headquarters
+pull_all_location_pages_dynamically custom_raw_link_pinned=/service-areas Service Areas</pre>
                     
                     <p><strong>Syntax Guide:</strong></p>
                     <ul>
                         <li><code>target_url=/path anchor=Link Text</code> - Static menu link</li>
-                        <li><code>pull_all_service_pages_dynamically</code> - Dynamic "Services" dropdown with all service pages</li>
-                        <li><code>pull_all_location_pages_dynamically</code> - Dynamic "Locations" dropdown with all location pages</li>
+                        <li><code>pull_all_service_pages_dynamically</code> - Dynamic "Services" dropdown with all service pages (alphabetically ordered)</li>
+                        <li><code>pull_all_location_pages_dynamically</code> - Dynamic "Locations" dropdown with all location pages (alphabetically ordered)</li>
+                        <li><code>pull_all_service_pages_dynamically custom_raw_link=/path Link Text</code> - Services dropdown + custom link (inserted alphabetically)</li>
+                        <li><code>pull_all_location_pages_dynamically custom_raw_link=/path Link Text</code> - Locations dropdown + custom link (inserted alphabetically)</li>
+                        <li><code>pull_all_service_pages_dynamically custom_raw_link_pinned=/path Link Text</code> - Services dropdown + pinned link (appears first, not sorted)</li>
+                        <li><code>pull_all_location_pages_dynamically custom_raw_link_pinned=/path Link Text</code> - Locations dropdown + pinned link (appears first, not sorted)</li>
+                    </ul>
+                    
+                    <p><strong>Custom Link Types:</strong></p>
+                    <ul>
+                        <li><strong>Regular custom links</strong> - Sorted alphabetically with database pages</li>
+                        <li><strong>Pinned custom links</strong> - Always appear first in dropdown, not part of alphabetical sort</li>
+                        <li>Example: <code>custom_raw_link=/ Headquarters</code> adds a "Headquarters" link sorted alphabetically</li>
+                        <li>Example: <code>custom_raw_link_pinned=/emergency Emergency Service</code> adds "Emergency Service" link at the top</li>
                     </ul>
                 </div>
             </div>

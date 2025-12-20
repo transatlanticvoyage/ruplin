@@ -207,7 +207,28 @@ function ruplin_render_dioptra_screen() {
                 </a>
             </div>
             
-            <table style="width: auto; border-collapse: collapse; margin-top: 20px;">
+            <!-- Horizontal Tab System -->
+            <div id="dioptra-tabs-container" style="margin-top: 20px; margin-bottom: 10px;">
+                <div id="dioptra-tabs-nav" style="border-bottom: 3px solid #ddd; margin-bottom: 0;">
+                    <button type="button" 
+                            class="dioptra-tab-btn active" 
+                            data-tab="main-tab-1a"
+                            style="background: #0073aa; color: white; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        Main Tab 1a
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="our-services-config"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        Our Services Box Config
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tab Content Containers -->
+            <div id="main-tab-1a" class="dioptra-tab-content" style="display: block;">
+            
+            <table style="width: auto; border-collapse: collapse; margin-top: 0;">
                 <thead>
                     <tr style="background-color: #f1f1f1;">
                         <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
@@ -238,10 +259,15 @@ function ruplin_render_dioptra_screen() {
                                     $value = $pylon_data[$field_name];
                                 }
                                 ?>
-                                <input type="text" 
-                                       name="data_<?php echo esc_attr($field_name); ?>" 
-                                       value="<?php echo esc_attr($value); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                <?php if ($field_name === 'post_content'): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 150px; border: 1px solid #ccc; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" 
+                                           name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>" 
+                                           style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
                                 <?php
@@ -257,6 +283,72 @@ function ruplin_render_dioptra_screen() {
                 </tbody>
             </table>
         <?php endif; ?>
+        
+            </div> <!-- End Main Tab 1a -->
+            
+            <!-- Our Services Box Config Tab -->
+            <div id="our-services-config" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">Our Services Configuration</h3>
+                
+                <div style="background: white; padding: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h4 style="margin-top: 0; color: #333;">Display Settings</h4>
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px 15px; width: 200px; font-weight: 600; color: #555;">Section Title:</td>
+                            <td style="padding: 10px 15px;">
+                                <input type="text" 
+                                       id="our_services_box_title" 
+                                       name="our_services_box_title" 
+                                       value="<?php echo esc_attr($pylon_data['our_services_box_title'] ?? 'Our Services'); ?>"
+                                       style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" 
+                                       placeholder="Our Services" />
+                                <small style="color: #666; margin-left: 10px;">Default: "Our Services"</small>
+                            </td>
+                        </tr>
+                        <tr style="background: #f8f9fa;">
+                            <td style="padding: 10px 15px; font-weight: 600; color: #555;">Cards Per Row:</td>
+                            <td style="padding: 10px 15px;">
+                                <select id="services_per_row" name="services_per_row" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option value="3">3 per row</option>
+                                    <option value="4" selected>4 per row (default)</option>
+                                    <option value="5">5 per row</option>
+                                </select>
+                                <small style="color: #666; margin-left: 10px;">Desktop layout (auto-responsive on mobile)</small>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 15px; font-weight: 600; color: #555;">Max Services to Show:</td>
+                            <td style="padding: 10px 15px;">
+                                <input type="number" 
+                                       id="max_services_display" 
+                                       name="max_services_display" 
+                                       value="0" 
+                                       min="0" 
+                                       style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                                <small style="color: #666; margin-left: 10px;">0 = Show all services</small>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <h4 style="margin: 30px 0 15px 0; color: #333;">Service Pages Management</h4>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <button type="button" 
+                                id="refresh-services-list"
+                                style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                            Refresh Services List
+                        </button>
+                        <small style="color: #666; margin-left: 10px;">Load latest service pages</small>
+                    </div>
+                    
+                    <div id="services-management-area">
+                        <p style="color: #666; font-style: italic;">Click "Refresh Services List" to load service pages for configuration.</p>
+                    </div>
+                    
+                </div>
+            </div>
+            
     </div>
     
     <script>
@@ -300,6 +392,94 @@ function ruplin_render_dioptra_screen() {
             btn.disabled = false;
             btn.style.background = '#28a745';
             btn.innerHTML = 'create missing pylon';
+        });
+    }
+    
+    // Tab switching functionality
+    function switchDioptraTab(targetTabId) {
+        // Hide all tab contents
+        const tabContents = document.querySelectorAll('.dioptra-tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+        });
+        
+        // Remove active class from all buttons
+        const tabButtons = document.querySelectorAll('.dioptra-tab-btn');
+        tabButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.background = '#f1f1f1';
+            btn.style.color = '#666';
+        });
+        
+        // Show target tab content
+        const targetTab = document.getElementById(targetTabId);
+        if (targetTab) {
+            targetTab.style.display = 'block';
+        }
+        
+        // Activate corresponding button
+        const targetButton = document.querySelector(`[data-tab="${targetTabId}"]`);
+        if (targetButton) {
+            targetButton.classList.add('active');
+            targetButton.style.background = '#0073aa';
+            targetButton.style.color = 'white';
+        }
+    }
+    
+    // Initialize tab system
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.dioptra-tab-btn');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+                switchDioptraTab(targetTab);
+            });
+        });
+        
+        // Refresh services list functionality
+        const refreshBtn = document.getElementById('refresh-services-list');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                refreshServicesList();
+            });
+        }
+    });
+    
+    // Refresh services list function
+    function refreshServicesList() {
+        const btn = document.getElementById('refresh-services-list');
+        const managementArea = document.getElementById('services-management-area');
+        
+        btn.disabled = true;
+        btn.innerHTML = 'Loading...';
+        btn.style.background = '#6c757d';
+        
+        // AJAX call to get services
+        fetch(ajaxurl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'dioptra_get_services_list',
+                nonce: '<?php echo wp_create_nonce('dioptra_nonce'); ?>'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                managementArea.innerHTML = data.data.html;
+            } else {
+                managementArea.innerHTML = '<p style="color: #dc3545;">Error: ' + (data.data.message || 'Failed to load services') + '</p>';
+            }
+        })
+        .catch(error => {
+            managementArea.innerHTML = '<p style="color: #dc3545;">Error: ' + error + '</p>';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'Refresh Services List';
+            btn.style.background = '#28a745';
         });
     }
     

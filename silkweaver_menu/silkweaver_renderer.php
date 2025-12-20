@@ -104,20 +104,62 @@ class Silkweaver_Menu_Renderer {
                     );
                     error_log("Silkweaver added static item: " . $matches[1] . " -> " . $matches[2]);
                 }
-            } elseif ($line === 'pull_all_service_pages_dynamically') {
+            } elseif (strpos($line, 'pull_all_service_pages_dynamically') === 0) {
+                // Parse custom_raw_link and custom_raw_link_pinned if present
+                $custom_links = array();
+                $pinned_links = array();
+                
+                // Check for pinned link first
+                if (preg_match('/custom_raw_link_pinned=([^\s]+)\s+(.+)/', $line, $matches)) {
+                    $pinned_links[] = array(
+                        'url' => $matches[1],
+                        'anchor' => $matches[2]
+                    );
+                    error_log("Silkweaver parsed pinned service link: " . $matches[1] . " -> " . $matches[2]);
+                } elseif (preg_match('/custom_raw_link=([^\s]+)\s+(.+)/', $line, $matches)) {
+                    $custom_links[] = array(
+                        'url' => $matches[1],
+                        'anchor' => $matches[2]
+                    );
+                    error_log("Silkweaver parsed custom service link: " . $matches[1] . " -> " . $matches[2]);
+                }
+                
                 $menu_items[] = array(
                     'type' => 'dynamic',
                     'archetype' => 'servicepage',
-                    'title' => 'Services'
+                    'title' => 'Services',
+                    'custom_links' => $custom_links,
+                    'pinned_links' => $pinned_links
                 );
-                error_log("Silkweaver added services dynamic item");
-            } elseif ($line === 'pull_all_location_pages_dynamically') {
+                error_log("Silkweaver added services dynamic item with " . count($custom_links) . " custom links and " . count($pinned_links) . " pinned links");
+            } elseif (strpos($line, 'pull_all_location_pages_dynamically') === 0) {
+                // Parse custom_raw_link and custom_raw_link_pinned if present
+                $custom_links = array();
+                $pinned_links = array();
+                
+                // Check for pinned link first
+                if (preg_match('/custom_raw_link_pinned=([^\s]+)\s+(.+)/', $line, $matches)) {
+                    $pinned_links[] = array(
+                        'url' => $matches[1],
+                        'anchor' => $matches[2]
+                    );
+                    error_log("Silkweaver parsed pinned location link: " . $matches[1] . " -> " . $matches[2]);
+                } elseif (preg_match('/custom_raw_link=([^\s]+)\s+(.+)/', $line, $matches)) {
+                    $custom_links[] = array(
+                        'url' => $matches[1],
+                        'anchor' => $matches[2]
+                    );
+                    error_log("Silkweaver parsed custom location link: " . $matches[1] . " -> " . $matches[2]);
+                }
+                
                 $menu_items[] = array(
                     'type' => 'dynamic',
                     'archetype' => 'locationpage', 
-                    'title' => 'Locations'
+                    'title' => 'Locations',
+                    'custom_links' => $custom_links,
+                    'pinned_links' => $pinned_links
                 );
-                error_log("Silkweaver added locations dynamic item");
+                error_log("Silkweaver added locations dynamic item with " . count($custom_links) . " custom links and " . count($pinned_links) . " pinned links");
             }
         }
         
@@ -159,21 +201,66 @@ class Silkweaver_Menu_Renderer {
         
         error_log("Silkweaver final query results: " . json_encode($posts));
         
-        if (empty($posts)) {
+        // Create arrays for different link types
+        $pinned_links = array();
+        $sortable_links = array();
+        
+        // Add pinned links first (these will appear at the top)
+        if (!empty($item['pinned_links'])) {
+            foreach ($item['pinned_links'] as $pinned_link) {
+                $pinned_links[] = array(
+                    'url' => $pinned_link['url'],
+                    'title' => $pinned_link['anchor'],
+                    'type' => 'pinned'
+                );
+            }
+            error_log("Silkweaver added " . count($item['pinned_links']) . " pinned links to dropdown");
+        }
+        
+        // Add database posts to sortable links
+        foreach ($posts as $post) {
+            $url = get_permalink($post->ID);
+            $title = !empty($post->moniker) ? $post->moniker : $post->post_title;
+            
+            $sortable_links[] = array(
+                'url' => $url,
+                'title' => $title,
+                'type' => 'post'
+            );
+        }
+        
+        // Add custom raw links to sortable links
+        if (!empty($item['custom_links'])) {
+            foreach ($item['custom_links'] as $custom_link) {
+                $sortable_links[] = array(
+                    'url' => $custom_link['url'],
+                    'title' => $custom_link['anchor'],
+                    'type' => 'custom'
+                );
+            }
+            error_log("Silkweaver added " . count($item['custom_links']) . " custom links to dropdown");
+        }
+        
+        // Sort only the sortable links alphabetically by title
+        usort($sortable_links, function($a, $b) {
+            return strcasecmp($a['title'], $b['title']);
+        });
+        
+        // Combine pinned links (first) + sorted links
+        $all_links = array_merge($pinned_links, $sortable_links);
+        
+        if (empty($all_links)) {
             return sprintf('<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button></li>', esc_html($item['title']));
         }
         
         $html = sprintf('<li class="silkweaver-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button>', esc_html($item['title']));
         $html .= '<ul class="silkweaver-dropdown-menu">';
         
-        foreach ($posts as $post) {
-            $url = get_permalink($post->ID);
-            $title = !empty($post->moniker) ? $post->moniker : $post->post_title;
-            
+        foreach ($all_links as $link) {
             $html .= sprintf(
                 '<li><a href="%s">%s</a></li>',
-                esc_url($url),
-                esc_html($title)
+                esc_url($link['url']),
+                esc_html($link['title'])
             );
         }
         
