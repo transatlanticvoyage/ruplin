@@ -459,7 +459,10 @@ class SnefuruPlugin {
             exempt_from_silkweaver_menu_dynamical TINYINT(1) DEFAULT NULL,
             paragon_featured_image_id BIGINT(20) UNSIGNED DEFAULT NULL,
             paragon_description TEXT DEFAULT NULL,
-            our_services_box_title TEXT DEFAULT NULL,
+            osb_box_title TEXT DEFAULT NULL,
+            osb_services_per_row INT DEFAULT 4,
+            osb_max_services_display INT DEFAULT 0,
+            osb_is_enabled TINYINT(1) DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -684,14 +687,52 @@ class SnefuruPlugin {
                 $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN paragon_description TEXT DEFAULT NULL");
             }
             
-            // Check and add our_services_box_title column
-            $title_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'our_services_box_title'");
-            if (empty($title_exists)) {
+            // Check and add our_services_box_title column (for backward compatibility)
+            $old_title_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'our_services_box_title'");
+            if (empty($old_title_exists)) {
                 $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN our_services_box_title TEXT DEFAULT NULL");
             }
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '1.5.0');
+        }
+        
+        // Check for version 1.6.0 migration - rename and add OSB columns
+        $current_migration = get_option('snefuru_pylons_migration_version', '1.0.0');
+        if (version_compare($current_migration, '1.6.0', '<')) {
+            
+            // Rename our_services_box_title to osb_box_title
+            $old_title_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'our_services_box_title'");
+            $new_title_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'osb_box_title'");
+            
+            if (!empty($old_title_exists) && empty($new_title_exists)) {
+                // Rename the column
+                $wpdb->query("ALTER TABLE $pylons_table CHANGE our_services_box_title osb_box_title TEXT DEFAULT NULL");
+            } elseif (empty($new_title_exists)) {
+                // Add the new column if it doesn't exist
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN osb_box_title TEXT DEFAULT NULL");
+            }
+            
+            // Add osb_services_per_row column
+            $per_row_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'osb_services_per_row'");
+            if (empty($per_row_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN osb_services_per_row INT DEFAULT 4");
+            }
+            
+            // Add osb_max_services_display column
+            $max_display_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'osb_max_services_display'");
+            if (empty($max_display_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN osb_max_services_display INT DEFAULT 0");
+            }
+            
+            // Add osb_is_enabled column
+            $is_enabled_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'osb_is_enabled'");
+            if (empty($is_enabled_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN osb_is_enabled TINYINT(1) DEFAULT 0");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '1.6.0');
         }
     }
 }

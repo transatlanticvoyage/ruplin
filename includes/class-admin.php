@@ -11166,6 +11166,11 @@ class Snefuru_Admin {
         $update_data = array();
         $post_update_data = array();
         
+        // Debug: Log all incoming POST data (excluding sensitive data)
+        $debug_post = $_POST;
+        unset($debug_post['action'], $debug_post['nonce']); // Remove sensitive data
+        error_log("Dioptra save - All POST data received: " . json_encode($debug_post));
+        
         // Process field updates
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'field_') === 0) {
@@ -11185,6 +11190,9 @@ class Snefuru_Admin {
                     if (in_array($field_name, ['paragon_description', 'hero_mainheading', 'hero_subheading'])) {
                         // Allow basic HTML for description fields
                         $update_data[$field_name] = wp_kses_post($value);
+                    } elseif (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
+                        // Handle boolean/checkbox fields - convert to proper integer
+                        $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
                     } else {
                         $update_data[$field_name] = sanitize_text_field($value);
                     }
@@ -11196,6 +11204,13 @@ class Snefuru_Admin {
         
         error_log("Dioptra save - Post update data: " . json_encode($post_update_data));
         error_log("Dioptra save - Pylon update data: " . json_encode($update_data));
+        
+        // Debug: Check specifically for OSB fields
+        if (isset($_POST['field_osb_is_enabled'])) {
+            error_log("Dioptra save - OSB checkbox received: " . $_POST['field_osb_is_enabled']);
+        } else {
+            error_log("Dioptra save - OSB checkbox NOT received in POST data");
+        }
         
         // Update wp_posts fields if any
         if (!empty($post_update_data)) {
@@ -11216,6 +11231,11 @@ class Snefuru_Admin {
         
         // Update wp_pylons fields if any
         if (!empty($update_data)) {
+            // Debug: Check if osb_is_enabled column exists
+            $columns = $wpdb->get_col("DESCRIBE {$pylons_table}");
+            $has_osb_column = in_array('osb_is_enabled', $columns);
+            error_log("Dioptra save - osb_is_enabled column exists: " . ($has_osb_column ? 'YES' : 'NO'));
+            
             $pylon_result = $wpdb->update(
                 $pylons_table,
                 $update_data,
@@ -11234,7 +11254,40 @@ class Snefuru_Admin {
         if (!empty($success_messages)) {
             wp_send_json_success(['message' => implode(', ', $success_messages)]);
         } else {
-            wp_send_json_error(['message' => 'No data to update or update failed']);
+            // Collect detailed error information
+            $error_details = array();
+            
+            // Check what data was received
+            $error_details['post_id'] = $post_id;
+            $error_details['post_data_count'] = count($post_update_data);
+            $error_details['pylon_data_count'] = count($update_data);
+            
+            // Check if pylon record exists
+            $pylon_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$pylons_table} WHERE rel_wp_post_id = %d", 
+                $post_id
+            ));
+            $error_details['pylon_record_exists'] = (bool)$pylon_exists;
+            
+            // Include database errors if any
+            if (!empty($wpdb->last_error)) {
+                $error_details['db_error'] = $wpdb->last_error;
+            }
+            
+            // Check if there were update attempts
+            $error_details['post_update_attempted'] = !empty($post_update_data);
+            $error_details['pylon_update_attempted'] = !empty($update_data);
+            
+            wp_send_json_error([
+                'message' => 'Save operation failed', 
+                'details' => $error_details,
+                'debug_info' => [
+                    'post_fields' => array_keys($post_update_data),
+                    'pylon_fields' => array_keys($update_data),
+                    'raw_post_keys' => array_keys($debug_post),
+                    'field_prefixed_count' => count(array_filter(array_keys($_POST), function($key) { return strpos($key, 'field_') === 0; }))
+                ]
+            ]);
         }
     }
     
@@ -12552,6 +12605,22 @@ class Snefuru_Admin {
         global $wpdb;
         $pylons_table = $wpdb->prefix . 'pylons';
         
+        // Debug: Check what's in pylons table
+        $debug_pylons = $wpdb->get_results("
+            SELECT rel_wp_post_id, pylon_archetype, COUNT(*) as count
+            FROM {$pylons_table}
+            GROUP BY pylon_archetype
+            ORDER BY pylon_archetype
+        ", ARRAY_A);
+        
+        // Debug: Check for servicepage specifically
+        $debug_servicepages = $wpdb->get_results("
+            SELECT py.*, p.post_title, p.post_status
+            FROM {$pylons_table} py
+            LEFT JOIN {$wpdb->posts} p ON p.ID = py.rel_wp_post_id
+            WHERE py.pylon_archetype = 'servicepage'
+        ", ARRAY_A);
+        
         // Get all service pages
         $services = $wpdb->get_results("
             SELECT 
@@ -12571,6 +12640,35 @@ class Snefuru_Admin {
         
         if (empty($services)) {
             $html = '<p style="color: #666; font-style: italic;">No service pages found. Create some service pages with pylon_archetype = "servicepage" first.</p>';
+            
+            // Add debugging information
+            $html .= '<div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 10px 0; border-radius: 4px;">';
+            $html .= '<h4 style="margin: 0 0 10px 0; color: #856404;">Debug Information:</h4>';
+            
+            // Show all pylon archetypes
+            $html .= '<p><strong>All pylon_archetype values in database:</strong></p>';
+            if (!empty($debug_pylons)) {
+                $html .= '<ul>';
+                foreach ($debug_pylons as $row) {
+                    $html .= '<li>' . esc_html($row['pylon_archetype'] ?: 'NULL/empty') . ' (count: ' . $row['count'] . ')</li>';
+                }
+                $html .= '</ul>';
+            } else {
+                $html .= '<p>No records found in pylons table!</p>';
+            }
+            
+            // Show servicepage entries specifically
+            $html .= '<p><strong>Servicepage entries found:</strong> ' . count($debug_servicepages) . '</p>';
+            if (!empty($debug_servicepages)) {
+                $html .= '<ul>';
+                foreach ($debug_servicepages as $row) {
+                    $status = $row['post_status'] ?: 'NO POST FOUND';
+                    $title = $row['post_title'] ?: 'NO TITLE';
+                    $html .= '<li>Post ID: ' . $row['rel_wp_post_id'] . ', Status: ' . $status . ', Title: ' . esc_html($title) . '</li>';
+                }
+                $html .= '</ul>';
+            }
+            $html .= '</div>';
         } else {
             $html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-bottom: 15px;">';
             $html .= '<strong>' . count($services) . ' service pages found</strong>';

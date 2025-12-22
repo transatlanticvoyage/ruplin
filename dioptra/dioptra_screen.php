@@ -89,6 +89,7 @@ function ruplin_render_dioptra_screen() {
         'trustblock_vezzy_desc' => 'pylons',
         'baynar1_main' => 'pylons',
         'baynar2_main' => 'pylons'
+        // OSB fields removed from main table - they're handled separately in the OSB tab
     );
     
     // Debug: Check for servicepage entries
@@ -110,23 +111,40 @@ function ruplin_render_dioptra_screen() {
             </button>
         </div>
         
-        <!-- Debug: Show servicepage entries -->
-        <?php if (!empty($debug_servicepages)): ?>
-            <div style="background: #f0f8ff; border: 1px solid #0073aa; padding: 10px; margin: 10px 0;">
-                <strong>Debug: Found <?php echo count($debug_servicepages); ?> servicepage entries:</strong>
-                <?php foreach ($debug_servicepages as $sp): ?>
-                    <div style="margin: 5px 0; font-family: monospace; font-size: 12px;">
-                        Post ID: <?php echo $sp['rel_wp_post_id']; ?> | 
-                        Title: "<?php echo esc_html($sp['post_title']); ?>" | 
-                        Status: <?php echo $sp['post_status']; ?> | 
-                        Moniker: "<?php echo esc_html($sp['moniker']); ?>" | 
-                        Exempt: <?php echo $sp['exempt_from_silkweaver_menu_dynamical'] ?? 'NULL'; ?>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 10px; margin: 10px 0;">
-                <strong>Debug: No servicepage entries found in database!</strong>
+        <!-- Dioptra Save Debug Info -->
+        <?php if ($post_id): ?>
+            <?php
+            // Debug current pylon data for this specific post
+            $current_pylon = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$pylons_table} WHERE rel_wp_post_id = %d", 
+                $post_id
+            ), ARRAY_A);
+            ?>
+            <div style="background: #e7f3ff; border: 1px solid #0073aa; padding: 15px; margin: 10px 0; border-radius: 4px;">
+                <strong>🔍 Dioptra Debug Info for Post ID <?php echo $post_id; ?>:</strong>
+                <div style="margin: 10px 0; font-family: monospace; font-size: 12px;">
+                    <strong>Post Details:</strong><br>
+                    - Post Title: "<?php echo esc_html(get_the_title($post_id)); ?>"<br>
+                    - Post Status: <?php echo get_post_status($post_id); ?><br>
+                    - Pylon Record Exists: <?php echo $current_pylon ? 'YES' : 'NO'; ?><br>
+                    
+                    <?php if ($current_pylon): ?>
+                        <br><strong>Current Pylon Data:</strong><br>
+                        - Pylon ID: <?php echo $current_pylon['pylon_id'] ?? 'NULL'; ?><br>
+                        - Moniker: "<?php echo esc_html($current_pylon['moniker'] ?? ''); ?>"<br>
+                        - Paragon Description: "<?php echo esc_html(substr($current_pylon['paragon_description'] ?? '', 0, 50)); ?><?php echo strlen($current_pylon['paragon_description'] ?? '') > 50 ? '...' : ''; ?>"<br>
+                        - Last Updated: <?php echo $current_pylon['updated_at'] ?? 'Never'; ?><br>
+                        <br><strong>OSB Settings:</strong><br>
+                        - OSB Enabled: <?php echo isset($current_pylon['osb_is_enabled']) ? ($current_pylon['osb_is_enabled'] ? 'YES (1)' : 'NO (0)') : 'COLUMN MISSING'; ?><br>
+                        - OSB Title: "<?php echo esc_html($current_pylon['osb_box_title'] ?? ''); ?>"<br>
+                        - Services Per Row: <?php echo $current_pylon['osb_services_per_row'] ?? 'NULL'; ?><br>
+                        - Max Services: <?php echo $current_pylon['osb_max_services_display'] ?? 'NULL'; ?><br>
+                    <?php endif; ?>
+                </div>
+                <div id="save-debug-results" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; display: none;">
+                    <strong>Save Debug Results:</strong>
+                    <div id="save-debug-content"></div>
+                </div>
             </div>
         <?php endif; ?>
         
@@ -234,7 +252,7 @@ function ruplin_render_dioptra_screen() {
                         <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
                         <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
                         <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
-                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">datum-house</th>
+                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
                         <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
                     </tr>
                 </thead>
@@ -250,7 +268,7 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;">
                                 <?php echo esc_html($field_name); ?>
                             </td>
-                            <td style="border: 1px solid #ccc; padding: 8px;">
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
                                 <?php
                                 $value = '';
                                 if ($table_source === 'posts' && isset($post_data[$field_name])) {
@@ -294,39 +312,58 @@ function ruplin_render_dioptra_screen() {
                     <h4 style="margin-top: 0; color: #333;">Display Settings</h4>
                     
                     <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="background: #e8f5e8;">
+                            <td style="padding: 10px 15px; width: 200px; font-weight: 600; color: #555;">Enable Our Services Box:</td>
+                            <td style="padding: 10px 15px;">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" 
+                                           id="osb_is_enabled" 
+                                           name="field_osb_is_enabled" 
+                                           value="1"
+                                           <?php checked($pylon_data['osb_is_enabled'] ?? 0, 1); ?>
+                                           style="margin-right: 8px; transform: scale(1.2);" />
+                                    <span style="font-weight: 600;">Show Our Services section on homepage</span>
+                                </label>
+                                <small style="color: #666; display: block; margin-top: 5px;">When enabled, the Our Services box will appear before the footer on the homepage</small>
+                                <small style="color: #888; font-style: italic; margin-left: 10px;">DB column: osb_is_enabled</small>
+                            </td>
+                        </tr>
                         <tr>
                             <td style="padding: 10px 15px; width: 200px; font-weight: 600; color: #555;">Section Title:</td>
                             <td style="padding: 10px 15px;">
                                 <input type="text" 
-                                       id="our_services_box_title" 
-                                       name="our_services_box_title" 
-                                       value="<?php echo esc_attr($pylon_data['our_services_box_title'] ?? 'Our Services'); ?>"
+                                       id="osb_box_title" 
+                                       name="field_osb_box_title" 
+                                       value="<?php echo esc_attr($pylon_data['osb_box_title'] ?? 'Our Services'); ?>"
                                        style="width: 300px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" 
                                        placeholder="Our Services" />
                                 <small style="color: #666; margin-left: 10px;">Default: "Our Services"</small>
+                                <small style="color: #888; font-style: italic; margin-left: 10px;">DB column: osb_box_title</small>
                             </td>
                         </tr>
                         <tr style="background: #f8f9fa;">
                             <td style="padding: 10px 15px; font-weight: 600; color: #555;">Cards Per Row:</td>
                             <td style="padding: 10px 15px;">
-                                <select id="services_per_row" name="services_per_row" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                                    <option value="3">3 per row</option>
-                                    <option value="4" selected>4 per row (default)</option>
-                                    <option value="5">5 per row</option>
+                                <select id="osb_services_per_row" name="field_osb_services_per_row" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <option value="3" <?php selected($pylon_data['osb_services_per_row'] ?? 4, 3); ?>>3 per row</option>
+                                    <option value="4" <?php selected($pylon_data['osb_services_per_row'] ?? 4, 4); ?>>4 per row (default)</option>
+                                    <option value="5" <?php selected($pylon_data['osb_services_per_row'] ?? 4, 5); ?>>5 per row</option>
                                 </select>
                                 <small style="color: #666; margin-left: 10px;">Desktop layout (auto-responsive on mobile)</small>
+                                <small style="color: #888; font-style: italic; margin-left: 10px;">DB column: osb_services_per_row</small>
                             </td>
                         </tr>
                         <tr>
                             <td style="padding: 10px 15px; font-weight: 600; color: #555;">Max Services to Show:</td>
                             <td style="padding: 10px 15px;">
                                 <input type="number" 
-                                       id="max_services_display" 
-                                       name="max_services_display" 
-                                       value="0" 
+                                       id="osb_max_services_display" 
+                                       name="field_osb_max_services_display" 
+                                       value="<?php echo esc_attr($pylon_data['osb_max_services_display'] ?? 0); ?>" 
                                        min="0" 
                                        style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
                                 <small style="color: #666; margin-left: 10px;">0 = Show all services</small>
+                                <small style="color: #888; font-style: italic; margin-left: 10px;">DB column: osb_max_services_display</small>
                             </td>
                         </tr>
                     </table>
@@ -379,7 +416,7 @@ function ruplin_render_dioptra_screen() {
                 alert('Pylon created successfully!');
                 location.reload(); // Reload to show updated data
             } else {
-                alert('Error: ' + (data.data.message || 'Failed to create pylon'));
+                showDioptraErrorModal(data.data || { message: 'Failed to create pylon' });
                 // Re-enable button on error
                 btn.disabled = false;
                 btn.style.background = '#28a745';
@@ -387,7 +424,10 @@ function ruplin_render_dioptra_screen() {
             }
         })
         .catch(error => {
-            alert('Error: ' + error);
+            showDioptraErrorModal({ 
+                message: 'Network error during pylon creation', 
+                details: { error: error.toString() } 
+            });
             // Re-enable button on error
             btn.disabled = false;
             btn.style.background = '#28a745';
@@ -494,11 +534,22 @@ function ruplin_render_dioptra_screen() {
         formData.append('post_id', <?php echo $post_id; ?>);
         formData.append('nonce', '<?php echo wp_create_nonce('dioptra_save_nonce'); ?>');
         
-        // Get all text inputs from the table
-        const inputs = document.querySelectorAll('input[name^="data_"]');
+        // Get all inputs from the table
+        const inputs = document.querySelectorAll('input[name^="field_"], textarea[name^="field_"], select[name^="field_"]');
+        
+        // Debug: Log all fields being collected
+        console.log('Dioptra Save - Collecting fields:', inputs.length);
+        
         inputs.forEach(input => {
-            const fieldName = input.name.replace('data_', '');
-            formData.append('field_' + fieldName, input.value);
+            if (input.type === 'checkbox') {
+                // For checkboxes, send 1 if checked, 0 if unchecked
+                const checkboxValue = input.checked ? '1' : '0';
+                formData.append(input.name, checkboxValue);
+                console.log(`Checkbox: ${input.name} = ${checkboxValue} (checked: ${input.checked})`);
+            } else {
+                formData.append(input.name, input.value);
+                console.log(`Field: ${input.name} = ${input.value}`);
+            }
         });
         
         // Update button state
@@ -513,6 +564,9 @@ function ruplin_render_dioptra_screen() {
         })
         .then(response => response.json())
         .then(data => {
+            // Show debug information
+            showSaveDebugInfo(data, formData);
+            
             if (data.success) {
                 btn.style.background = '#46b450';
                 btn.innerHTML = 'Saved!';
@@ -522,19 +576,303 @@ function ruplin_render_dioptra_screen() {
                     btn.innerHTML = originalText;
                 }, 2000);
             } else {
-                alert('Error: ' + (data.data.message || 'Failed to save data'));
+                showDioptraErrorModal(data.data || { message: 'Failed to save data' });
                 btn.disabled = false;
                 btn.style.background = '#0073aa';
                 btn.innerHTML = originalText;
             }
         })
         .catch(error => {
-            alert('Error: ' + error);
+            showDioptraErrorModal({ 
+                message: 'Network or JavaScript error', 
+                details: { error: error.toString() } 
+            });
             btn.disabled = false;
             btn.style.background = '#0073aa';
             btn.innerHTML = originalText;
         });
     });
+
+    // Custom error modal function
+    function showDioptraErrorModal(errorData) {
+        // Remove existing modal if present
+        const existingModal = document.getElementById('dioptra-error-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Create modal HTML
+        const modal = document.createElement('div');
+        modal.id = 'dioptra-error-modal';
+        modal.innerHTML = `
+            <div class="dioptra-modal-overlay" onclick="closeDioptraErrorModal()">
+                <div class="dioptra-modal-content" onclick="event.stopPropagation()">
+                    <div class="dioptra-modal-header">
+                        <h3>🚫 Dioptra Save Error</h3>
+                        <button class="dioptra-modal-close" onclick="closeDioptraErrorModal()">&times;</button>
+                    </div>
+                    <div class="dioptra-modal-body">
+                        <div class="error-message">
+                            <strong>Error:</strong> ${errorData.message || 'Unknown error occurred'}
+                        </div>
+                        ${errorData.details ? `
+                            <div class="error-details">
+                                <h4>📊 Diagnostic Information:</h4>
+                                <div class="error-detail-grid">
+                                    ${errorData.details.post_id ? `<div><strong>Post ID:</strong> ${errorData.details.post_id}</div>` : ''}
+                                    ${errorData.details.post_data_count !== undefined ? `<div><strong>Post Fields:</strong> ${errorData.details.post_data_count}</div>` : ''}
+                                    ${errorData.details.pylon_data_count !== undefined ? `<div><strong>Pylon Fields:</strong> ${errorData.details.pylon_data_count}</div>` : ''}
+                                    ${errorData.details.pylon_record_exists !== undefined ? `<div><strong>Pylon Record Exists:</strong> ${errorData.details.pylon_record_exists ? 'Yes' : 'No'}</div>` : ''}
+                                    ${errorData.details.post_update_attempted !== undefined ? `<div><strong>Post Update Attempted:</strong> ${errorData.details.post_update_attempted ? 'Yes' : 'No'}</div>` : ''}
+                                    ${errorData.details.pylon_update_attempted !== undefined ? `<div><strong>Pylon Update Attempted:</strong> ${errorData.details.pylon_update_attempted ? 'Yes' : 'No'}</div>` : ''}
+                                </div>
+                                ${errorData.details.db_error ? `<div class="db-error"><strong>Database Error:</strong> ${errorData.details.db_error}</div>` : ''}
+                            </div>
+                        ` : ''}
+                        ${errorData.debug_info ? `
+                            <div class="debug-info">
+                                <h4>🔍 Debug Information:</h4>
+                                ${errorData.debug_info.post_fields && errorData.debug_info.post_fields.length > 0 ? `<div><strong>Post Fields:</strong> ${errorData.debug_info.post_fields.join(', ')}</div>` : '<div><strong>Post Fields:</strong> None processed</div>'}
+                                ${errorData.debug_info.pylon_fields && errorData.debug_info.pylon_fields.length > 0 ? `<div><strong>Pylon Fields:</strong> ${errorData.debug_info.pylon_fields.join(', ')}</div>` : '<div><strong>Pylon Fields:</strong> None processed</div>'}
+                                ${errorData.debug_info.raw_post_keys ? `<div><strong>Raw POST Keys:</strong> ${errorData.debug_info.raw_post_keys.join(', ')}</div>` : ''}
+                                ${errorData.debug_info.field_prefixed_count !== undefined ? `<div><strong>Fields with "field_" prefix:</strong> ${errorData.debug_info.field_prefixed_count}</div>` : ''}
+                            </div>
+                        ` : ''}
+                        <div class="error-actions">
+                            <button class="btn-copy-error" onclick="copyErrorToClipboard()">📋 Copy Error Details</button>
+                            <button class="btn-check-logs" onclick="window.open('/wp-admin/admin.php?page=snefuru-logs', '_blank')">📝 Check Debug Logs</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .dioptra-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                z-index: 99999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: fadeIn 0.3s ease;
+            }
+            .dioptra-modal-content {
+                background: white;
+                border-radius: 8px;
+                max-width: 600px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+            }
+            .dioptra-modal-header {
+                background: #dc3545;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px 8px 0 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .dioptra-modal-header h3 {
+                margin: 0;
+                font-size: 18px;
+            }
+            .dioptra-modal-close {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+            }
+            .dioptra-modal-body {
+                padding: 20px;
+            }
+            .error-message {
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+                padding: 12px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+            }
+            .error-details {
+                background: #e2e3e5;
+                border: 1px solid #d6d8db;
+                padding: 15px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+            }
+            .error-details h4 {
+                margin: 0 0 10px 0;
+                color: #495057;
+            }
+            .error-detail-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+            .error-detail-grid > div {
+                background: white;
+                padding: 8px;
+                border-radius: 3px;
+                font-size: 13px;
+            }
+            .db-error {
+                background: #f8d7da;
+                border: 1px solid #f5c6cb;
+                color: #721c24;
+                padding: 8px;
+                border-radius: 3px;
+                font-family: monospace;
+                font-size: 12px;
+                margin-top: 10px;
+            }
+            .debug-info {
+                background: #d1ecf1;
+                border: 1px solid #bee5eb;
+                padding: 15px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+            }
+            .debug-info h4 {
+                margin: 0 0 10px 0;
+                color: #0c5460;
+            }
+            .debug-info div {
+                font-size: 13px;
+                margin-bottom: 5px;
+                font-family: monospace;
+            }
+            .error-actions {
+                display: flex;
+                gap: 10px;
+                justify-content: flex-end;
+            }
+            .error-actions button {
+                padding: 8px 16px;
+                border: 1px solid #007cba;
+                background: #007cba;
+                color: white;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 13px;
+            }
+            .error-actions button:hover {
+                background: #005a87;
+                border-color: #005a87;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideIn {
+                from { transform: translateY(-20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+        `;
+        
+        // Add modal and styles to document
+        document.head.appendChild(style);
+        document.body.appendChild(modal);
+        
+        // Store error data for copying
+        window.dioptraErrorData = errorData;
+    }
+
+    // Show save debug information
+    function showSaveDebugInfo(response, formData) {
+        const debugArea = document.getElementById('save-debug-results');
+        const debugContent = document.getElementById('save-debug-content');
+        
+        if (!debugArea || !debugContent) return;
+        
+        // Count form data fields
+        let fieldCount = 0;
+        let fieldNames = [];
+        
+        for (let [key, value] of formData.entries()) {
+            if (key.startsWith('field_')) {
+                fieldCount++;
+                fieldNames.push(key + '=' + (value.length > 30 ? value.substr(0, 30) + '...' : value));
+            }
+        }
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const isSuccess = response.success;
+        
+        debugContent.innerHTML = debugContent.innerHTML + `
+            <div style="font-family: monospace; font-size: 12px; line-height: 1.4; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;">
+                <div style="color: ${isSuccess ? '#28a745' : '#dc3545'}; font-weight: bold; margin-bottom: 8px;">
+                    ${timestamp} - ${isSuccess ? '✅ SAVE SUCCESS' : '❌ SAVE FAILED'}
+                </div>
+                
+                <div style="margin-bottom: 8px;">
+                    <strong>Fields Sent:</strong> ${fieldCount} fields<br>
+                    <div style="margin-left: 10px; color: #666; max-height: 200px; overflow-y: auto; font-size: 10px;">
+                        ${fieldNames.join('<br>')}
+                    </div>
+                </div>
+                
+                ${response.data ? `
+                    <div style="margin-bottom: 8px;">
+                        <strong>Response:</strong> ${response.data.message || 'No message'}
+                    </div>
+                ` : ''}
+                
+                ${response.data && response.data.details ? `
+                    <div style="background: #f8f9fa; padding: 8px; border-radius: 3px; margin-top: 8px;">
+                        <strong>Debug Details:</strong><br>
+                        Post ID: ${response.data.details.post_id}<br>
+                        Post Fields: ${response.data.details.post_data_count}<br>
+                        Pylon Fields: ${response.data.details.pylon_data_count}<br>
+                        Pylon Record Exists: ${response.data.details.pylon_record_exists ? 'Yes' : 'No'}<br>
+                        ${response.data.details.db_error ? `DB Error: ${response.data.details.db_error}` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        debugArea.style.display = 'block';
+        
+        // Keep debug info visible - don't auto-hide
+    }
+
+    function closeDioptraErrorModal() {
+        const modal = document.getElementById('dioptra-error-modal');
+        if (modal) {
+            modal.remove();
+        }
+    }
+
+    function copyErrorToClipboard() {
+        const errorText = JSON.stringify(window.dioptraErrorData, null, 2);
+        navigator.clipboard.writeText(errorText).then(() => {
+            const btn = document.querySelector('.btn-copy-error');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            btn.style.background = '#28a745';
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '#007cba';
+            }, 2000);
+        }).catch(() => {
+            alert('Could not copy to clipboard. Error data logged to console.');
+            console.log('Dioptra Error Data:', window.dioptraErrorData);
+        });
+    }
+
     </script>
     <?php
 }
