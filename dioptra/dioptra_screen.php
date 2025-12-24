@@ -88,7 +88,12 @@ function ruplin_render_dioptra_screen() {
         'trustblock_vezzy_title' => 'pylons',
         'trustblock_vezzy_desc' => 'pylons',
         'baynar1_main' => 'pylons',
-        'baynar2_main' => 'pylons'
+        'baynar2_main' => 'pylons',
+        'locpage_topical_string' => 'pylons',
+        'locpage_neighborhood' => 'pylons',
+        'locpage_city' => 'pylons',
+        'locpage_state_code' => 'pylons',
+        'locpage_state_full' => 'pylons'
         // OSB fields removed from main table - they're handled separately in the OSB tab
     );
     

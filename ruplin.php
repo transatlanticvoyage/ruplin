@@ -463,6 +463,11 @@ class SnefuruPlugin {
             osb_services_per_row INT DEFAULT 4,
             osb_max_services_display INT DEFAULT 0,
             osb_is_enabled TINYINT(1) DEFAULT 0,
+            locpage_topical_string TEXT DEFAULT NULL,
+            locpage_neighborhood TEXT DEFAULT NULL,
+            locpage_city TEXT DEFAULT NULL,
+            locpage_state_code TEXT DEFAULT NULL,
+            locpage_state_full TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -733,6 +738,43 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '1.6.0');
+        }
+        
+        // Check for version 1.7.0 migration - Add locpage columns
+        if (version_compare($current_migration, '1.7.0', '<')) {
+            
+            // Add locpage_topical_string column
+            $topical_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'locpage_topical_string'");
+            if (empty($topical_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN locpage_topical_string TEXT DEFAULT NULL");
+            }
+            
+            // Add locpage_neighborhood column
+            $neighborhood_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'locpage_neighborhood'");
+            if (empty($neighborhood_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN locpage_neighborhood TEXT DEFAULT NULL");
+            }
+            
+            // Add locpage_city column
+            $city_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'locpage_city'");
+            if (empty($city_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN locpage_city TEXT DEFAULT NULL");
+            }
+            
+            // Add locpage_state_code column
+            $state_code_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'locpage_state_code'");
+            if (empty($state_code_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN locpage_state_code TEXT DEFAULT NULL");
+            }
+            
+            // Add locpage_state_full column
+            $state_full_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'locpage_state_full'");
+            if (empty($state_full_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN locpage_state_full TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '1.7.0');
         }
     }
 }
