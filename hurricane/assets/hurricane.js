@@ -751,6 +751,7 @@ window.saveThunderPapyrusData = saveThunderPapyrusData;
                 {key: 'driggs_owner_name', label: 'driggs_owner_name', type: 'text'},
                 {key: 'driggs_short_descr', label: 'driggs_short_descr', type: 'textarea'},
                 {key: 'driggs_long_descr', label: 'driggs_long_descr', type: 'textarea'},
+                {key: 'driggs_footer_blurb', label: 'driggs_footer_blurb', type: 'textarea'},
                 {key: 'driggs_year_opened', label: 'driggs_year_opened', type: 'number'},
                 {key: 'driggs_employees_qty', label: 'driggs_employees_qty', type: 'number'},
                 {key: 'driggs_special_note_for_ai_tool', label: 'driggs_special_note_for_ai_tool', type: 'textarea'},

@@ -11,12 +11,143 @@ class Ruplin_WP_Database_Horse_Class {
     /**
      * Database version for tracking schema changes
      */
-    const DB_VERSION = '2.1.0';
+    const DB_VERSION = '2.2.0';
     
     /**
      * Option name for storing database version
      */
     const DB_VERSION_OPTION = 'snefuru_zen_db_version';
+    
+    /**
+     * Constructor - Initialize post sync hooks
+     */
+    public function __construct() {
+        $this->init_post_sync_hooks();
+    }
+    
+    /**
+     * Initialize hooks for syncing posts to custom tables
+     */
+    private function init_post_sync_hooks() {
+        // Hook into post creation - fires for all statuses (draft, scheduled, published)
+        add_action('wp_insert_post', array($this, 'sync_post_to_custom_tables'), 10, 3);
+    }
+    
+    /**
+     * Sync newly created posts/pages to custom tables
+     * 
+     * @param int $post_id The post ID
+     * @param WP_Post $post The post object
+     * @param bool $update Whether this is an update
+     */
+    public function sync_post_to_custom_tables($post_id, $post, $update) {
+        // Only process new posts (not updates)
+        if ($update) {
+            return;
+        }
+        
+        // Only process posts and pages
+        if (!in_array($post->post_type, array('post', 'page'))) {
+            return;
+        }
+        
+        // Skip revisions
+        if (wp_is_post_revision($post_id)) {
+            return;
+        }
+        
+        // Skip auto-drafts
+        if ($post->post_status === 'auto-draft') {
+            return;
+        }
+        
+        // Create entries in both tables
+        $this->create_orbitpost_entry($post_id);
+        $this->create_pylon_entry($post_id);
+    }
+    
+    /**
+     * Create entry in zen_orbitposts table
+     * 
+     * @param int $post_id The post ID
+     */
+    private function create_orbitpost_entry($post_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+        
+        // Check if entry already exists
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT orbitpost_id FROM $table_name WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            return; // Entry already exists
+        }
+        
+        // Insert new entry with minimal data
+        $wpdb->insert(
+            $table_name,
+            array(
+                'rel_wp_post_id' => $post_id,
+                'created_at' => current_time('mysql'),
+                'updated_at' => current_time('mysql')
+            ),
+            array('%d', '%s', '%s')
+        );
+        
+        // Log error if insert failed
+        if ($wpdb->last_error) {
+            error_log('Ruplin: Failed to create orbitpost entry for post ' . $post_id . ': ' . $wpdb->last_error);
+        }
+    }
+    
+    /**
+     * Create entry in pylons table
+     * 
+     * @param int $post_id The post ID
+     */
+    private function create_pylon_entry($post_id) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'pylons';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+        
+        // Check if entry already exists
+        $existing = $wpdb->get_var($wpdb->prepare(
+            "SELECT pylon_id FROM $table_name WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            return; // Entry already exists
+        }
+        
+        // Insert new entry with minimal data
+        $wpdb->insert(
+            $table_name,
+            array(
+                'rel_wp_post_id' => $post_id,
+                'created_at' => current_time('mysql')
+            ),
+            array('%d', '%s')
+        );
+        
+        // Log error if insert failed
+        if ($wpdb->last_error) {
+            error_log('Ruplin: Failed to create pylon entry for post ' . $post_id . ': ' . $wpdb->last_error);
+        }
+    }
     
     /**
      * Create zen tables

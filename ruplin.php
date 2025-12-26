@@ -146,6 +146,9 @@ class SnefuruPlugin {
         new Snefuru_Zen_Vacuum_API();
         new Zen_Shortcodes();
         
+        // Initialize database post sync hooks
+        new Ruplin_WP_Database_Horse_Class();
+        
         // Initialize Elementor integrations only if available
         if ($this->elementor_available) {
             new Snefuru_Elementor_Updater();
@@ -359,6 +362,7 @@ class SnefuruPlugin {
             driggs_owner_name text,
             driggs_short_descr text,
             driggs_long_descr text,
+            driggs_footer_blurb text,
             driggs_year_opened int(11),
             driggs_employees_qty int(11),
             driggs_special_note_for_ai_tool text,

@@ -399,6 +399,15 @@ class Snefuru_Admin {
             'dioptra',
             array($this, 'dioptra_page')
         );
+        
+        add_submenu_page(
+            'snefuru',
+            'Nuke_Mar',
+            'Nuke_Mar',
+            'manage_options',
+            'nuke_mar',
+            array($this, 'nuke_mar_page')
+        );
     }
     
     /**
@@ -12711,5 +12720,16 @@ class Snefuru_Admin {
         }
         
         wp_send_json_success(array('html' => $html));
+    }
+    
+    /**
+     * Nuke Mar page - Content deletion tool
+     */
+    public function nuke_mar_page() {
+        // Include the Nuke Mar page file
+        require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar.php';
+        
+        // Render the page
+        ruplin_render_nuke_mar_page();
     }
 } 
