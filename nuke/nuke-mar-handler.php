@@ -150,26 +150,7 @@ function ruplin_delete_all_content($post_type, $excluded_urls = array()) {
     // Build exclusion list
     $excluded_post_ids = array();
     
-    // Exclude specific system pages if deleting pages
-    if ($post_type === 'page') {
-        // Get front page
-        $front_page_id = get_option('page_on_front');
-        if ($front_page_id) {
-            $excluded_post_ids[] = $front_page_id;
-        }
-        
-        // Get posts page
-        $posts_page_id = get_option('page_for_posts');
-        if ($posts_page_id) {
-            $excluded_post_ids[] = $posts_page_id;
-        }
-        
-        // Get privacy policy page
-        $privacy_page_id = get_option('wp_page_for_privacy_policy');
-        if ($privacy_page_id) {
-            $excluded_post_ids[] = $privacy_page_id;
-        }
-    }
+    // No automatic system page exclusions - let nuke delete everything unless manually excluded
     
     // Get post IDs to exclude based on URL slugs
     if (!empty($excluded_urls)) {
