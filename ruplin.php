@@ -121,6 +121,9 @@ class SnefuruPlugin {
         // Load Scorpion Search & Replace System
         require_once SNEFURU_PLUGIN_PATH . 'scorpion_search_replace/class-scorpion-search-replace.php';
         
+        // Load Date Worshipper System
+        require_once SNEFURU_PLUGIN_PATH . 'date_worshipper/class-date-worshipper.php';
+        
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';

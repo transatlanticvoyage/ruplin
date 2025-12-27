@@ -154,7 +154,7 @@ class Snefuru_Admin {
     public function add_admin_menu() {
         add_menu_page(
             'Snefuruplin Dashboard',
-            'Ruplin Dashboard',
+            'Ruplin Hub',
             'manage_options',
             'snefuru',
             array($this, 'admin_page'),
@@ -172,70 +172,25 @@ class Snefuru_Admin {
             array($this, 'rup_kenli_mar_page')
         );
         
+        // Add rup_old_links between Ruplin Dashboard and Cockpit
+        add_submenu_page(
+            'snefuru',
+            'rup_old_links',
+            'rup_old_links',
+            'manage_options',
+            'rup_old_links',
+            array($this, 'rup_old_links_page')
+        );
+        
         add_submenu_page(
             'snefuru',
             'Dashboard',
-            'Ruplin Dashboard',
+            'Ruplin Hub',
             'manage_options',
             'snefuru',
             array($this, 'admin_page')
         );
         
-        // Add KenliSidebarLinks as a non-clickable label
-        add_submenu_page(
-            'snefuru',
-            'KenliSidebarLinks',
-            'KenliSidebarLinks',
-            'manage_options',
-            'snefuru-kenli-sidebar-links',
-            array($this, 'kenli_sidebar_links_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'Settings',
-            'Settings',
-            'manage_options',
-            'snefuru-settings',
-            array($this, 'settings_page')
-        );
-        
-        
-        add_submenu_page(
-            'snefuru',
-            'Logs',
-            'Logs',
-            'manage_options',
-            'snefuru-logs',
-            array($this, 'logs_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'Dublish Logs',
-            'Dublish Logs',
-            'manage_options',
-            'snefuru-dublish-logs',
-            array($this, 'dublish_logs_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'screen 4 - manage',
-            'screen 4 - manage',
-            'manage_options',
-            'snefuru-screen4-manage',
-            array($this, 'screen4_manage_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'Bespoke CSS Editor',
-            'CSS Editor',
-            'manage_options',
-            'snefuruplin-bespoke-css-1',
-            array($this, 'bespoke_css_editor_page')
-        );
         
         // New Ruplin pages
         add_submenu_page(
@@ -263,105 +218,6 @@ class Snefuru_Admin {
             'manage_options',
             'rup_driggs_mar',
             array($this, 'rup_driggs_mar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'rup_service_tags_mar',
-            'rup_service_tags_mar',
-            'manage_options',
-            'rup_service_tags_mar',
-            array($this, 'rup_service_tags_mar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'rup_location_tags_mar',
-            'rup_location_tags_mar',
-            'manage_options',
-            'rup_location_tags_mar',
-            array($this, 'rup_location_tags_mar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'rup_kpages_mar',
-            'rup_kpages_mar',
-            'manage_options',
-            'rup_kpages_mar',
-            array($this, 'rup_kpages_mar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'rup_duplicate_mar',
-            'rup_duplicate_mar',
-            'manage_options',
-            'rup_duplicate_mar',
-            array($this, 'rup_duplicate_mar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'rup_pantheon_mar',
-            'rup_pantheon_mar',
-            'manage_options',
-            'rup_pantheon_mar',
-            array($this, 'rup_pantheon_mar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'rup_horse_class_page',
-            'rup_horse_class_page',
-            'manage_options',
-            'rup_horse_class_page',
-            array($this, 'rup_horse_class_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'document_outlook_aug9',
-            'document_outlook_aug9',
-            'manage_options',
-            'document_outlook_aug9',
-            array($this, 'document_outlook_aug9_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'dynamic_images_man',
-            'dynamic_images_man',
-            'manage_options',
-            'dynamic_images_man',
-            array($this, 'dynamic_images_man_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'Sitespren Export',
-            'Sitespren Export',
-            'manage_options',
-            'rup_sitespren_export',
-            array($this, 'rup_sitespren_export_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'beamraymar',
-            'beamraymar',
-            'manage_options',
-            'beamraymar',
-            array($this, 'beamraymar_page')
-        );
-        
-        add_submenu_page(
-            'snefuru',
-            'BCenter',
-            'BCenter',
-            'manage_options',
-            'bcenter',
-            array($this, 'bcenter_page')
         );
         
         add_submenu_page(
@@ -407,6 +263,24 @@ class Snefuru_Admin {
             'manage_options',
             'nuke_mar',
             array($this, 'nuke_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Scorpion_Search_Replace_Mar',
+            'Scorpion_Search_Replace_Mar',
+            'manage_options',
+            'scorpion_search_replace_mar',
+            array($this, 'scorpion_search_replace_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Date_Worshipper_Mar',
+            'Date_Worshipper_Mar',
+            'manage_options',
+            'date_worshipper_mar',
+            array($this, 'date_worshipper_mar_page')
         );
     }
     
@@ -7152,7 +7026,9 @@ class Snefuru_Admin {
             'snefuru_page_document_outlook_aug9',
             'snefuru_page_dynamic_images_man',
             'snefuru_page_rup_sitespren_export',
-            'snefuru_page_kenli_sidebar_links'
+            'snefuru_page_kenli_sidebar_links',
+            'snefuru_page_scorpion_search_replace_mar',
+            'pylon_page_scorpion_search_replace_mar'
         );
         
         // Check if current screen is one of our plugin pages OR a post/page editor
@@ -7221,11 +7097,13 @@ class Snefuru_Admin {
             (strpos($_GET['page'], 'rup_') === 0 || 
              $_GET['page'] === 'snefuru' ||
              strpos($_GET['page'], 'snefuru_') === 0 ||
+             $_GET['page'] === 'scorpion_search_replace_mar' ||
              in_array($_GET['page'], [
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
-                'rup_driggs_mar', 'rup_kpages_mar', 'rup_duplicate_mar'
+                'rup_driggs_mar', 'rup_kpages_mar', 'rup_duplicate_mar',
+                'scorpion_search_replace_mar'
              ]));
         
         // Check if we're on WP Pusher page
@@ -7264,11 +7142,13 @@ class Snefuru_Admin {
             (strpos($_GET['page'], 'rup_') === 0 || 
              $_GET['page'] === 'snefuru' ||
              strpos($_GET['page'], 'snefuru_') === 0 ||
+             $_GET['page'] === 'scorpion_search_replace_mar' ||
              in_array($_GET['page'], [
                 'snefuru_settings', 'snefuru_logs', 'screen4_manage', 
                 'bespoke_css_editor', 'dublish_logs', 'document_outlook_aug9',
                 'dynamic_images_man', 'kenli_sidebar_links', 'rup_horse_class_page',
-                'rup_driggs_mar', 'rup_kpages_mar', 'rup_duplicate_mar'
+                'rup_driggs_mar', 'rup_kpages_mar', 'rup_duplicate_mar',
+                'scorpion_search_replace_mar'
              ]));
         
         // Check if we're on WP Pusher page
@@ -11189,23 +11069,31 @@ class Snefuru_Admin {
         unset($debug_post['action'], $debug_post['nonce']); // Remove sensitive data
         error_log("Dioptra save - All POST data received: " . json_encode($debug_post));
         
-        // Process field updates - PREVENT ALL UNWANTED SLASH ESCAPING
+        // Process field updates - COMPLETELY PREVENT ALL SLASH ESCAPING
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'field_') === 0) {
                 $field_name = str_replace('field_', '', $key);
                 
-                // Strip any WordPress auto-added slashes first
-                $value = wp_unslash($value);
+                // AGGRESSIVE SLASH REMOVAL: Strip ALL WordPress-added slashes
+                $value = stripslashes_deep($value);  // Remove any nested slashes
+                $value = wp_unslash($value);         // Remove WordPress auto-added slashes
+                $value = stripslashes($value);       // Additional slash removal
+                
+                // Debug logging for problematic fields
+                if (strpos($field_name, 'chenblock') !== false || strpos($field_name, 'desc') !== false) {
+                    error_log("Dioptra save - Field {$field_name} after unslashing: " . $value);
+                }
                 
                 // Determine if this is a posts field or pylons field
                 if (strpos($field_name, 'post_') === 0) {
                     // wp_posts field - use appropriate sanitization WITHOUT adding slashes
                     if ($field_name === 'post_content') {
-                        // Preserve content integrity for post_content - allow HTML but NO slash escaping
-                        $post_update_data[$field_name] = wp_kses_post($value);
+                        // For post_content, preserve HTML but remove slashes
+                        $post_update_data[$field_name] = $this->sanitize_post_content_without_slashes($value);
+                        error_log("Dioptra save - post_content after HTML-preserving sanitization: " . substr($post_update_data[$field_name], 0, 200) . "...");
                     } else {
-                        // For other post fields, use textarea sanitization to preserve quotes
-                        $post_update_data[$field_name] = sanitize_textarea_field($value);
+                        // For other post fields, use text sanitization (no HTML expected)
+                        $post_update_data[$field_name] = $this->sanitize_text_without_slashes($value);
                     }
                 } else {
                     // wp_pylons field - handle all fields properly WITHOUT slash escaping
@@ -11216,9 +11104,14 @@ class Snefuru_Admin {
                         // Handle integer fields
                         $update_data[$field_name] = intval($value);
                     } else {
-                        // For ALL other fields, use textarea sanitization to preserve quotes/apostrophes
-                        // This includes: chenblock fields, hero fields, cta fields, sidebar fields, etc.
-                        $update_data[$field_name] = sanitize_textarea_field($value);
+                        // For ALL text fields, use text sanitization that NEVER adds slashes
+                        $cleaned_value = $this->sanitize_text_without_slashes($value);
+                        $update_data[$field_name] = $cleaned_value;
+                        
+                        // Additional debug for chenblock fields
+                        if (strpos($field_name, 'chenblock') !== false) {
+                            error_log("Dioptra save - Final value for {$field_name}: " . $cleaned_value);
+                        }
                     }
                 }
             }
@@ -11313,6 +11206,51 @@ class Snefuru_Admin {
                 ]
             ]);
         }
+    }
+    
+    /**
+     * Custom sanitization for post_content that preserves HTML but removes slashes
+     * Used for wp_posts.post_content field
+     */
+    private function sanitize_post_content_without_slashes($value) {
+        // First remove any existing slashes
+        $value = stripslashes_deep($value);
+        $value = wp_unslash($value);
+        $value = stripslashes($value);
+        
+        // Use wp_kses_post() to allow safe HTML while preventing slashes
+        // This preserves <h2>, <p>, <strong>, etc. but sanitizes dangerous content
+        $value = wp_kses_post($value);
+        
+        // Additional protection without affecting HTML or quotes
+        $value = str_replace(['javascript:', 'data:'], '', $value); // Remove dangerous protocols
+        
+        return $value;
+    }
+    
+    /**
+     * Custom sanitization for text fields that NEVER adds slashes to quotes/apostrophes
+     * Used for regular text fields (not HTML content)
+     */
+    private function sanitize_text_without_slashes($value) {
+        // First remove any existing slashes
+        $value = stripslashes_deep($value);
+        $value = wp_unslash($value);
+        $value = stripslashes($value);
+        
+        // Sanitize for security without adding slashes
+        // Remove potential XSS but preserve quotes and apostrophes
+        $value = trim($value);
+        $value = wp_strip_all_tags($value); // Remove HTML tags but preserve quotes
+        
+        // Additional XSS protection without affecting quotes
+        $value = preg_replace('/[<>]/', '', $value); // Remove angle brackets
+        $value = str_replace(['javascript:', 'data:'], '', $value); // Remove dangerous protocols
+        
+        // DO NOT use sanitize_text_field() or sanitize_textarea_field() 
+        // as they may re-add slashes through WordPress filters
+        
+        return $value;
     }
     
     /**
@@ -12746,5 +12684,108 @@ class Snefuru_Admin {
         
         // Render the page
         ruplin_render_nuke_mar_page();
+    }
+    
+    /**
+     * Scorpion Search Replace Mar page - Search and replace tool for wp_pylons
+     */
+    public function scorpion_search_replace_mar_page() {
+        // Redirect to the Scorpion Search Replace page handled by the separate class
+        wp_redirect(admin_url('edit.php?post_type=pylon&page=scorpion_search_replace_mar'));
+        exit;
+    }
+    
+    /**
+     * Date Worshipper Mar page - Posts management system
+     */
+    public function date_worshipper_mar_page() {
+        // The Date Worshipper class handles the page rendering
+        // This is just a placeholder since the class handles everything
+        // The page will be rendered by the Date_Worshipper class
+    }
+    
+    /**
+     * Rup Old Links page - Archive of removed sidebar links
+     */
+    public function rup_old_links_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        // Define the old links that were moved here from the sidebar
+        $old_links = array(
+            array('anchor' => 'KenliSidebarLinks', 'url' => 'snefuru-kenli-sidebar-links'),
+            array('anchor' => 'Settings', 'url' => 'snefuru-settings'),
+            array('anchor' => 'Logs', 'url' => 'snefuru-logs'),
+            array('anchor' => 'Dublish Logs', 'url' => 'snefuru-dublish-logs'),
+            array('anchor' => 'screen 4 - manage', 'url' => 'snefuru-screen4-manage'),
+            array('anchor' => 'CSS Editor', 'url' => 'snefuruplin-bespoke-css-1'),
+            array('anchor' => 'rup_service_tags_mar', 'url' => 'rup_service_tags_mar'),
+            array('anchor' => 'rup_location_tags_mar', 'url' => 'rup_location_tags_mar'),
+            array('anchor' => 'rup_kpages_mar', 'url' => 'rup_kpages_mar'),
+            array('anchor' => 'rup_duplicate_mar', 'url' => 'rup_duplicate_mar'),
+            array('anchor' => 'rup_pantheon_mar', 'url' => 'rup_pantheon_mar'),
+            array('anchor' => 'rup_horse_class_page', 'url' => 'rup_horse_class_page'),
+            array('anchor' => 'document_outlook_aug9', 'url' => 'document_outlook_aug9'),
+            array('anchor' => 'dynamic_images_man', 'url' => 'dynamic_images_man'),
+            array('anchor' => 'Sitespren Export', 'url' => 'rup_sitespren_export'),
+            array('anchor' => 'beamraymar', 'url' => 'beamraymar'),
+            array('anchor' => 'BCenter', 'url' => 'bcenter')
+        );
+        
+        ?>
+        <div class="wrap">
+            <h1>rup_old_links</h1>
+            <p>Archive of admin pages that were removed from the sidebar menu to save space.</p>
+            
+            <div style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); margin: 20px 0;">
+                <h2>Archived Admin Links</h2>
+                <p>Total archived links: <?php echo count($old_links); ?></p>
+                
+                <div style="overflow-x: auto;">
+                    <table id="old-links-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background: #f1f1f1;">
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">Anchor</th>
+                                <th style="padding: 12px; text-align: left; border: 1px solid #ddd; font-weight: bold;">URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($old_links as $link): ?>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 12px; border: 1px solid #ddd;">
+                                    <a href="<?php echo admin_url('admin.php?page=' . esc_attr($link['url'])); ?>" 
+                                       style="color: #0073aa; text-decoration: none; font-weight: 500;">
+                                        <?php echo esc_html($link['anchor']); ?>
+                                    </a>
+                                </td>
+                                <td style="padding: 12px; border: 1px solid #ddd; font-family: monospace; color: #666;">
+                                    <?php echo esc_html($link['url']); ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <style>
+                    #old-links-table tbody tr:hover {
+                        background-color: #f5f5f5;
+                    }
+                    
+                    #old-links-table th {
+                        position: sticky;
+                        top: 0;
+                        background: #f1f1f1;
+                        z-index: 10;
+                    }
+                    
+                    #old-links-table a:hover {
+                        text-decoration: underline !important;
+                        color: #005177 !important;
+                    }
+                </style>
+            </div>
+        </div>
+        <?php
     }
 } 

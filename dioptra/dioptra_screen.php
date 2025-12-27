@@ -282,6 +282,12 @@ function ruplin_render_dioptra_screen() {
                                 } elseif ($table_source === 'pylons' && isset($pylon_data[$field_name])) {
                                     $value = $pylon_data[$field_name];
                                 }
+                                
+                                // CRITICAL: Remove any existing slashes from database values before display
+                                // This handles data that was previously saved with unwanted slashes
+                                $value = stripslashes_deep($value);
+                                $value = wp_unslash($value);
+                                $value = stripslashes($value);
                                 ?>
                                 <?php if ($field_name === 'post_content'): ?>
                                     <textarea name="field_<?php echo esc_attr($field_name); ?>" 
