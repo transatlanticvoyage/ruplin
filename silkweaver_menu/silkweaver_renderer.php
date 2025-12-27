@@ -190,13 +190,13 @@ class Silkweaver_Menu_Renderer {
         
         // Optimized JOIN query instead of reverse lookup
         $posts = $wpdb->get_results($wpdb->prepare("
-            SELECT p.ID, p.post_title, py.moniker, py.pylon_archetype, py.exempt_from_silkweaver_menu_dynamical
+            SELECT p.ID, p.post_title, py.short_anchor, py.pylon_archetype, py.exempt_from_silkweaver_menu_dynamical
             FROM {$wpdb->posts} p 
             INNER JOIN {$wpdb->prefix}pylons py ON p.ID = py.rel_wp_post_id 
             WHERE py.pylon_archetype = %s 
             AND p.post_status = 'publish'
             AND (py.exempt_from_silkweaver_menu_dynamical IS NULL OR py.exempt_from_silkweaver_menu_dynamical != 1)
-            ORDER BY CASE WHEN py.moniker IS NULL OR py.moniker = '' THEN p.post_title ELSE py.moniker END ASC
+            ORDER BY CASE WHEN py.short_anchor IS NULL OR py.short_anchor = '' THEN p.post_title ELSE py.short_anchor END ASC
         ", $item['archetype']));
         
         error_log("Silkweaver final query results: " . json_encode($posts));
@@ -220,7 +220,7 @@ class Silkweaver_Menu_Renderer {
         // Add database posts to sortable links
         foreach ($posts as $post) {
             $url = get_permalink($post->ID);
-            $title = !empty($post->moniker) ? $post->moniker : $post->post_title;
+            $title = !empty($post->short_anchor) ? $post->short_anchor : $post->post_title;
             
             $sortable_links[] = array(
                 'url' => $url,

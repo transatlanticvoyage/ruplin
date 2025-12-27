@@ -118,6 +118,9 @@ class SnefuruPlugin {
         // Load Silkweaver Menu System
         require_once SNEFURU_PLUGIN_PATH . 'silkweaver_menu/silkweaver_init.php';
         
+        // Load Scorpion Search & Replace System
+        require_once SNEFURU_PLUGIN_PATH . 'scorpion_search_replace/class-scorpion-search-replace.php';
+        
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
@@ -472,6 +475,7 @@ class SnefuruPlugin {
             locpage_city TEXT DEFAULT NULL,
             locpage_state_code TEXT DEFAULT NULL,
             locpage_state_full TEXT DEFAULT NULL,
+            short_anchor TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),

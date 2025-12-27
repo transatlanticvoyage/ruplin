@@ -30,7 +30,8 @@ class Ruplin_WP_Database_Horse_Class {
      */
     private function init_post_sync_hooks() {
         // Hook into post creation - fires for all statuses (draft, scheduled, published)
-        add_action('wp_insert_post', array($this, 'sync_post_to_custom_tables'), 10, 3);
+        // COMMENTED OUT: Auto-creation conflicts with Grove plasma import system
+        // add_action('wp_insert_post', array($this, 'sync_post_to_custom_tables'), 10, 3);
     }
     
     /**

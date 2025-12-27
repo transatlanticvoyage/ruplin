@@ -59,6 +59,7 @@ function ruplin_render_dioptra_screen() {
         'pylon_archetype' => 'pylons',
         'exempt_from_silkweaver_menu_dynamical' => 'pylons',
         'moniker' => 'pylons',
+        'short_anchor' => 'pylons',
         'post_title' => 'posts',
         'post_content' => 'posts',
         'post_status' => 'posts',

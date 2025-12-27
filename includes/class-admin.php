@@ -11135,6 +11135,15 @@ class Snefuru_Admin {
      * AJAX handler for saving dioptra data
      */
     public function handle_dioptra_save_data() {
+        // CRITICAL: Disable WordPress magic quotes to prevent unwanted slash escaping
+        if (function_exists('wp_magic_quotes')) {
+            // WordPress might automatically add slashes - we need to prevent this
+            $_POST = array_map('stripslashes_deep', $_POST);
+            $_GET = array_map('stripslashes_deep', $_GET);
+            $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
+            $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
+        }
+        
         // Debug: Log all POST data
         error_log("Dioptra save attempt - POST data: " . json_encode($_POST));
         
@@ -11180,30 +11189,36 @@ class Snefuru_Admin {
         unset($debug_post['action'], $debug_post['nonce']); // Remove sensitive data
         error_log("Dioptra save - All POST data received: " . json_encode($debug_post));
         
-        // Process field updates
+        // Process field updates - PREVENT ALL UNWANTED SLASH ESCAPING
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'field_') === 0) {
                 $field_name = str_replace('field_', '', $key);
                 
+                // Strip any WordPress auto-added slashes first
+                $value = wp_unslash($value);
+                
                 // Determine if this is a posts field or pylons field
                 if (strpos($field_name, 'post_') === 0) {
-                    // wp_posts field - use appropriate sanitization
+                    // wp_posts field - use appropriate sanitization WITHOUT adding slashes
                     if ($field_name === 'post_content') {
-                        // Preserve content integrity for post_content
+                        // Preserve content integrity for post_content - allow HTML but NO slash escaping
                         $post_update_data[$field_name] = wp_kses_post($value);
                     } else {
-                        $post_update_data[$field_name] = sanitize_text_field($value);
+                        // For other post fields, use textarea sanitization to preserve quotes
+                        $post_update_data[$field_name] = sanitize_textarea_field($value);
                     }
                 } else {
-                    // wp_pylons field - check for content fields that need special handling
-                    if (in_array($field_name, ['paragon_description', 'hero_mainheading', 'hero_subheading'])) {
-                        // Allow basic HTML for description fields
-                        $update_data[$field_name] = wp_kses_post($value);
-                    } elseif (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
+                    // wp_pylons field - handle all fields properly WITHOUT slash escaping
+                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
                         $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
+                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display'])) {
+                        // Handle integer fields
+                        $update_data[$field_name] = intval($value);
                     } else {
-                        $update_data[$field_name] = sanitize_text_field($value);
+                        // For ALL other fields, use textarea sanitization to preserve quotes/apostrophes
+                        // This includes: chenblock fields, hero fields, cta fields, sidebar fields, etc.
+                        $update_data[$field_name] = sanitize_textarea_field($value);
                     }
                 }
             }
