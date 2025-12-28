@@ -17,6 +17,9 @@ class Date_Worshipper {
         // Add aggressive notice suppression for this page
         add_action('current_screen', array($this, 'suppress_admin_notices_on_date_worshipper_page'), 1);
         add_action('admin_init', array($this, 'early_notice_suppression_date_worshipper'), 1);
+        
+        // Add AJAX handlers for F582 processing
+        add_action('wp_ajax_f582_process_posts', array($this, 'f582_process_posts'));
     }
     
     /**
@@ -43,6 +46,12 @@ class Date_Worshipper {
         }
         
         wp_enqueue_script('jquery');
+        
+        // Localize script for AJAX
+        wp_localize_script('jquery', 'date_worshipper_ajax', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce' => wp_create_nonce('date_worshipper_nonce')
+        ));
         
         // Add inline script for checkbox and random selector functionality
         wp_add_inline_script('jquery', '
@@ -138,6 +147,130 @@ class Date_Worshipper {
                         $(this).val(maxPosts);
                     }
                 });
+                
+                // Diosa Date Stretcher slider functionality
+                $("#date-stretcher-slider").on("input", function() {
+                    var sliderValue = parseInt($(this).val());
+                    var totalPosts = parseInt($(this).attr("max"));
+                    var futureDateCount = totalPosts - sliderValue;
+                    
+                    $("#backdate-count").text(sliderValue);
+                    $("#futuredate-count").text(futureDateCount);
+                });
+                
+                // F582 button functionality
+                $("#run-f582").on("click", function() {
+                    // Create custom styled popup
+                    var popup = $("<div>", {
+                        id: "f582-popup",
+                        css: {
+                            position: "fixed",
+                            top: "0",
+                            left: "0",
+                            width: "100%",
+                            height: "100%",
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            zIndex: "10000",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }
+                    });
+                    
+                    var popupContent = $("<div>", {
+                        css: {
+                            backgroundColor: "#fff",
+                            padding: "30px",
+                            borderRadius: "8px",
+                            border: "3px solid #ff9800",
+                            textAlign: "center",
+                            maxWidth: "400px",
+                            boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+                        },
+                        html: "<h3 style=\\"color: #ff9800; margin-bottom: 20px;\\">⚡ F582 Date Processing</h3>" +
+                              "<p style=\\"margin-bottom: 25px; font-size: 16px;\\">Are you sure you want to do this?</p>" +
+                              "<div style=\\"display: flex; gap: 15px; justify-content: center;\\"></div>"
+                    });
+                    
+                    var confirmBtn = $("<button>", {
+                        text: "Yes, Proceed",
+                        css: {
+                            padding: "10px 20px",
+                            backgroundColor: "#ff9800",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                        },
+                        click: function() {
+                            popup.remove();
+                            executeF582();
+                        }
+                    });
+                    
+                    var cancelBtn = $("<button>", {
+                        text: "Cancel",
+                        css: {
+                            padding: "10px 20px",
+                            backgroundColor: "#666",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontWeight: "bold"
+                        },
+                        click: function() {
+                            popup.remove();
+                        }
+                    });
+                    
+                    popupContent.find("div").append(confirmBtn, cancelBtn);
+                    popup.append(popupContent);
+                    $("body").append(popup);
+                });
+                
+                // F582 execution function
+                function executeF582() {
+                    console.log("Starting F582 execution...");
+                    
+                    var backdateCount = parseInt($("#backdate-count").text());
+                    var futureDateCount = parseInt($("#futuredate-count").text());
+                    var intervalFrom = parseInt($("#interval-from").val());
+                    var intervalTo = parseInt($("#interval-to").val());
+                    
+                    console.log("Settings:", {
+                        backdateCount: backdateCount,
+                        futureDateCount: futureDateCount,
+                        intervalFrom: intervalFrom,
+                        intervalTo: intervalTo
+                    });
+                    
+                    // Send AJAX request to process posts
+                    $.ajax({
+                        url: date_worshipper_ajax.ajax_url,
+                        type: "POST",
+                        data: {
+                            action: "f582_process_posts",
+                            nonce: date_worshipper_ajax.nonce,
+                            backdate_count: backdateCount,
+                            future_count: futureDateCount,
+                            interval_from: intervalFrom,
+                            interval_to: intervalTo
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                alert("F582 processing completed successfully!");
+                                location.reload(); // Refresh to show updated dates
+                            } else {
+                                alert("Error: " + (response.data || "Unknown error occurred"));
+                            }
+                        },
+                        error: function() {
+                            alert("AJAX error occurred during F582 processing");
+                        }
+                    });
+                }
             });
         ');
     }
@@ -234,6 +367,53 @@ class Date_Worshipper {
                     <button type="button" id="count-up" style="padding: 8px 14px; cursor: pointer; border: 2px solid #0073aa; background: #fff; border-radius: 4px; font-weight: bold;">▲</button>
                     <button type="button" id="select-randomly" style="padding: 8px 20px; background: #0073aa; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Select Randomly</button>
                 </div>
+                
+                <div style="margin-bottom: 25px; padding: 15px; background: #fff8e1; border: 2px solid #ff9800; border-radius: 8px;">
+                    <div style="margin-bottom: 15px;">
+                        <span style="font-weight: bold; color: #ff9800; font-size: 16px;">⚡ Diosa Date Stretcher</span>
+                    </div>
+                    
+                    <hr style="margin: 15px 0; border: 0; height: 1px; background: #ff9800;">
+                    
+                    <div style="max-width: 900px;">
+                        <div style="margin-bottom: 10px;">
+                            <span style="font-weight: bold; color: #333;">Part 1 - Select Past/Future Spread</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <input type="range" id="date-stretcher-slider" min="1" max="<?php echo count($posts); ?>" value="<?php echo min(8, count($posts)); ?>" style="flex: 1; height: 8px; background: #ddd; outline: none; border-radius: 5px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-weight: bold; color: #ff9800;">Total: <?php echo count($posts); ?></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 15px;">
+                            <div>
+                                <span style="font-weight: bold; color: #333;">Posts To Back-Date: <span id="backdate-count"><?php echo min(8, count($posts)); ?></span>/<?php echo count($posts); ?></span>
+                            </div>
+                            <div>
+                                <span style="font-weight: bold; color: #333;">Posts To Future-Date: <span id="futuredate-count"><?php echo count($posts) - min(8, count($posts)); ?></span>/<?php echo count($posts); ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr style="margin: 20px 0; border: 0; height: 1px; background: #ff9800;">
+                    
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-weight: bold; color: #333;">Part 2 - Interval Setting</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="number" id="interval-from" value="4" min="1" style="width: 60px; padding: 5px; border: 1px solid #ff9800; border-radius: 3px;">
+                        <span style="font-weight: bold; color: #333;">to</span>
+                        <input type="number" id="interval-to" value="11" min="1" style="width: 60px; padding: 5px; border: 1px solid #ff9800; border-radius: 3px;">
+                        <span style="font-weight: bold; color: #333;">days</span>
+                    </div>
+                    
+                    <hr style="margin: 20px 0; border: 0; height: 1px; background: #ff9800;">
+                    
+                    <div>
+                        <button type="button" id="run-f582" style="padding: 10px 20px; background: #ff9800; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold;">run f582 - set blog post dates</button>
+                    </div>
+                </div>
+                
                 <h2>Posts Overview</h2>
                 <p>Total posts found: <?php echo count($posts); ?></p>
                 
@@ -349,6 +529,145 @@ class Date_Worshipper {
             </div>
         </div>
         <?php
+    }
+    
+    /**
+     * AJAX handler for F582 post processing
+     */
+    public function f582_process_posts() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'date_worshipper_nonce')) {
+            wp_die('Security check failed');
+        }
+        
+        // Get parameters
+        $backdate_count = intval($_POST['backdate_count']);
+        $future_count = intval($_POST['future_count']);
+        $interval_from = intval($_POST['interval_from']);
+        $interval_to = intval($_POST['interval_to']);
+        
+        global $wpdb;
+        
+        try {
+            // Get all eligible posts (published, not trash)
+            $posts_query = "
+                SELECT ID, post_title 
+                FROM {$wpdb->posts} 
+                WHERE post_type = 'post' 
+                AND post_status IN ('publish', 'draft', 'private')
+                AND post_status != 'trash'
+                ORDER BY RAND()
+            ";
+            
+            $posts = $wpdb->get_results($posts_query);
+            
+            if (empty($posts)) {
+                wp_send_json_error('No eligible posts found');
+                return;
+            }
+            
+            $total_posts = count($posts);
+            
+            // Ensure we don't exceed available posts
+            $backdate_count = min($backdate_count, $total_posts);
+            $future_count = min($future_count, $total_posts - $backdate_count);
+            
+            // Split posts into backdate and future groups
+            $backdate_posts = array_slice($posts, 0, $backdate_count);
+            $future_posts = array_slice($posts, $backdate_count, $future_count);
+            
+            $current_time = current_time('timestamp');
+            $updated_count = 0;
+            
+            // Process backdate posts (going backward in time)
+            $backdate_time = $current_time;
+            foreach ($backdate_posts as $post) {
+                // Generate random interval in seconds
+                $min_seconds = $interval_from * 24 * 60 * 60;
+                $max_seconds = $interval_to * 24 * 60 * 60;
+                $random_seconds = rand($min_seconds, $max_seconds);
+                
+                // Add random hours, minutes, seconds for more natural distribution
+                $random_seconds += rand(0, 24 * 60 * 60); // Random additional time within a day
+                
+                // Go back in time
+                $backdate_time -= $random_seconds;
+                
+                $new_date = date('Y-m-d H:i:s', $backdate_time);
+                
+                // Update post date
+                $result = $wpdb->update(
+                    $wpdb->posts,
+                    array(
+                        'post_date' => $new_date,
+                        'post_date_gmt' => get_gmt_from_date($new_date),
+                        'post_status' => 'publish',
+                        'post_modified' => current_time('mysql'),
+                        'post_modified_gmt' => current_time('mysql', 1)
+                    ),
+                    array('ID' => $post->ID),
+                    array('%s', '%s', '%s', '%s', '%s'),
+                    array('%d')
+                );
+                
+                if ($result !== false) {
+                    $updated_count++;
+                    // Clear post cache
+                    clean_post_cache($post->ID);
+                }
+            }
+            
+            // Process future posts (going forward in time)
+            $future_time = $current_time;
+            foreach ($future_posts as $post) {
+                // Generate random interval in seconds
+                $min_seconds = $interval_from * 24 * 60 * 60;
+                $max_seconds = $interval_to * 24 * 60 * 60;
+                $random_seconds = rand($min_seconds, $max_seconds);
+                
+                // Add random hours, minutes, seconds
+                $random_seconds += rand(0, 24 * 60 * 60);
+                
+                // Go forward in time
+                $future_time += $random_seconds;
+                
+                $new_date = date('Y-m-d H:i:s', $future_time);
+                
+                // Update post date and set as scheduled
+                $result = $wpdb->update(
+                    $wpdb->posts,
+                    array(
+                        'post_date' => $new_date,
+                        'post_date_gmt' => get_gmt_from_date($new_date),
+                        'post_status' => 'future',
+                        'post_modified' => current_time('mysql'),
+                        'post_modified_gmt' => current_time('mysql', 1)
+                    ),
+                    array('ID' => $post->ID),
+                    array('%s', '%s', '%s', '%s', '%s'),
+                    array('%d')
+                );
+                
+                if ($result !== false) {
+                    $updated_count++;
+                    // Clear post cache
+                    clean_post_cache($post->ID);
+                    
+                    // Schedule the post to be published
+                    wp_schedule_single_event($future_time, 'publish_future_post', array($post->ID));
+                }
+            }
+            
+            wp_send_json_success(array(
+                'message' => "F582 processing completed. Updated {$updated_count} posts.",
+                'backdate_count' => count($backdate_posts),
+                'future_count' => count($future_posts),
+                'total_updated' => $updated_count
+            ));
+            
+        } catch (Exception $e) {
+            wp_send_json_error('Error during F582 processing: ' . $e->getMessage());
+        }
     }
 }
 

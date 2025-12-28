@@ -17,6 +17,9 @@ if (!defined('ABSPATH')) {
 function ruplin_render_dioptra_screen() {
     global $wpdb;
     
+    // Enqueue WordPress media scripts for image selector
+    wp_enqueue_media();
+    
     // Get post ID from URL parameter
     $post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;
     
@@ -55,6 +58,7 @@ function ruplin_render_dioptra_screen() {
         'pylon_id' => 'pylons',
         'rel_plasma_page_id' => 'pylons',
         'rel_wp_post_id' => 'pylons',
+        'paragon_featured_image_id' => 'pylons',
         'staircase_page_template_desired' => 'pylons',
         'pylon_archetype' => 'pylons',
         'exempt_from_silkweaver_menu_dynamical' => 'pylons',
@@ -94,7 +98,8 @@ function ruplin_render_dioptra_screen() {
         'locpage_neighborhood' => 'pylons',
         'locpage_city' => 'pylons',
         'locpage_state_code' => 'pylons',
-        'locpage_state_full' => 'pylons'
+        'locpage_state_full' => 'pylons',
+        'locpage_gmaps_string' => 'pylons'
         // OSB fields removed from main table - they're handled separately in the OSB tab
     );
     
@@ -292,17 +297,36 @@ function ruplin_render_dioptra_screen() {
                                 <?php if ($field_name === 'post_content'): ?>
                                     <textarea name="field_<?php echo esc_attr($field_name); ?>" 
                                              style="width: 100%; height: 150px; border: 1px solid #ccc; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"><?php echo esc_textarea($value); ?></textarea>
+                                <?php elseif ($field_name === 'pylon_id' || $field_name === 'rel_plasma_page_id' || $field_name === 'rel_wp_post_id'): ?>
+                                    <input type="text" 
+                                           name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>" 
+                                           style="width: 100%; border: 1px solid #ccc; padding: 4px; background-color: #e9e9e9; cursor: not-allowed;" 
+                                           readonly
+                                           disabled />
                                 <?php else: ?>
                                     <input type="text" 
                                            name="field_<?php echo esc_attr($field_name); ?>" 
+                                           id="field_<?php echo esc_attr($field_name); ?>"
                                            value="<?php echo esc_attr($value); ?>" 
                                            style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                                 <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
                                 <?php
+                                // Special case for paragon_featured_image_id field
+                                if ($field_name === 'paragon_featured_image_id') {
+                                    ?>
+                                    <button type="button" 
+                                            class="button select-paragon-image" 
+                                            data-field="field_<?php echo esc_attr($field_name); ?>"
+                                            style="background: #0073aa; color: white; border: none; padding: 5px 12px; cursor: pointer; border-radius: 3px;">
+                                        Select Image
+                                    </button>
+                                    <?php
+                                }
                                 // Special case for exempt_from_silkweaver_menu_dynamical field
-                                if ($field_name === 'exempt_from_silkweaver_menu_dynamical') {
+                                elseif ($field_name === 'exempt_from_silkweaver_menu_dynamical') {
                                     echo 'NULL or 0 (not 1)';
                                 }
                                 // Otherwise completely blank
@@ -485,6 +509,51 @@ function ruplin_render_dioptra_screen() {
             btn.addEventListener('click', function() {
                 const targetTab = this.getAttribute('data-tab');
                 switchDioptraTab(targetTab);
+            });
+        });
+        
+        // Media selector for paragon_featured_image_id
+        const imageSelectButtons = document.querySelectorAll('.select-paragon-image');
+        imageSelectButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const fieldName = this.getAttribute('data-field');
+                const inputField = document.getElementById(fieldName);
+                
+                console.log('Button clicked, field name:', fieldName);
+                console.log('Input field found:', inputField);
+                
+                // Create media frame
+                const mediaFrame = wp.media({
+                    title: 'Select Featured Image',
+                    button: {
+                        text: 'Use this image'
+                    },
+                    multiple: false
+                });
+                
+                // When an image is selected
+                mediaFrame.on('select', function() {
+                    const attachment = mediaFrame.state().get('selection').first().toJSON();
+                    console.log('Image selected, attachment ID:', attachment.id);
+                    
+                    if (inputField) {
+                        inputField.value = attachment.id;
+                        console.log('Input field value set to:', inputField.value);
+                        
+                        // Add visual feedback
+                        inputField.style.backgroundColor = '#e7f3e7';
+                        setTimeout(() => {
+                            inputField.style.backgroundColor = '';
+                        }, 2000);
+                    } else {
+                        console.error('Input field not found for:', fieldName);
+                    }
+                });
+                
+                // Open the media frame
+                mediaFrame.open();
             });
         });
         

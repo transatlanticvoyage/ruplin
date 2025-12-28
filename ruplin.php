@@ -478,6 +478,7 @@ class SnefuruPlugin {
             locpage_city TEXT DEFAULT NULL,
             locpage_state_code TEXT DEFAULT NULL,
             locpage_state_full TEXT DEFAULT NULL,
+            locpage_gmaps_string TEXT DEFAULT NULL,
             short_anchor TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
@@ -786,6 +787,19 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '1.7.0');
+        }
+        
+        // Check for version 1.8.0 migration - Add locpage_gmaps_string column
+        if (version_compare($current_migration, '1.8.0', '<')) {
+            
+            // Add locpage_gmaps_string column
+            $gmaps_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'locpage_gmaps_string'");
+            if (empty($gmaps_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN locpage_gmaps_string TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '1.8.0');
         }
     }
 }
