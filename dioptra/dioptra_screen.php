@@ -94,6 +94,26 @@ function ruplin_render_dioptra_screen() {
         'trustblock_vezzy_desc' => 'pylons',
         'baynar1_main' => 'pylons',
         'baynar2_main' => 'pylons',
+        'serena_faq_q1' => 'pylons',
+        'serena_faq_a1' => 'pylons',
+        'serena_faq_q2' => 'pylons',
+        'serena_faq_a2' => 'pylons',
+        'serena_faq_q3' => 'pylons',
+        'serena_faq_a3' => 'pylons',
+        'serena_faq_q4' => 'pylons',
+        'serena_faq_a4' => 'pylons',
+        'serena_faq_q5' => 'pylons',
+        'serena_faq_a5' => 'pylons',
+        'serena_faq_q6' => 'pylons',
+        'serena_faq_a6' => 'pylons',
+        'serena_faq_q7' => 'pylons',
+        'serena_faq_a7' => 'pylons',
+        'serena_faq_q8' => 'pylons',
+        'serena_faq_a8' => 'pylons',
+        'serena_faq_q9' => 'pylons',
+        'serena_faq_a9' => 'pylons',
+        'serena_faq_q10' => 'pylons',
+        'serena_faq_a10' => 'pylons',
         'locpage_topical_string' => 'pylons',
         'locpage_neighborhood' => 'pylons',
         'locpage_city' => 'pylons',
@@ -269,17 +289,24 @@ function ruplin_render_dioptra_screen() {
                 </thead>
                 <tbody>
                     <?php foreach ($fields as $field_name => $table_source): ?>
-                        <tr>
-                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                        <?php 
+                        // Add black top border for specific rows
+                        $row_style = '';
+                        if ($field_name === 'serena_faq_q1' || $field_name === 'locpage_topical_string') {
+                            $row_style = 'style="border-top: 2px solid black;"';
+                        }
+                        ?>
+                        <tr <?php echo $row_style; ?>>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;<?php echo ($field_name === 'serena_faq_q1' || $field_name === 'locpage_topical_string') ? ' border-top: 2px solid black;' : ''; ?>">
                                 <input type="checkbox" name="field_<?php echo esc_attr($field_name); ?>" />
                             </td>
-                            <td style="border: 1px solid #ccc; padding: 8px;">
+                            <td style="border: 1px solid #ccc; padding: 8px;<?php echo ($field_name === 'serena_faq_q1' || $field_name === 'locpage_topical_string') ? ' border-top: 2px solid black;' : ''; ?>">
                                 <?php echo (strpos($field_name, 'post_') === 0) ? 'wp_posts' : ''; ?>
                             </td>
-                            <td style="border: 1px solid #ccc; padding: 8px;">
+                            <td style="border: 1px solid #ccc; padding: 8px;<?php echo ($field_name === 'serena_faq_q1' || $field_name === 'locpage_topical_string') ? ' border-top: 2px solid black;' : ''; ?>">
                                 <?php echo esc_html($field_name); ?>
                             </td>
-                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;<?php echo ($field_name === 'serena_faq_q1' || $field_name === 'locpage_topical_string') ? ' border-top: 2px solid black;' : ''; ?>">
                                 <?php
                                 $value = '';
                                 if ($table_source === 'posts' && isset($post_data[$field_name])) {
@@ -297,6 +324,10 @@ function ruplin_render_dioptra_screen() {
                                 <?php if ($field_name === 'post_content'): ?>
                                     <textarea name="field_<?php echo esc_attr($field_name); ?>" 
                                              style="width: 100%; height: 150px; border: 1px solid #ccc; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"><?php echo esc_textarea($value); ?></textarea>
+                                <?php elseif (strpos($field_name, 'serena_faq_a') === 0): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 80px; border: 1px solid #ccc; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                             placeholder="Enter FAQ answer..."><?php echo esc_textarea($value); ?></textarea>
                                 <?php elseif ($field_name === 'pylon_id' || $field_name === 'rel_plasma_page_id' || $field_name === 'rel_wp_post_id'): ?>
                                     <input type="text" 
                                            name="field_<?php echo esc_attr($field_name); ?>" 
@@ -305,14 +336,21 @@ function ruplin_render_dioptra_screen() {
                                            readonly
                                            disabled />
                                 <?php else: ?>
+                                    <?php 
+                                    $placeholder = '';
+                                    if (strpos($field_name, 'serena_faq_q') === 0) {
+                                        $placeholder = 'Enter FAQ question...';
+                                    }
+                                    ?>
                                     <input type="text" 
                                            name="field_<?php echo esc_attr($field_name); ?>" 
                                            id="field_<?php echo esc_attr($field_name); ?>"
                                            value="<?php echo esc_attr($value); ?>" 
+                                           <?php if ($placeholder): ?>placeholder="<?php echo esc_attr($placeholder); ?>"<?php endif; ?>
                                            style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                                 <?php endif; ?>
                             </td>
-                            <td style="border: 1px solid #ccc; padding: 8px;">
+                            <td style="border: 1px solid #ccc; padding: 8px;<?php echo ($field_name === 'serena_faq_q1' || $field_name === 'locpage_topical_string') ? ' border-top: 2px solid black;' : ''; ?>">
                                 <?php
                                 // Special case for paragon_featured_image_id field
                                 if ($field_name === 'paragon_featured_image_id') {
