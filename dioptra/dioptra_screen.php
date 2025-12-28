@@ -379,6 +379,13 @@ function ruplin_render_dioptra_screen() {
                                                style="margin-right: 8px; transform: scale(1.2);" />
                                         <span style="font-weight: 600;">Disable VN System on Post</span>
                                     </label>
+                                <?php elseif ($field_name === 'meta-title-actual-output' || $field_name === 'meta-description-actual-output'): ?>
+                                    <input type="text" 
+                                           name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>" 
+                                           style="width: 100%; border: 1px solid #ccc; padding: 4px; background-color: #f0f0f0; cursor: not-allowed; color: #666;" 
+                                           readonly
+                                           disabled />
                                 <?php elseif ($field_name === 'pylon_id' || $field_name === 'rel_plasma_page_id' || $field_name === 'rel_wp_post_id'): ?>
                                     <input type="text" 
                                            name="field_<?php echo esc_attr($field_name); ?>" 

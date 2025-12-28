@@ -824,5 +824,6 @@ class SnefuruPlugin {
     }
 }
 
+
 // Initialize the plugin
 new SnefuruPlugin(); 
