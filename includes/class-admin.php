@@ -11109,6 +11109,15 @@ class Snefuru_Admin {
                         $cleaned_value = $this->sanitize_text_without_slashes($value);
                         $update_data[$field_name] = $cleaned_value;
                         
+                        // DEBUG: Special tracking for staircase_page_template_desired
+                        if ($field_name === 'staircase_page_template_desired') {
+                            error_log("===== DIOPTRA STAIRCASE TEMPLATE DEBUG =====");
+                            error_log("Field name: " . $field_name);
+                            error_log("Raw value from POST: '" . $value . "'");
+                            error_log("Cleaned value: '" . $cleaned_value . "'");
+                            error_log("Will be saved to update_data as: '" . $update_data[$field_name] . "'");
+                        }
+                        
                         // Additional debug for chenblock fields
                         if (strpos($field_name, 'chenblock') !== false) {
                             error_log("Dioptra save - Final value for {$field_name}: " . $cleaned_value);
@@ -11132,11 +11141,17 @@ class Snefuru_Admin {
         
         // Update wp_posts fields if any
         if (!empty($post_update_data)) {
+            // Build format array for post fields
+            $post_format_array = array();
+            foreach ($post_update_data as $field_name => $field_value) {
+                $post_format_array[] = '%s';  // All post fields are strings
+            }
+            
             $post_result = $wpdb->update(
                 $wpdb->posts,
                 $post_update_data,
                 array('ID' => $post_id),
-                array('%s'),
+                $post_format_array,  // Use correct format array
                 array('%d')
             );
             
@@ -11154,15 +11169,91 @@ class Snefuru_Admin {
             $has_osb_column = in_array('osb_is_enabled', $columns);
             error_log("Dioptra save - osb_is_enabled column exists: " . ($has_osb_column ? 'YES' : 'NO'));
             
+            // DEBUG: Special check for staircase_page_template_desired
+            if (isset($update_data['staircase_page_template_desired'])) {
+                error_log("===== DIOPTRA UPDATE ABOUT TO HAPPEN =====");
+                error_log("Post ID: " . $post_id);
+                error_log("Table: " . $pylons_table);
+                
+                // Get current value BEFORE update
+                $current_db_value = $wpdb->get_var($wpdb->prepare(
+                    "SELECT staircase_page_template_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+                    $post_id
+                ));
+                error_log("Current DB value BEFORE update: '" . var_export($current_db_value, true) . "'");
+                error_log("Value we're trying to save: '" . $update_data['staircase_page_template_desired'] . "'");
+                
+                // Check column information
+                $column_info = $wpdb->get_results("SHOW COLUMNS FROM {$pylons_table} LIKE 'staircase_page_template_desired'");
+                if ($column_info) {
+                    error_log("Column info: " . json_encode($column_info));
+                }
+            }
+            
+            // Log all fields being updated
+            error_log("Dioptra save - Fields being updated: " . implode(', ', array_keys($update_data)));
+            error_log("Dioptra save - Update data: " . json_encode($update_data));
+            
+            // FIX: Build format array for each field being updated
+            $format_array = array();
+            foreach ($update_data as $field_name => $field_value) {
+                if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical', 
+                                           'osb_services_per_row', 'osb_max_services_display',
+                                           'paragon_featured_image_id', 'pylon_id', 'rel_wp_post_id'])) {
+                    $format_array[] = '%d';  // Integer fields
+                } else {
+                    $format_array[] = '%s';  // String/text fields
+                }
+            }
+            
+            error_log("Dioptra save - Format array: " . json_encode($format_array));
+            error_log("Dioptra save - Number of fields: " . count($update_data));
+            error_log("Dioptra save - Number of formats: " . count($format_array));
+            
             $pylon_result = $wpdb->update(
                 $pylons_table,
                 $update_data,
                 array('rel_wp_post_id' => $post_id),
-                array('%s'),
+                $format_array,  // Use the correct format array
                 array('%d')
             );
             
-            error_log("Dioptra save - Pylon update result: " . ($pylon_result !== false ? 'SUCCESS' : 'FAILED') . " - " . $wpdb->last_error);
+            error_log("Dioptra save - Pylon update result: " . var_export($pylon_result, true));
+            error_log("Dioptra save - Rows affected: " . $pylon_result);
+            error_log("Dioptra save - Last DB error: " . $wpdb->last_error);
+            error_log("Dioptra save - Last query: " . $wpdb->last_query);
+            
+            // DEBUG: Check value AFTER update
+            if (isset($update_data['staircase_page_template_desired'])) {
+                $new_db_value = $wpdb->get_var($wpdb->prepare(
+                    "SELECT staircase_page_template_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+                    $post_id
+                ));
+                error_log("===== AFTER UPDATE CHECK =====");
+                error_log("New DB value AFTER update: '" . var_export($new_db_value, true) . "'");
+                error_log("Did value change? " . ($new_db_value !== $current_db_value ? "YES" : "NO"));
+                error_log("Does it match what we tried to save? " . ($new_db_value === $update_data['staircase_page_template_desired'] ? "YES" : "NO"));
+                
+                // Try direct SQL update as a test
+                if ($new_db_value !== $update_data['staircase_page_template_desired']) {
+                    error_log("===== TRYING DIRECT SQL UPDATE =====");
+                    $direct_sql = $wpdb->prepare(
+                        "UPDATE {$pylons_table} SET staircase_page_template_desired = %s WHERE rel_wp_post_id = %d",
+                        $update_data['staircase_page_template_desired'],
+                        $post_id
+                    );
+                    error_log("Direct SQL: " . $direct_sql);
+                    $direct_result = $wpdb->query($direct_sql);
+                    error_log("Direct SQL result: " . var_export($direct_result, true));
+                    
+                    // Check again
+                    $final_value = $wpdb->get_var($wpdb->prepare(
+                        "SELECT staircase_page_template_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+                        $post_id
+                    ));
+                    error_log("Final value after direct SQL: '" . var_export($final_value, true) . "'");
+                }
+            }
             
             if ($pylon_result !== false) {
                 $success_messages[] = 'Pylon data updated';

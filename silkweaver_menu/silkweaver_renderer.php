@@ -256,13 +256,20 @@ class Silkweaver_Menu_Renderer {
         $html = sprintf('<li class="silkweaver-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button>', esc_html($item['title']));
         $html .= '<ul class="silkweaver-dropdown-menu">';
         
+        // Generate all links without any whitespace between elements
+        $link_html = '';
         foreach ($all_links as $link) {
-            $html .= sprintf(
+            // Skip empty or invalid links
+            if (empty($link['url']) || empty($link['title'])) {
+                continue;
+            }
+            $link_html .= sprintf(
                 '<li><a href="%s">%s</a></li>',
                 esc_url($link['url']),
                 esc_html($link['title'])
             );
         }
+        $html .= $link_html;
         
         $html .= '</ul></li>';
         
