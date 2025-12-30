@@ -102,6 +102,10 @@ class Scorpion_Search_Replace {
                         <input type="radio" name="search_table" value="wp_posts" style="margin-right: 8px;">
                         <strong>Search in wp_posts</strong> (post_title and post_content only)
                     </label>
+                    <label style="display: block; margin-bottom: 10px; cursor: pointer;">
+                        <input type="radio" name="search_table" value="wp_posts_slug" style="margin-right: 8px;">
+                        <strong>Search in wp_posts</strong> (post_name field only - url slug)
+                    </label>
                 </div>
             </div>
             
@@ -321,6 +325,11 @@ class Scorpion_Search_Replace {
             // Determine which table to search
             if ($search_table === 'wp_posts') {
                 $this->search_wp_posts($search_text);
+                return;
+            }
+            
+            if ($search_table === 'wp_posts_slug') {
+                $this->search_wp_posts_slug($search_text);
                 return;
             }
             
@@ -592,6 +601,78 @@ class Scorpion_Search_Replace {
     }
     
     /**
+     * Search in wp_posts table (post_name field only - URL slug)
+     */
+    private function search_wp_posts_slug($search_text) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'posts';
+        
+        // Custom escaping that preserves backslashes for search
+        $escaped_search = str_replace(['%', '_'], ['\%', '\_'], $search_text);
+        
+        // Build query for post_name only
+        $search_query = $wpdb->prepare(
+            "SELECT ID, post_title, post_name, post_status, post_type 
+             FROM {$table_name} 
+             WHERE post_name LIKE %s
+             LIMIT 1000",
+            '%' . $escaped_search . '%'
+        );
+        
+        $results = $wpdb->get_results($search_query, ARRAY_A);
+        
+        if ($wpdb->last_error) {
+            wp_send_json_error("Database error: " . $wpdb->last_error);
+        }
+        
+        $total_matches = count($results);
+        
+        // Build HTML output
+        $html = "<div style='max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9;'>";
+        
+        if ($total_matches === 0) {
+            $html .= "<p>No matches found in post_name (URL slug) field.</p>";
+        } else {
+            $html .= "<p><strong>Found {$total_matches} posts with matching URL slugs.</strong></p>";
+            $preview_count = 0;
+            
+            foreach ($results as $result) {
+                if ($preview_count >= 10) break; // Show max 10 previews
+                
+                $html .= "<div style='border-bottom: 1px solid #ddd; padding: 10px 0;'>";
+                $html .= "<strong>Post ID:</strong> " . esc_html($result['ID']) . " | ";
+                $html .= "<strong>Type:</strong> " . esc_html($result['post_type']) . " | ";
+                $html .= "<strong>Status:</strong> " . esc_html($result['post_status']) . "<br>";
+                
+                // Show post title for context
+                $html .= "<small><strong>Title:</strong> " . esc_html($result['post_title']) . "</small><br>";
+                
+                // Show matching post_name with highlighting
+                if (strpos($result['post_name'], $search_text) !== false) {
+                    $highlighted = str_replace($search_text, "<mark style='background: yellow;'>{$search_text}</mark>", esc_html($result['post_name']));
+                    $html .= "<small><strong>URL Slug:</strong> {$highlighted}</small><br>";
+                }
+                
+                $html .= "</div>";
+                $preview_count++;
+            }
+            
+            if ($total_matches > 10) {
+                $html .= "<em>... and " . ($total_matches - 10) . " more posts</em>";
+            }
+        }
+        
+        $html .= "</div>";
+        
+        wp_send_json_success(array(
+            'message' => "Search completed in wp_posts post_name field. Found {$total_matches} posts containing '{$search_text}'",
+            'total_matches' => $total_matches,
+            'html' => $html
+        ));
+    }
+    
+    /**
      * Handle replace AJAX request
      */
     public function handle_replace() {
@@ -643,6 +724,11 @@ class Scorpion_Search_Replace {
             // Determine which table to replace in
             if ($search_table === 'wp_posts') {
                 $this->replace_wp_posts($search_text, $replace_text);
+                return;
+            }
+            
+            if ($search_table === 'wp_posts_slug') {
+                $this->replace_wp_posts_slug($search_text, $replace_text);
                 return;
             }
             
@@ -898,6 +984,61 @@ class Scorpion_Search_Replace {
         
         wp_send_json_success(array(
             'message' => "Replacement completed in wp_posts! Updated {$total_updates} rows.",
+            'total_updates' => $total_updates,
+            'html' => $html
+        ));
+    }
+    
+    /**
+     * Replace in wp_posts table (post_name field only - URL slug)
+     */
+    private function replace_wp_posts_slug($search_text, $replace_text) {
+        global $wpdb;
+        
+        $table_name = $wpdb->prefix . 'posts';
+        $total_updates = 0;
+        
+        // Custom escaping that preserves backslashes
+        $escaped_search = str_replace(['%', '_'], ['\%', '\_'], $search_text);
+        
+        // Log replacement attempt
+        error_log("Scorpion Replace: Replacing '{$search_text}' with '{$replace_text}' in wp_posts post_name field");
+        
+        // Replace in post_name field only
+        $result = $wpdb->query($wpdb->prepare(
+            "UPDATE {$table_name} SET post_name = REPLACE(post_name, %s, %s) WHERE post_name LIKE %s",
+            $search_text,
+            $replace_text,
+            '%' . $escaped_search . '%'
+        ));
+        
+        if ($result !== false) {
+            $total_updates = $result;
+        }
+        
+        // Check for database errors
+        if ($wpdb->last_error) {
+            wp_send_json_error("Database error: " . $wpdb->last_error);
+        }
+        
+        // Build result HTML
+        $html = "<div style='padding: 10px; background: #f9f9f9; border: 1px solid #ddd;'>";
+        $html .= "<strong>Replacement Summary for wp_posts post_name (URL slug):</strong><br>";
+        $html .= "<ul style='margin: 10px 0;'>";
+        $html .= "<li>post_name: " . $total_updates . " rows updated</li>";
+        $html .= "</ul>";
+        $html .= "<strong>Total rows affected:</strong> " . $total_updates;
+        
+        if ($total_updates > 0) {
+            $html .= "<br><br><em style='color: #d63638;'><strong>Important:</strong> URL slug changes may affect SEO and existing bookmarks. You may want to set up redirects.</em>";
+        }
+        
+        $html .= "</div>";
+        
+        error_log("Scorpion Replace: wp_posts post_name replacement completed. Total updates: {$total_updates}");
+        
+        wp_send_json_success(array(
+            'message' => "Replacement completed in wp_posts post_name field! Updated {$total_updates} rows.",
             'total_updates' => $total_updates,
             'html' => $html
         ));
