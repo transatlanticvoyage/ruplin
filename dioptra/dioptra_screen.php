@@ -321,10 +321,23 @@ function ruplin_render_dioptra_screen() {
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;<?php echo in_array($field_name, $border_rows) ? ' border-top: 2px solid black;' : ''; ?>">
                                 <?php 
+                                // Fields that are omitted from database updates
+                                $omitted_fields = [
+                                    'begin-now-vn-system-area',
+                                    'vec_disable_vn_system_sitewide',
+                                    'vec_disable_vn_system_on_post',
+                                    'vec_meta_title',
+                                    'vec_meta_description',
+                                    'meta-title-actual-output',
+                                    'meta-description-actual-output'
+                                ];
+                                
                                 if (strpos($field_name, 'post_') === 0) {
                                     echo 'wp_posts';
                                 } elseif ($field_name === 'vec_disable_vn_system_sitewide') {
-                                    echo 'wp_zen_sitespren';
+                                    echo 'omitted from db update(_zen_sit..)';
+                                } elseif (in_array($field_name, $omitted_fields)) {
+                                    echo 'omitted from db update';
                                 }
                                 ?>
                             </td>

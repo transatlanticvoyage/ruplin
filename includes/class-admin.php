@@ -11028,6 +11028,14 @@ class Snefuru_Admin {
         // Debug: Log all POST data
         error_log("Dioptra save attempt - POST data: " . json_encode($_POST));
         
+        // Debug: Check specifically for paragon_featured_image_id
+        if (isset($_POST['field_paragon_featured_image_id'])) {
+            error_log("PARAGON_FEATURED_IMAGE_ID found in POST: " . $_POST['field_paragon_featured_image_id']);
+        } else {
+            error_log("PARAGON_FEATURED_IMAGE_ID NOT found in POST data");
+            error_log("All field_ keys in POST: " . implode(', ', array_filter(array_keys($_POST), function($key) { return strpos($key, 'field_') === 0; })));
+        }
+        
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dioptra_save_nonce')) {
             error_log("Dioptra save failed: Security check failed");
@@ -11097,13 +11105,36 @@ class Snefuru_Admin {
                         $post_update_data[$field_name] = $this->sanitize_text_without_slashes($value);
                     }
                 } else {
+                    // Skip fields that don't exist in the database yet
+                    $fields_to_skip = [
+                        'begin-now-vn-system-area',
+                        'vec_disable_vn_system_sitewide', 
+                        'vec_disable_vn_system_on_post',
+                        'vec_meta_title',
+                        'vec_meta_description',
+                        'meta-title-actual-output',
+                        'meta-description-actual-output'
+                    ];
+                    
+                    if (in_array($field_name, $fields_to_skip)) {
+                        error_log("Dioptra save - Skipping field without DB column: " . $field_name);
+                        continue; // Skip this field entirely
+                    }
+                    
                     // wp_pylons field - handle all fields properly WITHOUT slash escaping
                     if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
                         $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
-                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display'])) {
+                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id'])) {
                         // Handle integer fields
                         $update_data[$field_name] = intval($value);
+                        // DEBUG: Log paragon_featured_image_id specifically
+                        if ($field_name === 'paragon_featured_image_id') {
+                            error_log("===== PARAGON_FEATURED_IMAGE_ID DEBUG =====");
+                            error_log("Raw value from POST: '" . $value . "'");
+                            error_log("Converted to integer: " . intval($value));
+                            error_log("Stored in update_data: " . $update_data[$field_name]);
+                        }
                     } else {
                         // For ALL text fields, use text sanitization that NEVER adds slashes
                         $cleaned_value = $this->sanitize_text_without_slashes($value);
@@ -11193,6 +11224,13 @@ class Snefuru_Admin {
             // Log all fields being updated
             error_log("Dioptra save - Fields being updated: " . implode(', ', array_keys($update_data)));
             error_log("Dioptra save - Update data: " . json_encode($update_data));
+            
+            // Special debug for paragon_featured_image_id
+            if (isset($update_data['paragon_featured_image_id'])) {
+                error_log("PARAGON_FEATURED_IMAGE_ID in update_data: " . $update_data['paragon_featured_image_id'] . " (type: " . gettype($update_data['paragon_featured_image_id']) . ")");
+            } else {
+                error_log("PARAGON_FEATURED_IMAGE_ID NOT in update_data array!");
+            }
             
             // FIX: Build format array for each field being updated
             $format_array = array();
