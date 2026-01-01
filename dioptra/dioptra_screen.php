@@ -58,6 +58,8 @@ function ruplin_render_dioptra_screen() {
         'pylon_id' => 'pylons',
         'rel_plasma_page_id' => 'pylons',
         'rel_wp_post_id' => 'pylons',
+        'jchronology_order_for_blog_posts' => 'pylons',
+        'jchronology_batch' => 'pylons',
         'paragon_featured_image_id' => 'pylons',
         'staircase_page_template_desired' => 'pylons',
         'pylon_archetype' => 'pylons',

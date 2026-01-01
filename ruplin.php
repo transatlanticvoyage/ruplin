@@ -500,6 +500,8 @@ class SnefuruPlugin {
             serena_faq_box_a9 TEXT DEFAULT NULL,
             serena_faq_box_q10 TEXT DEFAULT NULL,
             serena_faq_box_a10 TEXT DEFAULT NULL,
+            jchronology_order_for_blog_posts INT DEFAULT NULL,
+            jchronology_batch INT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -820,6 +822,25 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '1.8.0');
+        }
+        
+        // Check for version 1.9.0 migration - Add jchronology columns
+        if (version_compare($current_migration, '1.9.0', '<')) {
+            
+            // Add jchronology_order_for_blog_posts column
+            $jchronology_order_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'jchronology_order_for_blog_posts'");
+            if (empty($jchronology_order_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN jchronology_order_for_blog_posts INT DEFAULT NULL");
+            }
+            
+            // Add jchronology_batch column
+            $jchronology_batch_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'jchronology_batch'");
+            if (empty($jchronology_batch_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN jchronology_batch INT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '1.9.0');
         }
     }
 }

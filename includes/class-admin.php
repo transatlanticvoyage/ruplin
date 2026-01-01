@@ -11125,7 +11125,7 @@ class Snefuru_Admin {
                     if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
                         $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
-                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id'])) {
+                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id', 'jchronology_order_for_blog_posts', 'jchronology_batch'])) {
                         // Handle integer fields
                         $update_data[$field_name] = intval($value);
                         // DEBUG: Log paragon_featured_image_id specifically

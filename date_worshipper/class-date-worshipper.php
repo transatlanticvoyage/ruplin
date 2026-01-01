@@ -330,20 +330,52 @@ class Date_Worshipper {
     public function admin_page() {
         global $wpdb;
         
-        // Get all posts (not pages)
-        $posts_query = "
-            SELECT 
-                ID,
-                post_title,
-                post_status,
-                post_type,
-                post_date,
-                post_modified,
-                post_author
-            FROM {$wpdb->posts}
-            WHERE post_type = 'post' AND post_status != 'trash'
-            ORDER BY post_date DESC
-        ";
+        // Check if wp_pylons table exists and has the jchronology columns
+        $pylons_table = $wpdb->prefix . 'pylons';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$pylons_table'") === $pylons_table;
+        
+        $jchronology_columns_exist = false;
+        if ($table_exists) {
+            $columns = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'jchronology_%'");
+            $jchronology_columns_exist = count($columns) >= 2;
+        }
+        
+        // Get all posts with optional jchronology data if available
+        if ($table_exists && $jchronology_columns_exist) {
+            $posts_query = "
+                SELECT 
+                    p.ID,
+                    p.post_title,
+                    p.post_status,
+                    p.post_type,
+                    p.post_date,
+                    p.post_modified,
+                    p.post_author,
+                    py.jchronology_order_for_blog_posts,
+                    py.jchronology_batch
+                FROM {$wpdb->posts} p
+                LEFT JOIN {$pylons_table} py ON p.ID = py.rel_wp_post_id
+                WHERE p.post_type = 'post' AND p.post_status != 'trash'
+                ORDER BY p.post_date DESC
+            ";
+        } else {
+            // Fallback query without jchronology columns
+            $posts_query = "
+                SELECT 
+                    ID,
+                    post_title,
+                    post_status,
+                    post_type,
+                    post_date,
+                    post_modified,
+                    post_author,
+                    NULL as jchronology_order_for_blog_posts,
+                    NULL as jchronology_batch
+                FROM {$wpdb->posts}
+                WHERE post_type = 'post' AND post_status != 'trash'
+                ORDER BY post_date DESC
+            ";
+        }
         
         $posts = $wpdb->get_results($posts_query);
         
@@ -355,6 +387,27 @@ class Date_Worshipper {
         }
         
         ?>
+        <style>
+        .jchronology-tooltip {
+            position: relative;
+            cursor: help;
+        }
+        .jchronology-tooltip:hover::after {
+            content: attr(title);
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        </style>
         <div class="wrap">
             <h1>Date Worshipper - Posts Management</h1>
             <p>All posts in the system (published, draft, and all other statuses)</p>
@@ -427,6 +480,8 @@ class Date_Worshipper {
                                 </th>
                                 <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">ID</th>
                                 <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase;">post_status</th>
+                                <th class="jchronology-tooltip" style="padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase;" title="db column: wp_pylons.jchronology_order_for_blog_posts">jchron...</th>
+                                <th class="jchronology-tooltip" style="padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase;" title="db column: wp_pylons.jchronology_batch">jc-batch</th>
                                 <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase;">post_date</th>
                                 <th style="padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold; text-transform: lowercase;">post_title</th>
                                 <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Status</th>
@@ -444,6 +499,8 @@ class Date_Worshipper {
                                 </td>
                                 <td style="padding: 10px; border: 1px solid #ddd;"><?php echo esc_html($post->ID); ?></td>
                                 <td style="padding: 10px; border: 1px solid #ddd;"><?php echo esc_html($post->post_status); ?></td>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><?php echo !empty($post->jchronology_order_for_blog_posts) ? esc_html($post->jchronology_order_for_blog_posts) : ''; ?></td>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><?php echo !empty($post->jchronology_batch) ? esc_html($post->jchronology_batch) : ''; ?></td>
                                 <td style="padding: 10px; border: 1px solid #ddd;"><?php echo esc_html(date('Y-m-d H:i:s', strtotime($post->post_date))); ?></td>
                                 <td style="padding: 10px; border: 1px solid #ddd;">
                                     <?php 
@@ -549,14 +606,17 @@ class Date_Worshipper {
         global $wpdb;
         
         try {
-            // Get all eligible posts (published, not trash)
+            // Get all eligible posts ordered by jchronology_order_for_blog_posts
+            $pylons_table = $wpdb->prefix . 'pylons';
             $posts_query = "
-                SELECT ID, post_title 
-                FROM {$wpdb->posts} 
-                WHERE post_type = 'post' 
-                AND post_status IN ('publish', 'draft', 'private')
-                AND post_status != 'trash'
-                ORDER BY RAND()
+                SELECT p.ID, p.post_title, 
+                       COALESCE(py.jchronology_order_for_blog_posts, 999999) as jchronology_order
+                FROM {$wpdb->posts} p
+                LEFT JOIN {$pylons_table} py ON p.ID = py.rel_wp_post_id
+                WHERE p.post_type = 'post' 
+                AND p.post_status IN ('publish', 'draft', 'private')
+                AND p.post_status != 'trash'
+                ORDER BY jchronology_order ASC, p.ID ASC
             ";
             
             $posts = $wpdb->get_results($posts_query);
