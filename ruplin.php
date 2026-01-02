@@ -502,6 +502,14 @@ class SnefuruPlugin {
             serena_faq_box_a10 TEXT DEFAULT NULL,
             jchronology_order_for_blog_posts INT DEFAULT NULL,
             jchronology_batch INT DEFAULT NULL,
+            kw1 TEXT DEFAULT NULL,
+            kw2 TEXT DEFAULT NULL,
+            kw3 TEXT DEFAULT NULL,
+            kw4 TEXT DEFAULT NULL,
+            kw5 TEXT DEFAULT NULL,
+            kw6 TEXT DEFAULT NULL,
+            kw7 TEXT DEFAULT NULL,
+            kw8 TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -841,6 +849,61 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '1.9.0');
+        }
+        
+        // Check for version 2.0.0 migration - Add kw columns
+        if (version_compare($current_migration, '2.0.0', '<')) {
+            
+            // Add kw1 column
+            $kw1_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw1'");
+            if (empty($kw1_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw1 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw2 column
+            $kw2_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw2'");
+            if (empty($kw2_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw2 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw3 column
+            $kw3_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw3'");
+            if (empty($kw3_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw3 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw4 column
+            $kw4_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw4'");
+            if (empty($kw4_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw4 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw5 column
+            $kw5_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw5'");
+            if (empty($kw5_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw5 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw6 column
+            $kw6_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw6'");
+            if (empty($kw6_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw6 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw7 column
+            $kw7_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw7'");
+            if (empty($kw7_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw7 TEXT DEFAULT NULL");
+            }
+            
+            // Add kw8 column
+            $kw8_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'kw8'");
+            if (empty($kw8_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN kw8 TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.0.0');
         }
     }
 }
