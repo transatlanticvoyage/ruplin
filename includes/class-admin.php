@@ -282,6 +282,8 @@ class Snefuru_Admin {
             'date_worshipper_mar',
             array($this, 'date_worshipper_mar_page')
         );
+        
+        // Note: Aragon Image Manager menu is handled by its own class
     }
     
     /**

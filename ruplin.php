@@ -124,6 +124,9 @@ class SnefuruPlugin {
         // Load Date Worshipper System
         require_once SNEFURU_PLUGIN_PATH . 'date_worshipper/class-date-worshipper.php';
         
+        // Load Aragon Image Manager System
+        require_once SNEFURU_PLUGIN_PATH . 'aragon_image_manager/class-aragon-image-manager.php';
+        
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
