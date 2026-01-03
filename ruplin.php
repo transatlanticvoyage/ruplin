@@ -127,6 +127,9 @@ class SnefuruPlugin {
         // Load Aragon Image Manager System
         require_once SNEFURU_PLUGIN_PATH . 'aragon_image_manager/class-aragon-image-manager.php';
         
+        // Load Contact Form Services Shortcode System
+        require_once SNEFURU_PLUGIN_PATH . 'contact_form_services_shortcode/class-contact-form-services-shortcode.php';
+        
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';

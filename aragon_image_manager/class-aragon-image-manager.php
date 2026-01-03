@@ -31,6 +31,7 @@ class Aragon_Image_Manager {
         add_action('wp_ajax_aragon_load_posts_pylons_data', array($this, 'load_posts_pylons_data'));
         add_action('wp_ajax_aragon_get_image_url', array($this, 'get_image_url'));
         add_action('wp_ajax_aragon_update_paragon_featured_image', array($this, 'update_paragon_featured_image'));
+        add_action('wp_ajax_aragon_delete_media_files', array($this, 'delete_media_files'));
     }
     
     /**
@@ -505,6 +506,62 @@ class Aragon_Image_Manager {
     }
     
     /**
+     * Delete media files via AJAX
+     */
+    public function delete_media_files() {
+        check_ajax_referer('aragon_nonce', 'nonce');
+        
+        if (!current_user_can('delete_posts')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        $media_ids = isset($_POST['media_ids']) ? array_map('intval', $_POST['media_ids']) : array();
+        
+        if (empty($media_ids)) {
+            wp_send_json_error('No media files selected');
+        }
+        
+        try {
+            $deleted_count = 0;
+            $errors = array();
+            
+            foreach ($media_ids as $media_id) {
+                // Check if this is actually an attachment
+                if (get_post_type($media_id) !== 'attachment') {
+                    $errors[] = "ID $media_id is not a media file";
+                    continue;
+                }
+                
+                // Force delete the attachment (bypass trash)
+                $result = wp_delete_attachment($media_id, true);
+                
+                if ($result) {
+                    $deleted_count++;
+                } else {
+                    $errors[] = "Failed to delete media ID $media_id";
+                }
+            }
+            
+            if ($deleted_count > 0) {
+                $message = "$deleted_count file(s) deleted successfully";
+                if (!empty($errors)) {
+                    $message .= ". Errors: " . implode(', ', $errors);
+                }
+                wp_send_json_success(array(
+                    'message' => $message,
+                    'deleted_count' => $deleted_count,
+                    'errors' => $errors
+                ));
+            } else {
+                wp_send_json_error('Failed to delete any files. ' . implode(', ', $errors));
+            }
+            
+        } catch (Exception $e) {
+            wp_send_json_error('Error deleting media files: ' . $e->getMessage());
+        }
+    }
+    
+    /**
      * Render the admin page
      */
     public function render_admin_page() {
@@ -521,6 +578,27 @@ class Aragon_Image_Manager {
                     </svg>
                     Open Navarre Designator
                 </button>
+                <button id="upload-media-files" class="button" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 500;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                        <polyline points="7,10 12,15 17,10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Upload Media Files
+                </button>
+                <select id="bulk-actions" class="button" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer;">
+                    <option value="">Bulk Actions</option>
+                    <option value="delete">Delete Permanently</option>
+                </select>
+                <button id="apply-bulk-action" class="button" style="padding: 8px 16px; border: 1px solid #ddd; border-radius: 4px; background: #f0f0f0; cursor: pointer;">
+                    Apply
+                </button>
+                <div id="upload-progress" style="display: none; padding: 8px 12px; background: #f0f8ff; border: 1px solid #0073aa; border-radius: 4px; font-size: 14px; color: #0073aa;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="upload-spinner" style="width: 16px; height: 16px; border: 2px solid #e0e0e0; border-top-color: #0073aa; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span id="upload-progress-text">Uploading...</span>
+                    </div>
+                </div>
             </div>
             
             <!-- Controls Bar -->
@@ -589,6 +667,38 @@ class Aragon_Image_Manager {
                     <span id="aragon-page-info" style="margin: 0 15px;"></span>
                     <button id="aragon-next-page" class="button">Next ›</button>
                     <button id="aragon-last-page" class="button">Last »</button>
+                </div>
+            </div>
+            
+            <!-- Delete Confirmation Popup -->
+            <div id="delete-confirmation-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100002;">
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);"></div>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); max-width: 500px; width: 90%;">
+                    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 15px;">
+                            <path d="M10 11v6m4-6v6M4 5h16M6 5l1 14a2 2 0 002 2h6a2 2 0 002-2l1-14M9 5V3a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                        </svg>
+                        <div>
+                            <h2 style="margin: 0 0 5px 0; color: #DC2626; font-size: 24px;">Confirm Deletion</h2>
+                            <p style="margin: 0; color: #666; font-size: 16px;">This action cannot be undone!</p>
+                        </div>
+                    </div>
+                    <div style="background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                        <p style="margin: 0 0 10px 0; color: #7F1D1D; font-weight: bold;">
+                            You are about to permanently delete <span id="delete-count">0</span> media file(s).
+                        </p>
+                        <p style="margin: 0; color: #991B1B; font-size: 14px;">
+                            These files will be removed from your media library and cannot be recovered. Any posts or pages using these images will display broken image placeholders.
+                        </p>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <button id="cancel-delete" class="button" style="padding: 10px 20px; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 14px; border-radius: 4px;">
+                            Cancel
+                        </button>
+                        <button id="confirm-delete" class="button" style="padding: 10px 20px; background: #DC2626; color: white; border: none; cursor: pointer; font-size: 14px; border-radius: 4px; font-weight: bold;">
+                            Delete Permanently
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -784,17 +894,18 @@ class Aragon_Image_Manager {
         }
         
         .navarre-popup-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 35%;
             height: 100%;
             background: transparent;
             pointer-events: none;
+            z-index: 100000;
         }
         
         .navarre-popup-content {
-            position: absolute;
+            position: fixed;
             top: 0;
             right: 0;
             width: 65%;
@@ -804,6 +915,8 @@ class Aragon_Image_Manager {
             display: flex;
             flex-direction: column;
             pointer-events: auto;
+            z-index: 100001;
+            overflow-y: auto;
         }
         
         .navarre-popup-header {
@@ -821,6 +934,12 @@ class Aragon_Image_Manager {
             overflow-y: auto;
         }
         
+        /* Ensure main page remains scrollable when popup is open */
+        body.navarre-popup-open {
+            overflow-y: auto !important;
+            position: static !important;
+        }
+        
         .navarre-close-btn:hover {
             background: #f0f0f0 !important;
             border-radius: 50%;
@@ -832,6 +951,17 @@ class Aragon_Image_Manager {
             background: #7C3AED !important;
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        #upload-media-files:hover {
+            background: #047857 !important;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         /* Post status styling in Navarre table */
@@ -969,13 +1099,30 @@ class Aragon_Image_Manager {
             
             $('#open-navarre-designator').click(function() {
                 $('#navarre-designator-popup').fadeIn(300);
-                $('body').css('overflow', 'hidden'); // Prevent background scrolling
+                $('body').addClass('navarre-popup-open'); // Add class but don't prevent scrolling
                 loadNavarreData(); // Load data when popup opens
             });
             
             $('#close-navarre-designator').click(function() {
                 $('#navarre-designator-popup').fadeOut(300);
-                $('body').css('overflow', 'auto'); // Restore scrolling
+                $('body').removeClass('navarre-popup-open');
+            });
+            
+            // Make the left side of the screen (overlay area) completely transparent to mouse events
+            // This allows clicking and scrolling on the main page beneath
+            $(document).on('click', function(e) {
+                // Check if click is on the overlay (left 35% of screen when popup is open)
+                if ($('#navarre-designator-popup').is(':visible')) {
+                    var clickX = e.pageX;
+                    var windowWidth = $(window).width();
+                    var overlayWidth = windowWidth * 0.35;
+                    
+                    if (clickX < overlayWidth && !$(e.target).closest('.navarre-popup-content').length) {
+                        // Click is in the overlay area but not on the popup content
+                        // Allow the click to go through to elements beneath
+                        return true;
+                    }
+                }
             });
             
             // Close popup with Escape key
@@ -1425,6 +1572,194 @@ class Aragon_Image_Manager {
                         $cell.removeClass('drop-success');
                     }
                 });
+            }
+            
+            // Bulk Actions functionality
+            $('#apply-bulk-action').click(function() {
+                var action = $('#bulk-actions').val();
+                
+                if (!action) {
+                    alert('Please select a bulk action');
+                    return;
+                }
+                
+                var selectedMedia = [];
+                $('.aragon-media-checkbox:checked').each(function() {
+                    selectedMedia.push($(this).val());
+                });
+                
+                if (selectedMedia.length === 0) {
+                    alert('Please select at least one media file');
+                    return;
+                }
+                
+                if (action === 'delete') {
+                    // Show confirmation popup
+                    $('#delete-count').text(selectedMedia.length);
+                    $('#delete-confirmation-popup').fadeIn(200);
+                    
+                    // Store selected media IDs for deletion
+                    $('#confirm-delete').data('media-ids', selectedMedia);
+                }
+            });
+            
+            // Delete confirmation handlers
+            $('#cancel-delete').click(function() {
+                $('#delete-confirmation-popup').fadeOut(200);
+            });
+            
+            $('#confirm-delete').click(function() {
+                var mediaIds = $(this).data('media-ids');
+                
+                if (!mediaIds || mediaIds.length === 0) {
+                    return;
+                }
+                
+                // Disable button and show processing
+                $(this).prop('disabled', true).text('Deleting...');
+                
+                $.ajax({
+                    url: aragon_ajax.ajax_url,
+                    type: 'POST',
+                    data: {
+                        action: 'aragon_delete_media_files',
+                        nonce: aragon_ajax.nonce,
+                        media_ids: mediaIds
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Close popup
+                            $('#delete-confirmation-popup').fadeOut(200);
+                            
+                            // Reset button
+                            $('#confirm-delete').prop('disabled', false).text('Delete Permanently');
+                            
+                            // Clear selections
+                            $('.aragon-media-checkbox:checked').prop('checked', false);
+                            $('#aragon-select-all').prop('checked', false);
+                            $('#bulk-actions').val('');
+                            
+                            // Refresh table
+                            loadMediaData();
+                            
+                            // Show success message (optional)
+                            console.log(response.data.message);
+                        } else {
+                            alert('Error: ' + response.data);
+                            $('#confirm-delete').prop('disabled', false).text('Delete Permanently');
+                        }
+                    },
+                    error: function() {
+                        alert('Error deleting media files');
+                        $('#confirm-delete').prop('disabled', false).text('Delete Permanently');
+                    }
+                });
+            });
+            
+            // Close delete popup with Escape key
+            $(document).keyup(function(e) {
+                if (e.keyCode === 27 && $('#delete-confirmation-popup').is(':visible')) {
+                    $('#cancel-delete').click();
+                }
+            });
+            
+            // Upload Media Files functionality with background upload support
+            var activeUploads = [];
+            var uploadMonitor = null;
+            
+            $('#upload-media-files').click(function() {
+                // Create WordPress media uploader instance
+                var mediaUploader = wp.media({
+                    title: 'Upload Media Files',
+                    button: {
+                        text: 'Select Files'
+                    },
+                    multiple: true,
+                    library: {
+                        type: ['image', 'video', 'audio', 'application'],
+                        uploadedTo: null // Allow showing all media, not just unattached
+                    }
+                });
+                
+                // When files are selected, handle the upload
+                mediaUploader.on('select', function() {
+                    var selectedFiles = mediaUploader.state().get('selection');
+                    
+                    if (selectedFiles.length === 0) {
+                        return;
+                    }
+                    
+                    // Show upload progress immediately
+                    $('#upload-progress').show();
+                    $('#upload-progress-text').text('Processing ' + selectedFiles.length + ' file(s)...');
+                    
+                    // Track uploads
+                    selectedFiles.each(function(attachment) {
+                        if (!attachment.get('id')) {
+                            // New file being uploaded
+                            activeUploads.push(attachment);
+                        }
+                    });
+                    
+                    if (activeUploads.length > 0) {
+                        monitorUploads();
+                    } else {
+                        // Files were already uploaded (selected from library)
+                        $('#upload-progress-text').text('Files selected from library');
+                        setTimeout(function() {
+                            loadMediaData();
+                            $('#upload-progress').hide();
+                        }, 1000);
+                    }
+                });
+                
+                // Open the uploader
+                mediaUploader.open();
+            });
+            
+            function monitorUploads() {
+                if (uploadMonitor) {
+                    clearInterval(uploadMonitor);
+                }
+                
+                var totalUploads = activeUploads.length;
+                var completedUploads = 0;
+                
+                $('#upload-progress').show();
+                $('#upload-progress-text').text('Uploading ' + totalUploads + ' file(s)...');
+                
+                uploadMonitor = setInterval(function() {
+                    var stillUploading = [];
+                    
+                    activeUploads.forEach(function(attachment) {
+                        if (attachment.get('id')) {
+                            // Upload completed for this file
+                            completedUploads++;
+                        } else {
+                            // Still uploading
+                            stillUploading.push(attachment);
+                        }
+                    });
+                    
+                    activeUploads = stillUploading;
+                    
+                    if (activeUploads.length === 0) {
+                        // All uploads completed
+                        clearInterval(uploadMonitor);
+                        uploadMonitor = null;
+                        
+                        $('#upload-progress-text').text('Upload completed! Refreshing...');
+                        
+                        setTimeout(function() {
+                            loadMediaData();
+                            $('#upload-progress').hide();
+                        }, 1000);
+                    } else {
+                        // Update progress text
+                        var remaining = totalUploads - completedUploads;
+                        $('#upload-progress-text').text('Uploading ' + remaining + ' of ' + totalUploads + ' file(s)...');
+                    }
+                }, 1000);
             }
             
             const adminUrl = '<?php echo admin_url(); ?>';
