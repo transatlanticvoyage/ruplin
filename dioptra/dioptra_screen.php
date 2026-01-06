@@ -280,6 +280,19 @@ function ruplin_render_dioptra_screen() {
                             style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
                         Our Services Box Config
                     </button>
+                    <?php 
+                    // Show Box Order tab only for cherry template posts
+                    $is_cherry_template = isset($pylon_data['staircase_page_template_desired']) && 
+                                         $pylon_data['staircase_page_template_desired'] === 'cherry';
+                    if ($is_cherry_template): 
+                    ?>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="box-ordering-config"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        Box Ordering
+                    </button>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -534,6 +547,128 @@ function ruplin_render_dioptra_screen() {
                     
                 </div>
             </div>
+            
+            <!-- Box Ordering Config Tab -->
+            <?php if ($is_cherry_template): ?>
+            <div id="box-ordering-config" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">Box Ordering Configuration</h3>
+                
+                <?php
+                // Get box order data from wp_box_orders table
+                $box_orders_table = $wpdb->prefix . 'box_orders';
+                $box_order_data = $wpdb->get_row($wpdb->prepare(
+                    "SELECT * FROM {$box_orders_table} WHERE post_id = %d",
+                    $post_id
+                ), ARRAY_A);
+                
+                $is_active = $box_order_data ? (bool)$box_order_data['is_active'] : false;
+                $box_order_json = $box_order_data ? $box_order_data['box_order_json'] : '';
+                $config_exists = !empty($box_order_data);
+                ?>
+                
+                <div style="background: white; padding: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    
+                    <!-- Toggle Switch for Active Status -->
+                    <div style="background: #e8f5e8; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; color: #333;">Activation Settings</h4>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <span style="margin-right: 15px; font-weight: 600; color: #555;">wp_box_orders.is_active - Mark TRUE - Activate Custom Ordering</span>
+                            <div class="box-order-toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                                <input type="checkbox" 
+                                       id="box_order_is_active" 
+                                       name="box_order_is_active" 
+                                       value="1"
+                                       <?php checked($is_active, true); ?>
+                                       style="opacity: 0; width: 0; height: 0;" />
+                                <span class="box-order-toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: <?php echo $is_active ? '#4CAF50' : '#ccc'; ?>; transition: .4s; border-radius: 34px;">
+                                    <span style="position: absolute; content: ''; height: 26px; width: 26px; left: <?php echo $is_active ? '30px' : '4px'; ?>; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;"></span>
+                                </span>
+                            </div>
+                            <span style="margin-left: 10px; font-weight: 600; color: <?php echo $is_active ? '#4CAF50' : '#999'; ?>;">
+                                <?php echo $is_active ? 'Active' : 'Inactive'; ?>
+                            </span>
+                        </label>
+                        <small style="color: #666; display: block; margin-top: 5px;">Toggle to enable/disable custom box ordering for this page</small>
+                    </div>
+                    
+                    <!-- Main Interface Area -->
+                    <div id="box-order-main-interface">
+                        <?php if (!$config_exists): ?>
+                            <!-- No Config Exists State -->
+                            <div id="no-config-state">
+                                <h4 style="color: #333;">Box Ordering Configuration</h4>
+                                <p style="color: #666; margin-bottom: 20px;">No box order configuration exists for this page yet.</p>
+                                <button type="button" 
+                                        id="create-box-order-config"
+                                        style="background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                    Create Custom Box Order Config
+                                </button>
+                            </div>
+                        <?php else: ?>
+                            <!-- Config Exists State -->
+                            <div id="config-exists-state">
+                                <h4 style="color: #333;">Box Ordering Configuration</h4>
+                                
+                                <!-- JSON Editor -->
+                                <div style="margin-bottom: 20px;">
+                                    <label for="box_order_json" style="display: block; margin-bottom: 5px; font-weight: 600; color: #555;">Box Order JSON:</label>
+                                    <textarea id="box_order_json" 
+                                              name="box_order_json" 
+                                              style="width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                              placeholder='{"boxes": ["hero", "services", "cta", "footer"]}'><?php echo esc_textarea($box_order_json); ?></textarea>
+                                    <small style="color: #666;">Edit the JSON configuration for box ordering</small>
+                                </div>
+                                
+                                <!-- Visual Box Order Preview -->
+                                <div style="margin-bottom: 20px;">
+                                    <h5 style="margin-bottom: 10px; color: #333;">Visual Box Order Preview:</h5>
+                                    <div id="box-order-preview" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 15px; min-height: 100px;">
+                                        <div id="box-order-preview-content">
+                                            <!-- Preview will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                                    <button type="button" 
+                                            id="randomize-box-order"
+                                            style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                        Randomize All
+                                    </button>
+                                    <button type="button" 
+                                            id="save-box-order"
+                                            style="background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                        Save Box Order Changes
+                                    </button>
+                                    <button type="button" 
+                                            id="cancel-box-order-changes"
+                                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                        Cancel
+                                    </button>
+                                    <button type="button" 
+                                            id="delete-box-config"
+                                            style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                        Delete Config
+                                    </button>
+                                </div>
+                                
+                                <!-- Status and Messages -->
+                                <div id="box-order-status-area">
+                                    <div id="box-order-unsaved-warning" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                        You have unsaved changes to the box order configuration.
+                                    </div>
+                                    <div id="box-order-success-message" style="display: none; background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                    </div>
+                                    <div id="box-order-error-message" style="display: none; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             
     </div>
     
@@ -1065,6 +1200,344 @@ function ruplin_render_dioptra_screen() {
             alert('Could not copy to clipboard. Error data logged to console.');
             console.log('Dioptra Error Data:', window.dioptraErrorData);
         });
+    }
+
+    // Box Order functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeBoxOrderInterface();
+    });
+    
+    function initializeBoxOrderInterface() {
+        // Initialize toggle switch
+        const toggleSwitch = document.getElementById('box_order_is_active');
+        if (toggleSwitch) {
+            toggleSwitch.addEventListener('change', function() {
+                updateToggleSwitch(this.checked);
+            });
+        }
+        
+        // Initialize JSON textarea change detection
+        const jsonTextarea = document.getElementById('box_order_json');
+        if (jsonTextarea) {
+            let originalValue = jsonTextarea.value;
+            jsonTextarea.addEventListener('input', function() {
+                if (this.value !== originalValue) {
+                    showUnsavedWarning();
+                    updateBoxOrderPreview(this.value);
+                } else {
+                    hideUnsavedWarning();
+                }
+            });
+            
+            // Initialize preview
+            updateBoxOrderPreview(jsonTextarea.value);
+        }
+        
+        // Button event listeners
+        const createConfigBtn = document.getElementById('create-box-order-config');
+        if (createConfigBtn) {
+            createConfigBtn.addEventListener('click', createBoxOrderConfig);
+        }
+        
+        const randomizeBtn = document.getElementById('randomize-box-order');
+        if (randomizeBtn) {
+            randomizeBtn.addEventListener('click', randomizeBoxOrder);
+        }
+        
+        const saveBtn = document.getElementById('save-box-order');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', saveBoxOrderChanges);
+        }
+        
+        const cancelBtn = document.getElementById('cancel-box-order-changes');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', cancelBoxOrderChanges);
+        }
+        
+        const deleteBtn = document.getElementById('delete-box-config');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', deleteBoxConfig);
+        }
+    }
+    
+    function updateToggleSwitch(isActive) {
+        const slider = document.querySelector('.box-order-toggle-slider');
+        const statusText = slider.parentElement.nextElementSibling;
+        const innerSlider = slider.querySelector('span');
+        
+        if (isActive) {
+            slider.style.backgroundColor = '#4CAF50';
+            innerSlider.style.left = '30px';
+            statusText.style.color = '#4CAF50';
+            statusText.textContent = 'Active';
+        } else {
+            slider.style.backgroundColor = '#ccc';
+            innerSlider.style.left = '4px';
+            statusText.style.color = '#999';
+            statusText.textContent = 'Inactive';
+        }
+    }
+    
+    function updateBoxOrderPreview(jsonString) {
+        const previewContent = document.getElementById('box-order-preview-content');
+        if (!previewContent) return;
+        
+        try {
+            if (!jsonString.trim()) {
+                previewContent.innerHTML = '<p style="color: #666; font-style: italic;">No box order configuration</p>';
+                return;
+            }
+            
+            const boxOrder = JSON.parse(jsonString);
+            if (boxOrder.boxes && Array.isArray(boxOrder.boxes)) {
+                let html = '<ol style="margin: 0; padding-left: 20px;">';
+                boxOrder.boxes.forEach((box, index) => {
+                    html += `<li style="margin-bottom: 5px; color: #333; font-weight: 600;">${index + 1}. ${box}</li>`;
+                });
+                html += '</ol>';
+                previewContent.innerHTML = html;
+            } else {
+                previewContent.innerHTML = '<p style="color: #dc3545;">Invalid JSON format - expected {"boxes": ["box1", "box2", ...]}</p>';
+            }
+        } catch (e) {
+            previewContent.innerHTML = '<p style="color: #dc3545;">Invalid JSON syntax</p>';
+        }
+    }
+    
+    function showUnsavedWarning() {
+        const warning = document.getElementById('box-order-unsaved-warning');
+        if (warning) {
+            warning.style.display = 'block';
+        }
+    }
+    
+    function hideUnsavedWarning() {
+        const warning = document.getElementById('box-order-unsaved-warning');
+        if (warning) {
+            warning.style.display = 'none';
+        }
+    }
+    
+    function showBoxOrderMessage(type, message) {
+        // Hide all messages first
+        hideBoxOrderMessages();
+        
+        const messageElement = document.getElementById(`box-order-${type}-message`);
+        if (messageElement) {
+            messageElement.textContent = message;
+            messageElement.style.display = 'block';
+            
+            // Auto-hide success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageElement.style.display = 'none';
+                }, 3000);
+            }
+        }
+    }
+    
+    function hideBoxOrderMessages() {
+        const messages = ['success', 'error'];
+        messages.forEach(type => {
+            const element = document.getElementById(`box-order-${type}-message`);
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+    }
+    
+    function createBoxOrderConfig() {
+        const btn = document.getElementById('create-box-order-config');
+        btn.disabled = true;
+        btn.innerHTML = 'Creating...';
+        
+        // Default box order configuration
+        const defaultConfig = {
+            boxes: ["hero", "services", "testimonials", "cta", "footer"]
+        };
+        
+        // Simulate creation (UI only for now)
+        setTimeout(() => {
+            // Replace no-config state with config-exists state
+            const noConfigState = document.getElementById('no-config-state');
+            const mainInterface = document.getElementById('box-order-main-interface');
+            
+            const configExistsHTML = `
+                <div id="config-exists-state">
+                    <h4 style="color: #333;">Box Ordering Configuration</h4>
+                    
+                    <!-- JSON Editor -->
+                    <div style="margin-bottom: 20px;">
+                        <label for="box_order_json" style="display: block; margin-bottom: 5px; font-weight: 600; color: #555;">Box Order JSON:</label>
+                        <textarea id="box_order_json" 
+                                  name="box_order_json" 
+                                  style="width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                  placeholder='{"boxes": ["hero", "services", "cta", "footer"]}'>${JSON.stringify(defaultConfig, null, 2)}</textarea>
+                        <small style="color: #666;">Edit the JSON configuration for box ordering</small>
+                    </div>
+                    
+                    <!-- Visual Box Order Preview -->
+                    <div style="margin-bottom: 20px;">
+                        <h5 style="margin-bottom: 10px; color: #333;">Visual Box Order Preview:</h5>
+                        <div id="box-order-preview" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; padding: 15px; min-height: 100px;">
+                            <div id="box-order-preview-content"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button type="button" 
+                                id="randomize-box-order"
+                                style="background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Randomize All
+                        </button>
+                        <button type="button" 
+                                id="save-box-order"
+                                style="background: #0073aa; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Save Box Order Changes
+                        </button>
+                        <button type="button" 
+                                id="cancel-box-order-changes"
+                                style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Cancel
+                        </button>
+                        <button type="button" 
+                                id="delete-box-config"
+                                style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Delete Config
+                        </button>
+                    </div>
+                    
+                    <!-- Status and Messages -->
+                    <div id="box-order-status-area">
+                        <div id="box-order-unsaved-warning" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                            You have unsaved changes to the box order configuration.
+                        </div>
+                        <div id="box-order-success-message" style="display: none; background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                        </div>
+                        <div id="box-order-error-message" style="display: none; background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 10px;">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            mainInterface.innerHTML = configExistsHTML;
+            
+            // Re-initialize event listeners for new elements
+            initializeBoxOrderInterface();
+            
+            showBoxOrderMessage('success', 'Box order configuration created successfully!');
+        }, 500);
+    }
+    
+    function randomizeBoxOrder() {
+        const jsonTextarea = document.getElementById('box_order_json');
+        if (!jsonTextarea) return;
+        
+        try {
+            let boxOrder;
+            if (jsonTextarea.value.trim()) {
+                boxOrder = JSON.parse(jsonTextarea.value);
+            } else {
+                // Default boxes if no config exists
+                boxOrder = { boxes: ["hero", "services", "testimonials", "cta", "footer"] };
+            }
+            
+            if (boxOrder.boxes && Array.isArray(boxOrder.boxes)) {
+                // Fisher-Yates shuffle
+                for (let i = boxOrder.boxes.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [boxOrder.boxes[i], boxOrder.boxes[j]] = [boxOrder.boxes[j], boxOrder.boxes[i]];
+                }
+                
+                jsonTextarea.value = JSON.stringify(boxOrder, null, 2);
+                updateBoxOrderPreview(jsonTextarea.value);
+                showUnsavedWarning();
+                showBoxOrderMessage('success', 'Box order randomized! Remember to save your changes.');
+            } else {
+                showBoxOrderMessage('error', 'Cannot randomize: Invalid box order format');
+            }
+        } catch (e) {
+            showBoxOrderMessage('error', 'Cannot randomize: Invalid JSON format');
+        }
+    }
+    
+    function saveBoxOrderChanges() {
+        const btn = document.getElementById('save-box-order');
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+        
+        // Get form data
+        const isActive = document.getElementById('box_order_is_active').checked;
+        const boxOrderJson = document.getElementById('box_order_json').value;
+        
+        // Validate JSON before saving
+        try {
+            if (boxOrderJson.trim()) {
+                JSON.parse(boxOrderJson);
+            }
+        } catch (e) {
+            showBoxOrderMessage('error', 'Cannot save: Invalid JSON format');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            return;
+        }
+        
+        // Simulate save operation (UI only for now)
+        setTimeout(() => {
+            hideUnsavedWarning();
+            showBoxOrderMessage('success', 'Box order configuration saved successfully!');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }, 800);
+    }
+    
+    function cancelBoxOrderChanges() {
+        if (confirm('Are you sure you want to cancel your changes? All unsaved changes will be lost.')) {
+            // Reload the page to reset to saved state
+            location.reload();
+        }
+    }
+    
+    function deleteBoxConfig() {
+        if (confirm('Are you sure you want to delete this box order configuration? This action cannot be undone.')) {
+            const btn = document.getElementById('delete-box-config');
+            btn.disabled = true;
+            btn.innerHTML = 'Deleting...';
+            
+            // Simulate deletion (UI only for now)
+            setTimeout(() => {
+                // Replace config state with no-config state
+                const mainInterface = document.getElementById('box-order-main-interface');
+                const noConfigHTML = `
+                    <div id="no-config-state">
+                        <h4 style="color: #333;">Box Ordering Configuration</h4>
+                        <p style="color: #666; margin-bottom: 20px;">No box order configuration exists for this page yet.</p>
+                        <button type="button" 
+                                id="create-box-order-config"
+                                style="background: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            Create Custom Box Order Config
+                        </button>
+                    </div>
+                `;
+                
+                mainInterface.innerHTML = noConfigHTML;
+                
+                // Re-initialize event listeners
+                initializeBoxOrderInterface();
+                
+                // Reset toggle to inactive
+                const toggleSwitch = document.getElementById('box_order_is_active');
+                if (toggleSwitch) {
+                    toggleSwitch.checked = false;
+                    updateToggleSwitch(false);
+                }
+                
+                showBoxOrderMessage('success', 'Box order configuration deleted successfully!');
+            }, 600);
+        }
     }
 
     </script>
