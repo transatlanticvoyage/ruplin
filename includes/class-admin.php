@@ -116,6 +116,11 @@ class Snefuru_Admin {
         add_action('wp_ajax_dioptra_save_data', array($this, 'handle_dioptra_save_data'));
         add_action('wp_ajax_dioptra_get_services_list', array($this, 'handle_dioptra_get_services_list'));
         
+        // Box Ordering AJAX actions
+        add_action('wp_ajax_create_box_order_config', array($this, 'handle_create_box_order_config'));
+        add_action('wp_ajax_save_box_order_config', array($this, 'handle_save_box_order_config'));
+        add_action('wp_ajax_delete_box_order_config', array($this, 'handle_delete_box_order_config'));
+        
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
         
@@ -12805,6 +12810,172 @@ class Snefuru_Admin {
         }
         
         wp_send_json_success(array('html' => $html));
+    }
+    
+    /**
+     * AJAX handler for creating box order config
+     */
+    public function handle_create_box_order_config() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'box_order_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+        }
+        
+        global $wpdb;
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        // Check if config already exists
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$box_orders_table} WHERE rel_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            wp_send_json_error(array('message' => 'Box order config already exists for this post'));
+        }
+        
+        // Create default box order
+        $default_boxes = [
+            'batman_hero_box' => 1,
+            'chen_cards_box' => 2,
+            'plain_post_content' => 3,
+            'osb_box' => 4,
+            'serena_faq_box' => 5,
+            'nile_map_box' => 6,
+            'kristina_cta_box' => 7,
+            'victoria_blog_box' => 8,
+            'ocean1_box' => 9,
+            'ocean2_box' => 10,
+            'ocean3_box' => 11,
+            'brook_video_box' => 12,
+            'olivia_authlinks_box' => 13,
+            'ava_whychooseus_box' => 14,
+            'kendall_ourprocess_box' => 15,
+            'sara_customhtml_box' => 16
+        ];
+        
+        // Insert new config
+        $result = $wpdb->insert(
+            $box_orders_table,
+            array(
+                'rel_post_id' => $post_id,
+                'is_active' => 1,
+                'box_order_json' => json_encode($default_boxes)
+            )
+        );
+        
+        if ($result === false) {
+            wp_send_json_error(array('message' => 'Failed to create box order config'));
+        }
+        
+        wp_send_json_success(array('message' => 'Box order config created successfully'));
+    }
+    
+    /**
+     * AJAX handler for saving box order config
+     */
+    public function handle_save_box_order_config() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'box_order_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        $box_order_json = sanitize_textarea_field($_POST['box_order_json']);
+        
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+        }
+        
+        // Validate JSON
+        $box_order = json_decode($box_order_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            wp_send_json_error(array('message' => 'Invalid JSON format'));
+        }
+        
+        global $wpdb;
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        // Update existing config or create new one
+        $existing = $wpdb->get_row($wpdb->prepare(
+            "SELECT item_id FROM {$box_orders_table} WHERE rel_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing) {
+            $result = $wpdb->update(
+                $box_orders_table,
+                array(
+                    'box_order_json' => $box_order_json,
+                    'is_active' => 1
+                ),
+                array('rel_post_id' => $post_id)
+            );
+        } else {
+            $result = $wpdb->insert(
+                $box_orders_table,
+                array(
+                    'rel_post_id' => $post_id,
+                    'is_active' => 1,
+                    'box_order_json' => $box_order_json
+                )
+            );
+        }
+        
+        if ($result === false) {
+            wp_send_json_error(array('message' => 'Failed to save box order config'));
+        }
+        
+        wp_send_json_success(array('message' => 'Box order saved successfully'));
+    }
+    
+    /**
+     * AJAX handler for deleting box order config
+     */
+    public function handle_delete_box_order_config() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'box_order_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+        }
+        
+        global $wpdb;
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        $result = $wpdb->delete(
+            $box_orders_table,
+            array('rel_post_id' => $post_id)
+        );
+        
+        if ($result === false) {
+            wp_send_json_error(array('message' => 'Failed to delete box order config'));
+        }
+        
+        wp_send_json_success(array('message' => 'Box order config deleted successfully'));
     }
     
     /**

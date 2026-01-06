@@ -280,6 +280,18 @@ function ruplin_render_dioptra_screen() {
                             style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
                         Our Services Box Config
                     </button>
+                    <?php 
+                    // Show Box Ordering tab only for cherry template posts
+                    $current_template = isset($pylon_data['staircase_page_template_desired']) ? $pylon_data['staircase_page_template_desired'] : '';
+                    if ($current_template === 'cherry'): 
+                    ?>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="box-ordering-config"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        Box Ordering
+                    </button>
+                    <?php endif; ?>
                 </div>
             </div>
             
@@ -534,6 +546,123 @@ function ruplin_render_dioptra_screen() {
                     
                 </div>
             </div>
+            
+            <!-- Box Ordering Config Tab -->
+            <?php if ($current_template === 'cherry'): ?>
+            <div id="box-ordering-config" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">Box Ordering Configuration</h3>
+                
+                <?php
+                // Check if box ordering config exists for this post
+                $box_orders_table = $wpdb->prefix . 'box_orders';
+                $box_order_config = $wpdb->get_row($wpdb->prepare(
+                    "SELECT * FROM {$box_orders_table} WHERE rel_post_id = %d AND is_active = 1",
+                    $post_id
+                ), ARRAY_A);
+                
+                // Define all available boxes
+                $available_boxes = [
+                    'batman_hero_box',
+                    'chen_cards_box',
+                    'plain_post_content',
+                    'osb_box',
+                    'serena_faq_box',
+                    'nile_map_box',
+                    'kristina_cta_box',
+                    'victoria_blog_box',
+                    'ocean1_box',
+                    'ocean2_box',
+                    'ocean3_box',
+                    'brook_video_box',
+                    'olivia_authlinks_box',
+                    'ava_whychooseus_box',
+                    'kendall_ourprocess_box',
+                    'sara_customhtml_box'
+                ];
+                
+                // Get current box order or create default
+                $current_order = [];
+                if ($box_order_config && !empty($box_order_config['box_order_json'])) {
+                    $current_order = json_decode($box_order_config['box_order_json'], true);
+                    if (!$current_order) $current_order = [];
+                }
+                
+                // If no custom order exists, use default order
+                if (empty($current_order)) {
+                    foreach ($available_boxes as $index => $box_name) {
+                        $current_order[$box_name] = $index + 1;
+                    }
+                }
+                ?>
+                
+                <div style="background: white; padding: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    
+                    <?php if (!$box_order_config): ?>
+                        <!-- Default State: No custom config exists -->
+                        <div id="box-ordering-default-state">
+                            <div style="background: #e7f3ff; border: 1px solid #0073aa; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                                <h4 style="margin: 0 0 10px 0; color: #0073aa;">Using Default Box Order</h4>
+                                <p style="margin: 0 0 15px 0; color: #666;">This post is currently using the default hardcoded box order from the cherry template.</p>
+                                <button type="button" 
+                                        id="create-box-config-btn"
+                                        style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                    Create Custom Box Order Config
+                                </button>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <!-- Custom Config Exists -->
+                        <div id="box-ordering-config-state">
+                            <h4 style="margin-top: 0; color: #333;">Custom Box Order Configuration</h4>
+                            
+                            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+                                <!-- JSON Textarea -->
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-weight: 600; margin-bottom: 5px;">JSON Configuration:</label>
+                                    <textarea id="box-order-json" 
+                                             style="width: 100%; height: 200px; border: 1px solid #ddd; padding: 10px; font-family: monospace; font-size: 12px; resize: vertical;"><?php echo esc_textarea(json_encode($current_order, JSON_PRETTY_PRINT)); ?></textarea>
+                                </div>
+                                
+                                <!-- Visual Box List -->
+                                <div style="flex: 1;">
+                                    <label style="display: block; font-weight: 600; margin-bottom: 5px;">Visual Box Order:</label>
+                                    <div id="visual-box-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f8f9fa;">
+                                        <!-- Will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+                                <button type="button" 
+                                        id="randomize-boxes-btn"
+                                        style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                    Randomize All
+                                </button>
+                                
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" 
+                                            id="save-box-order-btn"
+                                            style="background: #0073aa; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                                        Save Changes
+                                    </button>
+                                    <button type="button" 
+                                            id="cancel-box-order-btn"
+                                            style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                        Cancel
+                                    </button>
+                                    <button type="button" 
+                                            id="delete-box-config-btn"
+                                            style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                                        Delete Config
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
+                </div>
+            </div>
+            <?php endif; ?>
             
     </div>
     
@@ -1064,6 +1193,262 @@ function ruplin_render_dioptra_screen() {
         }).catch(() => {
             alert('Could not copy to clipboard. Error data logged to console.');
             console.log('Dioptra Error Data:', window.dioptraErrorData);
+        });
+    }
+
+    // Box Ordering JavaScript Functions
+    
+    // Global variable to store original box order
+    let originalBoxOrder = {};
+    
+    // Initialize box ordering functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Store original box order
+        const jsonTextarea = document.getElementById('box-order-json');
+        if (jsonTextarea) {
+            try {
+                originalBoxOrder = JSON.parse(jsonTextarea.value);
+            } catch (e) {
+                originalBoxOrder = {};
+            }
+            updateVisualBoxList();
+        }
+        
+        // Create box config button
+        const createBtn = document.getElementById('create-box-config-btn');
+        if (createBtn) {
+            createBtn.addEventListener('click', function() {
+                createBoxOrderConfig(<?php echo $post_id; ?>);
+            });
+        }
+        
+        // Randomize button
+        const randomizeBtn = document.getElementById('randomize-boxes-btn');
+        if (randomizeBtn) {
+            randomizeBtn.addEventListener('click', function() {
+                randomizeBoxOrder();
+            });
+        }
+        
+        // Save button
+        const saveBtn = document.getElementById('save-box-order-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
+                saveBoxOrderConfig(<?php echo $post_id; ?>);
+            });
+        }
+        
+        // Cancel button
+        const cancelBtn = document.getElementById('cancel-box-order-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                cancelBoxOrderChanges();
+            });
+        }
+        
+        // Delete button
+        const deleteBtn = document.getElementById('delete-box-config-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                deleteBoxOrderConfig(<?php echo $post_id; ?>);
+            });
+        }
+        
+        // JSON textarea change handler
+        if (jsonTextarea) {
+            jsonTextarea.addEventListener('input', function() {
+                updateVisualBoxList();
+            });
+        }
+    });
+    
+    function createBoxOrderConfig(postId) {
+        const btn = document.getElementById('create-box-config-btn');
+        btn.disabled = true;
+        btn.innerHTML = 'Creating...';
+        btn.style.background = '#6c757d';
+        
+        fetch(ajaxurl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'create_box_order_config',
+                post_id: postId,
+                nonce: '<?php echo wp_create_nonce('box_order_nonce'); ?>'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to show the config interface
+            } else {
+                alert('Error: ' + (data.data?.message || 'Failed to create config'));
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'Create Custom Box Order Config';
+            btn.style.background = '#28a745';
+        });
+    }
+    
+    function updateVisualBoxList() {
+        const jsonTextarea = document.getElementById('box-order-json');
+        const visualList = document.getElementById('visual-box-list');
+        
+        if (!jsonTextarea || !visualList) return;
+        
+        try {
+            const boxOrder = JSON.parse(jsonTextarea.value);
+            
+            // Convert to array and sort by order value
+            const sortedBoxes = Object.entries(boxOrder).sort((a, b) => a[1] - b[1]);
+            
+            let html = '';
+            sortedBoxes.forEach((boxEntry, index) => {
+                const [boxName, order] = boxEntry;
+                html += `<div style="background: white; border: 1px solid #ddd; margin-bottom: 5px; padding: 8px; border-radius: 3px; font-size: 13px;">
+                    <strong>${order}.</strong> ${boxName}
+                </div>`;
+            });
+            
+            visualList.innerHTML = html;
+        } catch (e) {
+            visualList.innerHTML = '<div style="color: #dc3545; font-style: italic;">Invalid JSON format</div>';
+        }
+    }
+    
+    function randomizeBoxOrder() {
+        const jsonTextarea = document.getElementById('box-order-json');
+        if (!jsonTextarea) return;
+        
+        try {
+            const boxOrder = JSON.parse(jsonTextarea.value);
+            const boxNames = Object.keys(boxOrder);
+            
+            // Shuffle the order numbers
+            const orderNumbers = Object.values(boxOrder).sort(() => Math.random() - 0.5);
+            
+            // Create new randomized order
+            const newOrder = {};
+            boxNames.forEach((boxName, index) => {
+                newOrder[boxName] = orderNumbers[index];
+            });
+            
+            jsonTextarea.value = JSON.stringify(newOrder, null, 2);
+            updateVisualBoxList();
+        } catch (e) {
+            alert('Error: Invalid JSON format');
+        }
+    }
+    
+    function saveBoxOrderConfig(postId) {
+        const jsonTextarea = document.getElementById('box-order-json');
+        if (!jsonTextarea) return;
+        
+        try {
+            const boxOrder = JSON.parse(jsonTextarea.value);
+        } catch (e) {
+            alert('Error: Invalid JSON format. Please fix the JSON before saving.');
+            return;
+        }
+        
+        const btn = document.getElementById('save-box-order-btn');
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+        btn.style.background = '#6c757d';
+        
+        fetch(ajaxurl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'save_box_order_config',
+                post_id: postId,
+                box_order_json: jsonTextarea.value,
+                nonce: '<?php echo wp_create_nonce('box_order_nonce'); ?>'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                btn.innerHTML = 'Saved!';
+                btn.style.background = '#28a745';
+                
+                // Update original order
+                originalBoxOrder = JSON.parse(jsonTextarea.value);
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Save Changes';
+                    btn.style.background = '#0073aa';
+                }, 2000);
+            } else {
+                alert('Error: ' + (data.data?.message || 'Failed to save config'));
+                btn.disabled = false;
+                btn.innerHTML = 'Save Changes';
+                btn.style.background = '#0073aa';
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+            btn.disabled = false;
+            btn.innerHTML = 'Save Changes';
+            btn.style.background = '#0073aa';
+        });
+    }
+    
+    function cancelBoxOrderChanges() {
+        const jsonTextarea = document.getElementById('box-order-json');
+        if (!jsonTextarea) return;
+        
+        jsonTextarea.value = JSON.stringify(originalBoxOrder, null, 2);
+        updateVisualBoxList();
+    }
+    
+    function deleteBoxOrderConfig(postId) {
+        if (!confirm('Are you sure you want to delete the custom box order configuration? This will revert to the default box order.')) {
+            return;
+        }
+        
+        const btn = document.getElementById('delete-box-config-btn');
+        btn.disabled = true;
+        btn.innerHTML = 'Deleting...';
+        btn.style.background = '#6c757d';
+        
+        fetch(ajaxurl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'delete_box_order_config',
+                post_id: postId,
+                nonce: '<?php echo wp_create_nonce('box_order_nonce'); ?>'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload(); // Reload to show default state
+            } else {
+                alert('Error: ' + (data.data?.message || 'Failed to delete config'));
+                btn.disabled = false;
+                btn.innerHTML = 'Delete Config';
+                btn.style.background = '#dc3545';
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+            btn.disabled = false;
+            btn.innerHTML = 'Delete Config';
+            btn.style.background = '#dc3545';
         });
     }
 

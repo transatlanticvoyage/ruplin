@@ -554,6 +554,26 @@ class SnefuruPlugin {
         
         dbDelta($pylons_sql);
         
+        // Create wp_box_orders table for box ordering system
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        $box_orders_sql = "CREATE TABLE IF NOT EXISTS $box_orders_table (
+            item_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            rel_post_id BIGINT(20) UNSIGNED NOT NULL,
+            is_active BOOLEAN DEFAULT FALSE,
+            box_order_json JSON DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (item_id),
+            KEY rel_post_id (rel_post_id),
+            KEY is_active (is_active),
+            FOREIGN KEY (rel_post_id) REFERENCES {$wpdb->posts}(ID) ON DELETE CASCADE
+        ) $charset_collate;";
+        
+        dbDelta($box_orders_sql);
+        
+        // Handle migration of box_order column to box_order_json
+        $this->migrate_box_orders_table();
+        
         // Handle database migrations for existing wp_pylons tables
         $this->migrate_pylons_table();
         
@@ -725,6 +745,31 @@ class SnefuruPlugin {
         
         // Update the installed defaults version
         update_option('snefuru_hoof_defaults_version', '1.1.0');
+    }
+    
+    /**
+     * Migrate existing box_orders table to rename box_order column to box_order_json
+     */
+    private function migrate_box_orders_table() {
+        global $wpdb;
+        
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$box_orders_table'") === $box_orders_table;
+        if (!$table_exists) {
+            return; // Table doesn't exist, no migration needed
+        }
+        
+        // Check if old column exists and new column doesn't exist yet
+        $old_column_exists = $wpdb->get_results("SHOW COLUMNS FROM $box_orders_table LIKE 'box_order'");
+        $new_column_exists = $wpdb->get_results("SHOW COLUMNS FROM $box_orders_table LIKE 'box_order_json'");
+        
+        if (!empty($old_column_exists) && empty($new_column_exists)) {
+            // Rename the column from box_order to box_order_json
+            $wpdb->query("ALTER TABLE $box_orders_table CHANGE box_order box_order_json JSON DEFAULT NULL");
+            error_log("Snefuru: Migrated box_orders table - renamed box_order column to box_order_json");
+        }
     }
     
     /**
