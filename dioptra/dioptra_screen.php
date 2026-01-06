@@ -292,6 +292,12 @@ function ruplin_render_dioptra_screen() {
                         Box Ordering
                     </button>
                     <?php endif; ?>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="ocean1"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        Ocean1
+                    </button>
                 </div>
             </div>
             
@@ -550,6 +556,45 @@ function ruplin_render_dioptra_screen() {
             <!-- Box Ordering Config Tab -->
             <?php if ($current_template === 'cherry'): ?>
             <div id="box-ordering-config" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                
+                <?php
+                // Get current is_active value for this post
+                $current_is_active = 0;
+                $current_box_active = $wpdb->get_var($wpdb->prepare(
+                    "SELECT is_active FROM {$box_orders_table} WHERE rel_post_id = %d ORDER BY updated_at DESC LIMIT 1",
+                    $post_id
+                ));
+                if ($current_box_active !== null) {
+                    $current_is_active = (int) $current_box_active;
+                }
+                ?>
+                
+                <!-- Box Ordering Toggle Section -->
+                <div style="background: white; padding: 20px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <!-- Toggle Switch -->
+                        <div class="box-ordering-toggle-container">
+                            <label class="box-ordering-toggle-switch">
+                                <input type="checkbox" 
+                                       id="box-ordering-active-toggle" 
+                                       <?php checked($current_is_active, 1); ?>
+                                       data-post-id="<?php echo $post_id; ?>">
+                                <span class="box-ordering-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <!-- Toggle Text -->
+                        <div style="font-size: 22px; font-weight: bold; color: #000;">
+                            wp_box_orders.is_active - Mark TRUE - Activate Custom Ordering
+                        </div>
+                    </div>
+                    
+                    <!-- Toggle Status Display -->
+                    <div id="toggle-status-display" style="margin-top: 15px; padding: 10px; border-radius: 4px; font-weight: 600;">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+                
                 <h3 style="margin-top: 0; color: #0073aa;">Box Ordering Configuration</h3>
                 
                 <?php
@@ -664,7 +709,141 @@ function ruplin_render_dioptra_screen() {
             </div>
             <?php endif; ?>
             
+            <!-- Ocean1 Tab -->
+            <div id="ocean1" class="dioptra-tab-content" style="display: none;">
+            
+            <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                <thead>
+                    <tr style="background-color: #f1f1f1;">
+                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                        <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                            <input type="checkbox" name="ocean1_field_1" />
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                            <input type="checkbox" name="ocean1_field_2" />
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                            <input type="checkbox" name="ocean1_field_3" />
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                            <input type="checkbox" name="ocean1_field_4" />
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                        </td>
+                        <td style="border: 1px solid #ccc; padding: 8px;">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            </div> <!-- End Ocean1 Tab -->
+            
     </div>
+    
+    <style>
+    /* Professional Toggle Switch Styling */
+    .box-ordering-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        cursor: pointer;
+    }
+
+    .box-ordering-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .box-ordering-slider {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        border-radius: 34px;
+        transition: all 0.4s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .box-ordering-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        border-radius: 50%;
+        transition: all 0.4s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .box-ordering-toggle-switch input:checked + .box-ordering-slider {
+        background-color: #28a745;
+    }
+
+    .box-ordering-toggle-switch input:focus + .box-ordering-slider {
+        box-shadow: 0 0 8px rgba(40, 167, 69, 0.6);
+    }
+
+    .box-ordering-toggle-switch input:checked + .box-ordering-slider:before {
+        transform: translateX(26px);
+    }
+
+    .box-ordering-toggle-switch:hover .box-ordering-slider {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .box-ordering-toggle-container {
+        display: flex;
+        align-items: center;
+    }
+    </style>
     
     <script>
     function createMissingPylon(postId) {
@@ -1260,6 +1439,9 @@ function ruplin_render_dioptra_screen() {
                 updateVisualBoxList();
             });
         }
+        
+        // Box Ordering Toggle functionality
+        initializeBoxOrderingToggle();
     });
     
     function createBoxOrderConfig(postId) {
@@ -1282,13 +1464,38 @@ function ruplin_render_dioptra_screen() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload(); // Reload to show the config interface
+                showDetailedFeedback(
+                    'Success!',
+                    'Box order configuration has been created successfully. The page will reload to show the configuration interface.',
+                    'success',
+                    data.data?.debug_info || null
+                );
+                setTimeout(() => {
+                    location.reload(); // Reload to show the config interface
+                }, 2000);
             } else {
-                alert('Error: ' + (data.data?.message || 'Failed to create config'));
+                showDetailedFeedback(
+                    'Configuration Creation Failed',
+                    data.data?.message || data.message || 'Failed to create box order configuration',
+                    'error',
+                    data.data?.debug_info || data.debug_info || null
+                );
             }
         })
         .catch(error => {
-            alert('Error: ' + error);
+            showDetailedFeedback(
+                'Network Error',
+                'A network error occurred while trying to create the box order configuration: ' + error.message,
+                'error',
+                {
+                    error_type: 'network_error',
+                    error_message: error.message,
+                    stack_trace: error.stack,
+                    timestamp: new Date().toISOString(),
+                    user_agent: navigator.userAgent,
+                    url: window.location.href
+                }
+            );
         })
         .finally(() => {
             btn.disabled = false;
@@ -1349,12 +1556,35 @@ function ruplin_render_dioptra_screen() {
     
     function saveBoxOrderConfig(postId) {
         const jsonTextarea = document.getElementById('box-order-json');
-        if (!jsonTextarea) return;
+        if (!jsonTextarea) {
+            showDetailedFeedback(
+                'Interface Error',
+                'JSON textarea element not found. This indicates a problem with the page structure.',
+                'error',
+                {
+                    error_type: 'dom_element_missing',
+                    element_id: 'box-order-json',
+                    timestamp: new Date().toISOString()
+                }
+            );
+            return;
+        }
         
         try {
             const boxOrder = JSON.parse(jsonTextarea.value);
         } catch (e) {
-            alert('Error: Invalid JSON format. Please fix the JSON before saving.');
+            showDetailedFeedback(
+                'JSON Validation Error',
+                'The JSON configuration contains syntax errors and cannot be saved.',
+                'error',
+                {
+                    error_type: 'json_validation_error',
+                    json_error: e.message,
+                    json_content: jsonTextarea.value,
+                    error_position: e.message.match(/position (\d+)/) ? e.message.match(/position (\d+)/)[1] : null,
+                    timestamp: new Date().toISOString()
+                }
+            );
             return;
         }
         
@@ -1378,6 +1608,12 @@ function ruplin_render_dioptra_screen() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                showDetailedFeedback(
+                    'Configuration Saved Successfully!',
+                    'Your box order configuration has been saved and is now active.',
+                    'success',
+                    data.data?.debug_info || null
+                );
                 btn.innerHTML = 'Saved!';
                 btn.style.background = '#28a745';
                 
@@ -1390,14 +1626,31 @@ function ruplin_render_dioptra_screen() {
                     btn.style.background = '#0073aa';
                 }, 2000);
             } else {
-                alert('Error: ' + (data.data?.message || 'Failed to save config'));
+                showDetailedFeedback(
+                    'Save Operation Failed',
+                    data.data?.message || data.message || 'Failed to save box order configuration',
+                    'error',
+                    data.data?.debug_info || data.debug_info || null
+                );
                 btn.disabled = false;
                 btn.innerHTML = 'Save Changes';
                 btn.style.background = '#0073aa';
             }
         })
         .catch(error => {
-            alert('Error: ' + error);
+            showDetailedFeedback(
+                'Network Error During Save',
+                'A network error occurred while trying to save the configuration: ' + error.message,
+                'error',
+                {
+                    error_type: 'network_error',
+                    error_message: error.message,
+                    stack_trace: error.stack,
+                    timestamp: new Date().toISOString(),
+                    user_agent: navigator.userAgent,
+                    url: window.location.href
+                }
+            );
             btn.disabled = false;
             btn.innerHTML = 'Save Changes';
             btn.style.background = '#0073aa';
@@ -1436,20 +1689,482 @@ function ruplin_render_dioptra_screen() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload(); // Reload to show default state
+                showDetailedFeedback(
+                    'Configuration Deleted Successfully!',
+                    'The custom box order configuration has been deleted. The page will reload to show the default configuration.',
+                    'success',
+                    data.data?.debug_info || null
+                );
+                setTimeout(() => {
+                    location.reload(); // Reload to show default state
+                }, 2000);
             } else {
-                alert('Error: ' + (data.data?.message || 'Failed to delete config'));
+                showDetailedFeedback(
+                    'Delete Operation Failed',
+                    data.data?.message || data.message || 'Failed to delete box order configuration',
+                    'error',
+                    data.data?.debug_info || data.debug_info || null
+                );
                 btn.disabled = false;
                 btn.innerHTML = 'Delete Config';
                 btn.style.background = '#dc3545';
             }
         })
         .catch(error => {
-            alert('Error: ' + error);
+            showDetailedFeedback(
+                'Network Error During Delete',
+                'A network error occurred while trying to delete the configuration: ' + error.message,
+                'error',
+                {
+                    error_type: 'network_error',
+                    error_message: error.message,
+                    stack_trace: error.stack,
+                    timestamp: new Date().toISOString(),
+                    user_agent: navigator.userAgent,
+                    url: window.location.href
+                }
+            );
             btn.disabled = false;
             btn.innerHTML = 'Delete Config';
             btn.style.background = '#dc3545';
         });
+    }
+
+    // ============================================================
+    // BOX ORDERING TOGGLE FUNCTIONS
+    // ============================================================
+    
+    function initializeBoxOrderingToggle() {
+        const toggle = document.getElementById('box-ordering-active-toggle');
+        if (!toggle) return; // Toggle not found, probably not on Box Ordering tab
+        
+        // Set initial status display
+        updateToggleStatusDisplay(toggle.checked);
+        
+        // Add event listener for toggle changes
+        toggle.addEventListener('change', function() {
+            const postId = this.getAttribute('data-post-id');
+            const isActive = this.checked ? 1 : 0;
+            
+            updateBoxOrderingActive(postId, isActive, this);
+        });
+    }
+    
+    function updateToggleStatusDisplay(isActive) {
+        const statusDisplay = document.getElementById('toggle-status-display');
+        if (!statusDisplay) return;
+        
+        if (isActive) {
+            statusDisplay.style.backgroundColor = '#d4edda';
+            statusDisplay.style.color = '#155724';
+            statusDisplay.style.border = '1px solid #c3e6cb';
+            statusDisplay.innerHTML = '✅ Custom Box Ordering is ACTIVE - Box order configuration will be used if available';
+        } else {
+            statusDisplay.style.backgroundColor = '#f8d7da';
+            statusDisplay.style.color = '#721c24';
+            statusDisplay.style.border = '1px solid #f5c6cb';
+            statusDisplay.innerHTML = '❌ Custom Box Ordering is INACTIVE - Default hardcoded order will be used';
+        }
+    }
+    
+    function updateBoxOrderingActive(postId, isActive, toggleElement) {
+        // Disable toggle during request
+        toggleElement.disabled = true;
+        
+        // Show loading state
+        const statusDisplay = document.getElementById('toggle-status-display');
+        if (statusDisplay) {
+            statusDisplay.style.backgroundColor = '#fff3cd';
+            statusDisplay.style.color = '#856404';
+            statusDisplay.style.border = '1px solid #ffeaa7';
+            statusDisplay.innerHTML = '🔄 Updating box ordering status...';
+        }
+        
+        fetch(ajaxurl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                action: 'update_box_ordering_active',
+                post_id: postId,
+                is_active: isActive,
+                nonce: '<?php echo wp_create_nonce('box_order_nonce'); ?>'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update status display to reflect new state
+                updateToggleStatusDisplay(isActive === 1);
+                
+                // Show success feedback briefly
+                showToggleSuccessFeedback(isActive === 1 ? 'Custom ordering activated!' : 'Custom ordering deactivated!');
+            } else {
+                // Revert toggle state on error
+                toggleElement.checked = !toggleElement.checked;
+                updateToggleStatusDisplay(toggleElement.checked);
+                
+                showDetailedFeedback(
+                    'Toggle Update Failed',
+                    data.data?.message || data.message || 'Failed to update box ordering status',
+                    'error',
+                    data.data?.debug_info || data.debug_info || null
+                );
+            }
+        })
+        .catch(error => {
+            // Revert toggle state on error
+            toggleElement.checked = !toggleElement.checked;
+            updateToggleStatusDisplay(toggleElement.checked);
+            
+            showDetailedFeedback(
+                'Network Error',
+                'A network error occurred while updating box ordering status: ' + error.message,
+                'error',
+                {
+                    error_type: 'network_error',
+                    error_message: error.message,
+                    timestamp: new Date().toISOString()
+                }
+            );
+        })
+        .finally(() => {
+            // Re-enable toggle
+            toggleElement.disabled = false;
+        });
+    }
+    
+    function showToggleSuccessFeedback(message) {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 1000000;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideInRight 0.3s ease-out;
+        `;
+        tempDiv.innerHTML = `✅ ${message}`;
+        document.body.appendChild(tempDiv);
+        
+        // Add slide in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { 
+                    opacity: 0;
+                    transform: translateX(100px); 
+                }
+                to { 
+                    opacity: 1;
+                    transform: translateX(0); 
+                }
+            }
+            @keyframes slideOutRight {
+                from { 
+                    opacity: 1;
+                    transform: translateX(0); 
+                }
+                to { 
+                    opacity: 0;
+                    transform: translateX(100px); 
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        setTimeout(() => {
+            tempDiv.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                tempDiv.remove();
+                style.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // ============================================================
+    // COMPREHENSIVE ERROR FEEDBACK SYSTEM
+    // ============================================================
+    
+    /**
+     * Show detailed error or success feedback with professional styling
+     */
+    function showDetailedFeedback(title, message, type = 'error', debugInfo = null) {
+        // Remove existing feedback popup if present
+        const existingPopup = document.getElementById('detailed-feedback-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+        
+        // Create popup overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'detailed-feedback-popup';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        `;
+        
+        // Create popup container
+        const popup = document.createElement('div');
+        const isError = type === 'error';
+        const borderColor = isError ? '#dc3545' : '#28a745';
+        const headerBg = isError ? '#dc3545' : '#28a745';
+        const iconSymbol = isError ? '⚠️' : '✅';
+        
+        popup.style.cssText = `
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: slideUp 0.3s ease-out;
+            border: 2px solid ${borderColor};
+        `;
+        
+        // Format debug info for display
+        let debugSection = '';
+        if (debugInfo) {
+            const formattedDebug = JSON.stringify(debugInfo, null, 2);
+            debugSection = `
+                <div class="debug-section" style="margin-top: 20px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <h4 style="margin: 0; color: #495057; font-size: 14px; font-weight: 600;">🔍 Debug Information</h4>
+                        <button id="copy-debug-btn" style="
+                            background: #6c757d; 
+                            color: white; 
+                            border: none; 
+                            padding: 6px 12px; 
+                            border-radius: 6px; 
+                            cursor: pointer; 
+                            font-size: 12px;
+                            font-weight: 500;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='#5a6268'" onmouseout="this.style.background='#6c757d'">
+                            📋 Copy Debug Info
+                        </button>
+                    </div>
+                    <div style="
+                        background: #f8f9fa; 
+                        border: 1px solid #dee2e6; 
+                        border-radius: 8px; 
+                        padding: 15px; 
+                        max-height: 300px; 
+                        overflow-y: auto;
+                        font-family: 'Courier New', monospace;
+                        font-size: 11px;
+                        line-height: 1.4;
+                        white-space: pre-wrap;
+                        word-break: break-all;
+                    " id="debug-content">${escapeHtml(formattedDebug)}</div>
+                </div>
+            `;
+        }
+        
+        popup.innerHTML = `
+            <div style="
+                background: ${headerBg}; 
+                color: white; 
+                padding: 20px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between;
+            ">
+                <div style="display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 12px;">${iconSymbol}</span>
+                    <h3 style="margin: 0; font-size: 18px; font-weight: 600;">${escapeHtml(title)}</h3>
+                </div>
+                <button id="close-feedback-btn" style="
+                    background: rgba(255,255,255,0.2); 
+                    border: none; 
+                    color: white; 
+                    width: 32px; 
+                    height: 32px; 
+                    border-radius: 50%; 
+                    cursor: pointer; 
+                    font-size: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+            </div>
+            <div style="padding: 25px;">
+                <div style="
+                    background: ${isError ? '#f8d7da' : '#d4edda'}; 
+                    color: ${isError ? '#721c24' : '#155724'}; 
+                    padding: 15px; 
+                    border-radius: 8px; 
+                    margin-bottom: 20px;
+                    border-left: 4px solid ${borderColor};
+                ">
+                    <p style="margin: 0; font-size: 14px; line-height: 1.5;">${escapeHtml(message)}</p>
+                </div>
+                
+                <div style="
+                    background: #e3f2fd; 
+                    border: 1px solid #1976d2; 
+                    border-radius: 8px; 
+                    padding: 15px; 
+                    margin-bottom: 15px;
+                ">
+                    <h4 style="margin: 0 0 10px 0; color: #1976d2; font-size: 14px;">📋 Quick Actions</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="copy-message-btn" style="
+                            background: #1976d2; 
+                            color: white; 
+                            border: none; 
+                            padding: 8px 16px; 
+                            border-radius: 6px; 
+                            cursor: pointer; 
+                            font-size: 13px;
+                            font-weight: 500;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='#1565c0'" onmouseout="this.style.background='#1976d2'">
+                            Copy Message
+                        </button>
+                        <button onclick="location.reload()" style="
+                            background: #ff9800; 
+                            color: white; 
+                            border: none; 
+                            padding: 8px 16px; 
+                            border-radius: 6px; 
+                            cursor: pointer; 
+                            font-size: 13px;
+                            font-weight: 500;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='#f57c00'" onmouseout="this.style.background='#ff9800'">
+                            🔄 Refresh Page
+                        </button>
+                    </div>
+                </div>
+                
+                ${debugSection}
+                
+                <div style="text-align: right; margin-top: 25px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                    <small style="color: #6c757d; font-size: 12px;">
+                        🕒 ${new Date().toLocaleString()} | Environment: WordPress ${wpVersion || 'Unknown'}
+                    </small>
+                </div>
+            </div>
+        `;
+        
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes slideUp {
+                from { 
+                    opacity: 0;
+                    transform: translateY(30px) scale(0.95); 
+                }
+                to { 
+                    opacity: 1;
+                    transform: translateY(0) scale(1); 
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        overlay.appendChild(popup);
+        document.body.appendChild(overlay);
+        
+        // Event handlers
+        document.getElementById('close-feedback-btn').addEventListener('click', closeFeedbackPopup);
+        document.getElementById('copy-message-btn').addEventListener('click', () => copyToClipboard(message, 'Message copied!'));
+        
+        if (debugInfo) {
+            document.getElementById('copy-debug-btn').addEventListener('click', () => {
+                copyToClipboard(JSON.stringify(debugInfo, null, 2), 'Debug info copied!');
+            });
+        }
+        
+        // Close on overlay click
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                closeFeedbackPopup();
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeFeedbackPopup();
+            }
+        });
+    }
+    
+    function closeFeedbackPopup() {
+        const popup = document.getElementById('detailed-feedback-popup');
+        if (popup) {
+            popup.style.animation = 'fadeOut 0.2s ease-in';
+            setTimeout(() => popup.remove(), 200);
+        }
+    }
+    
+    function copyToClipboard(text, successMessage = 'Copied!') {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show temporary success message
+            const tempDiv = document.createElement('div');
+            tempDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #28a745;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 1000000;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: fadeIn 0.3s ease-out;
+            `;
+            tempDiv.textContent = successMessage;
+            document.body.appendChild(tempDiv);
+            
+            setTimeout(() => {
+                tempDiv.style.animation = 'fadeOut 0.2s ease-in';
+                setTimeout(() => tempDiv.remove(), 200);
+            }, 1500);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        });
+    }
+    
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
     }
 
     </script>
