@@ -292,6 +292,30 @@ function ruplin_render_dioptra_screen() {
                             style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
                         Box Ordering Tab 2 (original)
                     </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="kendall-ourprocess-box"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        kendall_ourprocess_box
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="ocean1"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        ocean1
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="ocean2"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        ocean2
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="ocean3"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        ocean3
+                    </button>
                 </div>
             </div>
             
@@ -791,6 +815,236 @@ function ruplin_render_dioptra_screen() {
                     </div>
                     <?php endif; ?>
                 </div>
+            </div>
+            
+            <!-- kendall_ourprocess_box Tab -->
+            <div id="kendall-ourprocess-box" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_heading" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_heading</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_heading" 
+                                       id="field_kendall_our_process_heading"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_subheading" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_subheading</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_subheading" 
+                                       id="field_kendall_our_process_subheading"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_description" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_description</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_description" 
+                                       id="field_kendall_our_process_description"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_1" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_1</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_1" 
+                                       id="field_kendall_our_process_step_1"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_2" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_2</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_2" 
+                                       id="field_kendall_our_process_step_2"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_3" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_3</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_3" 
+                                       id="field_kendall_our_process_step_3"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_4" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_4</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_4" 
+                                       id="field_kendall_our_process_step_4"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_5" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_5</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_5" 
+                                       id="field_kendall_our_process_step_5"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_6" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_6</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_6" 
+                                       id="field_kendall_our_process_step_6"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_7" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_7</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_7" 
+                                       id="field_kendall_our_process_step_7"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_8" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_8</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_8" 
+                                       id="field_kendall_our_process_step_8"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_9" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_9</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_9" 
+                                       id="field_kendall_our_process_step_9"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_kendall_our_process_step_10" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_10</td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" 
+                                       name="field_kendall_our_process_step_10" 
+                                       id="field_kendall_our_process_step_10"
+                                       value="" 
+                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- ocean1 Tab -->
+            <div id="ocean1" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">ocean1</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- ocean2 Tab -->
+            <div id="ocean2" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">ocean2</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- ocean3 Tab -->
+            <div id="ocean3" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">ocean3</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
             </div>
             
     </div>
