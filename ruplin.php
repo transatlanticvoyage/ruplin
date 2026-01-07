@@ -568,6 +568,7 @@ class SnefuruPlugin {
             brook_video_3 TEXT DEFAULT NULL,
             brook_video_4 TEXT DEFAULT NULL,
             brook_video_outro TEXT DEFAULT NULL,
+            sara_customhtml_datum TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
