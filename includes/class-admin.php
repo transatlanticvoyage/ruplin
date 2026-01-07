@@ -11154,6 +11154,11 @@ class Snefuru_Admin {
                         continue; // Skip this field entirely
                     }
                     
+                    // DEBUG: Log kendall fields specifically
+                    if (strpos($field_name, 'kendall') !== false) {
+                        error_log("KENDALL DEBUG SAVE: Processing field {$field_name} = '{$value}'");
+                    }
+                    
                     // wp_pylons field - handle all fields properly WITHOUT slash escaping
                     if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
@@ -11280,6 +11285,14 @@ class Snefuru_Admin {
             error_log("Dioptra save - Format array: " . json_encode($format_array));
             error_log("Dioptra save - Number of fields: " . count($update_data));
             error_log("Dioptra save - Number of formats: " . count($format_array));
+            
+            // DEBUG: Log all update data for kendall fields
+            $kendall_fields_in_update = array_filter($update_data, function($key) {
+                return strpos($key, 'kendall') !== false;
+            }, ARRAY_FILTER_USE_KEY);
+            if (!empty($kendall_fields_in_update)) {
+                error_log("KENDALL DEBUG - Fields being sent to database: " . print_r($kendall_fields_in_update, true));
+            }
             
             $pylon_result = $wpdb->update(
                 $pylons_table,

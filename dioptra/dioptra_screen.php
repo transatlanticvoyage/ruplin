@@ -50,6 +50,10 @@ function ruplin_render_dioptra_screen() {
         
         if ($pylon_row) {
             $pylon_data = $pylon_row;
+            
+            // TEMPORARY DEBUG: Check if kendall data is in database
+            error_log("KENDALL PAGE LOAD DEBUG: kendall_our_process_heading = '" . ($pylon_data['kendall_our_process_heading'] ?? 'NULL') . "'");
+            error_log("KENDALL PAGE LOAD DEBUG: kendall_our_process_subheading = '" . ($pylon_data['kendall_our_process_subheading'] ?? 'NULL') . "'");
         }
     }
     
@@ -130,6 +134,7 @@ function ruplin_render_dioptra_screen() {
         'locpage_state_full' => 'pylons',
         'locpage_gmaps_string' => 'pylons'
         // OSB fields removed from main table - they're handled separately in the OSB tab
+        // Kendall fields removed from main table - they're handled separately in the Kendall tab
     );
     
     // Debug: Check for servicepage entries
@@ -160,32 +165,6 @@ function ruplin_render_dioptra_screen() {
                 $post_id
             ), ARRAY_A);
             ?>
-            <div style="background: #e7f3ff; border: 1px solid #0073aa; padding: 15px; margin: 10px 0; border-radius: 4px;">
-                <strong>🔍 Dioptra Debug Info for Post ID <?php echo $post_id; ?>:</strong>
-                <div style="margin: 10px 0; font-family: monospace; font-size: 12px;">
-                    <strong>Post Details:</strong><br>
-                    - Post Title: "<?php echo esc_html(get_the_title($post_id)); ?>"<br>
-                    - Post Status: <?php echo get_post_status($post_id); ?><br>
-                    - Pylon Record Exists: <?php echo $current_pylon ? 'YES' : 'NO'; ?><br>
-                    
-                    <?php if ($current_pylon): ?>
-                        <br><strong>Current Pylon Data:</strong><br>
-                        - Pylon ID: <?php echo $current_pylon['pylon_id'] ?? 'NULL'; ?><br>
-                        - Moniker: "<?php echo esc_html($current_pylon['moniker'] ?? ''); ?>"<br>
-                        - Paragon Description: "<?php echo esc_html(substr($current_pylon['paragon_description'] ?? '', 0, 50)); ?><?php echo strlen($current_pylon['paragon_description'] ?? '') > 50 ? '...' : ''; ?>"<br>
-                        - Last Updated: <?php echo $current_pylon['updated_at'] ?? 'Never'; ?><br>
-                        <br><strong>OSB Settings:</strong><br>
-                        - OSB Enabled: <?php echo isset($current_pylon['osb_is_enabled']) ? ($current_pylon['osb_is_enabled'] ? 'YES (1)' : 'NO (0)') : 'COLUMN MISSING'; ?><br>
-                        - OSB Title: "<?php echo esc_html($current_pylon['osb_box_title'] ?? ''); ?>"<br>
-                        - Services Per Row: <?php echo $current_pylon['osb_services_per_row'] ?? 'NULL'; ?><br>
-                        - Max Services: <?php echo $current_pylon['osb_max_services_display'] ?? 'NULL'; ?><br>
-                    <?php endif; ?>
-                </div>
-                <div id="save-debug-results" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 3px; display: none;">
-                    <strong>Save Debug Results:</strong>
-                    <div id="save-debug-content"></div>
-                </div>
-            </div>
         <?php endif; ?>
         
         <?php if (!$post_id): ?>
@@ -294,9 +273,57 @@ function ruplin_render_dioptra_screen() {
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
+                            data-tab="batman-hero"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        batman_hero
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="chenblock-card"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        chenblock_card
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="post-content"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        post_content
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="serena-faq"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        serena_faq
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="brook-video-box-box"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        brook_video_box_box
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="olivia-authlinks-box"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        olivia_authlinks_box
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="ava-whychooseus-box"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        ava_whychooseus_box
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
                             data-tab="kendall-ourprocess-box"
                             style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
                         kendall_ourprocess_box
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="sara-customhtml-box"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        sara_customhtml_box
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
@@ -817,6 +844,48 @@ function ruplin_render_dioptra_screen() {
                 </div>
             </div>
             
+            <!-- batman_hero Tab -->
+            <div id="batman-hero" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">batman_hero</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- chenblock_card Tab -->
+            <div id="chenblock-card" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">chenblock_card</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- post_content Tab -->
+            <div id="post-content" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">post_content</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- serena_faq Tab -->
+            <div id="serena-faq" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">serena_faq</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- brook_video_box_box Tab -->
+            <div id="brook-video-box-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">brook_video_box_box</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- olivia_authlinks_box Tab -->
+            <div id="olivia-authlinks-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">olivia_authlinks_box</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
+            <!-- ava_whychooseus_box Tab -->
+            <div id="ava-whychooseus-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">ava_whychooseus_box</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
             <!-- kendall_ourprocess_box Tab -->
             <div id="kendall-ourprocess-box" class="dioptra-tab-content" style="display: none;">
                 <table style="width: auto; border-collapse: collapse; margin-top: 0;">
@@ -840,7 +909,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_heading" 
                                        id="field_kendall_our_process_heading"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_heading'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -855,7 +924,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_subheading" 
                                        id="field_kendall_our_process_subheading"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_subheading'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -870,7 +939,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_description" 
                                        id="field_kendall_our_process_description"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_description'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -885,7 +954,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_1" 
                                        id="field_kendall_our_process_step_1"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_1'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -900,7 +969,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_2" 
                                        id="field_kendall_our_process_step_2"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_2'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -915,7 +984,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_3" 
                                        id="field_kendall_our_process_step_3"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_3'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -930,7 +999,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_4" 
                                        id="field_kendall_our_process_step_4"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_4'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -945,7 +1014,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_5" 
                                        id="field_kendall_our_process_step_5"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_5'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -960,7 +1029,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_6" 
                                        id="field_kendall_our_process_step_6"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_6'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -975,7 +1044,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_7" 
                                        id="field_kendall_our_process_step_7"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_7'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -990,7 +1059,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_8" 
                                        id="field_kendall_our_process_step_8"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_8'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -1005,7 +1074,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_9" 
                                        id="field_kendall_our_process_step_9"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_9'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -1020,7 +1089,7 @@ function ruplin_render_dioptra_screen() {
                                 <input type="text" 
                                        name="field_kendall_our_process_step_10" 
                                        id="field_kendall_our_process_step_10"
-                                       value="" 
+                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_10'] ?? ''); ?>" 
                                        style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -1029,22 +1098,187 @@ function ruplin_render_dioptra_screen() {
                 </table>
             </div>
             
+            <!-- sara_customhtml_box Tab -->
+            <div id="sara-customhtml-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">sara_customhtml_box</h3>
+                <p>This tab is currently blank and ready for content configuration.</p>
+            </div>
+            
             <!-- ocean1 Tab -->
             <div id="ocean1" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">ocean1</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+                
+                <!-- Article Editor Container -->
+                <div class="article-editor-container" style="background: white; border: 1px solid #ddd; border-radius: 4px;">
+                    <!-- Editor Toolbar -->
+                    <div class="editor-toolbar" style="background: #f5f5f5; border-bottom: 1px solid #ddd; padding: 8px 15px; display: flex; gap: 10px; align-items: center;">
+                        <span style="font-weight: 600; color: #333; margin-right: 10px;">Editor Mode:</span>
+                        <button type="button" 
+                                id="ocean1-visual-view-btn"
+                                class="editor-mode-btn active"
+                                data-mode="visual"
+                                style="background: #0073aa; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            Visual
+                        </button>
+                        <button type="button" 
+                                id="ocean1-code-view-btn"
+                                class="editor-mode-btn"
+                                data-mode="code"
+                                style="background: #f1f1f1; color: #666; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            Code
+                        </button>
+                        <span style="margin-left: auto; font-size: 12px; color: #666;">
+                            Field: content_ocean_1
+                        </span>
+                    </div>
+                    
+                    <!-- Editor Content Area -->
+                    <div class="editor-content-area" style="position: relative;">
+                        <!-- Visual Editor -->
+                        <div id="ocean1-visual-editor" class="editor-view" style="display: block;">
+                            <textarea name="field_content_ocean_1" 
+                                      id="field_content_ocean_1"
+                                      style="width: 100%; height: 400px; border: none; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.6; resize: vertical; outline: none;"
+                                      placeholder="Enter your article content here. You can use HTML tags for formatting.&#10;&#10;Example:&#10;<h2>Your Heading</h2>&#10;<p>Your paragraph content with <strong>bold text</strong> and <em>italic text</em>.</p>&#10;<ul>&#10;    <li>List item 1</li>&#10;    <li>List item 2</li>&#10;</ul>"><?php echo esc_textarea($pylon_data['content_ocean_1'] ?? ''); ?></textarea>
+                        </div>
+                        
+                        <!-- Code Editor -->
+                        <div id="ocean1-code-editor" class="editor-view" style="display: none;">
+                            <textarea id="field_content_ocean_1_code"
+                                      style="width: 100%; height: 400px; border: none; padding: 20px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.4; resize: vertical; outline: none; background: #f8f9fa;"
+                                      placeholder="HTML code view - edit raw HTML here"><?php echo esc_textarea($pylon_data['content_ocean_1'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Editor Footer -->
+                    <div class="editor-footer" style="background: #f9f9f9; border-top: 1px solid #e9ecef; padding: 10px 20px; font-size: 12px; color: #666;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Tips:</strong> Use Visual mode for easy editing, Code mode for HTML. Content supports paragraphs, headings, lists, links, and basic formatting.
+                            </div>
+                            <div>
+                                Words: <span id="ocean1-word-count">0</span> | Characters: <span id="ocean1-char-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- ocean2 Tab -->
             <div id="ocean2" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">ocean2</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+                
+                <!-- Article Editor Container -->
+                <div class="article-editor-container" style="background: white; border: 1px solid #ddd; border-radius: 4px;">
+                    <!-- Editor Toolbar -->
+                    <div class="editor-toolbar" style="background: #f5f5f5; border-bottom: 1px solid #ddd; padding: 8px 15px; display: flex; gap: 10px; align-items: center;">
+                        <span style="font-weight: 600; color: #333; margin-right: 10px;">Editor Mode:</span>
+                        <button type="button" 
+                                id="ocean2-visual-view-btn"
+                                class="editor-mode-btn active"
+                                data-mode="visual"
+                                style="background: #0073aa; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            Visual
+                        </button>
+                        <button type="button" 
+                                id="ocean2-code-view-btn"
+                                class="editor-mode-btn"
+                                data-mode="code"
+                                style="background: #f1f1f1; color: #666; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            Code
+                        </button>
+                        <span style="margin-left: auto; font-size: 12px; color: #666;">
+                            Field: content_ocean_2
+                        </span>
+                    </div>
+                    
+                    <!-- Editor Content Area -->
+                    <div class="editor-content-area" style="position: relative;">
+                        <!-- Visual Editor -->
+                        <div id="ocean2-visual-editor" class="editor-view" style="display: block;">
+                            <textarea name="field_content_ocean_2" 
+                                      id="field_content_ocean_2"
+                                      style="width: 100%; height: 400px; border: none; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.6; resize: vertical; outline: none;"
+                                      placeholder="Enter your article content here. You can use HTML tags for formatting.&#10;&#10;Example:&#10;<h2>Your Heading</h2>&#10;<p>Your paragraph content with <strong>bold text</strong> and <em>italic text</em>.</p>&#10;<ul>&#10;    <li>List item 1</li>&#10;    <li>List item 2</li>&#10;</ul>"><?php echo esc_textarea($pylon_data['content_ocean_2'] ?? ''); ?></textarea>
+                        </div>
+                        
+                        <!-- Code Editor -->
+                        <div id="ocean2-code-editor" class="editor-view" style="display: none;">
+                            <textarea id="field_content_ocean_2_code"
+                                      style="width: 100%; height: 400px; border: none; padding: 20px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.4; resize: vertical; outline: none; background: #f8f9fa;"
+                                      placeholder="HTML code view - edit raw HTML here"><?php echo esc_textarea($pylon_data['content_ocean_2'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Editor Footer -->
+                    <div class="editor-footer" style="background: #f9f9f9; border-top: 1px solid #e9ecef; padding: 10px 20px; font-size: 12px; color: #666;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Tips:</strong> Use Visual mode for easy editing, Code mode for HTML. Content supports paragraphs, headings, lists, links, and basic formatting.
+                            </div>
+                            <div>
+                                Words: <span id="ocean2-word-count">0</span> | Characters: <span id="ocean2-char-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- ocean3 Tab -->
             <div id="ocean3" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">ocean3</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+                
+                <!-- Article Editor Container -->
+                <div class="article-editor-container" style="background: white; border: 1px solid #ddd; border-radius: 4px;">
+                    <!-- Editor Toolbar -->
+                    <div class="editor-toolbar" style="background: #f5f5f5; border-bottom: 1px solid #ddd; padding: 8px 15px; display: flex; gap: 10px; align-items: center;">
+                        <span style="font-weight: 600; color: #333; margin-right: 10px;">Editor Mode:</span>
+                        <button type="button" 
+                                id="ocean3-visual-view-btn"
+                                class="editor-mode-btn active"
+                                data-mode="visual"
+                                style="background: #0073aa; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            Visual
+                        </button>
+                        <button type="button" 
+                                id="ocean3-code-view-btn"
+                                class="editor-mode-btn"
+                                data-mode="code"
+                                style="background: #f1f1f1; color: #666; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                            Code
+                        </button>
+                        <span style="margin-left: auto; font-size: 12px; color: #666;">
+                            Field: content_ocean_3
+                        </span>
+                    </div>
+                    
+                    <!-- Editor Content Area -->
+                    <div class="editor-content-area" style="position: relative;">
+                        <!-- Visual Editor -->
+                        <div id="ocean3-visual-editor" class="editor-view" style="display: block;">
+                            <textarea name="field_content_ocean_3" 
+                                      id="field_content_ocean_3"
+                                      style="width: 100%; height: 400px; border: none; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.6; resize: vertical; outline: none;"
+                                      placeholder="Enter your article content here. You can use HTML tags for formatting.&#10;&#10;Example:&#10;<h2>Your Heading</h2>&#10;<p>Your paragraph content with <strong>bold text</strong> and <em>italic text</em>.</p>&#10;<ul>&#10;    <li>List item 1</li>&#10;    <li>List item 2</li>&#10;</ul>"><?php echo esc_textarea($pylon_data['content_ocean_3'] ?? ''); ?></textarea>
+                        </div>
+                        
+                        <!-- Code Editor -->
+                        <div id="ocean3-code-editor" class="editor-view" style="display: none;">
+                            <textarea id="field_content_ocean_3_code"
+                                      style="width: 100%; height: 400px; border: none; padding: 20px; font-family: 'Consolas', 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.4; resize: vertical; outline: none; background: #f8f9fa;"
+                                      placeholder="HTML code view - edit raw HTML here"><?php echo esc_textarea($pylon_data['content_ocean_3'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Editor Footer -->
+                    <div class="editor-footer" style="background: #f9f9f9; border-top: 1px solid #e9ecef; padding: 10px 20px; font-size: 12px; color: #666;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Tips:</strong> Use Visual mode for easy editing, Code mode for HTML. Content supports paragraphs, headings, lists, links, and basic formatting.
+                            </div>
+                            <div>
+                                Words: <span id="ocean3-word-count">0</span> | Characters: <span id="ocean3-char-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
     </div>
@@ -1097,7 +1331,7 @@ function ruplin_render_dioptra_screen() {
     }
     
     // Tab switching functionality
-    function switchDioptraTab(targetTabId) {
+    function switchDioptraTab(targetTabId, updateUrl = true) {
         // Hide all tab contents
         const tabContents = document.querySelectorAll('.dioptra-tab-content');
         tabContents.forEach(content => {
@@ -1125,6 +1359,77 @@ function ruplin_render_dioptra_screen() {
             targetButton.style.background = '#0073aa';
             targetButton.style.color = 'white';
         }
+        
+        // Update URL if requested
+        if (updateUrl) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('tab', getTabParamFromId(targetTabId));
+            const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }
+    
+    // Map tab IDs to URL parameters
+    function getTabParamFromId(tabId) {
+        const mapping = {
+            'main-tab-1a': 'maintab1a',
+            'our-services-box-config': 'osb',
+            'box-ordering-config': 'box_ordering_1',
+            'box-ordering-tab-2': 'box_ordering_2',
+            'batman-hero': 'batman_hero',
+            'chenblock-card': 'chenblock_card',
+            'post-content': 'post_content',
+            'serena-faq': 'serena_faq',
+            'brook-video-box-box': 'brook_video_box_box',
+            'olivia-authlinks-box': 'olivia_authlinks_box',
+            'ava-whychooseus-box': 'ava_whychooseus_box',
+            'kendall-ourprocess-box': 'kendall',
+            'sara-customhtml-box': 'sara',
+            'ocean1': 'ocean1',
+            'ocean2': 'ocean2',
+            'ocean3': 'ocean3'
+        };
+        return mapping[tabId] || tabId;
+    }
+    
+    // Map URL parameters to tab IDs
+    function getTabIdFromParam(param) {
+        const mapping = {
+            'maintab1a': 'main-tab-1a',
+            'osb': 'our-services-box-config',
+            'box_ordering_1': 'box-ordering-config',
+            'box_ordering_2': 'box-ordering-tab-2',
+            'batman_hero': 'batman-hero',
+            'chenblock_card': 'chenblock-card',
+            'post_content': 'post-content',
+            'serena_faq': 'serena-faq',
+            'brook_video_box_box': 'brook-video-box-box',
+            'olivia_authlinks_box': 'olivia-authlinks-box',
+            'ava_whychooseus_box': 'ava-whychooseus-box',
+            'kendall': 'kendall-ourprocess-box',
+            'sara': 'sara-customhtml-box',
+            'ocean1': 'ocean1',
+            'ocean2': 'ocean2',
+            'ocean3': 'ocean3'
+        };
+        return mapping[param] || param;
+    }
+    
+    // Initialize tab from URL parameter
+    function initializeTabFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let tabParam = urlParams.get('tab');
+        
+        // If no tab parameter, default to maintab1a and update URL
+        if (!tabParam) {
+            tabParam = 'maintab1a';
+            urlParams.set('tab', 'maintab1a');
+            const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+        
+        const targetTabId = getTabIdFromParam(tabParam);
+        switchDioptraTab(targetTabId, false); // Don't update URL since we're initializing from URL
     }
     
     // Initialize tab system
@@ -1136,6 +1441,9 @@ function ruplin_render_dioptra_screen() {
                 switchDioptraTab(targetTab);
             });
         });
+        
+        // Initialize tab from URL parameter
+        initializeTabFromUrl();
         
         // Media selector for paragon_featured_image_id
         const imageSelectButtons = document.querySelectorAll('.select-paragon-image');
@@ -1310,6 +1618,7 @@ function ruplin_render_dioptra_screen() {
         
         // Debug: Log all fields being collected
         console.log('Dioptra Save - Collecting fields:', inputs.length);
+        
         
         inputs.forEach(input => {
             if (input.type === 'checkbox') {
@@ -2460,6 +2769,260 @@ function ruplin_render_dioptra_screen() {
                 btn.innerHTML = originalText;
             });
         }
+    }
+    
+    // Ocean1 Article Editor Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeOcean1Editor();
+    });
+    
+    function initializeOcean1Editor() {
+        const visualBtn = document.getElementById('ocean1-visual-view-btn');
+        const codeBtn = document.getElementById('ocean1-code-view-btn');
+        const visualEditor = document.getElementById('ocean1-visual-editor');
+        const codeEditor = document.getElementById('ocean1-code-editor');
+        const visualTextarea = document.getElementById('field_content_ocean_1');
+        const codeTextarea = document.getElementById('field_content_ocean_1_code');
+        const wordCountSpan = document.getElementById('ocean1-word-count');
+        const charCountSpan = document.getElementById('ocean1-char-count');
+        
+        if (!visualBtn || !codeBtn || !visualEditor || !codeEditor || !visualTextarea || !codeTextarea) {
+            return; // Elements not found, exit gracefully
+        }
+        
+        // Switch to visual view
+        function switchToVisual() {
+            // Sync content from code to visual
+            visualTextarea.value = codeTextarea.value;
+            
+            // Update UI
+            visualEditor.style.display = 'block';
+            codeEditor.style.display = 'none';
+            
+            visualBtn.style.background = '#0073aa';
+            visualBtn.style.color = 'white';
+            visualBtn.classList.add('active');
+            
+            codeBtn.style.background = '#f1f1f1';
+            codeBtn.style.color = '#666';
+            codeBtn.classList.remove('active');
+            
+            updateWordCount();
+        }
+        
+        // Switch to code view
+        function switchToCode() {
+            // Sync content from visual to code
+            codeTextarea.value = visualTextarea.value;
+            
+            // Update UI
+            visualEditor.style.display = 'none';
+            codeEditor.style.display = 'block';
+            
+            codeBtn.style.background = '#0073aa';
+            codeBtn.style.color = 'white';
+            codeBtn.classList.add('active');
+            
+            visualBtn.style.background = '#f1f1f1';
+            visualBtn.style.color = '#666';
+            visualBtn.classList.remove('active');
+            
+            updateWordCount();
+        }
+        
+        // Update word and character count
+        function updateWordCount() {
+            const activeTextarea = visualEditor.style.display === 'none' ? codeTextarea : visualTextarea;
+            const content = activeTextarea.value;
+            
+            // Count characters
+            const charCount = content.length;
+            
+            // Count words (exclude HTML tags for more accurate count)
+            const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            const wordCount = textContent ? textContent.split(' ').length : 0;
+            
+            if (wordCountSpan) wordCountSpan.textContent = wordCount;
+            if (charCountSpan) charCountSpan.textContent = charCount;
+        }
+        
+        // Keep both textareas in sync
+        function syncContent(sourceTextarea, targetTextarea) {
+            targetTextarea.value = sourceTextarea.value;
+            updateWordCount();
+        }
+        
+        // Event listeners
+        visualBtn.addEventListener('click', switchToVisual);
+        codeBtn.addEventListener('click', switchToCode);
+        
+        // Sync content between textareas on input
+        visualTextarea.addEventListener('input', function() {
+            syncContent(visualTextarea, codeTextarea);
+        });
+        
+        codeTextarea.addEventListener('input', function() {
+            syncContent(codeTextarea, visualTextarea);
+        });
+        
+        // Initialize word count
+        updateWordCount();
+    }
+    
+    // Ocean2 Article Editor Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeOcean2Editor();
+    });
+    
+    function initializeOcean2Editor() {
+        const visualBtn = document.getElementById('ocean2-visual-view-btn');
+        const codeBtn = document.getElementById('ocean2-code-view-btn');
+        const visualEditor = document.getElementById('ocean2-visual-editor');
+        const codeEditor = document.getElementById('ocean2-code-editor');
+        const visualTextarea = document.getElementById('field_content_ocean_2');
+        const codeTextarea = document.getElementById('field_content_ocean_2_code');
+        const wordCountSpan = document.getElementById('ocean2-word-count');
+        const charCountSpan = document.getElementById('ocean2-char-count');
+        
+        if (!visualBtn || !codeBtn || !visualEditor || !codeEditor || !visualTextarea || !codeTextarea) {
+            return; // Elements not found, exit gracefully
+        }
+        
+        // Switch to visual view
+        function switchToVisual() {
+            visualTextarea.value = codeTextarea.value;
+            visualEditor.style.display = 'block';
+            codeEditor.style.display = 'none';
+            visualBtn.style.background = '#0073aa';
+            visualBtn.style.color = 'white';
+            visualBtn.classList.add('active');
+            codeBtn.style.background = '#f1f1f1';
+            codeBtn.style.color = '#666';
+            codeBtn.classList.remove('active');
+            updateWordCount();
+        }
+        
+        // Switch to code view
+        function switchToCode() {
+            codeTextarea.value = visualTextarea.value;
+            visualEditor.style.display = 'none';
+            codeEditor.style.display = 'block';
+            codeBtn.style.background = '#0073aa';
+            codeBtn.style.color = 'white';
+            codeBtn.classList.add('active');
+            visualBtn.style.background = '#f1f1f1';
+            visualBtn.style.color = '#666';
+            visualBtn.classList.remove('active');
+            updateWordCount();
+        }
+        
+        // Update word and character count
+        function updateWordCount() {
+            const activeTextarea = visualEditor.style.display === 'none' ? codeTextarea : visualTextarea;
+            const content = activeTextarea.value;
+            const charCount = content.length;
+            const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            const wordCount = textContent ? textContent.split(' ').length : 0;
+            if (wordCountSpan) wordCountSpan.textContent = wordCount;
+            if (charCountSpan) charCountSpan.textContent = charCount;
+        }
+        
+        // Keep both textareas in sync
+        function syncContent(sourceTextarea, targetTextarea) {
+            targetTextarea.value = sourceTextarea.value;
+            updateWordCount();
+        }
+        
+        // Event listeners
+        visualBtn.addEventListener('click', switchToVisual);
+        codeBtn.addEventListener('click', switchToCode);
+        visualTextarea.addEventListener('input', function() {
+            syncContent(visualTextarea, codeTextarea);
+        });
+        codeTextarea.addEventListener('input', function() {
+            syncContent(codeTextarea, visualTextarea);
+        });
+        
+        // Initialize word count
+        updateWordCount();
+    }
+    
+    // Ocean3 Article Editor Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeOcean3Editor();
+    });
+    
+    function initializeOcean3Editor() {
+        const visualBtn = document.getElementById('ocean3-visual-view-btn');
+        const codeBtn = document.getElementById('ocean3-code-view-btn');
+        const visualEditor = document.getElementById('ocean3-visual-editor');
+        const codeEditor = document.getElementById('ocean3-code-editor');
+        const visualTextarea = document.getElementById('field_content_ocean_3');
+        const codeTextarea = document.getElementById('field_content_ocean_3_code');
+        const wordCountSpan = document.getElementById('ocean3-word-count');
+        const charCountSpan = document.getElementById('ocean3-char-count');
+        
+        if (!visualBtn || !codeBtn || !visualEditor || !codeEditor || !visualTextarea || !codeTextarea) {
+            return; // Elements not found, exit gracefully
+        }
+        
+        // Switch to visual view
+        function switchToVisual() {
+            visualTextarea.value = codeTextarea.value;
+            visualEditor.style.display = 'block';
+            codeEditor.style.display = 'none';
+            visualBtn.style.background = '#0073aa';
+            visualBtn.style.color = 'white';
+            visualBtn.classList.add('active');
+            codeBtn.style.background = '#f1f1f1';
+            codeBtn.style.color = '#666';
+            codeBtn.classList.remove('active');
+            updateWordCount();
+        }
+        
+        // Switch to code view
+        function switchToCode() {
+            codeTextarea.value = visualTextarea.value;
+            visualEditor.style.display = 'none';
+            codeEditor.style.display = 'block';
+            codeBtn.style.background = '#0073aa';
+            codeBtn.style.color = 'white';
+            codeBtn.classList.add('active');
+            visualBtn.style.background = '#f1f1f1';
+            visualBtn.style.color = '#666';
+            visualBtn.classList.remove('active');
+            updateWordCount();
+        }
+        
+        // Update word and character count
+        function updateWordCount() {
+            const activeTextarea = visualEditor.style.display === 'none' ? codeTextarea : visualTextarea;
+            const content = activeTextarea.value;
+            const charCount = content.length;
+            const textContent = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+            const wordCount = textContent ? textContent.split(' ').length : 0;
+            if (wordCountSpan) wordCountSpan.textContent = wordCount;
+            if (charCountSpan) charCountSpan.textContent = charCount;
+        }
+        
+        // Keep both textareas in sync
+        function syncContent(sourceTextarea, targetTextarea) {
+            targetTextarea.value = sourceTextarea.value;
+            updateWordCount();
+        }
+        
+        // Event listeners
+        visualBtn.addEventListener('click', switchToVisual);
+        codeBtn.addEventListener('click', switchToCode);
+        visualTextarea.addEventListener('input', function() {
+            syncContent(visualTextarea, codeTextarea);
+        });
+        codeTextarea.addEventListener('input', function() {
+            syncContent(codeTextarea, visualTextarea);
+        });
+        
+        // Initialize word count
+        updateWordCount();
     }
 
     </script>
