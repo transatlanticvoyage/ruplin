@@ -107,6 +107,7 @@ function ruplin_render_dioptra_screen() {
         'trustblock_vezzy_desc' => 'pylons',
         'baynar1_main' => 'pylons',
         'baynar2_main' => 'pylons',
+        'sara_customhtml_datum' => 'pylons',
         'serena_faq_box_q1' => 'pylons',
         'serena_faq_box_a1' => 'pylons',
         'serena_faq_box_q2' => 'pylons',
@@ -242,6 +243,24 @@ function ruplin_render_dioptra_screen() {
                    style="background: #383838; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; text-transform: lowercase;">
                     livefrontend screen
                 </a>
+                
+                <!-- Tab Navigation Buttons -->
+                <div style="display: inline-block; margin-left: 20px; border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9;">
+                    <button type="button" 
+                            id="tab-nav-back"
+                            style="background: white; border: none; padding: 8px 15px; cursor: pointer; font-size: 14px; font-weight: 600; border-right: 1px solid #ccc; border-radius: 4px 0 0 4px; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f0f0f0'" 
+                            onmouseout="this.style.background='white'">
+                        &laquo; Back
+                    </button>
+                    <button type="button" 
+                            id="tab-nav-forward"
+                            style="background: white; border: none; padding: 8px 15px; cursor: pointer; font-size: 14px; font-weight: 600; border-radius: 0 4px 4px 0; transition: background 0.2s;"
+                            onmouseover="this.style.background='#f0f0f0'" 
+                            onmouseout="this.style.background='white'">
+                        Forward &raquo;
+                    </button>
+                </div>
             </div>
             
             <!-- Horizontal Tab System -->
@@ -1100,8 +1119,206 @@ function ruplin_render_dioptra_screen() {
             
             <!-- sara_customhtml_box Tab -->
             <div id="sara-customhtml-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">sara_customhtml_box</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+                <?php
+                // Get current sara_customhtml_datum value
+                $sara_html_content = $current_pylon['sara_customhtml_datum'] ?? '';
+                ?>
+                
+                <p style="font-weight: bold; font-size: 16px; color: black; margin-bottom: 15px;">
+                    Custom HTML Content Editor - Full HTML Support
+                </p>
+                
+                <!-- HTML Editor Container -->
+                <div class="sara-editor-container" style="background: white; border: 1px solid #ddd; border-radius: 4px; padding: 20px;">
+                    
+                    <!-- Editor Toolbar -->
+                    <div class="editor-toolbar" style="background: #f5f5f5; border: 1px solid #ddd; border-radius: 3px; padding: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-weight: 600; color: #333; margin-right: 10px;">Editor Mode:</span>
+                            <button type="button" 
+                                    id="sara-visual-view-btn"
+                                    class="sara-editor-mode-btn active"
+                                    data-mode="visual"
+                                    style="background: #0073aa; color: white; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600; margin-right: 5px;">
+                                Visual
+                            </button>
+                            <button type="button" 
+                                    id="sara-code-view-btn"
+                                    class="sara-editor-mode-btn"
+                                    data-mode="code"
+                                    style="background: #f1f1f1; color: #666; border: none; padding: 6px 12px; border-radius: 3px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                Code
+                            </button>
+                        </div>
+                        <span style="font-size: 12px; color: #666;">
+                            <span id="sara-char-count">0</span> characters
+                        </span>
+                    </div>
+                    
+                    <!-- Visual Editor -->
+                    <div id="sara-visual-editor" style="display: block;">
+                        <div contenteditable="true" 
+                             id="sara_customhtml_visual"
+                             style="min-height: 400px; padding: 15px; border: 1px solid #ddd; border-radius: 3px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; background: white;">
+                            <?php echo wp_kses_post($sara_html_content); ?>
+                        </div>
+                    </div>
+                    
+                    <!-- Code Editor -->
+                    <div id="sara-code-editor" style="display: none;">
+                        <textarea name="sara_customhtml_datum" 
+                                  id="sara_customhtml_code"
+                                  style="width: 100%; min-height: 400px; padding: 15px; border: 1px solid #ddd; border-radius: 3px; font-family: 'Courier New', Courier, monospace; font-size: 13px; line-height: 1.4; resize: vertical;">
+<?php echo esc_textarea($sara_html_content); ?></textarea>
+                    </div>
+                    
+                    <!-- Helper Text -->
+                    <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border: 1px solid #b3d9ff; border-radius: 3px;">
+                        <p style="margin: 0; font-size: 13px; color: #0066cc;">
+                            <strong>💡 Tip:</strong> This editor accepts any HTML content including inline styles, scripts, and custom CSS. 
+                            The content will be rendered exactly as entered on the frontend without any additional styling applied.
+                        </p>
+                    </div>
+                    
+                    <!-- Common HTML Templates -->
+                    <div style="margin-top: 20px;">
+                        <p style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 10px;">Quick Insert Templates:</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" 
+                                    class="sara-template-btn"
+                                    data-template="cta"
+                                    style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-size: 13px;">
+                                CTA Section
+                            </button>
+                            <button type="button" 
+                                    class="sara-template-btn"
+                                    data-template="hero"
+                                    style="background: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-size: 13px;">
+                                Hero Banner
+                            </button>
+                            <button type="button" 
+                                    class="sara-template-btn"
+                                    data-template="columns"
+                                    style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-size: 13px;">
+                                2-Column Layout
+                            </button>
+                            <button type="button" 
+                                    class="sara-template-btn"
+                                    data-template="video"
+                                    style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-size: 13px;">
+                                Video Embed
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden field for form submission -->
+                <input type="hidden" name="sara_customhtml_datum_field" id="sara_customhtml_datum_field" value="<?php echo esc_attr($sara_html_content); ?>">
+                
+                <script>
+                jQuery(document).ready(function($) {
+                    // Visual/Code mode toggle for Sara editor
+                    $('.sara-editor-mode-btn').click(function() {
+                        $('.sara-editor-mode-btn').removeClass('active').css({
+                            'background': '#f1f1f1',
+                            'color': '#666'
+                        });
+                        $(this).addClass('active').css({
+                            'background': '#0073aa',
+                            'color': 'white'
+                        });
+                        
+                        var mode = $(this).data('mode');
+                        if (mode === 'visual') {
+                            // Switch to visual mode
+                            var codeContent = $('#sara_customhtml_code').val();
+                            $('#sara_customhtml_visual').html(codeContent);
+                            $('#sara-visual-editor').show();
+                            $('#sara-code-editor').hide();
+                        } else {
+                            // Switch to code mode
+                            var visualContent = $('#sara_customhtml_visual').html();
+                            $('#sara_customhtml_code').val(visualContent);
+                            $('#sara-visual-editor').hide();
+                            $('#sara-code-editor').show();
+                        }
+                        updateSaraCharCount();
+                    });
+                    
+                    // Update character count
+                    function updateSaraCharCount() {
+                        var content = '';
+                        if ($('#sara-visual-editor').is(':visible')) {
+                            content = $('#sara_customhtml_visual').html();
+                        } else {
+                            content = $('#sara_customhtml_code').val();
+                        }
+                        $('#sara-char-count').text(content.length);
+                    }
+                    
+                    // Update on content change
+                    $('#sara_customhtml_visual').on('input', function() {
+                        updateSaraCharCount();
+                        updateSaraHiddenField();
+                    });
+                    
+                    $('#sara_customhtml_code').on('input', function() {
+                        updateSaraCharCount();
+                        updateSaraHiddenField();
+                    });
+                    
+                    // Update hidden field for form submission
+                    function updateSaraHiddenField() {
+                        var content = '';
+                        if ($('#sara-visual-editor').is(':visible')) {
+                            content = $('#sara_customhtml_visual').html();
+                        } else {
+                            content = $('#sara_customhtml_code').val();
+                        }
+                        $('#sara_customhtml_datum_field').val(content);
+                        // Also update the actual form field
+                        $('textarea[name="sara_customhtml_datum"]').val(content);
+                    }
+                    
+                    // Template insertion
+                    $('.sara-template-btn').click(function() {
+                        var template = $(this).data('template');
+                        var htmlContent = '';
+                        
+                        switch(template) {
+                            case 'cta':
+                                htmlContent = '<div style="background: #0073aa; padding: 40px; text-align: center; color: white; border-radius: 8px;">\n    <h2>Ready to Get Started?</h2>\n    <p>Contact us today for a free consultation</p>\n    <a href="#" style="display: inline-block; padding: 12px 30px; background: white; color: #0073aa; text-decoration: none; border-radius: 5px; font-weight: bold;">Contact Us</a>\n</div>';
+                                break;
+                            case 'hero':
+                                htmlContent = '<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 80px 20px; text-align: center; color: white;">\n    <h1 style="font-size: 48px; margin: 0 0 20px 0;">Welcome to Our Services</h1>\n    <p style="font-size: 20px;">Professional solutions for your business</p>\n</div>';
+                                break;
+                            case 'columns':
+                                htmlContent = '<div style="display: flex; gap: 30px; padding: 20px;">\n    <div style="flex: 1;">\n        <h3>Column 1</h3>\n        <p>Content for the first column goes here.</p>\n    </div>\n    <div style="flex: 1;">\n        <h3>Column 2</h3>\n        <p>Content for the second column goes here.</p>\n    </div>\n</div>';
+                                break;
+                            case 'video':
+                                htmlContent = '<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">\n    <iframe src="https://www.youtube.com/embed/VIDEO_ID" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>\n</div>';
+                                break;
+                        }
+                        
+                        if ($('#sara-visual-editor').is(':visible')) {
+                            $('#sara_customhtml_visual').append(htmlContent);
+                        } else {
+                            var currentContent = $('#sara_customhtml_code').val();
+                            $('#sara_customhtml_code').val(currentContent + '\n\n' + htmlContent);
+                        }
+                        updateSaraCharCount();
+                        updateSaraHiddenField();
+                    });
+                    
+                    // Initialize character count
+                    updateSaraCharCount();
+                    
+                    // Ensure form submission includes the content
+                    $('form').on('submit', function() {
+                        updateSaraHiddenField();
+                    });
+                });
+                </script>
             </div>
             
             <!-- ocean1 Tab -->
@@ -1444,6 +1661,50 @@ function ruplin_render_dioptra_screen() {
         
         // Initialize tab from URL parameter
         initializeTabFromUrl();
+        
+        // Tab Navigation (Back/Forward) Buttons
+        const backBtn = document.getElementById('tab-nav-back');
+        const forwardBtn = document.getElementById('tab-nav-forward');
+        
+        if (backBtn) {
+            backBtn.addEventListener('click', function() {
+                navigateTab('back');
+            });
+        }
+        
+        if (forwardBtn) {
+            forwardBtn.addEventListener('click', function() {
+                navigateTab('forward');
+            });
+        }
+        
+        function navigateTab(direction) {
+            // Get all tab buttons
+            const allTabButtons = Array.from(document.querySelectorAll('.dioptra-tab-btn'));
+            
+            // Find currently active tab
+            const activeButton = allTabButtons.find(btn => 
+                btn.style.background === 'rgb(0, 115, 170)' || 
+                btn.classList.contains('active')
+            );
+            
+            if (!activeButton) return;
+            
+            const currentIndex = allTabButtons.indexOf(activeButton);
+            let newIndex;
+            
+            if (direction === 'back') {
+                // Go to previous tab (wrap around if at beginning)
+                newIndex = currentIndex > 0 ? currentIndex - 1 : allTabButtons.length - 1;
+            } else {
+                // Go to next tab (wrap around if at end)
+                newIndex = currentIndex < allTabButtons.length - 1 ? currentIndex + 1 : 0;
+            }
+            
+            // Switch to the new tab
+            const newTab = allTabButtons[newIndex].getAttribute('data-tab');
+            switchDioptraTab(newTab);
+        }
         
         // Media selector for paragon_featured_image_id
         const imageSelectButtons = document.querySelectorAll('.select-paragon-image');
@@ -2451,6 +2712,12 @@ function ruplin_render_dioptra_screen() {
         const deleteTab2 = document.getElementById('delete-config-tab2');
         if (deleteTab2) {
             deleteTab2.addEventListener('click', deleteBoxConfigTab2);
+        }
+        
+        // Create config button for Tab 2
+        const createTab2 = document.getElementById('create-custom-box-order-config-tab2');
+        if (createTab2) {
+            createTab2.addEventListener('click', createCustomBoxOrderConfigTab2Function);
         }
     }
     
