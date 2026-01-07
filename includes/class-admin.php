@@ -115,6 +115,9 @@ class Snefuru_Admin {
         add_action('wp_ajax_create_missing_pylon', array($this, 'handle_create_missing_pylon'));
         add_action('wp_ajax_dioptra_save_data', array($this, 'handle_dioptra_save_data'));
         add_action('wp_ajax_dioptra_get_services_list', array($this, 'handle_dioptra_get_services_list'));
+        add_action('wp_ajax_create_box_order_row', array($this, 'handle_create_box_order_row'));
+        add_action('wp_ajax_save_box_order_tab2', array($this, 'handle_save_box_order_tab2'));
+        add_action('wp_ajax_delete_box_order_config_tab2', array($this, 'handle_delete_box_order_config_tab2'));
         
         // Add Elementor data viewer
         add_action('add_meta_boxes', array($this, 'add_elementor_data_metabox'));
@@ -11074,11 +11077,39 @@ class Snefuru_Admin {
         
         $update_data = array();
         $post_update_data = array();
+        $box_order_update_data = array();
         
         // Debug: Log all incoming POST data (excluding sensitive data)
         $debug_post = $_POST;
         unset($debug_post['action'], $debug_post['nonce']); // Remove sensitive data
         error_log("Dioptra save - All POST data received: " . json_encode($debug_post));
+        
+        // Process box order toggle switch separately
+        if (isset($_POST['box_order_is_active'])) {
+            $box_order_update_data['is_active'] = ($_POST['box_order_is_active'] === '1') ? 1 : 0;
+            error_log("Dioptra save - Box order toggle received: " . $_POST['box_order_is_active'] . " (converted to: " . $box_order_update_data['is_active'] . ")");
+        }
+        
+        // Process box order JSON separately
+        if (isset($_POST['box_order_json'])) {
+            $box_order_json = stripslashes_deep($_POST['box_order_json']);
+            $box_order_json = wp_unslash($box_order_json);
+            $box_order_json = stripslashes($box_order_json);
+            
+            // Validate JSON before saving
+            if (!empty($box_order_json)) {
+                $json_decoded = json_decode($box_order_json, true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $box_order_update_data['box_order_json'] = $box_order_json;
+                    error_log("Dioptra save - Box order JSON received and validated");
+                } else {
+                    error_log("Dioptra save - Invalid box order JSON: " . json_last_error_msg());
+                }
+            } else {
+                $box_order_update_data['box_order_json'] = null;
+                error_log("Dioptra save - Empty box order JSON, setting to null");
+            }
+        }
         
         // Process field updates - COMPLETELY PREVENT ALL SLASH ESCAPING
         foreach ($_POST as $key => $value) {
@@ -11297,6 +11328,51 @@ class Snefuru_Admin {
             
             if ($pylon_result !== false) {
                 $success_messages[] = 'Pylon data updated';
+            }
+        }
+        
+        // Update wp_box_orders fields if any
+        if (!empty($box_order_update_data)) {
+            $box_orders_table = $wpdb->prefix . 'box_orders';
+            
+            // Check if box order row exists
+            $box_order_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM {$box_orders_table} WHERE rel_post_id = %d",
+                $post_id
+            ));
+            
+            error_log("Dioptra save - Box order data to update: " . json_encode($box_order_update_data));
+            error_log("Dioptra save - Box order row exists: " . ($box_order_exists ? 'YES' : 'NO'));
+            
+            if ($box_order_exists > 0) {
+                // Build format array for box order fields
+                $box_order_format_array = array();
+                foreach ($box_order_update_data as $field_name => $field_value) {
+                    if ($field_name === 'is_active') {
+                        $box_order_format_array[] = '%d';  // Integer field
+                    } else {
+                        $box_order_format_array[] = '%s';  // String/JSON field
+                    }
+                }
+                
+                $box_order_result = $wpdb->update(
+                    $box_orders_table,
+                    $box_order_update_data,
+                    array('rel_post_id' => $post_id),
+                    $box_order_format_array,
+                    array('%d')
+                );
+                
+                error_log("Dioptra save - Box order update result: " . var_export($box_order_result, true));
+                error_log("Dioptra save - Box order last DB error: " . $wpdb->last_error);
+                error_log("Dioptra save - Box order last query: " . $wpdb->last_query);
+                
+                if ($box_order_result !== false) {
+                    $success_messages[] = 'Box order data updated';
+                }
+            } else {
+                error_log("Dioptra save - Skipped box order update: no row exists for post " . $post_id);
+                $success_messages[] = 'Box order data skipped (no row exists)';
             }
         }
         
@@ -12805,6 +12881,252 @@ class Snefuru_Admin {
         }
         
         wp_send_json_success(array('html' => $html));
+    }
+    
+    /**
+     * Handle creating a new wp_box_orders row for a post
+     */
+    public function handle_create_box_order_row() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'box_order_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+            return;
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+            return;
+        }
+        
+        // Verify post exists
+        $post = get_post($post_id);
+        if (!$post) {
+            wp_send_json_error(array('message' => 'Post does not exist'));
+            return;
+        }
+        
+        global $wpdb;
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        // Check if row already exists
+        $existing_row = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$box_orders_table} WHERE rel_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing_row > 0) {
+            wp_send_json_error(array('message' => 'wp_box_orders row already exists for this post'));
+            return;
+        }
+        
+        // Create default JSON with standard box order
+        $default_box_order = array(
+            'batman_hero_box' => 1,
+            'derek_blog_post_meta_box' => 2,
+            'chen_cards_box' => 3,
+            'plain_post_content' => 4,
+            'osb_box' => 5,
+            'serena_faq_box' => 6,
+            'nile_map_box' => 7,
+            'kristina_cta_box' => 8,
+            'victoria_blog_box' => 9,
+            'ocean1_box' => 10,
+            'ocean2_box' => 11,
+            'ocean3_box' => 12,
+            'brook_video_box' => 13,
+            'olivia_authlinks_box' => 14,
+            'ava_whychooseus_box' => 15,
+            'kendall_ourprocess_box' => 16,
+            'sara_customhtml_box' => 17
+        );
+        
+        // Insert new row
+        $insert_result = $wpdb->insert(
+            $box_orders_table,
+            array(
+                'rel_post_id' => $post_id,
+                'is_active' => 0,
+                'box_order_json' => wp_json_encode($default_box_order)
+            ),
+            array(
+                '%d', // rel_post_id
+                '%d', // is_active  
+                '%s'  // box_order_json
+            )
+        );
+        
+        if ($insert_result === false) {
+            wp_send_json_error(array(
+                'message' => 'Failed to create wp_box_orders row',
+                'db_error' => $wpdb->last_error
+            ));
+            return;
+        }
+        
+        wp_send_json_success(array(
+            'message' => 'wp_box_orders row created successfully',
+            'post_id' => $post_id,
+            'inserted_id' => $wpdb->insert_id
+        ));
+    }
+    
+    /**
+     * Handle saving box order data for Tab 2 (original)
+     */
+    public function handle_save_box_order_tab2() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'box_order_save_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+            return;
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+            return;
+        }
+        
+        // Verify post exists
+        $post = get_post($post_id);
+        if (!$post) {
+            wp_send_json_error(array('message' => 'Post does not exist'));
+            return;
+        }
+        
+        global $wpdb;
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        // Check if row exists
+        $existing_row = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$box_orders_table} WHERE rel_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing_row == 0) {
+            wp_send_json_error(array('message' => 'wp_box_orders row does not exist for this post. Please create it first.'));
+            return;
+        }
+        
+        // Get and validate data
+        $is_active = isset($_POST['is_active']) ? intval($_POST['is_active']) : 0;
+        $box_order_json = isset($_POST['box_order_json']) ? stripslashes_deep($_POST['box_order_json']) : '';
+        
+        // Validate JSON if not empty
+        if (!empty($box_order_json)) {
+            $json_decoded = json_decode($box_order_json, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                wp_send_json_error(array('message' => 'Invalid JSON format: ' . json_last_error_msg()));
+                return;
+            }
+        }
+        
+        // Update the row
+        $update_data = array(
+            'is_active' => $is_active,
+            'box_order_json' => $box_order_json
+        );
+        
+        $update_result = $wpdb->update(
+            $box_orders_table,
+            $update_data,
+            array('rel_post_id' => $post_id),
+            array('%d', '%s'),
+            array('%d')
+        );
+        
+        if ($update_result !== false) {
+            wp_send_json_success(array(
+                'message' => 'Box order configuration saved successfully',
+                'post_id' => $post_id,
+                'is_active' => $is_active,
+                'json_length' => strlen($box_order_json)
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => 'Failed to update box order configuration',
+                'db_error' => $wpdb->last_error
+            ));
+        }
+    }
+    
+    /**
+     * Handle deleting box order configuration for Tab 2 (original)
+     */
+    public function handle_delete_box_order_config_tab2() {
+        // Verify nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'box_order_delete_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed'));
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+            return;
+        }
+        
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+            return;
+        }
+        
+        // Verify post exists
+        $post = get_post($post_id);
+        if (!$post) {
+            wp_send_json_error(array('message' => 'Post does not exist'));
+            return;
+        }
+        
+        global $wpdb;
+        $box_orders_table = $wpdb->prefix . 'box_orders';
+        
+        // Check if row exists
+        $existing_row = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$box_orders_table} WHERE rel_post_id = %d",
+            $post_id
+        ));
+        
+        if ($existing_row == 0) {
+            wp_send_json_error(array('message' => 'wp_box_orders row does not exist for this post'));
+            return;
+        }
+        
+        // Delete the row
+        $delete_result = $wpdb->delete(
+            $box_orders_table,
+            array('rel_post_id' => $post_id),
+            array('%d')
+        );
+        
+        if ($delete_result !== false) {
+            wp_send_json_success(array(
+                'message' => 'Box order configuration deleted successfully',
+                'post_id' => $post_id,
+                'rows_deleted' => $delete_result
+            ));
+        } else {
+            wp_send_json_error(array(
+                'message' => 'Failed to delete box order configuration',
+                'db_error' => $wpdb->last_error
+            ));
+        }
     }
     
     /**
