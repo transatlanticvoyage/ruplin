@@ -409,6 +409,8 @@ class SnefuruPlugin {
             snail_image_status varchar(50) DEFAULT NULL,
             snail_image_error text DEFAULT NULL,
             contact_form_1_endpoint TEXT DEFAULT NULL,
+            weasel_header_code_1 TEXT DEFAULT NULL,
+            weasel_footer_code_1 TEXT DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
@@ -569,6 +571,10 @@ class SnefuruPlugin {
             brook_video_4 TEXT DEFAULT NULL,
             brook_video_outro TEXT DEFAULT NULL,
             sara_customhtml_datum TEXT DEFAULT NULL,
+            liz_pricing_heading TEXT DEFAULT NULL,
+            liz_pricing_description TEXT DEFAULT NULL,
+            liz_pricing_body TEXT DEFAULT NULL,
+            contact_form_1_main_code TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -1008,6 +1014,50 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.0.0');
+        }
+        
+        // Migration for version 2.1.0 - Add liz_pricing columns
+        if (version_compare($current_migration, '2.1.0', '<')) {
+            // Add liz_pricing_heading column
+            $liz_heading_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'liz_pricing_heading'");
+            if (empty($liz_heading_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN liz_pricing_heading TEXT DEFAULT NULL");
+            }
+            
+            // Add liz_pricing_description column
+            $liz_desc_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'liz_pricing_description'");
+            if (empty($liz_desc_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN liz_pricing_description TEXT DEFAULT NULL");
+            }
+            
+            // Add liz_pricing_body column
+            $liz_body_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'liz_pricing_body'");
+            if (empty($liz_body_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN liz_pricing_body TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.1.0');
+        }
+        
+        // Migration for version 2.2.0 - Add weasel columns to zen_sitespren table
+        if (version_compare($current_migration, '2.2.0', '<')) {
+            $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+            
+            // Add weasel_header_code_1 column
+            $weasel_header_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'weasel_header_code_1'");
+            if (empty($weasel_header_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN weasel_header_code_1 TEXT DEFAULT NULL");
+            }
+            
+            // Add weasel_footer_code_1 column
+            $weasel_footer_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'weasel_footer_code_1'");
+            if (empty($weasel_footer_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN weasel_footer_code_1 TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.2.0');
         }
     }
 }

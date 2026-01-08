@@ -1045,15 +1045,42 @@ function ruplin_render_dioptra_screen() {
                         </tr>
                     </thead>
                     <tbody>
+                        <?php 
+                        $liz_fields = [
+                            'liz_pricing_heading',
+                            'liz_pricing_description',
+                            'liz_pricing_body'
+                        ];
+                        
+                        foreach ($liz_fields as $field_name): 
+                            // Get value from database
+                            $value = isset($pylon_data[$field_name]) ? $pylon_data[$field_name] : '';
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
+                        ?>
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
-                                <input type="checkbox" name="field_liz_pricing_placeholder" />
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
-                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
-                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <?php if ($field_name === 'liz_pricing_body'): ?>
+                                    <textarea name="field_<?php echo $field_name; ?>" 
+                                             style="width: 100%; height: 120px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: monospace; font-size: 13px;" 
+                                             placeholder="Enter pricing items, one per line..."><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" name="field_<?php echo $field_name; ?>" 
+                                           value="<?php echo esc_attr($value); ?>" 
+                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php endif; ?>
+                            </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
