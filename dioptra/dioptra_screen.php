@@ -316,6 +316,12 @@ function ruplin_render_dioptra_screen() {
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
+                            data-tab="liz-pricing"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        liz_pricing
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
                             data-tab="brook-video-box-box"
                             style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
                         brook_video_box_box
@@ -621,6 +627,11 @@ function ruplin_render_dioptra_screen() {
             <div id="box-ordering-config" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
                 <h3 style="margin-top: 0; color: #0073aa;">Box Ordering Configuration</h3>
                 
+                <!-- Notice about batman_hero_box -->
+                <div style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 12px; margin-bottom: 20px;">
+                    <strong style="color: #1565C0;">ℹ️ Note:</strong> The <code style="background: #fff; padding: 2px 4px;">batman_hero_box</code> is always rendered at the top of Cherry template pages and cannot be reordered.
+                </div>
+                
                 <?php
                 // Get box order data from wp_box_orders table
                 $box_orders_table = $wpdb->prefix . 'box_orders';
@@ -690,7 +701,7 @@ function ruplin_render_dioptra_screen() {
                             <textarea id="box_order_json" 
                                       name="box_order_json" 
                                       style="width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 12px; resize: vertical;"
-                                      placeholder='{"batman_hero_box": 1, "derek_blog_post_meta_box": 2, "chen_cards_box": 3, "plain_post_content": 4, "osb_box": 5, "serena_faq_box": 6, "nile_map_box": 7, "kristina_cta_box": 8, "victoria_blog_box": 9, "ocean1_box": 10, "ocean2_box": 11, "ocean3_box": 12, "brook_video_box": 13, "olivia_authlinks_box": 14, "ava_whychooseus_box": 15, "kendall_ourprocess_box": 16, "sara_customhtml_box": 17}'><?php echo esc_textarea($box_order_json); ?></textarea>
+                                      placeholder='{"derek_blog_post_meta_box": 1, "chen_cards_box": 2, "plain_post_content": 3, "osb_box": 4, "serena_faq_box": 5, "nile_map_box": 6, "kristina_cta_box": 7, "victoria_blog_box": 8, "ocean1_box": 9, "ocean2_box": 10, "ocean3_box": 11, "brook_video_box": 12, "olivia_authlinks_box": 13, "ava_whychooseus_box": 14, "kendall_ourprocess_box": 15, "sara_customhtml_box": 16, "baynar1_box": 17}'><?php echo esc_textarea($box_order_json); ?></textarea>
                             <small style="color: #666;">Edit the JSON configuration for box ordering</small>
                         </div>
                         
@@ -746,6 +757,11 @@ function ruplin_render_dioptra_screen() {
             <!-- Box Ordering Tab 2 (original) -->
             <div id="box-ordering-tab-2" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
                 <h3 style="margin-top: 0; color: #0073aa;">Box Ordering Configuration (Original)</h3>
+                
+                <!-- Notice about batman_hero_box -->
+                <div style="background: #e3f2fd; border-left: 4px solid #2196F3; padding: 12px; margin-bottom: 20px;">
+                    <strong style="color: #1565C0;">ℹ️ Note:</strong> The <code style="background: #fff; padding: 2px 4px;">batman_hero_box</code> is always rendered at the top of Cherry template pages and cannot be reordered.
+                </div>
                 
                 <?php
                 // Get box order data from wp_box_orders table for Tab 2
@@ -810,7 +826,7 @@ function ruplin_render_dioptra_screen() {
                             <textarea id="box_order_json_tab2" 
                                       name="box_order_json_tab2" 
                                       style="width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 12px; resize: vertical;"
-                                      placeholder='{"batman_hero_box": 1, "derek_blog_post_meta_box": 2, "chen_cards_box": 3, "plain_post_content": 4, "osb_box": 5, "serena_faq_box": 6, "nile_map_box": 7, "kristina_cta_box": 8, "victoria_blog_box": 9, "ocean1_box": 10, "ocean2_box": 11, "ocean3_box": 12, "brook_video_box": 13, "olivia_authlinks_box": 14, "ava_whychooseus_box": 15, "kendall_ourprocess_box": 16, "sara_customhtml_box": 17}'><?php echo esc_textarea($box_order_json_tab2); ?></textarea>
+                                      placeholder='{"derek_blog_post_meta_box": 1, "chen_cards_box": 2, "plain_post_content": 3, "osb_box": 4, "serena_faq_box": 5, "nile_map_box": 6, "kristina_cta_box": 7, "victoria_blog_box": 8, "ocean1_box": 9, "ocean2_box": 10, "ocean3_box": 11, "brook_video_box": 12, "olivia_authlinks_box": 13, "ava_whychooseus_box": 14, "kendall_ourprocess_box": 15, "sara_customhtml_box": 16, "baynar1_box": 17}'><?php echo esc_textarea($box_order_json_tab2); ?></textarea>
                             <small style="color: #666;">Enter JSON configuration with box names as keys and numeric order values</small>
                         </div>
                         
@@ -864,45 +880,367 @@ function ruplin_render_dioptra_screen() {
             </div>
             
             <!-- batman_hero Tab -->
-            <div id="batman-hero" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">batman_hero</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="batman-hero" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $batman_fields = [
+                            ['name' => 'post_title', 'source' => 'wp_posts'],
+                            ['name' => 'hero_subheading', 'source' => 'wp_posts']
+                        ];
+                        
+                        // Display batman hero fields
+                        foreach ($batman_fields as $field): 
+                            $field_name = $field['name'];
+                            $source_table = $field['source'];
+                            
+                            // Get value from appropriate source
+                            $value = '';
+                            if ($field_name === 'post_title' && isset($post_data['post_title'])) {
+                                $value = $post_data['post_title'];
+                            } elseif ($field_name === 'hero_subheading' && isset($pylon_data['hero_subheading'])) {
+                                $value = $pylon_data['hero_subheading'];
+                            }
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo ($source_table === 'wp_posts') ? 'wp_posts' : ''; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" name="field_<?php echo $field_name; ?>" value="<?php echo esc_attr($value); ?>" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
             
             <!-- chenblock_card Tab -->
-            <div id="chenblock-card" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">chenblock_card</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="chenblock-card" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $chenblock_fields = [
+                            'chenblock_card1_title',
+                            'chenblock_card1_desc',
+                            'chenblock_card2_title',
+                            'chenblock_card2_desc',
+                            'chenblock_card3_title',
+                            'chenblock_card3_desc'
+                        ];
+                        
+                        // Display chenblock card fields
+                        foreach ($chenblock_fields as $field_name): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
             
             <!-- post_content Tab -->
-            <div id="post-content" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">post_content</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="post-content" class="dioptra-tab-content" style="display: none;">
+                <!-- Post content uses WordPress native post_content field, not wp_pylons fields -->
+                <div style="padding: 20px; background: #f9f9f9; border: 1px solid #ddd;">
+                    <p style="color: #666;">Note: Post content is managed through the WordPress editor. This tab is a placeholder for the post_content box in the template.</p>
+                </div>
             </div>
             
             <!-- serena_faq Tab -->
-            <div id="serena-faq" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">serena_faq</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="serena-faq" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $serena_fields = [
+                            'serena_faq_box_q1',
+                            'serena_faq_box_a1',
+                            'serena_faq_box_q2',
+                            'serena_faq_box_a2',
+                            'serena_faq_box_q3',
+                            'serena_faq_box_a3',
+                            'serena_faq_box_q4',
+                            'serena_faq_box_a4',
+                            'serena_faq_box_q5',
+                            'serena_faq_box_a5',
+                            'serena_faq_box_q6',
+                            'serena_faq_box_a6',
+                            'serena_faq_box_q7',
+                            'serena_faq_box_a7',
+                            'serena_faq_box_q8',
+                            'serena_faq_box_a8'
+                        ];
+                        foreach ($serena_fields as $field_name): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- liz_pricing Tab -->
+            <div id="liz-pricing" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_liz_pricing_placeholder" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             
             <!-- brook_video_box_box Tab -->
-            <div id="brook-video-box-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">brook_video_box_box</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="brook-video-box-box" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $brook_fields = [
+                            'brook_video_heading',
+                            'brook_video_subheading',
+                            'brook_video_description',
+                            'brook_video_1',
+                            'brook_video_2',
+                            'brook_video_3',
+                            'brook_video_4',
+                            'brook_video_outro'
+                        ];
+                        
+                        // Display brook fields (8 fields)
+                        foreach ($brook_fields as $field_name): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endforeach; 
+                        
+                        // Fill remaining rows (8 empty rows to make 16 total)
+                        for ($i = count($brook_fields) + 1; $i <= 16; $i++): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endfor; ?>
+                    </tbody>
+                </table>
             </div>
             
             <!-- olivia_authlinks_box Tab -->
-            <div id="olivia-authlinks-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">olivia_authlinks_box</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="olivia-authlinks-box" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $olivia_fields = [
+                            'olivia_authlinks_heading',
+                            'olivia_authlinks_subheading',
+                            'olivia_authlinks_description',
+                            'olivia_authlinks_1',
+                            'olivia_authlinks_2',
+                            'olivia_authlinks_3',
+                            'olivia_authlinks_4',
+                            'olivia_authlinks_5',
+                            'olivia_authlinks_6',
+                            'olivia_authlinks_7',
+                            'olivia_authlinks_8',
+                            'olivia_authlinks_9',
+                            'olivia_authlinks_10',
+                            'olivia_authlinks_outro'
+                        ];
+                        
+                        // Display olivia fields (14 fields)
+                        foreach ($olivia_fields as $field_name): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endforeach; 
+                        
+                        // Fill remaining rows (2 empty rows to make 16 total)
+                        for ($i = count($olivia_fields) + 1; $i <= 16; $i++): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endfor; ?>
+                    </tbody>
+                </table>
             </div>
             
             <!-- ava_whychooseus_box Tab -->
-            <div id="ava-whychooseus-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
-                <h3 style="margin-top: 0; color: #0073aa;">ava_whychooseus_box</h3>
-                <p>This tab is currently blank and ready for content configuration.</p>
+            <div id="ava-whychooseus-box" class="dioptra-tab-content" style="display: none;">
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $ava_fields = [
+                            'ava_why_choose_us_heading',
+                            'ava_why_choose_us_subheading',
+                            'ava_why_choose_us_description',
+                            'ava_why_choose_us_reason_1',
+                            'ava_why_choose_us_reason_2',
+                            'ava_why_choose_us_reason_3',
+                            'ava_why_choose_us_reason_4',
+                            'ava_why_choose_us_reason_5',
+                            'ava_why_choose_us_reason_6',
+                            'ava_why_choose_us_reason_7',
+                            'ava_why_choose_us_reason_8',
+                            'ava_why_choose_us_reason_9',
+                            'ava_why_choose_us_reason_10'
+                        ];
+                        
+                        // Display ava fields (13 fields)
+                        foreach ($ava_fields as $field_name): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" name="field_<?php echo $field_name; ?>" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
+                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endforeach; 
+                        
+                        // Fill remaining rows (3 empty rows to make 16 total)
+                        for ($i = count($ava_fields) + 1; $i <= 16; $i++): 
+                        ?>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <input type="checkbox" />
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;"></td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        <?php endfor; ?>
+                    </tbody>
+                </table>
             </div>
             
             <!-- kendall_ourprocess_box Tab -->
@@ -1597,6 +1935,7 @@ function ruplin_render_dioptra_screen() {
             'chenblock-card': 'chenblock_card',
             'post-content': 'post_content',
             'serena-faq': 'serena_faq',
+            'liz-pricing': 'liz_pricing',
             'brook-video-box-box': 'brook_video_box_box',
             'olivia-authlinks-box': 'olivia_authlinks_box',
             'ava-whychooseus-box': 'ava_whychooseus_box',
@@ -1620,6 +1959,7 @@ function ruplin_render_dioptra_screen() {
             'chenblock_card': 'chenblock-card',
             'post_content': 'post-content',
             'serena_faq': 'serena-faq',
+            'liz_pricing': 'liz-pricing',
             'brook_video_box_box': 'brook-video-box-box',
             'olivia_authlinks_box': 'olivia-authlinks-box',
             'ava_whychooseus_box': 'ava-whychooseus-box',
@@ -2401,24 +2741,25 @@ function ruplin_render_dioptra_screen() {
         btn.innerHTML = 'Creating...';
         
         // Default box order configuration
+        // Default configuration (batman_hero_box excluded - always at top)
         const defaultConfig = {
-            "batman_hero_box": 1,
-            "derek_blog_post_meta_box": 2,
-            "chen_cards_box": 3,
-            "plain_post_content": 4,
-            "osb_box": 5,
-            "serena_faq_box": 6,
-            "nile_map_box": 7,
-            "kristina_cta_box": 8,
-            "victoria_blog_box": 9,
-            "ocean1_box": 10,
-            "ocean2_box": 11,
-            "ocean3_box": 12,
-            "brook_video_box": 13,
-            "olivia_authlinks_box": 14,
-            "ava_whychooseus_box": 15,
-            "kendall_ourprocess_box": 16,
-            "sara_customhtml_box": 17
+            "derek_blog_post_meta_box": 1,
+            "chen_cards_box": 2,
+            "plain_post_content": 3,
+            "osb_box": 4,
+            "serena_faq_box": 5,
+            "nile_map_box": 6,
+            "kristina_cta_box": 7,
+            "victoria_blog_box": 8,
+            "ocean1_box": 9,
+            "ocean2_box": 10,
+            "ocean3_box": 11,
+            "brook_video_box": 12,
+            "olivia_authlinks_box": 13,
+            "ava_whychooseus_box": 14,
+            "kendall_ourprocess_box": 15,
+            "sara_customhtml_box": 16,
+            "baynar1_box": 17
         };
         
         // Simulate creation (UI only for now)
@@ -2437,7 +2778,7 @@ function ruplin_render_dioptra_screen() {
                         <textarea id="box_order_json" 
                                   name="box_order_json" 
                                   style="width: 100%; height: 150px; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 12px; resize: vertical;"
-                                  placeholder='{"batman_hero_box": 1, "derek_blog_post_meta_box": 2, "chen_cards_box": 3, "plain_post_content": 4, "osb_box": 5, "serena_faq_box": 6, "nile_map_box": 7, "kristina_cta_box": 8, "victoria_blog_box": 9, "ocean1_box": 10, "ocean2_box": 11, "ocean3_box": 12, "brook_video_box": 13, "olivia_authlinks_box": 14, "ava_whychooseus_box": 15, "kendall_ourprocess_box": 16, "sara_customhtml_box": 17}'>${JSON.stringify(defaultConfig, null, 2)}</textarea>
+                                  placeholder='{"derek_blog_post_meta_box": 1, "chen_cards_box": 2, "plain_post_content": 3, "osb_box": 4, "serena_faq_box": 5, "nile_map_box": 6, "kristina_cta_box": 7, "victoria_blog_box": 8, "ocean1_box": 9, "ocean2_box": 10, "ocean3_box": 11, "brook_video_box": 12, "olivia_authlinks_box": 13, "ava_whychooseus_box": 14, "kendall_ourprocess_box": 15, "sara_customhtml_box": 16, "baynar1_box": 17}'>${JSON.stringify(defaultConfig, null, 2)}</textarea>
                         <small style="color: #666;">Edit the JSON configuration for box ordering</small>
                     </div>
                     
@@ -2504,25 +2845,25 @@ function ruplin_render_dioptra_screen() {
             if (jsonTextarea.value.trim()) {
                 boxOrder = JSON.parse(jsonTextarea.value);
             } else {
-                // Default boxes with correct structure if no config exists
+                // Default boxes with correct structure if no config exists (batman_hero_box excluded - always at top)
                 boxOrder = {
-                    "batman_hero_box": 1,
-                    "derek_blog_post_meta_box": 2,
-                    "chen_cards_box": 3,
-                    "plain_post_content": 4,
-                    "osb_box": 5,
-                    "serena_faq_box": 6,
-                    "nile_map_box": 7,
-                    "kristina_cta_box": 8,
-                    "victoria_blog_box": 9,
-                    "ocean1_box": 10,
-                    "ocean2_box": 11,
-                    "ocean3_box": 12,
-                    "brook_video_box": 13,
-                    "olivia_authlinks_box": 14,
-                    "ava_whychooseus_box": 15,
-                    "kendall_ourprocess_box": 16,
-                    "sara_customhtml_box": 17
+                    "derek_blog_post_meta_box": 1,
+                    "chen_cards_box": 2,
+                    "plain_post_content": 3,
+                    "osb_box": 4,
+                    "serena_faq_box": 5,
+                    "nile_map_box": 6,
+                    "kristina_cta_box": 7,
+                    "victoria_blog_box": 8,
+                    "ocean1_box": 9,
+                    "ocean2_box": 10,
+                    "ocean3_box": 11,
+                    "brook_video_box": 12,
+                    "olivia_authlinks_box": 13,
+                    "ava_whychooseus_box": 14,
+                    "kendall_ourprocess_box": 15,
+                    "sara_customhtml_box": 16,
+                    "baynar1_box": 17
                 };
             }
             
@@ -2871,25 +3212,25 @@ function ruplin_render_dioptra_screen() {
             if (jsonTextarea.value.trim()) {
                 boxOrder = JSON.parse(jsonTextarea.value);
             } else {
-                // Default boxes with correct structure if no config exists
+                // Default boxes with correct structure if no config exists (batman_hero_box excluded - always at top)
                 boxOrder = {
-                    "batman_hero_box": 1,
-                    "derek_blog_post_meta_box": 2,
-                    "chen_cards_box": 3,
-                    "plain_post_content": 4,
-                    "osb_box": 5,
-                    "serena_faq_box": 6,
-                    "nile_map_box": 7,
-                    "kristina_cta_box": 8,
-                    "victoria_blog_box": 9,
-                    "ocean1_box": 10,
-                    "ocean2_box": 11,
-                    "ocean3_box": 12,
-                    "brook_video_box": 13,
-                    "olivia_authlinks_box": 14,
-                    "ava_whychooseus_box": 15,
-                    "kendall_ourprocess_box": 16,
-                    "sara_customhtml_box": 17
+                    "derek_blog_post_meta_box": 1,
+                    "chen_cards_box": 2,
+                    "plain_post_content": 3,
+                    "osb_box": 4,
+                    "serena_faq_box": 5,
+                    "nile_map_box": 6,
+                    "kristina_cta_box": 7,
+                    "victoria_blog_box": 8,
+                    "ocean1_box": 9,
+                    "ocean2_box": 10,
+                    "ocean3_box": 11,
+                    "brook_video_box": 12,
+                    "olivia_authlinks_box": 13,
+                    "ava_whychooseus_box": 14,
+                    "kendall_ourprocess_box": 15,
+                    "sara_customhtml_box": 16,
+                    "baynar1_box": 17
                 };
             }
             
