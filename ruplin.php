@@ -1036,6 +1036,12 @@ class SnefuruPlugin {
                 $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN liz_pricing_body TEXT DEFAULT NULL");
             }
             
+            // Add contact_form_1_main_code column
+            $contact_form_main_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'contact_form_1_main_code'");
+            if (empty($contact_form_main_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN contact_form_1_main_code TEXT DEFAULT NULL");
+            }
+            
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.1.0');
         }
