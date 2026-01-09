@@ -17,6 +17,35 @@ if (!defined('ABSPATH')) {
 function ruplin_render_dioptra_screen() {
     global $wpdb;
     
+    // EMERGENCY: Check and add all missing columns to prevent database update failures
+    $pylons_table = $wpdb->prefix . 'pylons';
+    $columns = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table");
+    $column_names = array_column($columns, 'Field');
+    
+    // All missing columns that are being used in the dioptra save but don't exist in schema
+    $missing_columns = [
+        // Liz pricing columns
+        'liz_pricing_heading', 'liz_pricing_description', 'liz_pricing_body',
+        // _value columns for tabs that were added but never migrated to database
+        'chenblock_card1_title_value', 'chenblock_card1_desc_value', 'chenblock_card2_title_value', 'chenblock_card2_desc_value', 'chenblock_card3_title_value', 'chenblock_card3_desc_value',
+        'serena_faq_box_q1_value', 'serena_faq_box_a1_value', 'serena_faq_box_q2_value', 'serena_faq_box_a2_value', 'serena_faq_box_q3_value', 'serena_faq_box_a3_value',
+        'serena_faq_box_q4_value', 'serena_faq_box_a4_value', 'serena_faq_box_q5_value', 'serena_faq_box_a5_value', 'serena_faq_box_q6_value', 'serena_faq_box_a6_value',
+        'serena_faq_box_q7_value', 'serena_faq_box_a7_value', 'serena_faq_box_q8_value', 'serena_faq_box_a8_value',
+        'brook_video_heading_value', 'brook_video_subheading_value', 'brook_video_description_value', 'brook_video_1_value', 'brook_video_2_value', 'brook_video_3_value', 'brook_video_4_value', 'brook_video_outro_value',
+        'olivia_authlinks_heading_value', 'olivia_authlinks_subheading_value', 'olivia_authlinks_description_value', 'olivia_authlinks_1_value', 'olivia_authlinks_2_value', 'olivia_authlinks_3_value',
+        'olivia_authlinks_4_value', 'olivia_authlinks_5_value', 'olivia_authlinks_6_value', 'olivia_authlinks_7_value', 'olivia_authlinks_8_value', 'olivia_authlinks_9_value', 'olivia_authlinks_10_value', 'olivia_authlinks_outro_value',
+        'ava_why_choose_us_heading_value', 'ava_why_choose_us_subheading_value', 'ava_why_choose_us_description_value', 'ava_why_choose_us_reason_1_value', 'ava_why_choose_us_reason_2_value',
+        'ava_why_choose_us_reason_3_value', 'ava_why_choose_us_reason_4_value', 'ava_why_choose_us_reason_5_value', 'ava_why_choose_us_reason_6_value', 'ava_why_choose_us_reason_7_value',
+        'ava_why_choose_us_reason_8_value', 'ava_why_choose_us_reason_9_value', 'ava_why_choose_us_reason_10_value'
+    ];
+    
+    foreach ($missing_columns as $col) {
+        if (!in_array($col, $column_names)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN $col TEXT DEFAULT NULL");
+            error_log("DIOPTRA: Added missing column $col to $pylons_table");
+        }
+    }
+    
     // Enqueue WordPress media scripts for image selector
     wp_enqueue_media();
     
@@ -133,12 +162,10 @@ function ruplin_render_dioptra_screen() {
         'locpage_city' => 'pylons',
         'locpage_state_code' => 'pylons',
         'locpage_state_full' => 'pylons',
-        'locpage_gmaps_string' => 'pylons',
-        'liz_pricing_heading' => 'pylons',
-        'liz_pricing_description' => 'pylons',
-        'liz_pricing_body' => 'pylons'
+        'locpage_gmaps_string' => 'pylons'
         // OSB fields removed from main table - they're handled separately in the OSB tab
         // Kendall fields removed from main table - they're handled separately in the Kendall tab
+        // Liz pricing fields removed from main table - they're handled separately in the Liz Pricing tab
     );
     
     // Debug: Check for servicepage entries
@@ -2260,6 +2287,10 @@ function ruplin_render_dioptra_screen() {
             } else {
                 formData.append(input.name, input.value);
                 console.log(`Field: ${input.name} = ${input.value}`);
+                // Special debug for liz_pricing fields
+                if (input.name && input.name.includes('liz_pricing')) {
+                    console.log(`LIZ_PRICING DEBUG: ${input.name} = "${input.value}"`);
+                }
             }
         });
         

@@ -171,6 +171,20 @@ function ruplin_delete_all_content($post_type, $excluded_urls = array()) {
         }
     }
     
+    // Automatically exclude posts with 'nukeignore' or 'turtle' in their post_name
+    $auto_excluded_posts = $wpdb->get_col($wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} 
+         WHERE (post_name LIKE %s OR post_name LIKE %s)
+         AND post_type = %s",
+        '%nukeignore%',
+        '%turtle%',
+        $post_type
+    ));
+    
+    if (!empty($auto_excluded_posts)) {
+        $excluded_post_ids = array_merge($excluded_post_ids, $auto_excluded_posts);
+    }
+    
     // Apply exclusions to query
     if (!empty($excluded_post_ids)) {
         $args['post__not_in'] = array_unique($excluded_post_ids);

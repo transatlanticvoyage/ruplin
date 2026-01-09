@@ -11191,6 +11191,15 @@ class Snefuru_Admin {
                         if (strpos($field_name, 'chenblock') !== false) {
                             error_log("Dioptra save - Final value for {$field_name}: " . $cleaned_value);
                         }
+                        
+                        // DEBUG: Special tracking for liz_pricing fields
+                        if (strpos($field_name, 'liz_pricing') !== false) {
+                            error_log("===== LIZ_PRICING SAVE DEBUG =====");
+                            error_log("Field name: " . $field_name);
+                            error_log("Raw value from POST: '" . $value . "'");
+                            error_log("Cleaned value: '" . $cleaned_value . "'");
+                            error_log("Will be saved to update_data as: '" . $update_data[$field_name] . "'");
+                        }
                     }
                 }
             }

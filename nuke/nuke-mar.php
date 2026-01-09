@@ -161,9 +161,15 @@ function ruplin_render_nuke_mar_page() {
                                         placeholder="Enter one URL per line">/privacy-policy/
 /terms-of-service/
 /sitemap/
-/blog/</textarea>
+/blog/
+/turtle-example-with-all-cherry-boxes/
+/turtle-example-minimal-cherry-boxes/</textarea>
                                     <p class="description" style="margin-top: 5px;">
                                         <?php echo esc_html__('Enter one URL slug per line. These pages/posts will be protected from deletion.', 'ruplin'); ?>
+                                    </p>
+                                    <p class="description" style="margin-top: 8px; padding: 8px; background-color: #e8f4fd; border-left: 4px solid #0073aa; color: #0073aa;">
+                                        <strong><?php echo esc_html__('Auto-Protection:', 'ruplin'); ?></strong> 
+                                        <?php echo esc_html__('Pages/posts with "nukeignore" or "turtle" in their URL will be automatically protected from deletion.', 'ruplin'); ?>
                                     </p>
                                 </div>
                             </td>
