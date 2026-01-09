@@ -133,7 +133,10 @@ function ruplin_render_dioptra_screen() {
         'locpage_city' => 'pylons',
         'locpage_state_code' => 'pylons',
         'locpage_state_full' => 'pylons',
-        'locpage_gmaps_string' => 'pylons'
+        'locpage_gmaps_string' => 'pylons',
+        'liz_pricing_heading' => 'pylons',
+        'liz_pricing_description' => 'pylons',
+        'liz_pricing_body' => 'pylons'
         // OSB fields removed from main table - they're handled separately in the OSB tab
         // Kendall fields removed from main table - they're handled separately in the Kendall tab
     );
