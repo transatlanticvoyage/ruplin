@@ -34,6 +34,9 @@ class Snefuru_Admin {
         add_action('wp_ajax_save_stellar_chamber_setting', array($this, 'save_stellar_chamber_setting'));
         add_action('wp_ajax_silkweaver_optimize_indexes', array($this, 'silkweaver_optimize_indexes'));
         
+        // Schema injection AJAX action
+        add_action('wp_ajax_save_schema_injection_setting', array($this, 'save_schema_injection_setting'));
+        
         // Locations management AJAX actions
         add_action('wp_ajax_rup_locations_get_data', array($this, 'rup_locations_get_data'));
         add_action('wp_ajax_rup_locations_update_field', array($this, 'rup_locations_update_field'));
@@ -216,6 +219,15 @@ class Snefuru_Admin {
         
         add_submenu_page(
             'snefuru',
+            'Schema_Mar',
+            'Schema_Mar',
+            'manage_options',
+            'schema_mar',
+            array($this, 'schema_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
             'rup_driggs_mar',
             'rup_driggs_mar',
             'manage_options',
@@ -284,6 +296,15 @@ class Snefuru_Admin {
             'manage_options',
             'date_worshipper_mar',
             array($this, 'date_worshipper_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Favicon_Mar',
+            'Favicon_Mar',
+            'manage_options',
+            'favicon_mar',
+            array($this, 'favicon_mar_page')
         );
         
         // Note: Aragon Image Manager menu is handled by its own class
@@ -13263,5 +13284,68 @@ class Snefuru_Admin {
             </div>
         </div>
         <?php
+    }
+    
+    /**
+     * AJAX handler to save schema injection setting
+     */
+    public function save_schema_injection_setting() {
+        // Check nonce
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'schema_injection_nonce')) {
+            wp_send_json_error('Invalid nonce');
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+            return;
+        }
+        
+        // Get the setting value
+        $inject_enabled = isset($_POST['inject_enabled']) && $_POST['inject_enabled'] === '1';
+        
+        // Save the option
+        update_option('ruplin_inject_schema_enabled', $inject_enabled);
+        
+        // Return success response
+        wp_send_json_success(array(
+            'message' => 'Settings saved successfully',
+            'inject_enabled' => $inject_enabled
+        ));
+    }
+    
+    /**
+     * schema_mar page - Schema Management
+     */
+    public function schema_mar_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        // Include the separate page file
+        require_once SNEFURU_PLUGIN_PATH . 'schema_system/schema-page.php';
+        snefuru_schema_mar_page();
+    }
+    
+    /**
+     * favicon_mar page - Favicon Management
+     */
+    public function favicon_mar_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        // Include the separate page file
+        require_once SNEFURU_PLUGIN_PATH . 'favicon_manager/favicon-page.php';
+        ruplin_favicon_mar_page();
     }
 } 

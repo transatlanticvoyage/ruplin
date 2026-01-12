@@ -130,6 +130,12 @@ class SnefuruPlugin {
         // Load Contact Form Services Shortcode System
         require_once SNEFURU_PLUGIN_PATH . 'contact_form_services_shortcode/class-contact-form-services-shortcode.php';
         
+        // Load Schema System
+        require_once SNEFURU_PLUGIN_PATH . 'schema_system/class-schema-generator.php';
+        
+        // Load Favicon Manager
+        require_once SNEFURU_PLUGIN_PATH . 'favicon_manager/class-favicon-manager.php';
+        
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
@@ -411,6 +417,12 @@ class SnefuruPlugin {
             contact_form_1_endpoint TEXT DEFAULT NULL,
             weasel_header_code_1 TEXT DEFAULT NULL,
             weasel_footer_code_1 TEXT DEFAULT NULL,
+            weasel_header_code_for_analytics TEXT DEFAULT NULL,
+            weasel_footer_code_for_analytics TEXT DEFAULT NULL,
+            ratingvalue_for_schema DECIMAL(3,2) DEFAULT NULL,
+            reviewcount_for_schema DECIMAL(10,0) DEFAULT NULL,
+            driggs_hours_for_schema TEXT DEFAULT NULL,
+            georadius_for_schema INT(10) UNSIGNED DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),

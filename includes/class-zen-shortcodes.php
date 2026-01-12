@@ -48,6 +48,9 @@ class Zen_Shortcodes {
         add_shortcode('buffalo_phone_number', array($this, 'render_buffalo_phone_number'));
         add_shortcode('beginning_a_code_moose', array($this, 'render_beginning_a_code_moose'));
         
+        // URL utility shortcodes
+        add_shortcode('root_for_inner_links', array($this, 'render_root_for_inner_links'));
+        
         // Register dynamic hoof shortcodes
         $this->register_hoof_shortcodes();
     }
@@ -798,5 +801,61 @@ class Zen_Shortcodes {
             array('%s'),
             array('%d')
         );
+    }
+    
+    /**
+     * Render root URL for inner links
+     * Returns the site URL with proper www handling
+     * Usage: [root_for_inner_links]
+     */
+    public function render_root_for_inner_links($atts) {
+        // Get the current site URL
+        $site_url = get_site_url();
+        
+        // Parse the URL to get components
+        $parsed_url = parse_url($site_url);
+        
+        if (!$parsed_url) {
+            return $site_url; // Fallback to original if parsing fails
+        }
+        
+        $scheme = isset($parsed_url['scheme']) ? $parsed_url['scheme'] : 'https';
+        $host = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+        $port = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+        
+        // Check if www version exists by making a simple request
+        $domain_without_www = preg_replace('/^www\./', '', $host);
+        $www_domain = 'www.' . $domain_without_www;
+        
+        // Determine if we should use www or not
+        $final_domain = $host;
+        
+        // If current domain doesn't have www, check if www version exists
+        if (!preg_match('/^www\./', $host)) {
+            // Check if www version responds
+            $www_url = $scheme . '://' . $www_domain . $port;
+            
+            // Use WordPress HTTP API to check if www domain exists
+            $response = wp_remote_head($www_url, array(
+                'timeout' => 5,
+                'redirection' => 0, // Don't follow redirects
+                'sslverify' => false // For local/dev environments
+            ));
+            
+            // If www version responds successfully (200-399 range), use it
+            if (!is_wp_error($response)) {
+                $response_code = wp_remote_retrieve_response_code($response);
+                if ($response_code >= 200 && $response_code < 400) {
+                    $final_domain = $www_domain;
+                }
+            }
+        }
+        // If current domain has www, keep it
+        // (WordPress site_url should already be set correctly)
+        
+        // Construct final URL
+        $final_url = $scheme . '://' . $final_domain . $port;
+        
+        return esc_url($final_url);
     }
 }
