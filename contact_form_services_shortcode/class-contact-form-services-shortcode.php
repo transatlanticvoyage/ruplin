@@ -21,6 +21,7 @@ class Contact_Form_Services_Shortcode {
     public function __construct() {
         add_action('admin_menu', array($this, 'add_admin_menu'), 20);
         add_shortcode('ruplin_shortcode_to_list_services_for_contact_form', array($this, 'render_services_shortcode'));
+        add_shortcode('ruplin_shortcode_for_contact_form_1_endpoint', array($this, 'render_contact_form_endpoint_shortcode'));
         
         // Early notice suppression
         add_action('admin_init', array($this, 'early_notice_suppression'));
@@ -216,6 +217,30 @@ class Contact_Form_Services_Shortcode {
     }
     
     /**
+     * Render the contact form endpoint shortcode
+     * Returns the value of contact_form_1_endpoint from wp_zen_sitespren table
+     */
+    public function render_contact_form_endpoint_shortcode($atts) {
+        global $wpdb;
+        
+        // Get the zen_sitespren table name
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        
+        // Check if zen_sitespren table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$sitespren_table}'");
+        
+        if (!$table_exists) {
+            return '<!-- zen_sitespren table not found -->';
+        }
+        
+        // Get the contact_form_1_endpoint value from the single row in zen_sitespren
+        $endpoint = $wpdb->get_var("SELECT contact_form_1_endpoint FROM {$sitespren_table} LIMIT 1");
+        
+        // Return the endpoint value or empty string if not found
+        return $endpoint ? esc_html($endpoint) : '';
+    }
+    
+    /**
      * Render the admin page
      */
     public function render_admin_page() {
@@ -224,13 +249,14 @@ class Contact_Form_Services_Shortcode {
         
         ?>
         <div class="wrap contact-form-services-content">
-            <h1>Contact Form Services Shortcode</h1>
+            <h1>Contact Form Shortcodes</h1>
             
             <div style="background: white; border: 1px solid #ddd; padding: 20px; margin-top: 20px; border-radius: 5px;">
-                <h2 style="margin-top: 0;">Shortcode Usage</h2>
+                <h2 style="margin-top: 0;">Available Shortcodes</h2>
                 
+                <h3>1. Services List Shortcode</h3>
                 <p style="margin-bottom: 15px;">
-                    Use the following shortcode in your contact forms to automatically generate a dropdown list of all services from your site:
+                    Use this shortcode in your contact forms to automatically generate a dropdown list of all services from your site:
                 </p>
                 
                 <div style="background: #f0f0f0; border: 1px solid #ccc; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
@@ -260,6 +286,51 @@ class Contact_Form_Services_Shortcode {
 &lt;option&gt;Gutter Install/Repair&lt;/option&gt;
 &lt;option&gt;Siding&lt;/option&gt;
 &lt;option&gt;Other&lt;/option&gt;</pre>
+                </div>
+                
+                <hr style="margin: 30px 0; border-color: #ddd;">
+                
+                <h3>2. Contact Form Endpoint Shortcode</h3>
+                <p style="margin-bottom: 15px;">
+                    Use this shortcode to output the contact form endpoint URL from the database:
+                </p>
+                
+                <div style="background: #f0f0f0; border: 1px solid #ccc; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <input type="text" 
+                           value="[ruplin_shortcode_for_contact_form_1_endpoint]" 
+                           readonly 
+                           style="width: 100%; padding: 10px; font-family: monospace; font-size: 14px; background: white; border: 1px solid #ddd; border-radius: 3px;"
+                           onclick="this.select();">
+                </div>
+                
+                <div style="background: #f9f9f9; border-left: 4px solid #0073aa; padding: 15px;">
+                    <h3 style="margin-top: 0;">How it works:</h3>
+                    <ul style="list-style: disc; margin-left: 20px;">
+                        <li>Retrieves the contact_form_1_endpoint value from wp_zen_sitespren table</li>
+                        <li>Returns the endpoint URL stored in the database</li>
+                        <li>Can be used in form action attributes or JavaScript</li>
+                        <li>Returns empty string if no endpoint is configured</li>
+                    </ul>
+                </div>
+                
+                <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 15px; border-radius: 4px; margin-top: 20px;">
+                    <h3 style="margin-top: 0; color: #0c5460;">Current Endpoint:</h3>
+                    <?php
+                    global $wpdb;
+                    $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+                    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$sitespren_table}'");
+                    
+                    if ($table_exists) {
+                        $endpoint = $wpdb->get_var("SELECT contact_form_1_endpoint FROM {$sitespren_table} LIMIT 1");
+                        if ($endpoint) {
+                            echo '<code style="background: white; padding: 8px; display: block; border: 1px solid #ddd; border-radius: 3px; word-break: break-all;">' . esc_html($endpoint) . '</code>';
+                        } else {
+                            echo '<p style="color: #666; font-style: italic; margin: 0;">No endpoint configured in database.</p>';
+                        }
+                    } else {
+                        echo '<p style="color: #d9534f; font-style: italic; margin: 0;">zen_sitespren table not found.</p>';
+                    }
+                    ?>
                 </div>
                 
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">

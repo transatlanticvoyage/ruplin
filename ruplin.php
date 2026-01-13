@@ -130,6 +130,9 @@ class SnefuruPlugin {
         // Load Contact Form Services Shortcode System
         require_once SNEFURU_PLUGIN_PATH . 'contact_form_services_shortcode/class-contact-form-services-shortcode.php';
         
+        // Load Weasel Mar (Contact Form) Management Page
+        require_once SNEFURU_PLUGIN_PATH . 'includes/pages/weasel-mar-page.php';
+        
         // Load Schema System
         require_once SNEFURU_PLUGIN_PATH . 'schema_system/class-schema-generator.php';
         
@@ -186,6 +189,9 @@ class SnefuruPlugin {
         // Initialize Ferret Snippets feature
         require_once plugin_dir_path(__FILE__) . 'includes/ferret-snippets/class-ferret-snippets.php';
         Ferret_Snippets::get_instance();
+        
+        // Initialize Weasel Code Injection
+        $this->init_weasel_code_injection();
         
         // Register fallback shortcodes for non-Elementor mode
         $this->register_fallback_shortcodes();
@@ -415,10 +421,13 @@ class SnefuruPlugin {
             snail_image_status varchar(50) DEFAULT NULL,
             snail_image_error text DEFAULT NULL,
             contact_form_1_endpoint TEXT DEFAULT NULL,
+            contact_form_1_main_code TEXT DEFAULT NULL,
             weasel_header_code_1 TEXT DEFAULT NULL,
             weasel_footer_code_1 TEXT DEFAULT NULL,
             weasel_header_code_for_analytics TEXT DEFAULT NULL,
             weasel_footer_code_for_analytics TEXT DEFAULT NULL,
+            weasel_header_code_for_contact_form TEXT DEFAULT NULL,
+            weasel_footer_code_for_contact_form TEXT DEFAULT NULL,
             ratingvalue_for_schema DECIMAL(3,2) DEFAULT NULL,
             reviewcount_for_schema DECIMAL(10,0) DEFAULT NULL,
             driggs_hours_for_schema TEXT DEFAULT NULL,
@@ -586,7 +595,6 @@ class SnefuruPlugin {
             liz_pricing_heading TEXT DEFAULT NULL,
             liz_pricing_description TEXT DEFAULT NULL,
             liz_pricing_body TEXT DEFAULT NULL,
-            contact_form_1_main_code TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -1048,12 +1056,6 @@ class SnefuruPlugin {
                 $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN liz_pricing_body TEXT DEFAULT NULL");
             }
             
-            // Add contact_form_1_main_code column
-            $contact_form_main_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'contact_form_1_main_code'");
-            if (empty($contact_form_main_exists)) {
-                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN contact_form_1_main_code TEXT DEFAULT NULL");
-            }
-            
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.1.0');
         }
@@ -1077,6 +1079,178 @@ class SnefuruPlugin {
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.2.0');
         }
+        
+        // Migration for version 2.3.0 - Move contact_form_1_main_code from pylons to zen_sitespren
+        if (version_compare($current_migration, '2.3.0', '<')) {
+            $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+            $pylons_table = $wpdb->prefix . 'pylons';
+            
+            // Add contact_form_1_main_code column to zen_sitespren if it doesn't exist
+            $contact_form_exists_in_sitespren = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'contact_form_1_main_code'");
+            if (empty($contact_form_exists_in_sitespren)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN contact_form_1_main_code TEXT DEFAULT NULL AFTER contact_form_1_endpoint");
+                
+                // Migrate data from pylons to zen_sitespren if the column exists in pylons
+                $contact_form_exists_in_pylons = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'contact_form_1_main_code'");
+                if (!empty($contact_form_exists_in_pylons)) {
+                    // Get any existing data from pylons
+                    $pylon_data = $wpdb->get_row("SELECT contact_form_1_main_code FROM $pylons_table WHERE contact_form_1_main_code IS NOT NULL AND contact_form_1_main_code != '' LIMIT 1");
+                    
+                    if ($pylon_data && $pylon_data->contact_form_1_main_code) {
+                        // Update zen_sitespren with the data
+                        $wpdb->query($wpdb->prepare(
+                            "UPDATE $zen_sitespren_table SET contact_form_1_main_code = %s WHERE wppma_id = 1",
+                            $pylon_data->contact_form_1_main_code
+                        ));
+                    }
+                }
+            }
+            
+            // Remove contact_form_1_main_code column from pylons table if it exists
+            $contact_form_exists_in_pylons = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'contact_form_1_main_code'");
+            if (!empty($contact_form_exists_in_pylons)) {
+                $wpdb->query("ALTER TABLE $pylons_table DROP COLUMN contact_form_1_main_code");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.3.0');
+        }
+        
+        // Migration for version 2.4.0 - Add contact form weasel columns to zen_sitespren
+        if (version_compare($current_migration, '2.4.0', '<')) {
+            $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+            
+            // Add weasel_header_code_for_contact_form column
+            $header_contact_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'weasel_header_code_for_contact_form'");
+            if (empty($header_contact_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN weasel_header_code_for_contact_form TEXT DEFAULT NULL AFTER weasel_footer_code_for_analytics");
+            }
+            
+            // Add weasel_footer_code_for_contact_form column
+            $footer_contact_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'weasel_footer_code_for_contact_form'");
+            if (empty($footer_contact_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN weasel_footer_code_for_contact_form TEXT DEFAULT NULL AFTER weasel_header_code_for_contact_form");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.4.0');
+        }
+    }
+    
+    /**
+     * Initialize Weasel Code Injection
+     * Sets up hooks for injecting header and footer codes
+     */
+    private function init_weasel_code_injection() {
+        // Only run on frontend (not admin)
+        if (!is_admin()) {
+            add_action('wp_head', array($this, 'inject_weasel_header_codes'), 999);
+            add_action('wp_footer', array($this, 'inject_weasel_footer_codes'), 999);
+        }
+    }
+    
+    /**
+     * Inject weasel header codes into the <head> section
+     * Runs just before </head> tag
+     */
+    public function inject_weasel_header_codes() {
+        global $wpdb;
+        
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$sitespren_table'") != $sitespren_table) {
+            return;
+        }
+        
+        // Get header codes from database
+        $header_codes = $wpdb->get_row("
+            SELECT 
+                weasel_header_code_1,
+                weasel_header_code_for_analytics,
+                weasel_header_code_for_contact_form
+            FROM $sitespren_table 
+            LIMIT 1
+        ", ARRAY_A);
+        
+        if (!$header_codes) {
+            return;
+        }
+        
+        // Output header codes if they exist
+        echo "\n<!-- Weasel Header Codes Start -->\n";
+        
+        // Inject weasel_header_code_1
+        if (!empty($header_codes['weasel_header_code_1'])) {
+            echo "<!-- Weasel Header Code 1 -->\n";
+            echo $header_codes['weasel_header_code_1'] . "\n";
+        }
+        
+        // Inject weasel_header_code_for_analytics
+        if (!empty($header_codes['weasel_header_code_for_analytics'])) {
+            echo "<!-- Weasel Header Code for Analytics -->\n";
+            echo $header_codes['weasel_header_code_for_analytics'] . "\n";
+        }
+        
+        // Inject weasel_header_code_for_contact_form
+        if (!empty($header_codes['weasel_header_code_for_contact_form'])) {
+            echo "<!-- Weasel Header Code for Contact Form -->\n";
+            echo $header_codes['weasel_header_code_for_contact_form'] . "\n";
+        }
+        
+        echo "<!-- Weasel Header Codes End -->\n";
+    }
+    
+    /**
+     * Inject weasel footer codes into the footer section
+     * Runs just before </body> tag
+     */
+    public function inject_weasel_footer_codes() {
+        global $wpdb;
+        
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        
+        // Check if table exists
+        if ($wpdb->get_var("SHOW TABLES LIKE '$sitespren_table'") != $sitespren_table) {
+            return;
+        }
+        
+        // Get footer codes from database
+        $footer_codes = $wpdb->get_row("
+            SELECT 
+                weasel_footer_code_1,
+                weasel_footer_code_for_analytics,
+                weasel_footer_code_for_contact_form
+            FROM $sitespren_table 
+            LIMIT 1
+        ", ARRAY_A);
+        
+        if (!$footer_codes) {
+            return;
+        }
+        
+        // Output footer codes if they exist
+        echo "\n<!-- Weasel Footer Codes Start -->\n";
+        
+        // Inject weasel_footer_code_1
+        if (!empty($footer_codes['weasel_footer_code_1'])) {
+            echo "<!-- Weasel Footer Code 1 -->\n";
+            echo $footer_codes['weasel_footer_code_1'] . "\n";
+        }
+        
+        // Inject weasel_footer_code_for_analytics
+        if (!empty($footer_codes['weasel_footer_code_for_analytics'])) {
+            echo "<!-- Weasel Footer Code for Analytics -->\n";
+            echo $footer_codes['weasel_footer_code_for_analytics'] . "\n";
+        }
+        
+        // Inject weasel_footer_code_for_contact_form
+        if (!empty($footer_codes['weasel_footer_code_for_contact_form'])) {
+            echo "<!-- Weasel Footer Code for Contact Form -->\n";
+            echo $footer_codes['weasel_footer_code_for_contact_form'] . "\n";
+        }
+        
+        echo "<!-- Weasel Footer Codes End -->\n";
     }
 }
 
