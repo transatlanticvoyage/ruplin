@@ -480,11 +480,12 @@ function ruplin_wipe_sitespren_values() {
     
     // Build UPDATE statement to set all columns to NULL except primary key and auto-increment fields
     $update_fields = array();
-    $protected_columns = array('id', 'wppma_id'); // Primary key and auto-increment columns to preserve
+    $protected_columns = array('id', 'wppma_id'); // Primary key and auto-increment columns to preserve - NEVER modify these
     
     foreach ($columns as $column) {
-        // Skip protected columns
+        // Skip protected columns - CRITICAL: Never modify id or auto-increment columns
         if (in_array($column->Field, $protected_columns)) {
+            error_log("Ruplin: Protecting column '{$column->Field}' from modification during sitespren wipe");
             continue;
         }
         

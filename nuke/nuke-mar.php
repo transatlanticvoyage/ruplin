@@ -191,6 +191,47 @@ function ruplin_render_nuke_mar_page() {
                         <?php echo esc_html__('Run F494 - Nuke Wipe', 'ruplin'); ?>
                     </button>
                 </div>
+                
+                <div class="ruplin-preset-container" style="margin-top: 20px;">
+                    <h3><?php echo esc_html__('Quick Preset Options', 'ruplin'); ?></h3>
+                    <div class="ruplin-presets-row" style="display: flex; gap: 20px;">
+                        <div class="ruplin-preset-box" style="flex: 1;">
+                            <button type="button" 
+                                    class="button button-secondary ruplin-populate-btn" 
+                                    data-target="preset1"
+                                    style="background-color: #007cba; color: white; border-color: #007cba; margin-bottom: 10px;">
+                                <?php echo esc_html__('Populate to Ignore', 'ruplin'); ?>
+                            </button>
+                            <textarea id="ruplin-preset1" 
+                                      rows="6" 
+                                      cols="30" 
+                                      style="width: 100%; font-family: monospace;" 
+                                      readonly>/privacy-policy/
+/terms-of-service/
+/sitemap/
+/blog/
+/turtle-example-with-all-cherry-boxes/
+/turtle-example-minimal-cherry-boxes/</textarea>
+                        </div>
+                        
+                        <div class="ruplin-preset-box" style="flex: 1;">
+                            <button type="button" 
+                                    class="button button-secondary ruplin-populate-btn" 
+                                    data-target="preset2"
+                                    style="background-color: #007cba; color: white; border-color: #007cba; margin-bottom: 10px;">
+                                <?php echo esc_html__('Populate to Ignore', 'ruplin'); ?>
+                            </button>
+                            <textarea id="ruplin-preset2" 
+                                      rows="6" 
+                                      cols="30" 
+                                      style="width: 100%; font-family: monospace;" 
+                                      readonly>/sitemap/
+/blog/
+/turtle-example-with-all-cherry-boxes/
+/turtle-example-minimal-cherry-boxes/</textarea>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -287,6 +328,18 @@ function ruplin_render_nuke_mar_page() {
             } else {
                 $('#excluded_urls').prop('disabled', true).css('opacity', '0.5');
             }
+        });
+        
+        // Handle populate to ignore buttons
+        $('.ruplin-populate-btn').on('click', function() {
+            var target = $(this).data('target');
+            var presetContent = $('#ruplin-' + target).val();
+            
+            // Enable the exclude URLs checkbox if not already enabled
+            $('#exclude_urls_enabled').prop('checked', true).trigger('change');
+            
+            // Populate the excluded URLs textarea with the preset content
+            $('#excluded_urls').val(presetContent);
         });
     });
     </script>
