@@ -17,34 +17,8 @@ if (!defined('ABSPATH')) {
 function ruplin_render_dioptra_screen() {
     global $wpdb;
     
-    // EMERGENCY: Check and add all missing columns to prevent database update failures
+    // Initialize pylons table variable for later use
     $pylons_table = $wpdb->prefix . 'pylons';
-    $columns = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table");
-    $column_names = array_column($columns, 'Field');
-    
-    // All missing columns that are being used in the dioptra save but don't exist in schema
-    $missing_columns = [
-        // Liz pricing columns
-        'liz_pricing_heading', 'liz_pricing_description', 'liz_pricing_body',
-        // _value columns for tabs that were added but never migrated to database
-        'chenblock_card1_title_value', 'chenblock_card1_desc_value', 'chenblock_card2_title_value', 'chenblock_card2_desc_value', 'chenblock_card3_title_value', 'chenblock_card3_desc_value',
-        'serena_faq_box_q1_value', 'serena_faq_box_a1_value', 'serena_faq_box_q2_value', 'serena_faq_box_a2_value', 'serena_faq_box_q3_value', 'serena_faq_box_a3_value',
-        'serena_faq_box_q4_value', 'serena_faq_box_a4_value', 'serena_faq_box_q5_value', 'serena_faq_box_a5_value', 'serena_faq_box_q6_value', 'serena_faq_box_a6_value',
-        'serena_faq_box_q7_value', 'serena_faq_box_a7_value', 'serena_faq_box_q8_value', 'serena_faq_box_a8_value',
-        'brook_video_heading_value', 'brook_video_subheading_value', 'brook_video_description_value', 'brook_video_1_value', 'brook_video_2_value', 'brook_video_3_value', 'brook_video_4_value', 'brook_video_outro_value',
-        'olivia_authlinks_heading_value', 'olivia_authlinks_subheading_value', 'olivia_authlinks_description_value', 'olivia_authlinks_1_value', 'olivia_authlinks_2_value', 'olivia_authlinks_3_value',
-        'olivia_authlinks_4_value', 'olivia_authlinks_5_value', 'olivia_authlinks_6_value', 'olivia_authlinks_7_value', 'olivia_authlinks_8_value', 'olivia_authlinks_9_value', 'olivia_authlinks_10_value', 'olivia_authlinks_outro_value',
-        'ava_why_choose_us_heading_value', 'ava_why_choose_us_subheading_value', 'ava_why_choose_us_description_value', 'ava_why_choose_us_reason_1_value', 'ava_why_choose_us_reason_2_value',
-        'ava_why_choose_us_reason_3_value', 'ava_why_choose_us_reason_4_value', 'ava_why_choose_us_reason_5_value', 'ava_why_choose_us_reason_6_value', 'ava_why_choose_us_reason_7_value',
-        'ava_why_choose_us_reason_8_value', 'ava_why_choose_us_reason_9_value', 'ava_why_choose_us_reason_10_value'
-    ];
-    
-    foreach ($missing_columns as $col) {
-        if (!in_array($col, $column_names)) {
-            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN $col TEXT DEFAULT NULL");
-            error_log("DIOPTRA: Added missing column $col to $pylons_table");
-        }
-    }
     
     // Enqueue WordPress media scripts for image selector
     wp_enqueue_media();
@@ -987,6 +961,13 @@ function ruplin_render_dioptra_screen() {
                         
                         // Display chenblock card fields
                         foreach ($chenblock_fields as $field_name): 
+                            // Get value from database
+                            $value = isset($pylon_data[$field_name]) ? $pylon_data[$field_name] : '';
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
                         ?>
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
@@ -995,7 +976,16 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php if (strpos($field_name, '_desc') !== false): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                             placeholder="Enter card description..."><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>"
+                                           placeholder="<?php echo strpos($field_name, '_title') !== false ? 'Enter card title...' : ''; ?>"
+                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1045,6 +1035,13 @@ function ruplin_render_dioptra_screen() {
                             'serena_faq_box_a8'
                         ];
                         foreach ($serena_fields as $field_name): 
+                            // Get value from database
+                            $value = isset($pylon_data[$field_name]) ? $pylon_data[$field_name] : '';
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
                         ?>
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
@@ -1053,7 +1050,16 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php if (strpos($field_name, 'serena_faq_box_a') === 0): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                             placeholder="Enter FAQ answer..."><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>"
+                                           placeholder="<?php echo strpos($field_name, '_q') !== false ? 'Enter FAQ question...' : ''; ?>"
+                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1142,6 +1148,13 @@ function ruplin_render_dioptra_screen() {
                         
                         // Display brook fields (8 fields)
                         foreach ($brook_fields as $field_name): 
+                            // Get value from database
+                            $value = isset($pylon_data[$field_name]) ? $pylon_data[$field_name] : '';
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
                         ?>
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
@@ -1150,7 +1163,16 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php if (strpos($field_name, '_description') !== false || strpos($field_name, '_outro') !== false): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                             placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>"
+                                           placeholder="Enter content..."
+                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1206,6 +1228,13 @@ function ruplin_render_dioptra_screen() {
                         
                         // Display olivia fields (14 fields)
                         foreach ($olivia_fields as $field_name): 
+                            // Get value from database
+                            $value = isset($pylon_data[$field_name]) ? $pylon_data[$field_name] : '';
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
                         ?>
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
@@ -1214,7 +1243,16 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php if (strpos($field_name, '_description') !== false || strpos($field_name, '_outro') !== false): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                             placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>"
+                                           placeholder="Enter content..."
+                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1269,6 +1307,13 @@ function ruplin_render_dioptra_screen() {
                         
                         // Display ava fields (13 fields)
                         foreach ($ava_fields as $field_name): 
+                            // Get value from database
+                            $value = isset($pylon_data[$field_name]) ? $pylon_data[$field_name] : '';
+                            
+                            // Remove any existing slashes from database values before display
+                            $value = stripslashes_deep($value);
+                            $value = wp_unslash($value);
+                            $value = stripslashes($value);
                         ?>
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
@@ -1277,7 +1322,16 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" name="field_<?php echo $field_name; ?>_value" style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php if (strpos($field_name, '_description') !== false): ?>
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
+                                             placeholder="Enter description..."><?php echo esc_textarea($value); ?></textarea>
+                                <?php else: ?>
+                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
+                                           value="<?php echo esc_attr($value); ?>"
+                                           placeholder="Enter content..."
+                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1515,8 +1569,13 @@ function ruplin_render_dioptra_screen() {
             <!-- sara_customhtml_box Tab -->
             <div id="sara-customhtml-box" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
                 <?php
-                // Get current sara_customhtml_datum value
-                $sara_html_content = $current_pylon['sara_customhtml_datum'] ?? '';
+                // Get current sara_customhtml_datum value from pylon_data
+                $sara_html_content = isset($pylon_data['sara_customhtml_datum']) ? $pylon_data['sara_customhtml_datum'] : '';
+                
+                // Remove any existing slashes from database values before display (for HTML escaping)
+                $sara_html_content = stripslashes_deep($sara_html_content);
+                $sara_html_content = wp_unslash($sara_html_content);
+                $sara_html_content = stripslashes($sara_html_content);
                 ?>
                 
                 <p style="font-weight: bold; font-size: 16px; color: black; margin-bottom: 15px;">
