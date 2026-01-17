@@ -432,6 +432,8 @@ class SnefuruPlugin {
             reviewcount_for_schema DECIMAL(10,0) DEFAULT NULL,
             driggs_hours_for_schema TEXT DEFAULT NULL,
             georadius_for_schema INT(10) UNSIGNED DEFAULT NULL,
+            home_anchor_for_silkweaver_services TEXT DEFAULT NULL,
+            home_anchor_for_silkweaver_locations TEXT DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
@@ -1134,6 +1136,26 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.4.0');
+        }
+        
+        // Migration for version 2.5.0 - Add Silkweaver pinned link anchor columns to zen_sitespren
+        if (version_compare($current_migration, '2.5.0', '<')) {
+            $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+            
+            // Add home_anchor_for_silkweaver_services column
+            $services_anchor_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'home_anchor_for_silkweaver_services'");
+            if (empty($services_anchor_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN home_anchor_for_silkweaver_services TEXT DEFAULT NULL");
+            }
+            
+            // Add home_anchor_for_silkweaver_locations column
+            $locations_anchor_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'home_anchor_for_silkweaver_locations'");
+            if (empty($locations_anchor_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN home_anchor_for_silkweaver_locations TEXT DEFAULT NULL");
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.5.0');
         }
     }
     

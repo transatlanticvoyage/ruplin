@@ -29,6 +29,7 @@ function ruplin_render_dioptra_screen() {
     // Initialize data arrays
     $pylon_data = array();
     $post_data = array();
+    $sitespren_data = array();
     
     if ($post_id) {
         // Get wp_posts data
@@ -57,6 +58,14 @@ function ruplin_render_dioptra_screen() {
             // TEMPORARY DEBUG: Check if kendall data is in database
             error_log("KENDALL PAGE LOAD DEBUG: kendall_our_process_heading = '" . ($pylon_data['kendall_our_process_heading'] ?? 'NULL') . "'");
             error_log("KENDALL PAGE LOAD DEBUG: kendall_our_process_subheading = '" . ($pylon_data['kendall_our_process_subheading'] ?? 'NULL') . "'");
+        }
+        
+        // Get zen_sitespren data
+        $current_site_url = get_site_url();
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        $sitespren_row = $wpdb->get_row("SELECT * FROM {$sitespren_table} WHERE site_url = '{$current_site_url}' LIMIT 1", ARRAY_A);
+        if ($sitespren_row) {
+            $sitespren_data = $sitespren_row;
         }
     }
     
@@ -136,7 +145,9 @@ function ruplin_render_dioptra_screen() {
         'locpage_city' => 'pylons',
         'locpage_state_code' => 'pylons',
         'locpage_state_full' => 'pylons',
-        'locpage_gmaps_string' => 'pylons'
+        'locpage_gmaps_string' => 'pylons',
+        'home_anchor_for_silkweaver_services' => 'sitespren',
+        'home_anchor_for_silkweaver_locations' => 'sitespren'
         // OSB fields removed from main table - they're handled separately in the OSB tab
         // Kendall fields removed from main table - they're handled separately in the Kendall tab
         // Liz pricing fields removed from main table - they're handled separately in the Liz Pricing tab
@@ -428,6 +439,8 @@ function ruplin_render_dioptra_screen() {
                                 
                                 if (strpos($field_name, 'post_') === 0) {
                                     echo 'wp_posts';
+                                } elseif ($table_source === 'sitespren') {
+                                    echo 'zen_sitespren';
                                 } elseif ($field_name === 'vec_disable_vn_system_sitewide') {
                                     echo 'omitted from db update(_zen_sit..)';
                                 } elseif (in_array($field_name, $omitted_fields)) {
@@ -445,6 +458,8 @@ function ruplin_render_dioptra_screen() {
                                     $value = $post_data[$field_name];
                                 } elseif ($table_source === 'pylons' && isset($pylon_data[$field_name])) {
                                     $value = $pylon_data[$field_name];
+                                } elseif ($table_source === 'sitespren' && isset($sitespren_data[$field_name])) {
+                                    $value = $sitespren_data[$field_name];
                                 }
                                 
                                 // CRITICAL: Remove any existing slashes from database values before display

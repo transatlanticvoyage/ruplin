@@ -84,6 +84,10 @@ class Silkweaver_Menu_Renderer {
         $lines = explode("\n", $config);
         $menu_items = array();
         
+        // Get sitespren data for dynamic placeholders
+        global $wpdb;
+        $sitespren_data = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
+        
         foreach ($lines as $line_num => $line) {
             $original_line = $line;
             $line = trim($line);
@@ -111,11 +115,22 @@ class Silkweaver_Menu_Renderer {
                 
                 // Check for pinned link first
                 if (preg_match('/custom_raw_link_pinned=([^\s]+)\s+(.+)/', $line, $matches)) {
+                    $anchor_text = $matches[2];
+                    
+                    // Replace placeholders with database values if they exist
+                    if ($anchor_text === '{home_anchor_for_silkweaver_services}' && 
+                        $sitespren_data && !empty($sitespren_data->home_anchor_for_silkweaver_services)) {
+                        $anchor_text = $sitespren_data->home_anchor_for_silkweaver_services;
+                    } elseif ($anchor_text === '{driggs_city}' && 
+                        $sitespren_data && !empty($sitespren_data->driggs_city)) {
+                        $anchor_text = $sitespren_data->driggs_city;
+                    }
+                    
                     $pinned_links[] = array(
                         'url' => $matches[1],
-                        'anchor' => $matches[2]
+                        'anchor' => $anchor_text
                     );
-                    error_log("Silkweaver parsed pinned service link: " . $matches[1] . " -> " . $matches[2]);
+                    error_log("Silkweaver parsed pinned service link: " . $matches[1] . " -> " . $anchor_text);
                 } elseif (preg_match('/custom_raw_link=([^\s]+)\s+(.+)/', $line, $matches)) {
                     $custom_links[] = array(
                         'url' => $matches[1],
@@ -139,11 +154,22 @@ class Silkweaver_Menu_Renderer {
                 
                 // Check for pinned link first
                 if (preg_match('/custom_raw_link_pinned=([^\s]+)\s+(.+)/', $line, $matches)) {
+                    $anchor_text = $matches[2];
+                    
+                    // Replace placeholders with database values if they exist
+                    if ($anchor_text === '{home_anchor_for_silkweaver_locations}' && 
+                        $sitespren_data && !empty($sitespren_data->home_anchor_for_silkweaver_locations)) {
+                        $anchor_text = $sitespren_data->home_anchor_for_silkweaver_locations;
+                    } elseif ($anchor_text === '{driggs_city}' && 
+                        $sitespren_data && !empty($sitespren_data->driggs_city)) {
+                        $anchor_text = $sitespren_data->driggs_city;
+                    }
+                    
                     $pinned_links[] = array(
                         'url' => $matches[1],
-                        'anchor' => $matches[2]
+                        'anchor' => $anchor_text
                     );
-                    error_log("Silkweaver parsed pinned location link: " . $matches[1] . " -> " . $matches[2]);
+                    error_log("Silkweaver parsed pinned location link: " . $matches[1] . " -> " . $anchor_text);
                 } elseif (preg_match('/custom_raw_link=([^\s]+)\s+(.+)/', $line, $matches)) {
                     $custom_links[] = array(
                         'url' => $matches[1],
