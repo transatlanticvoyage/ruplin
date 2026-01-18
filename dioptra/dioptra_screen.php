@@ -2092,6 +2092,25 @@ function ruplin_render_dioptra_screen() {
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; background: #f9f9f9; font-weight: 500; width: 240px;">
+                                Disable RankMath Title Tags
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" 
+                                           name="field_vectornode_disable_rankmath_title" 
+                                           value="1"
+                                           <?php echo isset($pylon_data['vectornode_disable_rankmath_title']) && $pylon_data['vectornode_disable_rankmath_title'] == '1' ? 'checked' : ''; ?>
+                                           style="transform: scale(1.2);" />
+                                    <span style="font-size: 14px; color: #333;">Completely disable RankMath title and og:title output</span>
+                                </label>
+                                <div style="font-size: 11px; color: #666; margin-top: 5px; margin-left: 28px;">
+                                    When enabled, removes all RankMath title and og:title tags to prevent duplicates
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
                     </tbody>
                 </table>
                 
@@ -2514,20 +2533,31 @@ function ruplin_render_dioptra_screen() {
         // Get all inputs from the table
         const inputs = document.querySelectorAll('input[name^="field_"], textarea[name^="field_"], select[name^="field_"]');
         
-        // Debug: Check for VectorNode fields specifically
+        // Debug: Combine all debug info into one popup
         const vectornodeInputs = Array.from(inputs).filter(input => input.name.includes('vectornode'));
-        alert('VectorNode fields found: ' + vectornodeInputs.length + '\nNames: ' + vectornodeInputs.map(i => i.name + '=' + i.value).join(', '));
         
+        
+        // Use a Map to prevent duplicate field names - last value wins
+        const fieldMap = new Map();
         
         inputs.forEach(input => {
             if (input.type === 'checkbox') {
                 // For checkboxes, send 1 if checked, 0 if unchecked
                 const checkboxValue = input.checked ? '1' : '0';
-                formData.append(input.name, checkboxValue);
+                fieldMap.set(input.name, checkboxValue);
             } else {
-                formData.append(input.name, input.value);
+                // Skip fields with value "0" if we already have a non-zero value
+                const currentValue = fieldMap.get(input.name);
+                if (!currentValue || input.value !== '0') {
+                    fieldMap.set(input.name, input.value);
+                }
             }
         });
+        
+        // Now append unique fields to FormData
+        for (const [name, value] of fieldMap) {
+            formData.append(name, value);
+        }
         
         // Get box order toggle switch
         const boxOrderToggle = document.getElementById('box_order_is_active');
@@ -2547,15 +2577,59 @@ function ruplin_render_dioptra_screen() {
         btn.style.background = '#ccc';
         btn.innerHTML = 'Saving...';
         
+        // Debug: Combine all debug info into one popup
+        const vectornodeDebugInfo = '=== VECTORNODE FIELDS DEBUG ===\nVectorNode fields found: ' + vectornodeInputs.length + '\n\nField details:\n' + 
+                                    vectornodeInputs.map(i => i.name + ' = ' + i.value).join('\n');
+        
+        const ajaxDebugInfo = '\n\n=== AJAX REQUEST DEBUG ===\nAbout to send AJAX request to: ' + ajaxurl + '\n\najaxurl type: ' + typeof ajaxurl + '\n\nFormData entries:\n' + 
+                             Array.from(formData.entries()).map(([k,v]) => {
+                                 // Truncate long values for readability
+                                 const displayValue = v.length > 100 ? v.substring(0, 100) + '...' : v;
+                                 return k + ' = ' + displayValue;
+                             }).join('\n');
+        
+        const combinedDebugInfo = vectornodeDebugInfo + ajaxDebugInfo;
+        
+        const debugPopup = document.createElement('div');
+        debugPopup.style.cssText = `
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; border: 2px solid #333; padding: 20px; z-index: 10001;
+            max-width: 900px; max-height: 80vh; overflow: auto; font-family: monospace;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        `;
+        debugPopup.innerHTML = `
+            <h3>Debug Info - Copy All</h3>
+            <textarea id="combined-debug-text" style="width: 100%; height: 400px; font-family: monospace; font-size: 11px;">${combinedDebugInfo}</textarea>
+            <div style="margin-top: 10px;">
+                <button onclick="navigator.clipboard.writeText(document.getElementById('combined-debug-text').value).then(() => { this.textContent = '✅ Copied!'; setTimeout(() => this.textContent = '📋 Copy to Clipboard', 2000); })" 
+                        style="padding: 8px 15px; background: #0073aa; color: white; border: none; margin-right: 10px; cursor: pointer;">📋 Copy to Clipboard</button>
+                <button onclick="this.parentElement.parentElement.remove()" 
+                        style="padding: 8px 15px; background: #666; color: white; border: none; cursor: pointer;">Close</button>
+            </div>
+        `;
+        document.body.appendChild(debugPopup);
         
         fetch(ajaxurl, {
             method: 'POST',
             body: formData
         })
         .then(response => {
-            return response.json();
+            console.log('Response status:', response.status, response.statusText);
+            console.log('Response headers:', response.headers);
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            }
+            return response.text().then(text => {
+                console.log('Raw response:', text);
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Invalid JSON response: ' + text.substring(0, 200));
+                }
+            });
         })
         .then(data => {
+            console.log('Parsed data:', data);
             
             if (data.success) {
                 btn.style.background = '#46b450';

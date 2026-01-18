@@ -11053,7 +11053,17 @@ class Snefuru_Admin {
      * AJAX handler for saving dioptra data
      */
     public function handle_dioptra_save_data() {
-        error_log("🚨 SAVE FUNCTION CALLED - " . date('Y-m-d H:i:s'));
+        // Write directly to a file we can check
+        $debug_file = '/Users/kylecampbell/Documents/repos/localrepo-snefuru4/shiplavich-wp-sites/saltwater/app/public/wp-content/vectornode_save_debug.txt';
+        file_put_contents($debug_file, "\n\n=== SAVE ATTEMPT AT " . date('Y-m-d H:i:s') . " ===\n", FILE_APPEND);
+        
+        // Log ALL POST data
+        file_put_contents($debug_file, "ALL POST DATA:\n", FILE_APPEND);
+        foreach ($_POST as $key => $value) {
+            if (strpos($key, 'vectornode') !== false) {
+                file_put_contents($debug_file, "  [VECTORNODE] $key = " . (is_array($value) ? json_encode($value) : $value) . "\n", FILE_APPEND);
+            }
+        }
         
         // CRITICAL: Disable WordPress magic quotes to prevent unwanted slash escaping
         if (function_exists('wp_magic_quotes')) {
@@ -11181,7 +11191,9 @@ class Snefuru_Admin {
                         'vec_meta_title',
                         'vec_meta_description',
                         'meta-title-actual-output',
-                        'meta-description-actual-output'
+                        'meta-description-actual-output',
+                        'home_anchor_for_silkweaver_services',
+                        'home_anchor_for_silkweaver_locations'
                     ];
                     
                     if (in_array($field_name, $fields_to_skip)) {
@@ -11201,7 +11213,7 @@ class Snefuru_Admin {
                     
                     
                     // wp_pylons field - handle all fields properly WITHOUT slash escaping
-                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical', 'vectornode_override_rankmath', 'vectornode_enabled'])) {
+                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical', 'vectornode_override_rankmath', 'vectornode_enabled', 'vectornode_disable_rankmath_title'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
                         $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
                     } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id', 'jchronology_order_for_blog_posts', 'jchronology_batch'])) {
@@ -11339,6 +11351,15 @@ class Snefuru_Admin {
             }
             
             
+            // LOG EXACTLY WHAT WE'RE SENDING TO DATABASE
+            $debug_file = '/Users/kylecampbell/Documents/repos/localrepo-snefuru4/shiplavich-wp-sites/saltwater/app/public/wp-content/vectornode_save_debug.txt';
+            file_put_contents($debug_file, "\nUPDATE_DATA ARRAY BEING SENT TO DATABASE:\n", FILE_APPEND);
+            foreach ($update_data as $field => $value) {
+                if (strpos($field, 'vectornode') !== false) {
+                    file_put_contents($debug_file, "  $field => '$value'\n", FILE_APPEND);
+                }
+            }
+            
             $pylon_result = $wpdb->update(
                 $pylons_table,
                 $update_data,
@@ -11346,6 +11367,10 @@ class Snefuru_Admin {
                 $format_array,  // Use the correct format array
                 array('%d')
             );
+            
+            file_put_contents($debug_file, "\nDATABASE UPDATE RESULT: " . var_export($pylon_result, true) . "\n", FILE_APPEND);
+            file_put_contents($debug_file, "LAST QUERY: " . $wpdb->last_query . "\n", FILE_APPEND);
+            file_put_contents($debug_file, "LAST ERROR: " . $wpdb->last_error . "\n", FILE_APPEND);
             
             error_log("Dioptra save - Pylon update result: " . var_export($pylon_result, true));
             error_log("Dioptra save - Rows affected: " . $pylon_result);

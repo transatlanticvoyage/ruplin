@@ -601,6 +601,7 @@ class SnefuruPlugin {
             vectornode_meta_description TEXT DEFAULT NULL,
             vectornode_override_rankmath BOOLEAN DEFAULT FALSE,
             vectornode_enabled BOOLEAN DEFAULT TRUE,
+            vectornode_disable_rankmath_title BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
