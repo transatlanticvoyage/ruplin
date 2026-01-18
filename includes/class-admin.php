@@ -158,6 +158,17 @@ class Snefuru_Admin {
      * Add admin menu pages
      */
     public function add_admin_menu() {
+        // Add new Nuke Mar top-level menu item (appears above Ruplin Hub)
+        add_menu_page(
+            'Nuke Mar',
+            'Nuke Mar',
+            'manage_options',
+            'nuke_mar_toplevel',
+            array($this, 'nuke_mar_page'),
+            'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>'),
+            3.5
+        );
+        
         add_menu_page(
             'Snefuruplin Dashboard',
             'Ruplin Hub',
@@ -11042,6 +11053,8 @@ class Snefuru_Admin {
      * AJAX handler for saving dioptra data
      */
     public function handle_dioptra_save_data() {
+        error_log("🚨 SAVE FUNCTION CALLED - " . date('Y-m-d H:i:s'));
+        
         // CRITICAL: Disable WordPress magic quotes to prevent unwanted slash escaping
         if (function_exists('wp_magic_quotes')) {
             // WordPress might automatically add slashes - we need to prevent this
@@ -11052,15 +11065,16 @@ class Snefuru_Admin {
         }
         
         // Debug: Log all POST data
+        error_log("🚀 DIOPTRA SAVE TRIGGERED - POST data size: " . count($_POST) . " fields");
         error_log("Dioptra save attempt - POST data: " . json_encode($_POST));
         
-        // Debug: Check specifically for paragon_featured_image_id
-        if (isset($_POST['field_paragon_featured_image_id'])) {
-            error_log("PARAGON_FEATURED_IMAGE_ID found in POST: " . $_POST['field_paragon_featured_image_id']);
-        } else {
-            error_log("PARAGON_FEATURED_IMAGE_ID NOT found in POST data");
-            error_log("All field_ keys in POST: " . implode(', ', array_filter(array_keys($_POST), function($key) { return strpos($key, 'field_') === 0; })));
-        }
+        // TEMPORARY DEBUG: Check for VectorNode fields in POST
+        $vectornode_fields = array_filter($_POST, function($key) {
+            return strpos($key, 'vectornode') !== false;
+        }, ARRAY_FILTER_USE_KEY);
+        error_log("🔍 VECTORNODE FIELDS IN POST: " . print_r($vectornode_fields, true));
+        
+        
         
         // Verify nonce
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'dioptra_save_nonce')) {
@@ -11180,8 +11194,14 @@ class Snefuru_Admin {
                         error_log("KENDALL DEBUG SAVE: Processing field {$field_name} = '{$value}'");
                     }
                     
+                    // TEMPORARY DEBUG: Log VectorNode fields specifically
+                    if (strpos($field_name, 'vectornode') !== false) {
+                        error_log("🔍 VECTORNODE FIELD PROCESSING: {$field_name} = '{$value}'");
+                    }
+                    
+                    
                     // wp_pylons field - handle all fields properly WITHOUT slash escaping
-                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
+                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical', 'vectornode_override_rankmath', 'vectornode_enabled'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
                         $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
                     } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id', 'jchronology_order_for_blog_posts', 'jchronology_batch'])) {
@@ -11199,28 +11219,12 @@ class Snefuru_Admin {
                         $cleaned_value = $this->sanitize_text_without_slashes($value);
                         $update_data[$field_name] = $cleaned_value;
                         
-                        // DEBUG: Special tracking for staircase_page_template_desired
-                        if ($field_name === 'staircase_page_template_desired') {
-                            error_log("===== DIOPTRA STAIRCASE TEMPLATE DEBUG =====");
-                            error_log("Field name: " . $field_name);
-                            error_log("Raw value from POST: '" . $value . "'");
-                            error_log("Cleaned value: '" . $cleaned_value . "'");
-                            error_log("Will be saved to update_data as: '" . $update_data[$field_name] . "'");
-                        }
                         
                         // Additional debug for chenblock fields
                         if (strpos($field_name, 'chenblock') !== false) {
                             error_log("Dioptra save - Final value for {$field_name}: " . $cleaned_value);
                         }
                         
-                        // DEBUG: Special tracking for liz_pricing fields
-                        if (strpos($field_name, 'liz_pricing') !== false) {
-                            error_log("===== LIZ_PRICING SAVE DEBUG =====");
-                            error_log("Field name: " . $field_name);
-                            error_log("Raw value from POST: '" . $value . "'");
-                            error_log("Cleaned value: '" . $cleaned_value . "'");
-                            error_log("Will be saved to update_data as: '" . $update_data[$field_name] . "'");
-                        }
                     }
                 }
             }
@@ -11230,6 +11234,12 @@ class Snefuru_Admin {
         
         error_log("Dioptra save - Post update data: " . json_encode($post_update_data));
         error_log("Dioptra save - Pylon update data: " . json_encode($update_data));
+        
+        // TEMPORARY DEBUG: Check VectorNode fields in update_data specifically
+        $vectornode_update_fields = array_filter($update_data, function($key) {
+            return strpos($key, 'vectornode') !== false;
+        }, ARRAY_FILTER_USE_KEY);
+        error_log("🔍 VECTORNODE FIELDS IN UPDATE_DATA: " . print_r($vectornode_update_fields, true));
         
         // Debug: Check specifically for OSB fields
         if (isset($_POST['field_osb_is_enabled'])) {
@@ -11291,6 +11301,8 @@ class Snefuru_Admin {
             
             // Log all fields being updated
             error_log("Dioptra save - Fields being updated: " . implode(', ', array_keys($update_data)));
+            
+            
             error_log("Dioptra save - Update data: " . json_encode($update_data));
             
             // Special debug for paragon_featured_image_id
@@ -11305,7 +11317,9 @@ class Snefuru_Admin {
             foreach ($update_data as $field_name => $field_value) {
                 if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical', 
                                            'osb_services_per_row', 'osb_max_services_display',
-                                           'paragon_featured_image_id', 'pylon_id', 'rel_wp_post_id'])) {
+                                           'paragon_featured_image_id', 'pylon_id', 'rel_wp_post_id',
+                                           'vectornode_override_rankmath', 'vectornode_enabled',
+                                           'jchronology_order_for_blog_posts', 'jchronology_batch'])) {
                     $format_array[] = '%d';  // Integer fields
                 } else {
                     $format_array[] = '%s';  // String/text fields
@@ -11323,6 +11337,7 @@ class Snefuru_Admin {
             if (!empty($kendall_fields_in_update)) {
                 error_log("KENDALL DEBUG - Fields being sent to database: " . print_r($kendall_fields_in_update, true));
             }
+            
             
             $pylon_result = $wpdb->update(
                 $pylons_table,
@@ -13176,6 +13191,9 @@ class Snefuru_Admin {
      * Nuke Mar page - Content deletion tool
      */
     public function nuke_mar_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Include the Nuke Mar page file
         require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar.php';
         

@@ -383,6 +383,12 @@ function ruplin_render_dioptra_screen() {
                             style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
                         ocean3
                     </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
+                            data-tab="vectornode-meta"
+                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                        VectorNode Meta
+                    </button>
                 </div>
             </div>
             
@@ -1967,6 +1973,164 @@ function ruplin_render_dioptra_screen() {
                 </div>
             </div>
             
+            <!-- VectorNode Meta Tab -->
+            <div id="vectornode-meta" class="dioptra-tab-content" style="display: none; background: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none;">
+                <h3 style="margin-top: 0; color: #0073aa;">VectorNode SEO Meta Management</h3>
+                <p style="color: #666; margin-bottom: 20px;">Configure SEO meta titles and descriptions for this page. These fields can override RankMath if configured.</p>
+                
+                <table style="width: auto; border-collapse: collapse; margin-top: 0;">
+                    <thead>
+                        <tr style="background-color: #f1f1f1;">
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">checkbox</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">other-info</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">field-name</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black; width: 700px; min-width: 700px; max-width: 700px;">datum-house</th>
+                            <th style="border: 1px solid #ccc; padding: 8px; font-weight: bold; color: black;">blank1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Meta Title Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">SEO Meta Title</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_meta_title
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <textarea name="field_vectornode_meta_title" 
+                                          style="width: 100%; height: 60px; border: 1px solid #ddd; padding: 5px; font-size: 14px; resize: vertical;"
+                                          placeholder="Enter SEO meta title (60 characters recommended)"
+                                          maxlength="120"><?php echo esc_textarea($pylon_data['vectornode_meta_title'] ?? ''); ?></textarea>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Character count: <span id="meta-title-count">0</span>/60 (recommended)
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Meta Description Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">SEO Meta Description</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_meta_description
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <textarea name="field_vectornode_meta_description" 
+                                          style="width: 100%; height: 80px; border: 1px solid #ddd; padding: 5px; font-size: 14px; resize: vertical;"
+                                          placeholder="Enter SEO meta description (160 characters recommended)"
+                                          maxlength="320"><?php echo esc_textarea($pylon_data['vectornode_meta_description'] ?? ''); ?></textarea>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Character count: <span id="meta-description-count">0</span>/160 (recommended)
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Override RankMath Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">BOOL</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">BOOLEAN</span><br>
+                                <span style="font-size: 10px; color: #999;">Override RankMath</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_override_rankmath
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" 
+                                           name="field_vectornode_override_rankmath" 
+                                           value="1"
+                                           <?php echo !empty($pylon_data['vectornode_override_rankmath']) ? 'checked' : ''; ?>
+                                           style="transform: scale(1.2);" />
+                                    <span style="font-size: 14px; color: #333;">Override RankMath meta output when VectorNode meta is present</span>
+                                </label>
+                                <div style="font-size: 11px; color: #666; margin-top: 5px; margin-left: 28px;">
+                                    When enabled, VectorNode meta will take priority over RankMath meta tags
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- VectorNode Enabled Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">BOOL</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">BOOLEAN</span><br>
+                                <span style="font-size: 10px; color: #999;">VectorNode Enabled</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_enabled
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" 
+                                           name="field_vectornode_enabled" 
+                                           value="1"
+                                           <?php echo isset($pylon_data['vectornode_enabled']) && $pylon_data['vectornode_enabled'] !== '0' ? 'checked' : ''; ?>
+                                           style="transform: scale(1.2);" />
+                                    <span style="font-size: 14px; color: #333;">Enable VectorNode SEO meta system for this page</span>
+                                </label>
+                                <div style="font-size: 11px; color: #666; margin-top: 5px; margin-left: 28px;">
+                                    Master switch to enable/disable all VectorNode SEO functionality on this page
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Character Counter JavaScript -->
+                <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Character counter for meta title
+                    const metaTitleField = document.querySelector('textarea[name="field_vectornode_meta_title"]');
+                    const metaTitleCount = document.getElementById('meta-title-count');
+                    
+                    function updateMetaTitleCount() {
+                        const length = metaTitleField.value.length;
+                        metaTitleCount.textContent = length;
+                        metaTitleCount.style.color = length > 60 ? '#d93638' : length > 50 ? '#ff8c00' : '#666';
+                    }
+                    
+                    if (metaTitleField && metaTitleCount) {
+                        updateMetaTitleCount(); // Initial count
+                        metaTitleField.addEventListener('input', updateMetaTitleCount);
+                    }
+                    
+                    // Character counter for meta description
+                    const metaDescField = document.querySelector('textarea[name="field_vectornode_meta_description"]');
+                    const metaDescCount = document.getElementById('meta-description-count');
+                    
+                    function updateMetaDescCount() {
+                        const length = metaDescField.value.length;
+                        metaDescCount.textContent = length;
+                        metaDescCount.style.color = length > 160 ? '#d93638' : length > 140 ? '#ff8c00' : '#666';
+                    }
+                    
+                    if (metaDescField && metaDescCount) {
+                        updateMetaDescCount(); // Initial count
+                        metaDescField.addEventListener('input', updateMetaDescCount);
+                    }
+                });
+                </script>
+            </div>
+            
     </div>
     
     <script>
@@ -2336,6 +2500,8 @@ function ruplin_render_dioptra_screen() {
     
     // Save dioptra data functionality
     document.getElementById('dioptra-save-btn').addEventListener('click', function() {
+        alert('Save button clicked! VectorNode debug test');
+        
         const btn = this;
         const originalText = btn.innerHTML;
         
@@ -2348,8 +2514,9 @@ function ruplin_render_dioptra_screen() {
         // Get all inputs from the table
         const inputs = document.querySelectorAll('input[name^="field_"], textarea[name^="field_"], select[name^="field_"]');
         
-        // Debug: Log all fields being collected
-        console.log('Dioptra Save - Collecting fields:', inputs.length);
+        // Debug: Check for VectorNode fields specifically
+        const vectornodeInputs = Array.from(inputs).filter(input => input.name.includes('vectornode'));
+        alert('VectorNode fields found: ' + vectornodeInputs.length + '\nNames: ' + vectornodeInputs.map(i => i.name + '=' + i.value).join(', '));
         
         
         inputs.forEach(input => {
@@ -2357,14 +2524,8 @@ function ruplin_render_dioptra_screen() {
                 // For checkboxes, send 1 if checked, 0 if unchecked
                 const checkboxValue = input.checked ? '1' : '0';
                 formData.append(input.name, checkboxValue);
-                console.log(`Checkbox: ${input.name} = ${checkboxValue} (checked: ${input.checked})`);
             } else {
                 formData.append(input.name, input.value);
-                console.log(`Field: ${input.name} = ${input.value}`);
-                // Special debug for liz_pricing fields
-                if (input.name && input.name.includes('liz_pricing')) {
-                    console.log(`LIZ_PRICING DEBUG: ${input.name} = "${input.value}"`);
-                }
             }
         });
         
@@ -2373,14 +2534,12 @@ function ruplin_render_dioptra_screen() {
         if (boxOrderToggle) {
             const toggleValue = boxOrderToggle.checked ? '1' : '0';
             formData.append('box_order_is_active', toggleValue);
-            console.log(`Box order toggle: box_order_is_active = ${toggleValue} (checked: ${boxOrderToggle.checked})`);
         }
         
         // Get box order JSON
         const boxOrderJson = document.getElementById('box_order_json');
         if (boxOrderJson) {
             formData.append('box_order_json', boxOrderJson.value);
-            console.log(`Box order JSON: ${boxOrderJson.value.substring(0, 100)}${boxOrderJson.value.length > 100 ? '...' : ''}`);
         }
         
         // Update button state
@@ -2388,15 +2547,15 @@ function ruplin_render_dioptra_screen() {
         btn.style.background = '#ccc';
         btn.innerHTML = 'Saving...';
         
-        // AJAX request
+        
         fetch(ajaxurl, {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            return response.json();
+        })
         .then(data => {
-            // Show debug information
-            showSaveDebugInfo(data, formData);
             
             if (data.success) {
                 btn.style.background = '#46b450';

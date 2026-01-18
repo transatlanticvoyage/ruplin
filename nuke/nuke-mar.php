@@ -36,7 +36,19 @@ function ruplin_render_nuke_mar_page() {
     ?>
     
     <div class="wrap">
-        <h1><?php echo esc_html__('Nuke_Mar - Content Deletion Tool', 'ruplin'); ?></h1>
+        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+            <h1 style="margin: 0;"><?php echo esc_html__('Nuke_Mar - Content Deletion Tool', 'ruplin'); ?></h1>
+            <a href="<?php echo admin_url('admin.php?page=plasma_import_mar'); ?>" 
+               class="button grove-button" 
+               style="background: #1e3a5f; color: white; text-decoration: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; display: inline-block; transition: background-color 0.3s ease;">
+                <span style="color: #FFA500;">Go To Grove</span> - <span style="color: white;">plasma_import_mar</span>
+            </a>
+            <style>
+                .grove-button:hover {
+                    background: #87CEEB !important;
+                }
+            </style>
+        </div>
         
         <div class="notice notice-warning">
             <p><strong><?php echo esc_html__('WARNING:', 'ruplin'); ?></strong> <?php echo esc_html__('This tool will permanently delete content from your site. This action cannot be undone.', 'ruplin'); ?></p>
@@ -158,9 +170,7 @@ function ruplin_render_nuke_mar_page() {
                                         rows="6" 
                                         cols="50" 
                                         style="width: 100%; max-width: 500px; font-family: monospace;"
-                                        placeholder="Enter one URL per line">/privacy-policy/
-/terms-of-service/
-/sitemap/
+                                        placeholder="Enter one URL per line">/sitemap/
 /blog/
 /turtle-example-with-all-cherry-boxes/
 /turtle-example-minimal-cherry-boxes/</textarea>
