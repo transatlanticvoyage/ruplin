@@ -36,40 +36,50 @@ class VectorNode_Frontend {
     }
     
     private function __construct() {
-        // Remove WordPress default title if we're handling it
+        
+        // Remove WordPress default title if we're handling it (RankMath approach)
         remove_action('wp_head', '_wp_render_title_tag', 1);
         
-        // Add our meta output with high priority
-        add_action('wp_head', array($this, 'output_meta_tags'), 1);
+        // Add our meta output with high priority - use global function approach  
+        add_action('wp_head', 'vectornode_output_meta_tags', 1);
         
-        // Add title filter for themes without title-tag support
-        add_filter('wp_title', array($this, 'filter_wp_title'), 10, 3);
-        add_filter('pre_get_document_title', array($this, 'filter_document_title'), 10);
+        // Also ensure title is handled via document title filters (more robust like RankMath)
+        add_action('vectornode/head', '_wp_render_title_tag', 1);
+        add_filter('wp_title', array($this, 'filter_wp_title'), 15);
+        add_filter('pre_get_document_title', array($this, 'filter_document_title'), 15);
+        
+        // Store instance for global function access
+        global $vectornode_frontend_instance;
+        $vectornode_frontend_instance = $this;
     }
     
     /**
      * Output all meta tags
      */
     public function output_meta_tags() {
-        // Check if VectorNode is enabled for this page
-        if (is_singular()) {
-            $post_id = get_the_ID();
-            if (!VectorNode_Core::is_enabled($post_id)) {
-                // Re-add WordPress title if we're not handling it
-                _wp_render_title_tag();
-                return;
+        try {
+            // Check if VectorNode is enabled for this page
+            if (is_singular()) {
+                $post_id = get_the_ID();
+                if (!VectorNode_Core::is_enabled($post_id)) {
+                    // Re-add WordPress title if we're not handling it
+                    _wp_render_title_tag();
+                    return;
+                }
             }
+            
+            // Generate meta data
+            $this->generator = VectorNode_Generator::get_instance();
+            $this->meta = $this->generator->generate();
+        } catch (Exception $e) {
+            echo "<!-- VectorNode Error: " . $e->getMessage() . " -->\n";
+            return;
         }
         
-        // Generate meta data
-        $this->generator = VectorNode_Generator::get_instance();
-        $this->meta = $this->generator->generate();
-        
-        // Output meta tags
         echo "\n<!-- VectorNode SEO Meta Start -->\n";
         
-        // Title
-        $this->output_title();
+        // Use custom action hook approach like RankMath
+        do_action('vectornode/head');
         
         // Description
         $this->output_description();
@@ -262,6 +272,11 @@ class VectorNode_Frontend {
      * Filter wp_title for themes without title-tag support
      */
     public function filter_wp_title($title, $sep, $seplocation) {
+        // Use existing meta if already generated, otherwise generate new
+        if ($this->meta && !empty($this->meta['title'])) {
+            return $this->meta['title'];
+        }
+        
         if (!$this->generator) {
             $this->generator = VectorNode_Generator::get_instance();
         }
@@ -284,6 +299,11 @@ class VectorNode_Frontend {
             if (!VectorNode_Core::is_enabled($post_id)) {
                 return $title;
             }
+        }
+        
+        // Use existing meta if already generated, otherwise generate new
+        if ($this->meta && !empty($this->meta['title'])) {
+            return $this->meta['title'];
         }
         
         if (!$this->generator) {

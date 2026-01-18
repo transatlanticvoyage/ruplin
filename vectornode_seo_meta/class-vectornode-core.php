@@ -64,13 +64,20 @@ class VectorNode_Core {
      * Initialize hooks
      */
     private function init_hooks() {
-        // Initialize frontend output only on non-admin pages
-        if (!is_admin()) {
-            add_action('init', array($this, 'init_frontend'), 10);
+        // Check if VectorNode is enabled in settings
+        if (!self::is_vectornode_enabled()) {
+            return; // Exit early if VectorNode is disabled
         }
         
         // Initialize settings
         VectorNode_Settings::get_instance();
+        
+        // Initialize frontend output on wp hook to ensure proper timing
+        if (!is_admin()) {
+            add_action('wp', function() {
+                VectorNode_Frontend::get_instance();
+            }, 1);
+        }
     }
     
     /**
@@ -82,26 +89,11 @@ class VectorNode_Core {
     
     /**
      * Check if VectorNode is enabled for the current post
+     * Always returns true now since we removed the enable/disable functionality
      */
     public static function is_enabled($post_id = null) {
-        global $wpdb;
-        
-        if (!$post_id) {
-            $post_id = get_the_ID();
-        }
-        
-        if (!$post_id) {
-            return false;
-        }
-        
-        $pylons_table = $wpdb->prefix . 'pylons';
-        $enabled = $wpdb->get_var($wpdb->prepare(
-            "SELECT vectornode_enabled FROM $pylons_table WHERE rel_wp_post_id = %d",
-            $post_id
-        ));
-        
-        // Default to true if no record exists
-        return $enabled === null ? true : (bool) $enabled;
+        // VectorNode is always enabled now - no more enable/disable switches
+        return true;
     }
     
     /**
@@ -129,11 +121,18 @@ class VectorNode_Core {
                 vectornode_twitter_description,
                 vectornode_focus_keywords,
                 vectornode_schema_type,
-                vectornode_breadcrumb_title,
-                vectornode_enabled
+                vectornode_breadcrumb_title
             FROM $pylons_table 
             WHERE rel_wp_post_id = %d",
             $post_id
         ), ARRAY_A);
+    }
+    
+    /**
+     * Check if VectorNode system is enabled in settings
+     */
+    public static function is_vectornode_enabled() {
+        $options = get_option('ruplin_settings');
+        return isset($options['enable_vectornode']) && $options['enable_vectornode'] == 1;
     }
 }

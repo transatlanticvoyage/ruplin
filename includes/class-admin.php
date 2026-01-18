@@ -11213,10 +11213,10 @@ class Snefuru_Admin {
                     
                     
                     // wp_pylons field - handle all fields properly WITHOUT slash escaping
-                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical', 'vectornode_override_rankmath', 'vectornode_enabled', 'vectornode_disable_rankmath_title'])) {
+                    if (in_array($field_name, ['osb_is_enabled', 'exempt_from_silkweaver_menu_dynamical'])) {
                         // Handle boolean/checkbox fields - convert to proper integer
                         $update_data[$field_name] = ($value === '1' || $value === 1) ? 1 : 0;
-                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id', 'jchronology_order_for_blog_posts', 'jchronology_batch'])) {
+                    } elseif (in_array($field_name, ['osb_services_per_row', 'osb_max_services_display', 'paragon_featured_image_id', 'jchronology_order_for_blog_posts', 'jchronology_batch', 'vectornode_og_image_id'])) {
                         // Handle integer fields
                         $update_data[$field_name] = intval($value);
                         // DEBUG: Log paragon_featured_image_id specifically

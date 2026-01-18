@@ -150,6 +150,11 @@ class SnefuruPlugin {
         
         // Load VectorNode SEO system
         require_once SNEFURU_PLUGIN_PATH . 'vectornode_seo_meta/class-vectornode-core.php';
+        
+        // DEBUG: Disabled - VectorNode debug output
+        // if (file_exists(WP_CONTENT_DIR . '/vectornode-debug.php')) {
+        //     require_once WP_CONTENT_DIR . '/vectornode-debug.php';
+        // }
     }
     
     private function init_hooks() {
@@ -605,9 +610,6 @@ class SnefuruPlugin {
             liz_pricing_body TEXT DEFAULT NULL,
             vectornode_meta_title TEXT DEFAULT NULL,
             vectornode_meta_description TEXT DEFAULT NULL,
-            vectornode_override_rankmath BOOLEAN DEFAULT FALSE,
-            vectornode_enabled BOOLEAN DEFAULT TRUE,
-            vectornode_disable_rankmath_title BOOLEAN DEFAULT FALSE,
             vectornode_robots TEXT DEFAULT NULL,
             vectornode_canonical_url TEXT DEFAULT NULL,
             vectornode_og_title TEXT DEFAULT NULL,
@@ -1187,7 +1189,8 @@ class SnefuruPlugin {
     private function init_weasel_code_injection() {
         // Only run on frontend (not admin)
         if (!is_admin()) {
-            add_action('wp_head', array($this, 'inject_vectornode_meta_tags'), 1); // High priority to override other meta
+            // DISABLED OLD VECTORNODE - using new system
+            // add_action('wp_head', array($this, 'inject_vectornode_meta_tags'), 1); // High priority to override other meta
             add_action('wp_head', array($this, 'inject_weasel_header_codes'), 999);
             add_action('wp_footer', array($this, 'inject_weasel_footer_codes'), 999);
         }
@@ -1298,90 +1301,38 @@ class SnefuruPlugin {
     }
     
     /**
-     * Inject VectorNode SEO meta tags into the <head> section
-     * Runs early to potentially override RankMath and other SEO plugins
+     * OLD inject VectorNode function - DISABLED 
+     * Now using new VectorNode system with class-vectornode-frontend.php
      */
     public function inject_vectornode_meta_tags() {
-        global $wpdb;
-        
-        
-        // Only run on singular posts/pages
-        if (!is_singular()) {
-            return;
-        }
-        
-        $post_id = get_the_ID();
-        if (!$post_id) {
-            return;
-        }
-        
-        
-        $pylons_table = $wpdb->prefix . 'pylons';
-        
-        // Check if pylons table exists
-        if ($wpdb->get_var("SHOW TABLES LIKE '$pylons_table'") != $pylons_table) {
-            return;
-        }
-        
-        // Get vectornode meta data for this post
-        $vectornode_data = $wpdb->get_row($wpdb->prepare("
-            SELECT 
-                vectornode_meta_title,
-                vectornode_meta_description,
-                vectornode_override_rankmath,
-                vectornode_enabled
-            FROM $pylons_table 
-            WHERE rel_wp_post_id = %d
-        ", $post_id), ARRAY_A);
-        
-        
-        // Check if vectornode is enabled for this post
-        if (!$vectornode_data || empty($vectornode_data['vectornode_enabled'])) {
-            return;
-        }
-        
-        // Check if we should override RankMath
-        $should_override_rankmath = !empty($vectornode_data['vectornode_override_rankmath']);
-        
-        // Detect if RankMath is active
-        $rankmath_active = class_exists('RankMath') || function_exists('rank_math');
-        
-        // If RankMath is active and we should override it, remove its hooks
-        if ($rankmath_active && $should_override_rankmath) {
-            // Remove RankMath's meta title output
-            remove_action('wp_head', '_wp_render_title_tag', 1);
-            
-            // Try to remove RankMath's head action (priority 1 is their typical priority)
-            if (class_exists('RankMath\Frontend\Head')) {
-                remove_action('wp_head', array('RankMath\Frontend\Head', 'head'), 1);
-            }
-        }
-        
-        
-        echo "\n<!-- VectorNode SEO Meta Tags Start -->\n";
-        
-        // Output custom meta title
-        if (!empty($vectornode_data['vectornode_meta_title'])) {
-            $meta_title = esc_attr(wp_strip_all_tags($vectornode_data['vectornode_meta_title']));
-            echo '<title>' . $meta_title . '</title>' . "\n";
-            
-            // Also output Open Graph title
-            echo '<meta property="og:title" content="' . $meta_title . '" />' . "\n";
-        }
-        
-        // Output custom meta description
-        if (!empty($vectornode_data['vectornode_meta_description'])) {
-            $meta_description = esc_attr(wp_strip_all_tags($vectornode_data['vectornode_meta_description']));
-            echo '<meta name="description" content="' . $meta_description . '" />' . "\n";
-            
-            // Also output Open Graph description
-            echo '<meta property="og:description" content="' . $meta_description . '" />' . "\n";
-        }
-        
-        echo "<!-- VectorNode SEO Meta Tags End -->\n";
+        // DISABLED - using new VectorNode system instead
+        return;
     }
 }
 
+
+/**
+ * Global function to output VectorNode meta tags
+ * This approach may work better with wp_head hook timing
+ */
+function vectornode_output_meta_tags() {
+    // Check if VectorNode is enabled in settings (simple approach to avoid namespace issues)
+    $options = get_option('ruplin_settings');
+    $vectornode_enabled = isset($options['enable_vectornode']) && $options['enable_vectornode'] == 1;
+    
+    if (!$vectornode_enabled) {
+        return;
+    }
+    
+    global $vectornode_frontend_instance;
+    
+    if ($vectornode_frontend_instance && method_exists($vectornode_frontend_instance, 'output_meta_tags')) {
+        $vectornode_frontend_instance->output_meta_tags();
+    }
+}
+
+// Include settings page
+require_once plugin_dir_path(__FILE__) . 'ruplin_settings_mar.php';
 
 // Initialize the plugin
 new SnefuruPlugin(); 

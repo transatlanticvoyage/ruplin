@@ -2037,76 +2037,245 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
                         
-                        <!-- Override RankMath Row -->
+                        
+                        <!-- Robots Row -->
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
-                                <span style="color: #666; font-size: 12px;">BOOL</span>
+                                <span style="color: #666; font-size: 12px;">JSON</span>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
-                                <span style="font-size: 11px; color: #666;">BOOLEAN</span><br>
-                                <span style="font-size: 10px; color: #999;">Override RankMath</span>
+                                <span style="font-size: 11px; color: #666;">JSON</span><br>
+                                <span style="font-size: 10px; color: #999;">Robots Directives</span>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
-                                vectornode_override_rankmath
+                                vectornode_robots
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           name="field_vectornode_override_rankmath" 
-                                           value="1"
-                                           <?php echo !empty($pylon_data['vectornode_override_rankmath']) ? 'checked' : ''; ?>
-                                           style="transform: scale(1.2);" />
-                                    <span style="font-size: 14px; color: #333;">Override RankMath meta output when VectorNode meta is present</span>
-                                </label>
-                                <div style="font-size: 11px; color: #666; margin-top: 5px; margin-left: 28px;">
-                                    When enabled, VectorNode meta will take priority over RankMath meta tags
+                                <input type="text" name="field_vectornode_robots" 
+                                       style="width: 100%; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder='{"index":"noindex","follow":"follow"}'
+                                       value="<?php echo esc_attr($pylon_data['vectornode_robots'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    JSON format for robots directives. Leave empty for defaults.
                                 </div>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
                         
-                        <!-- VectorNode Enabled Row -->
+                        <!-- Canonical URL Row -->
                         <tr>
                             <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
-                                <span style="color: #666; font-size: 12px;">BOOL</span>
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
-                                <span style="font-size: 11px; color: #666;">BOOLEAN</span><br>
-                                <span style="font-size: 10px; color: #999;">VectorNode Enabled</span>
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">Canonical URL</span>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
-                                vectornode_enabled
+                                vectornode_canonical_url
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           name="field_vectornode_enabled" 
-                                           value="1"
-                                           <?php echo isset($pylon_data['vectornode_enabled']) && $pylon_data['vectornode_enabled'] !== '0' ? 'checked' : ''; ?>
-                                           style="transform: scale(1.2);" />
-                                    <span style="font-size: 14px; color: #333;">Enable VectorNode SEO meta system for this page</span>
-                                </label>
-                                <div style="font-size: 11px; color: #666; margin-top: 5px; margin-left: 28px;">
-                                    Master switch to enable/disable all VectorNode SEO functionality on this page
+                                <input type="url" name="field_vectornode_canonical_url" 
+                                       style="width: 100%; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder="https://example.com/custom-canonical-url"
+                                       value="<?php echo esc_attr($pylon_data['vectornode_canonical_url'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Custom canonical URL. Leave empty to use default.
                                 </div>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
+                        
+                        <!-- OG Title Row -->
                         <tr>
-                            <td style="border: 1px solid #ccc; padding: 8px; background: #f9f9f9; font-weight: 500; width: 240px;">
-                                Disable RankMath Title Tags
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                    <input type="checkbox" 
-                                           name="field_vectornode_disable_rankmath_title" 
-                                           value="1"
-                                           <?php echo isset($pylon_data['vectornode_disable_rankmath_title']) && $pylon_data['vectornode_disable_rankmath_title'] == '1' ? 'checked' : ''; ?>
-                                           style="transform: scale(1.2);" />
-                                    <span style="font-size: 14px; color: #333;">Completely disable RankMath title and og:title output</span>
-                                </label>
-                                <div style="font-size: 11px; color: #666; margin-top: 5px; margin-left: 28px;">
-                                    When enabled, removes all RankMath title and og:title tags to prevent duplicates
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">OG Title</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_og_title
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <input type="text" name="field_vectornode_og_title" 
+                                       style="width: 100%; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder="Open Graph title override"
+                                       value="<?php echo esc_attr($pylon_data['vectornode_og_title'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Open Graph title. Leave empty to use meta title.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- OG Description Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">OG Description</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_og_description
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <textarea name="field_vectornode_og_description" 
+                                          style="width: 100%; height: 60px; border: 1px solid #ddd; padding: 5px; font-size: 14px; resize: vertical;"
+                                          placeholder="Open Graph description override"><?php echo esc_textarea($pylon_data['vectornode_og_description'] ?? ''); ?></textarea>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Open Graph description. Leave empty to use meta description.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- OG Image ID Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">INT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">BIGINT</span><br>
+                                <span style="font-size: 10px; color: #999;">OG Image ID</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_og_image_id
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <input type="number" name="field_vectornode_og_image_id" 
+                                       style="width: 200px; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder="Media attachment ID"
+                                       value="<?php echo esc_attr($pylon_data['vectornode_og_image_id'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    WordPress media attachment ID for Open Graph image.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Twitter Title Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">Twitter Title</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_twitter_title
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <input type="text" name="field_vectornode_twitter_title" 
+                                       style="width: 100%; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder="Twitter Card title override"
+                                       value="<?php echo esc_attr($pylon_data['vectornode_twitter_title'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Twitter Card title. Leave empty to use OG title.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Twitter Description Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">Twitter Desc</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_twitter_description
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <textarea name="field_vectornode_twitter_description" 
+                                          style="width: 100%; height: 60px; border: 1px solid #ddd; padding: 5px; font-size: 14px; resize: vertical;"
+                                          placeholder="Twitter Card description override"><?php echo esc_textarea($pylon_data['vectornode_twitter_description'] ?? ''); ?></textarea>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Twitter Card description. Leave empty to use OG description.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Focus Keywords Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">Focus Keywords</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_focus_keywords
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <input type="text" name="field_vectornode_focus_keywords" 
+                                       style="width: 100%; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder="keyword1, keyword2, keyword3"
+                                       value="<?php echo esc_attr($pylon_data['vectornode_focus_keywords'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Comma-separated list of focus keywords for SEO.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Schema Type Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">VARCHAR</span><br>
+                                <span style="font-size: 10px; color: #999;">Schema Type</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_schema_type
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <select name="field_vectornode_schema_type" style="width: 200px; border: 1px solid #ddd; padding: 5px; font-size: 14px;">
+                                    <option value="">-- Default --</option>
+                                    <option value="article" <?php echo ($pylon_data['vectornode_schema_type'] ?? '') === 'article' ? 'selected' : ''; ?>>Article</option>
+                                    <option value="product" <?php echo ($pylon_data['vectornode_schema_type'] ?? '') === 'product' ? 'selected' : ''; ?>>Product</option>
+                                    <option value="service" <?php echo ($pylon_data['vectornode_schema_type'] ?? '') === 'service' ? 'selected' : ''; ?>>Service</option>
+                                    <option value="event" <?php echo ($pylon_data['vectornode_schema_type'] ?? '') === 'event' ? 'selected' : ''; ?>>Event</option>
+                                    <option value="person" <?php echo ($pylon_data['vectornode_schema_type'] ?? '') === 'person' ? 'selected' : ''; ?>>Person</option>
+                                    <option value="organization" <?php echo ($pylon_data['vectornode_schema_type'] ?? '') === 'organization' ? 'selected' : ''; ?>>Organization</option>
+                                </select>
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Schema.org markup type for structured data.
+                                </div>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;"></td>
+                        </tr>
+                        
+                        <!-- Breadcrumb Title Row -->
+                        <tr>
+                            <td style="border: 1px solid #ccc; padding: 8px; text-align: center;">
+                                <span style="color: #666; font-size: 12px;">TEXT</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <span style="font-size: 11px; color: #666;">TEXT</span><br>
+                                <span style="font-size: 10px; color: #999;">Breadcrumb Title</span>
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px; font-weight: bold;">
+                                vectornode_breadcrumb_title
+                            </td>
+                            <td style="border: 1px solid #ccc; padding: 8px;">
+                                <input type="text" name="field_vectornode_breadcrumb_title" 
+                                       style="width: 100%; border: 1px solid #ddd; padding: 5px; font-size: 14px;"
+                                       placeholder="Custom breadcrumb title"
+                                       value="<?php echo esc_attr($pylon_data['vectornode_breadcrumb_title'] ?? ''); ?>" />
+                                <div style="font-size: 11px; color: #666; margin-top: 2px;">
+                                    Custom title for breadcrumb navigation. Leave empty to use post title.
                                 </div>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
