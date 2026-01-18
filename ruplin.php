@@ -147,6 +147,9 @@ class SnefuruPlugin {
         }
         require_once SNEFURU_PLUGIN_PATH . 'hurricane/class-hurricane.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-orbit-mar-admin.php';
+        
+        // Load VectorNode SEO system
+        require_once SNEFURU_PLUGIN_PATH . 'vectornode_seo_meta/class-vectornode-core.php';
     }
     
     private function init_hooks() {
@@ -192,6 +195,9 @@ class SnefuruPlugin {
         
         // Initialize Weasel Code Injection
         $this->init_weasel_code_injection();
+        
+        // Initialize VectorNode SEO system
+        \Ruplin\VectorNode\VectorNode_Core::get_instance();
         
         // Register fallback shortcodes for non-Elementor mode
         $this->register_fallback_shortcodes();
@@ -602,6 +608,16 @@ class SnefuruPlugin {
             vectornode_override_rankmath BOOLEAN DEFAULT FALSE,
             vectornode_enabled BOOLEAN DEFAULT TRUE,
             vectornode_disable_rankmath_title BOOLEAN DEFAULT FALSE,
+            vectornode_robots TEXT DEFAULT NULL,
+            vectornode_canonical_url TEXT DEFAULT NULL,
+            vectornode_og_title TEXT DEFAULT NULL,
+            vectornode_og_description TEXT DEFAULT NULL,
+            vectornode_og_image_id BIGINT(20) DEFAULT NULL,
+            vectornode_twitter_title TEXT DEFAULT NULL,
+            vectornode_twitter_description TEXT DEFAULT NULL,
+            vectornode_focus_keywords TEXT DEFAULT NULL,
+            vectornode_schema_type VARCHAR(50) DEFAULT NULL,
+            vectornode_breadcrumb_title TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
