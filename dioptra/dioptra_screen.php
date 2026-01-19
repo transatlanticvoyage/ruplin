@@ -1053,7 +1053,11 @@ function ruplin_render_dioptra_screen() {
                             'serena_faq_box_q7',
                             'serena_faq_box_a7',
                             'serena_faq_box_q8',
-                            'serena_faq_box_a8'
+                            'serena_faq_box_a8',
+                            'serena_faq_box_q9',
+                            'serena_faq_box_a9',
+                            'serena_faq_box_q10',
+                            'serena_faq_box_a10'
                         ];
                         foreach ($serena_fields as $field_name): 
                             // Get value from database
@@ -2746,7 +2750,8 @@ function ruplin_render_dioptra_screen() {
         btn.style.background = '#ccc';
         btn.innerHTML = 'Saving...';
         
-        // Debug: Combine all debug info into one popup
+        // Debug popup disabled - no longer needed
+        /*
         const vectornodeDebugInfo = '=== VECTORNODE FIELDS DEBUG ===\nVectorNode fields found: ' + vectornodeInputs.length + '\n\nField details:\n' + 
                                     vectornodeInputs.map(i => i.name + ' = ' + i.value).join('\n');
         
@@ -2777,6 +2782,7 @@ function ruplin_render_dioptra_screen() {
             </div>
         `;
         document.body.appendChild(debugPopup);
+        */
         
         fetch(ajaxurl, {
             method: 'POST',
