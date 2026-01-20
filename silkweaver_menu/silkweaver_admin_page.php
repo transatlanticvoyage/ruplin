@@ -103,11 +103,11 @@ pull_all_location_pages_dynamically custom_raw_link_pinned=/service-areas Servic
                     <ul>
                         <li><code>target_url=/path anchor=Link Text</code> - Static menu link</li>
                         <li><code>pull_all_service_pages_dynamically</code> - Dynamic "Services" dropdown with all service pages (alphabetically ordered)</li>
-                        <li><code>pull_all_location_pages_dynamically</code> - Dynamic "Locations" dropdown with all location pages (alphabetically ordered)</li>
+                        <li><code>pull_all_location_pages_dynamically</code> - Dynamic "Areas We Serve" dropdown with all location pages (alphabetically ordered)</li>
                         <li><code>pull_all_service_pages_dynamically custom_raw_link=/path Link Text</code> - Services dropdown + custom link (inserted alphabetically)</li>
-                        <li><code>pull_all_location_pages_dynamically custom_raw_link=/path Link Text</code> - Locations dropdown + custom link (inserted alphabetically)</li>
+                        <li><code>pull_all_location_pages_dynamically custom_raw_link=/path Link Text</code> - Areas We Serve dropdown + custom link (inserted alphabetically)</li>
                         <li><code>pull_all_service_pages_dynamically custom_raw_link_pinned=/path Link Text</code> - Services dropdown + pinned link (appears first, not sorted)</li>
-                        <li><code>pull_all_location_pages_dynamically custom_raw_link_pinned=/path Link Text</code> - Locations dropdown + pinned link (appears first, not sorted)</li>
+                        <li><code>pull_all_location_pages_dynamically custom_raw_link_pinned=/path Link Text</code> - Areas We Serve dropdown + pinned link (appears first, not sorted)</li>
                     </ul>
                     
                     <p><strong>Custom Link Types:</strong></p>

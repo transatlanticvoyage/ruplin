@@ -181,7 +181,7 @@ class Silkweaver_Menu_Renderer {
                 $menu_items[] = array(
                     'type' => 'dynamic',
                     'archetype' => 'locationpage', 
-                    'title' => 'Locations',
+                    'title' => 'Areas We Serve',
                     'custom_links' => $custom_links,
                     'pinned_links' => $pinned_links
                 );
