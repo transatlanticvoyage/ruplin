@@ -23,6 +23,14 @@ function ruplin_render_dioptra_screen() {
     // Enqueue WordPress media scripts for image selector
     wp_enqueue_media();
     
+    // Enqueue Dioptra styles
+    wp_enqueue_style(
+        'dioptra-styles',
+        plugin_dir_url(__FILE__) . 'dioptra_styles.css',
+        array(),
+        '1.0.0'
+    );
+    
     // Get post ID from URL parameter
     $post_id = isset($_GET['post']) ? intval($_GET['post']) : 0;
     
@@ -283,110 +291,92 @@ function ruplin_render_dioptra_screen() {
                 <div id="dioptra-tabs-nav" style="border-bottom: 3px solid #ddd; margin-bottom: 0;">
                     <button type="button" 
                             class="dioptra-tab-btn active" 
-                            data-tab="main-tab-1a"
-                            style="background: #0073aa; color: white; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="main-tab-1a">
                         Main Tab 1a
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="our-services-config"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="our-services-config">
                         Our Services Box Config
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="box-ordering-config"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="box-ordering-config">
                         Box Ordering
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="box-ordering-tab-2"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="box-ordering-tab-2">
                         Box Ordering Tab 2 (original)
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="batman-hero"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="batman-hero">
                         batman_hero
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="chenblock-card"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="chenblock-card">
                         chenblock_card
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="post-content"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="post-content">
                         post_content
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="serena-faq"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="serena-faq">
                         serena_faq
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="liz-pricing"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="liz-pricing">
                         liz_pricing
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="brook-video-box-box"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="brook-video-box-box">
                         brook_video_box_box
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="olivia-authlinks-box"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="olivia-authlinks-box">
                         olivia_authlinks_box
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="ava-whychooseus-box"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="ava-whychooseus-box">
                         ava_whychooseus_box
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="kendall-ourprocess-box"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="kendall-ourprocess-box">
                         kendall_ourprocess_box
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="sara-customhtml-box"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="sara-customhtml-box">
                         sara_customhtml_box
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="ocean1"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="ocean1">
                         ocean1
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="ocean2"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="ocean2">
                         ocean2
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="ocean3"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="ocean3">
                         ocean3
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
-                            data-tab="vectornode-meta"
-                            style="background: #f1f1f1; color: #666; border: none; padding: 10px 20px; margin-right: 3px; cursor: pointer; font-weight: 600; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+                            data-tab="vectornode-meta">
                         VectorNode Meta
                     </button>
                 </div>
@@ -1080,10 +1070,11 @@ function ruplin_render_dioptra_screen() {
                                              style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
                                              placeholder="Enter FAQ answer..."><?php echo esc_textarea($value); ?></textarea>
                                 <?php else: ?>
-                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
-                                           value="<?php echo esc_attr($value); ?>"
-                                           placeholder="<?php echo strpos($field_name, '_q') !== false ? 'Enter FAQ question...' : ''; ?>"
-                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             id="field_<?php echo esc_attr($field_name); ?>"
+                                             class="dioptra-auto-expand-field"
+                                             rows="1"
+                                             placeholder="<?php echo strpos($field_name, '_q') !== false ? 'Enter FAQ question...' : ''; ?>"><?php echo esc_textarea($value); ?></textarea>
                                 <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -1129,15 +1120,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <?php if ($field_name === 'liz_pricing_body'): ?>
-                                    <textarea name="field_<?php echo $field_name; ?>" 
-                                             style="width: 100%; height: 120px; padding: 4px; border: 1px solid #ddd; border-radius: 3px; font-family: monospace; font-size: 13px;" 
-                                             placeholder="Enter pricing items, one per line..."><?php echo esc_textarea($value); ?></textarea>
-                                <?php else: ?>
-                                    <input type="text" name="field_<?php echo $field_name; ?>" 
-                                           value="<?php echo esc_attr($value); ?>" 
-                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
-                                <?php endif; ?>
+                                <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                         id="field_<?php echo esc_attr($field_name); ?>"
+                                         class="dioptra-auto-expand-field"
+                                         rows="1"
+                                         placeholder="<?php echo ($field_name === 'liz_pricing_body') ? 'Enter pricing items, one per line...' : 'Enter content...'; ?>"><?php echo esc_textarea($value); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1193,10 +1180,11 @@ function ruplin_render_dioptra_screen() {
                                              style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
                                              placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
                                 <?php else: ?>
-                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
-                                           value="<?php echo esc_attr($value); ?>"
-                                           placeholder="Enter content..."
-                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             id="field_<?php echo esc_attr($field_name); ?>"
+                                             class="dioptra-auto-expand-field"
+                                             rows="1"
+                                             placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
                                 <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -1273,10 +1261,11 @@ function ruplin_render_dioptra_screen() {
                                              style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
                                              placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
                                 <?php else: ?>
-                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
-                                           value="<?php echo esc_attr($value); ?>"
-                                           placeholder="Enter content..."
-                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
+                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                             id="field_<?php echo esc_attr($field_name); ?>"
+                                             class="dioptra-auto-expand-field"
+                                             rows="1"
+                                             placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
                                 <?php endif; ?>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
@@ -1347,16 +1336,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;"><?php echo $field_name; ?></td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <?php if (strpos($field_name, '_description') !== false): ?>
-                                    <textarea name="field_<?php echo esc_attr($field_name); ?>" 
-                                             style="width: 100%; height: 80px; border: 1px solid #ddd; border-radius: 3px; padding: 4px; font-family: monospace; font-size: 12px; resize: vertical;"
-                                             placeholder="Enter description..."><?php echo esc_textarea($value); ?></textarea>
-                                <?php else: ?>
-                                    <input type="text" name="field_<?php echo esc_attr($field_name); ?>" 
-                                           value="<?php echo esc_attr($value); ?>"
-                                           placeholder="Enter content..."
-                                           style="width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 3px;" />
-                                <?php endif; ?>
+                                <textarea name="field_<?php echo esc_attr($field_name); ?>" 
+                                         id="field_<?php echo esc_attr($field_name); ?>"
+                                         class="dioptra-auto-expand-field"
+                                         rows="1"
+                                         placeholder="Enter content..."><?php echo esc_textarea($value); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1399,11 +1383,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_heading</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_heading" 
                                        id="field_kendall_our_process_heading"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_heading'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_heading'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1414,11 +1398,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_subheading</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_subheading" 
                                        id="field_kendall_our_process_subheading"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_subheading'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_subheading'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1429,11 +1413,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_description</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_description" 
                                        id="field_kendall_our_process_description"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_description'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_description'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1444,11 +1428,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_1</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_1" 
                                        id="field_kendall_our_process_step_1"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_1'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_1'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1459,11 +1443,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_2</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_2" 
                                        id="field_kendall_our_process_step_2"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_2'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_2'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1474,11 +1458,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_3</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_3" 
                                        id="field_kendall_our_process_step_3"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_3'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_3'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1489,11 +1473,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_4</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_4" 
                                        id="field_kendall_our_process_step_4"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_4'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_4'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1504,11 +1488,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_5</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_5" 
                                        id="field_kendall_our_process_step_5"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_5'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_5'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1519,11 +1503,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_6</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_6" 
                                        id="field_kendall_our_process_step_6"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_6'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_6'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1534,11 +1518,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_7</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_7" 
                                        id="field_kendall_our_process_step_7"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_7'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_7'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1549,11 +1533,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_8</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_8" 
                                        id="field_kendall_our_process_step_8"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_8'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_8'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1564,11 +1548,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_9</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_9" 
                                        id="field_kendall_our_process_step_9"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_9'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_9'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -1579,11 +1563,11 @@ function ruplin_render_dioptra_screen() {
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                             <td style="border: 1px solid #ccc; padding: 8px;">kendall_our_process_step_10</td>
                             <td style="border: 1px solid #ccc; padding: 8px; width: 700px; min-width: 700px; max-width: 700px;">
-                                <input type="text" 
+                                <textarea 
                                        name="field_kendall_our_process_step_10" 
                                        id="field_kendall_our_process_step_10"
-                                       value="<?php echo esc_attr($pylon_data['kendall_our_process_step_10'] ?? ''); ?>" 
-                                       style="width: 100%; border: 1px solid #ccc; padding: 4px;" />
+                                       class="dioptra-auto-expand-field"
+                                       rows="1"><?php echo esc_textarea($pylon_data['kendall_our_process_step_10'] ?? ''); ?></textarea>
                             </td>
                             <td style="border: 1px solid #ccc; padding: 8px;"></td>
                         </tr>
@@ -2384,8 +2368,9 @@ function ruplin_render_dioptra_screen() {
         const tabButtons = document.querySelectorAll('.dioptra-tab-btn');
         tabButtons.forEach(btn => {
             btn.classList.remove('active');
-            btn.style.background = '#f1f1f1';
-            btn.style.color = '#666';
+            // Remove inline styles to let CSS take over
+            btn.style.background = '';
+            btn.style.color = '';
         });
         
         // Show target tab content
@@ -2398,8 +2383,9 @@ function ruplin_render_dioptra_screen() {
         const targetButton = document.querySelector(`[data-tab="${targetTabId}"]`);
         if (targetButton) {
             targetButton.classList.add('active');
-            targetButton.style.background = '#0073aa';
-            targetButton.style.color = 'white';
+            // Remove inline styles to let CSS take over
+            targetButton.style.background = '';
+            targetButton.style.color = '';
         }
         
         // Update URL if requested
@@ -4174,6 +4160,86 @@ function ruplin_render_dioptra_screen() {
         
         // Initialize word count
         updateWordCount();
+    }
+    
+    // Dioptra Auto-Expanding Textareas - Universal Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeDioptraAutoExpand();
+    });
+    
+    function initializeDioptraAutoExpand() {
+        // Get all textareas with the dioptra-auto-expand-field class
+        const textareas = document.querySelectorAll('.dioptra-auto-expand-field');
+        
+        if (textareas.length === 0) {
+            return; // No textareas found, exit gracefully
+        }
+        
+        // Function to auto-resize a textarea
+        function autoResizeTextarea(textarea) {
+            // Store the current scroll position
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Reset height to recalculate
+            textarea.style.height = 'auto';
+            
+            // Calculate the scroll height
+            const scrollHeight = textarea.scrollHeight;
+            
+            // Set the height to the scroll height
+            textarea.style.height = scrollHeight + 'px';
+            
+            // Restore scroll position
+            window.scrollTo(0, scrollTop);
+        }
+        
+        // Add event listeners to each textarea
+        textareas.forEach(textarea => {
+            // Initial resize on page load
+            autoResizeTextarea(textarea);
+            
+            // Resize on input
+            textarea.addEventListener('input', function() {
+                autoResizeTextarea(this);
+            });
+            
+            // Also resize on focus (in case content was changed programmatically)
+            textarea.addEventListener('focus', function() {
+                autoResizeTextarea(this);
+            });
+        });
+        
+        // Set up MutationObserver for tab visibility changes
+        const tabContainers = [
+            'kendall-ourprocess-box',
+            'ava-whychooseus-box',
+            'liz-pricing',
+            'serena-faq',
+            'brook-video-box-box',
+            'olivia-authlinks-box'
+        ];
+        
+        tabContainers.forEach(tabId => {
+            const tabElement = document.getElementById(tabId);
+            if (tabElement) {
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.type === 'attributes' && 
+                            mutation.attributeName === 'style' &&
+                            mutation.target.style.display !== 'none') {
+                            // Tab is now visible, resize all textareas in this tab
+                            const tabTextareas = mutation.target.querySelectorAll('.dioptra-auto-expand-field');
+                            tabTextareas.forEach(ta => autoResizeTextarea(ta));
+                        }
+                    });
+                });
+                
+                observer.observe(tabElement, {
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+        });
     }
 
     </script>
