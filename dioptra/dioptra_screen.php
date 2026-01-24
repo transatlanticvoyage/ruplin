@@ -316,6 +316,11 @@ function ruplin_render_dioptra_screen() {
                     </button>
                     <button type="button" 
                             class="dioptra-tab-btn" 
+                            data-tab="hero-styling">
+                        hero styling
+                    </button>
+                    <button type="button" 
+                            class="dioptra-tab-btn" 
                             data-tab="chenblock-card">
                         chenblock_card
                     </button>
@@ -945,6 +950,53 @@ function ruplin_render_dioptra_screen() {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- hero styling Tab -->
+            <div id="hero-styling" class="dioptra-tab-content" style="display: none;">
+                <div style="padding: 20px; max-width: 800px;">
+                    <h3 style="margin-bottom: 20px; color: #333;">Hero Background Size Configuration</h3>
+                    
+                    <!-- hero_style_setting_background_size field -->
+                    <div style="margin-bottom: 25px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9;">
+                        <label style="display: block; margin-bottom: 10px;">
+                            <strong>hero_style_setting_background_size</strong>
+                        </label>
+                        
+                        <input type="text" 
+                               id="hero_style_setting_background_size" 
+                               name="hero_style_setting_background_size" 
+                               value="<?php echo esc_attr($pylon_data['hero_style_setting_background_size'] ?? ''); ?>"
+                               style="width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 3px; margin-bottom: 15px;"
+                               placeholder="Enter background-size value">
+                        
+                        <!-- Pill buttons for quick selection -->
+                        <div style="margin-bottom: 15px;">
+                            <button type="button" 
+                                    onclick="document.getElementById('hero_style_setting_background_size').value='contain'"
+                                    style="background: #4CAF50; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin-right: 10px; font-size: 14px;">
+                                contain
+                            </button>
+                            <button type="button" 
+                                    onclick="document.getElementById('hero_style_setting_background_size').value='100% auto'"
+                                    style="background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin-right: 10px; font-size: 14px;">
+                                100% auto
+                            </button>
+                            <button type="button" 
+                                    onclick="document.getElementById('hero_style_setting_background_size').value='cover'"
+                                    style="background: #FF9800; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; margin-right: 10px; font-size: 14px;">
+                                cover
+                            </button>
+                        </div>
+                        
+                        <!-- Descriptions -->
+                        <div style="font-size: 13px; color: #666; line-height: 1.4;">
+                            <div style="margin-bottom: 8px;"><strong>contain:</strong> Scales image to fit entirely within container (may show background, never skews)</div>
+                            <div style="margin-bottom: 8px;"><strong>100% auto:</strong> Fills container width, height scales proportionally (preserves aspect ratio)</div>
+                            <div><strong>cover:</strong> Fills entire container, may crop image (can cause skewing if container aspect ratio differs)</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- chenblock_card Tab -->
@@ -2716,6 +2768,12 @@ function ruplin_render_dioptra_screen() {
         // Now append unique fields to FormData
         for (const [name, value] of fieldMap) {
             formData.append(name, value);
+        }
+        
+        // Get hero styling field
+        const heroBackgroundSizeField = document.getElementById('hero_style_setting_background_size');
+        if (heroBackgroundSizeField) {
+            formData.append('hero_style_setting_background_size', heroBackgroundSizeField.value);
         }
         
         // Get box order toggle switch

@@ -11156,6 +11156,17 @@ class Snefuru_Admin {
             }
         }
         
+        // Process hero styling field separately
+        if (isset($_POST['hero_style_setting_background_size'])) {
+            $hero_bg_size = stripslashes_deep($_POST['hero_style_setting_background_size']);
+            $hero_bg_size = wp_unslash($hero_bg_size);
+            $hero_bg_size = stripslashes($hero_bg_size);
+            $hero_bg_size = sanitize_text_field($hero_bg_size);
+            
+            $update_data['hero_style_setting_background_size'] = $hero_bg_size;
+            error_log("Dioptra save - Hero background size field received: " . $hero_bg_size);
+        }
+        
         // Process field updates - COMPLETELY PREVENT ALL SLASH ESCAPING
         foreach ($_POST as $key => $value) {
             if (strpos($key, 'field_') === 0) {

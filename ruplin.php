@@ -485,6 +485,7 @@ class SnefuruPlugin {
             pylon_archetype TEXT DEFAULT NULL,
             hero_mainheading TEXT DEFAULT NULL,
             hero_subheading TEXT DEFAULT NULL,
+            hero_style_setting_background_size VARCHAR(50) DEFAULT NULL,
             chenblock_card1_title TEXT DEFAULT NULL,
             chenblock_card1_desc TEXT DEFAULT NULL,
             chenblock_card2_title TEXT DEFAULT NULL,
