@@ -11,6 +11,10 @@ class Snefuru_Admin {
         // Include all page files
         $this->include_page_files();
         
+        // Include change password functionality
+        require_once SNEFURU_PLUGIN_PATH . 'change_pass/change-password-mar.php';
+        $this->change_password_mar = new Ruplin_Change_Password_Mar();
+        
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_init', array($this, 'init_settings'));
         
@@ -316,6 +320,15 @@ class Snefuru_Admin {
             'manage_options',
             'favicon_mar',
             array($this, 'favicon_mar_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Change Password Mar',
+            'Change Password Mar',
+            'read',
+            'change_password_mar',
+            array($this, 'change_password_mar_page')
         );
         
         // Note: Aragon Image Manager menu is handled by its own class
@@ -13401,5 +13414,18 @@ class Snefuru_Admin {
         // Include the separate page file
         require_once SNEFURU_PLUGIN_PATH . 'favicon_manager/favicon-page.php';
         ruplin_favicon_mar_page();
+    }
+    
+    /**
+     * Change Password Mar page
+     */
+    public function change_password_mar_page() {
+        // Check user permissions - only need to be logged in
+        if (!is_user_logged_in()) {
+            wp_die(__('You must be logged in to access this page.'));
+        }
+        
+        // Render the change password page
+        $this->change_password_mar->render_page();
     }
 } 
