@@ -51,6 +51,9 @@ class Zen_Shortcodes {
         // URL utility shortcodes
         add_shortcode('root_for_inner_links', array($this, 'render_root_for_inner_links'));
         
+        // Sitemap shortcodes
+        add_shortcode('ruplin_sitemap_method_2', array($this, 'render_ruplin_sitemap_method_2'));
+        
         // Register dynamic hoof shortcodes
         $this->register_hoof_shortcodes();
     }
@@ -857,5 +860,171 @@ class Zen_Shortcodes {
         $final_url = $scheme . '://' . $final_domain . $port;
         
         return esc_url($final_url);
+    }
+    
+    /**
+     * Render sitemap method 2 shortcode
+     * Displays all pages and posts organized by section
+     * Usage: [ruplin_sitemap_method_2]
+     */
+    public function render_ruplin_sitemap_method_2($atts) {
+        global $wpdb;
+        
+        $output = '<div class="ruplin-sitemap">';
+        
+        // Section 1: Service Pages (only show if there are service pages)
+        // Get service pages from zen_services table
+        $services_table = $wpdb->prefix . 'zen_services';
+        $service_pages = $wpdb->get_results("
+            SELECT DISTINCT asn_service_page_id 
+            FROM $services_table 
+            WHERE asn_service_page_id IS NOT NULL 
+            AND asn_service_page_id != 0
+        ");
+        
+        $service_page_ids = array();
+        $service_pages_html = '';
+        foreach ($service_pages as $service) {
+            $page_id = $service->asn_service_page_id;
+            if ($page_id && get_post_status($page_id) === 'publish') {
+                $service_page_ids[] = $page_id;
+                $page_url = get_permalink($page_id);
+                $page_title = get_the_title($page_id);
+                $service_pages_html .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($page_title) . '</a></li>';
+            }
+        }
+        
+        // Only show Service Pages section if there are service pages
+        if (!empty($service_page_ids)) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Service Pages:</h3>';
+            $output .= '<ul>';
+            $output .= $service_pages_html;
+            $output .= '</ul>';
+            $output .= '</div>';
+        }
+        
+        // Section 2: Pages (only show if there are other pages)
+        // Get the posts page ID to exclude it
+        $posts_page_id = get_option('page_for_posts');
+        
+        // Get all published pages except service pages and posts page
+        $exclude_ids = array_merge($service_page_ids, array($posts_page_id));
+        
+        $args = array(
+            'post_type' => 'page',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'post__not_in' => $exclude_ids
+        );
+        
+        $pages = get_posts($args);
+        
+        // Only show Pages section if there are other pages
+        if ($pages) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Pages:</h3>';
+            $output .= '<ul>';
+            
+            // Check for front page and add it first if it exists in the list
+            $front_page_id = get_option('page_on_front');
+            $front_page_added = false;
+            
+            if ($front_page_id && get_post_status($front_page_id) === 'publish') {
+                // Check if front page is in our pages list
+                foreach ($pages as $key => $page) {
+                    if ($page->ID == $front_page_id) {
+                        $page_url = get_permalink($page->ID);
+                        $page_title = $page->post_title;
+                        $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($page_title) . '</a></li>';
+                        $front_page_added = true;
+                        // Remove from array so it's not added again
+                        unset($pages[$key]);
+                        break;
+                    }
+                }
+            }
+            
+            // Add remaining pages
+            foreach ($pages as $page) {
+                $page_url = get_permalink($page->ID);
+                $page_title = $page->post_title;
+                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($page_title) . '</a></li>';
+            }
+            $output .= '</ul>';
+            $output .= '</div>';
+        }
+        
+        // Section 3: Blog Posts (only show if there are blog posts)
+        // Get all published blog posts
+        $args = array(
+            'post_type' => 'post',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'orderby' => 'date',
+            'order' => 'DESC'
+        );
+        
+        $posts = get_posts($args);
+        
+        // Only show Blog section if there are blog posts
+        if ($posts) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Blog:</h3>';
+            $output .= '<ul>';
+            
+            // Add blog posts page link first (if set)
+            $posts_page_id = get_option('page_for_posts');
+            if ($posts_page_id) {
+                $posts_page_url = get_permalink($posts_page_id);
+                $posts_page_title = get_the_title($posts_page_id);
+                $output .= '<li><a href="' . esc_url($posts_page_url) . '">' . esc_html($posts_page_title) . '</a></li>';
+            }
+            
+            foreach ($posts as $post) {
+                $post_url = get_permalink($post->ID);
+                $post_title = $post->post_title;
+                $output .= '<li><a href="' . esc_url($post_url) . '">' . esc_html($post_title) . '</a></li>';
+            }
+            $output .= '</ul>';
+            $output .= '</div>';
+        }
+        
+        $output .= '</div>'; // Close ruplin-sitemap
+        
+        // Add some basic CSS
+        $output .= '<style>
+            .ruplin-sitemap {
+                padding: 20px 0;
+            }
+            .ruplin-sitemap .sitemap-section {
+                margin-bottom: 30px;
+            }
+            .ruplin-sitemap h3 {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+                font-weight: bold;
+            }
+            .ruplin-sitemap ul {
+                list-style-type: none;
+                padding-left: 0;
+                margin: 0;
+            }
+            .ruplin-sitemap li {
+                margin-bottom: 8px;
+            }
+            .ruplin-sitemap a {
+                color: #009bff;
+                text-decoration: none;
+                font-weight: normal;
+            }
+            .ruplin-sitemap a:hover {
+                text-decoration: underline;
+            }
+        </style>';
+        
+        return $output;
     }
 }
