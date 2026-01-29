@@ -133,6 +133,9 @@ class SnefuruPlugin {
         // Load Weasel Mar (Contact Form) Management Page
         require_once SNEFURU_PLUGIN_PATH . 'includes/pages/weasel-mar-page.php';
         
+        // Load Sitemap Shortcode Mar Management Page
+        require_once SNEFURU_PLUGIN_PATH . 'sitemap_shortcodes/class-sitemap-shortcode-mar.php';
+        
         // Load Schema System
         require_once SNEFURU_PLUGIN_PATH . 'schema_system/class-schema-generator.php';
         

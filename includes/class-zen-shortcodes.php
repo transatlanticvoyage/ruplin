@@ -1033,66 +1033,41 @@ class Zen_Shortcodes {
      * Render sitemap method 3 shortcode
      * Similar to method 2 but uses "Home" as hardcoded text for homepage
      * Also checks wp_pylons.locpage_neighborhood for custom anchor text
+     * Separates legal pages (privacy, terms) to bottom after HR
      * Usage: [ruplin_sitemap_method_3]
      */
     public function render_ruplin_sitemap_method_3($atts) {
         global $wpdb;
         
-        $output = '<div class="ruplin-sitemap">';
+        // Handle shortcode attributes
+        $atts = shortcode_atts(array(
+            'service_anchor' => 'moniker', // Options: 'moniker' (default), 'post_title'
+            'neighborhood_anchor' => 'locpage_neighborhood', // Options: 'locpage_neighborhood' (default), 'post_title'
+            'city_anchor' => 'city_state', // Options: 'city_state' (default), 'city', 'post_title'
+            'about_anchor' => 'about_us', // Options: 'about_us' (default), 'post_title'
+            'contact_anchor' => 'contact_us', // Options: 'contact_us' (default), 'post_title'
+            'custom_anchors' => '' // JSON: '{"page-slug":"Custom Text"}'
+        ), $atts, 'ruplin_sitemap_method_3');
         
-        // Section 1: Service Pages (only show if there are service pages)
-        // Get service pages from zen_services table
-        $services_table = $wpdb->prefix . 'zen_services';
-        $pylons_table = $wpdb->prefix . 'pylons';
-        
-        $service_pages = $wpdb->get_results("
-            SELECT DISTINCT asn_service_page_id 
-            FROM $services_table 
-            WHERE asn_service_page_id IS NOT NULL 
-            AND asn_service_page_id != 0
-        ");
-        
-        $service_page_ids = array();
-        $service_pages_html = '';
-        foreach ($service_pages as $service) {
-            $page_id = $service->asn_service_page_id;
-            if ($page_id && get_post_status($page_id) === 'publish') {
-                $service_page_ids[] = $page_id;
-                $page_url = get_permalink($page_id);
-                
-                // Check wp_pylons for locpage_neighborhood
-                $pylon_data = $wpdb->get_row($wpdb->prepare(
-                    "SELECT locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
-                    $page_id
-                ));
-                
-                // Use locpage_neighborhood if exists and not empty, otherwise use post title
-                if ($pylon_data && !empty($pylon_data->locpage_neighborhood)) {
-                    $page_title = $pylon_data->locpage_neighborhood;
-                } else {
-                    $page_title = get_the_title($page_id);
-                }
-                
-                $service_pages_html .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($page_title) . '</a></li>';
+        // Parse custom anchors JSON
+        $custom_anchors = array();
+        if (!empty($atts['custom_anchors'])) {
+            $custom_anchors = json_decode($atts['custom_anchors'], true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $custom_anchors = array(); // Fallback if JSON is invalid
             }
         }
         
-        // Only show Service Pages section if there are service pages
-        if (!empty($service_page_ids)) {
-            $output .= '<div class="sitemap-section">';
-            $output .= '<h3>Service Pages:</h3>';
-            $output .= '<ul>';
-            $output .= $service_pages_html;
-            $output .= '</ul>';
-            $output .= '</div>';
-        }
+        $output = '<div class="ruplin-sitemap">';
         
-        // Section 2: Pages (only show if there are other pages)
+        // Initialize pylons table variable
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
         // Get the posts page ID to exclude it
         $posts_page_id = get_option('page_for_posts');
         
-        // Get all published pages except service pages and posts page
-        $exclude_ids = array_merge($service_page_ids, array($posts_page_id));
+        // Get all published pages except posts page
+        $exclude_ids = array($posts_page_id);
         
         $args = array(
             'post_type' => 'page',
@@ -1105,55 +1080,255 @@ class Zen_Shortcodes {
         
         $pages = get_posts($args);
         
-        // Only show Pages section if there are other pages
-        if ($pages) {
-            $output .= '<div class="sitemap-section">';
-            $output .= '<h3>Pages:</h3>';
-            $output .= '<ul>';
-            
-            // Check for front page and add it first if it exists in the list
-            $front_page_id = get_option('page_on_front');
-            $front_page_added = false;
-            
-            if ($front_page_id && get_post_status($front_page_id) === 'publish') {
-                // Check if front page is in our pages list
-                foreach ($pages as $key => $page) {
-                    if ($page->ID == $front_page_id) {
-                        $page_url = get_permalink($page->ID);
-                        // Use hardcoded "Home" text for the homepage
-                        $output .= '<li><a href="' . esc_url($page_url) . '">Home</a></li>';
-                        $front_page_added = true;
-                        // Remove from array so it's not added again
-                        unset($pages[$key]);
-                        break;
-                    }
-                }
+        // Separate pages into categories
+        $legal_pages = array();
+        $service_pages_from_pages = array();
+        $neighborhood_pages = array();
+        $city_pages = array();
+        $other_pages = array();
+        $front_page_id = get_option('page_on_front');
+        $home_page = null;
+        
+        foreach ($pages as $page) {
+            // Check if this is the home page
+            if ($page->ID == $front_page_id) {
+                $home_page = $page;
+                continue; // Skip to next page
             }
             
-            // Add remaining pages
-            foreach ($pages as $page) {
+            $title_lower = strtolower($page->post_title);
+            
+            // Check if this is a privacy policy page
+            $is_privacy = (strpos($title_lower, 'privacy') !== false && strpos($title_lower, 'policy') !== false);
+            
+            // Check if this is a terms page
+            $has_term = (strpos($title_lower, 'term') !== false || strpos($title_lower, 'terms') !== false);
+            $has_conditions_or_service = (strpos($title_lower, 'conditions') !== false || strpos($title_lower, 'service') !== false);
+            $is_terms = ($has_term && $has_conditions_or_service);
+            
+            if ($is_privacy || $is_terms) {
+                $legal_pages[] = $page;
+                continue;
+            }
+            
+            // Check pylon_archetype and locpage_neighborhood for page categorization
+            $pylon_data = $wpdb->get_row($wpdb->prepare(
+                "SELECT pylon_archetype, locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
+                $page->ID
+            ));
+            
+            if ($pylon_data) {
+                if ($pylon_data->pylon_archetype === 'servicepage') {
+                    $service_pages_from_pages[] = $page;
+                } elseif ($pylon_data->pylon_archetype === 'locationpage') {
+                    // Split location pages into neighborhood vs city
+                    if (!empty($pylon_data->locpage_neighborhood)) {
+                        $neighborhood_pages[] = $page;
+                    } else {
+                        $city_pages[] = $page;
+                    }
+                } else {
+                    // All other pages including aboutpage, contactpage, etc.
+                    $other_pages[] = $page;
+                }
+            } else {
+                // No pylon data, put in other pages
+                $other_pages[] = $page;
+            }
+        }
+        
+        // Section 2: Home page with HR after
+        if ($home_page && get_post_status($home_page->ID) === 'publish') {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<ul>';
+            $page_url = get_permalink($home_page->ID);
+            $home_title = $this->get_custom_anchor_text($home_page->ID, $custom_anchors, 'Home');
+            $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($home_title) . '</a></li>';
+            $output .= '</ul>';
+            $output .= '</div>';
+            $output .= '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ccc;">';
+        }
+        
+        // Section 3: Service Pages (from pylon_archetype)
+        if (!empty($service_pages_from_pages)) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Service Pages:</h3>';
+            $output .= '<ul>';
+            
+            foreach ($service_pages_from_pages as $page) {
                 $page_url = get_permalink($page->ID);
                 
-                // Check wp_pylons for locpage_neighborhood
+                if ($atts['service_anchor'] === 'post_title') {
+                    // User wants post title instead of moniker
+                    $page_title = $page->post_title;
+                } else {
+                    // Default: Use moniker (with fallbacks)
+                    $pylon_data = $wpdb->get_row($wpdb->prepare(
+                        "SELECT moniker, locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
+                        $page->ID
+                    ));
+                    
+                    // Priority: moniker -> locpage_neighborhood -> post_title
+                    if ($pylon_data && !empty($pylon_data->moniker)) {
+                        $page_title = $pylon_data->moniker;
+                    } elseif ($pylon_data && !empty($pylon_data->locpage_neighborhood)) {
+                        $page_title = $pylon_data->locpage_neighborhood;
+                    } else {
+                        $page_title = $page->post_title;
+                    }
+                }
+                
+                // Apply custom anchor text if specified
+                $final_title = $this->get_custom_anchor_text($page->ID, $custom_anchors, $page_title);
+                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($final_title) . '</a></li>';
+            }
+            
+            $output .= '</ul>';
+            $output .= '</div>';
+            $output .= '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ccc;">';
+        }
+        
+        // Section 4: Neighborhood Pages (location pages with locpage_neighborhood value)
+        if (!empty($neighborhood_pages)) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Neighborhood Pages:</h3>';
+            $output .= '<ul>';
+            
+            foreach ($neighborhood_pages as $page) {
+                $page_url = get_permalink($page->ID);
+                
+                if ($atts['neighborhood_anchor'] === 'post_title') {
+                    // User wants post title instead of locpage_neighborhood
+                    $page_title = $page->post_title;
+                } else {
+                    // Default: Use locpage_neighborhood (with fallback)
+                    $pylon_data = $wpdb->get_row($wpdb->prepare(
+                        "SELECT locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
+                        $page->ID
+                    ));
+                    
+                    // Use locpage_neighborhood if exists and not empty, otherwise use post title
+                    if ($pylon_data && !empty($pylon_data->locpage_neighborhood)) {
+                        $page_title = $pylon_data->locpage_neighborhood;
+                    } else {
+                        $page_title = $page->post_title;
+                    }
+                }
+                
+                // Apply custom anchor text if specified
+                $final_title = $this->get_custom_anchor_text($page->ID, $custom_anchors, $page_title);
+                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($final_title) . '</a></li>';
+            }
+            
+            $output .= '</ul>';
+            $output .= '</div>';
+            $output .= '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ccc;">';
+        }
+        
+        // Section 5: City Pages (location pages without locpage_neighborhood value)
+        if (!empty($city_pages)) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>City Pages:</h3>';
+            $output .= '<ul>';
+            
+            foreach ($city_pages as $page) {
+                $page_url = get_permalink($page->ID);
+                
+                if ($atts['city_anchor'] === 'post_title') {
+                    // User wants post title instead of city data
+                    $page_title = $page->post_title;
+                } elseif ($atts['city_anchor'] === 'city') {
+                    // User wants only city name (no state)
+                    $pylon_data = $wpdb->get_row($wpdb->prepare(
+                        "SELECT locpage_city FROM $pylons_table WHERE rel_wp_post_id = %d",
+                        $page->ID
+                    ));
+                    
+                    if ($pylon_data && !empty($pylon_data->locpage_city)) {
+                        $page_title = $pylon_data->locpage_city;
+                    } else {
+                        // Fallback to post title
+                        $page_title = $page->post_title;
+                    }
+                } else {
+                    // Default: Use locpage_city, locpage_state_code format (e.g., "Saginaw, MI")
+                    $pylon_data = $wpdb->get_row($wpdb->prepare(
+                        "SELECT locpage_city, locpage_state_code FROM $pylons_table WHERE rel_wp_post_id = %d",
+                        $page->ID
+                    ));
+                    
+                    if ($pylon_data && !empty($pylon_data->locpage_city) && !empty($pylon_data->locpage_state_code)) {
+                        $page_title = $pylon_data->locpage_city . ', ' . $pylon_data->locpage_state_code;
+                    } elseif ($pylon_data && !empty($pylon_data->locpage_city)) {
+                        // Only city available
+                        $page_title = $pylon_data->locpage_city;
+                    } else {
+                        // Fallback to post title
+                        $page_title = $page->post_title;
+                    }
+                }
+                
+                // Apply custom anchor text if specified
+                $final_title = $this->get_custom_anchor_text($page->ID, $custom_anchors, $page_title);
+                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($final_title) . '</a></li>';
+            }
+            
+            $output .= '</ul>';
+            $output .= '</div>';
+            $output .= '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ccc;">';
+        }
+        
+        // Section 6: Other Pages (doesn't meet other criteria)
+        if (!empty($other_pages)) {
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Other Pages:</h3>';
+            $output .= '<ul>';
+            
+            foreach ($other_pages as $page) {
+                $page_url = get_permalink($page->ID);
+                
+                // Check wp_pylons for pylon_archetype and locpage_neighborhood
                 $pylon_data = $wpdb->get_row($wpdb->prepare(
-                    "SELECT locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
+                    "SELECT pylon_archetype, locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
                     $page->ID
                 ));
                 
-                // Use locpage_neighborhood if exists and not empty, otherwise use post title
-                if ($pylon_data && !empty($pylon_data->locpage_neighborhood)) {
-                    $page_title = $pylon_data->locpage_neighborhood;
+                // Determine anchor text based on archetype and user preferences
+                if ($pylon_data && $pylon_data->pylon_archetype === 'aboutpage') {
+                    // About page logic
+                    if ($atts['about_anchor'] === 'post_title') {
+                        $page_title = $page->post_title;
+                    } else {
+                        $page_title = 'About Us';
+                    }
+                } elseif ($pylon_data && $pylon_data->pylon_archetype === 'contactpage') {
+                    // Contact page logic
+                    if ($atts['contact_anchor'] === 'post_title') {
+                        $page_title = $page->post_title;
+                    } else {
+                        $page_title = 'Contact Us';
+                    }
                 } else {
-                    $page_title = $page->post_title;
+                    // Default logic for all other pages
+                    if ($pylon_data && !empty($pylon_data->locpage_neighborhood)) {
+                        $page_title = $pylon_data->locpage_neighborhood;
+                    } else {
+                        $page_title = $page->post_title;
+                    }
                 }
                 
-                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($page_title) . '</a></li>';
+                // Apply custom anchor text if specified
+                $final_title = $this->get_custom_anchor_text($page->ID, $custom_anchors, $page_title);
+                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($final_title) . '</a></li>';
             }
+            
             $output .= '</ul>';
             $output .= '</div>';
         }
         
-        // Section 3: Blog Posts (only show if there are blog posts)
+        $output .= '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ccc;">';
+        
+        // Section 7: Blog Posts (only show if there are blog posts)
         // Get all published blog posts
         $args = array(
             'post_type' => 'post',
@@ -1176,14 +1351,52 @@ class Zen_Shortcodes {
             if ($posts_page_id) {
                 $posts_page_url = get_permalink($posts_page_id);
                 $posts_page_title = get_the_title($posts_page_id);
-                $output .= '<li><a href="' . esc_url($posts_page_url) . '">' . esc_html($posts_page_title) . '</a></li>';
+                
+                // Apply custom anchor text if specified
+                $final_posts_title = $this->get_custom_anchor_text($posts_page_id, $custom_anchors, $posts_page_title);
+                $output .= '<li><a href="' . esc_url($posts_page_url) . '">' . esc_html($final_posts_title) . '</a></li>';
             }
             
             foreach ($posts as $post) {
                 $post_url = get_permalink($post->ID);
                 $post_title = $post->post_title;
-                $output .= '<li><a href="' . esc_url($post_url) . '">' . esc_html($post_title) . '</a></li>';
+                
+                // Apply custom anchor text if specified
+                $final_title = $this->get_custom_anchor_text($post->ID, $custom_anchors, $post_title);
+                $output .= '<li><a href="' . esc_url($post_url) . '">' . esc_html($final_title) . '</a></li>';
             }
+            $output .= '</ul>';
+            $output .= '</div>';
+        }
+        
+        // Section 8: Legal Pages (Privacy Policy, Terms) - after horizontal rule
+        if (!empty($legal_pages)) {
+            $output .= '<hr style="margin: 30px 0; border: none; border-top: 1px solid #ccc;">';
+            $output .= '<div class="sitemap-section">';
+            $output .= '<h3>Misc Pages:</h3>';
+            $output .= '<ul>';
+            
+            foreach ($legal_pages as $page) {
+                $page_url = get_permalink($page->ID);
+                
+                // Check wp_pylons for locpage_neighborhood
+                $pylon_data = $wpdb->get_row($wpdb->prepare(
+                    "SELECT locpage_neighborhood FROM $pylons_table WHERE rel_wp_post_id = %d",
+                    $page->ID
+                ));
+                
+                // Use locpage_neighborhood if exists and not empty, otherwise use post title
+                if ($pylon_data && !empty($pylon_data->locpage_neighborhood)) {
+                    $page_title = $pylon_data->locpage_neighborhood;
+                } else {
+                    $page_title = $page->post_title;
+                }
+                
+                // Apply custom anchor text if specified
+                $final_title = $this->get_custom_anchor_text($page->ID, $custom_anchors, $page_title);
+                $output .= '<li><a href="' . esc_url($page_url) . '">' . esc_html($final_title) . '</a></li>';
+            }
+            
             $output .= '</ul>';
             $output .= '</div>';
         }
@@ -1222,5 +1435,36 @@ class Zen_Shortcodes {
         </style>';
         
         return $output;
+    }
+    
+    /**
+     * Helper function to get custom anchor text for a page
+     * Checks custom_anchors for matches by slug or full path
+     */
+    private function get_custom_anchor_text($page_id, $custom_anchors, $default_text) {
+        if (empty($custom_anchors)) {
+            return $default_text;
+        }
+        
+        $permalink = get_permalink($page_id);
+        $parsed_url = parse_url($permalink);
+        
+        // Get just the slug (last part of path)
+        $slug = basename($parsed_url['path']);
+        
+        // Check for exact slug match
+        if (isset($custom_anchors[$slug])) {
+            return $custom_anchors[$slug];
+        }
+        
+        // Get full path without leading/trailing slashes
+        $path = trim($parsed_url['path'], '/');
+        
+        // Check for full path match (for nested pages like 'services/plumbing')
+        if (isset($custom_anchors[$path])) {
+            return $custom_anchors[$path];
+        }
+        
+        return $default_text;
     }
 }
