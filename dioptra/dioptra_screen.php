@@ -80,7 +80,7 @@ function ruplin_render_dioptra_screen() {
     // Define all fields in order
     $fields = array(
         'pylon_id' => 'pylons',
-        'rel_plasma_page_id' => 'pylons',
+        'plasma_page_id' => 'pylons',
         'rel_wp_post_id' => 'pylons',
         'jchronology_order_for_blog_posts' => 'pylons',
         'jchronology_batch' => 'pylons',
@@ -509,7 +509,7 @@ function ruplin_render_dioptra_screen() {
                                            style="width: 100%; border: 1px solid #ccc; padding: 4px; background-color: #f0f0f0; cursor: not-allowed; color: #666;" 
                                            readonly
                                            disabled />
-                                <?php elseif ($field_name === 'pylon_id' || $field_name === 'rel_plasma_page_id' || $field_name === 'rel_wp_post_id'): ?>
+                                <?php elseif ($field_name === 'pylon_id' || $field_name === 'plasma_page_id' || $field_name === 'rel_wp_post_id'): ?>
                                     <input type="text" 
                                            name="field_<?php echo esc_attr($field_name); ?>" 
                                            value="<?php echo esc_attr($value); ?>" 

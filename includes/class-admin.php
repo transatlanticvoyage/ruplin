@@ -11050,7 +11050,7 @@ class Snefuru_Admin {
             $pylons_table,
             [
                 'rel_wp_post_id' => $post_id,
-                'rel_plasma_page_id' => null
+                'plasma_page_id' => null
             ]
         );
         

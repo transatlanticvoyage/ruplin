@@ -484,7 +484,7 @@ class SnefuruPlugin {
         $pylons_sql = "CREATE TABLE IF NOT EXISTS $pylons_table (
             pylon_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             rel_wp_post_id BIGINT(20) UNSIGNED DEFAULT NULL,
-            rel_plasma_page_id BIGINT(20) UNSIGNED DEFAULT NULL,
+            plasma_page_id BIGINT(20) UNSIGNED DEFAULT NULL,
             pylon_archetype TEXT DEFAULT NULL,
             hero_mainheading TEXT DEFAULT NULL,
             hero_subheading TEXT DEFAULT NULL,
@@ -627,7 +627,7 @@ class SnefuruPlugin {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
-            KEY rel_plasma_page_id (rel_plasma_page_id)
+            KEY plasma_page_id (plasma_page_id)
         ) $charset_collate;";
         
         dbDelta($pylons_sql);
@@ -1183,6 +1183,41 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.5.0');
+        }
+        
+        // Migration for version 2.6.0 - Rename rel_plasma_page_id to plasma_page_id in pylons table
+        if (version_compare($current_migration, '2.6.0', '<')) {
+            
+            // Check if old column exists and new column doesn't exist yet
+            $old_column_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'rel_plasma_page_id'");
+            $new_column_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'plasma_page_id'");
+            
+            if (!empty($old_column_exists) && empty($new_column_exists)) {
+                // Add new column
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN plasma_page_id BIGINT(20) UNSIGNED DEFAULT NULL AFTER rel_plasma_page_id");
+                
+                // Copy data from old to new column
+                $wpdb->query("UPDATE $pylons_table SET plasma_page_id = rel_plasma_page_id WHERE rel_plasma_page_id IS NOT NULL");
+                
+                // Add index for new column
+                $wpdb->query("ALTER TABLE $pylons_table ADD KEY plasma_page_id (plasma_page_id)");
+                
+                // Drop old index
+                $wpdb->query("ALTER TABLE $pylons_table DROP INDEX rel_plasma_page_id");
+                
+                // Drop old column
+                $wpdb->query("ALTER TABLE $pylons_table DROP COLUMN rel_plasma_page_id");
+                
+                error_log('Snefuru: Successfully migrated rel_plasma_page_id to plasma_page_id in pylons table');
+            } elseif (empty($old_column_exists) && empty($new_column_exists)) {
+                // Neither column exists, add the new one (for fresh installs)
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN plasma_page_id BIGINT(20) UNSIGNED DEFAULT NULL");
+                $wpdb->query("ALTER TABLE $pylons_table ADD KEY plasma_page_id (plasma_page_id)");
+                error_log('Snefuru: Added plasma_page_id column to pylons table for fresh install');
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.6.0');
         }
     }
     
