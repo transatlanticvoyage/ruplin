@@ -183,6 +183,17 @@ class Snefuru_Admin {
             3.6
         );
         
+        // Add Edit Content - Dioptra menu item
+        add_menu_page(
+            'Edit Content - Dioptra',
+            'Edit Content - Dioptra',
+            'manage_options',
+            'dioptra_content_editor',
+            array($this, 'dioptra_content_editor_page'),
+            'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"/></svg>'),
+            3.7
+        );
+        
         // Add Cockpit as the first submenu item
         add_submenu_page(
             'snefuru',
@@ -465,6 +476,15 @@ class Snefuru_Admin {
             </div>
         </div>
         <?php
+    }
+    
+    /**
+     * Dioptra Content Editor page - shows posts/pages table or individual editor
+     */
+    public function dioptra_content_editor_page() {
+        // Include and render the dioptra screen
+        require_once SNEFURU_PLUGIN_PATH . 'dioptra/dioptra_screen.php';
+        ruplin_render_dioptra_screen();
     }
     
     /**

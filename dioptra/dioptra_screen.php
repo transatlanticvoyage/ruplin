@@ -193,7 +193,64 @@ function ruplin_render_dioptra_screen() {
         
         <?php if (!$post_id): ?>
             <div style="margin-top: 20px;">
-                <p style="color: #666;">Please provide a post ID in the URL (e.g., ?page=dioptra&post=128)</p>
+                <h2>Select a Post or Page to Edit</h2>
+                
+                <?php
+                // Get all posts and pages
+                $all_posts = $wpdb->get_results("
+                    SELECT ID, post_title, post_type, post_status, post_date, post_modified 
+                    FROM {$wpdb->posts} 
+                    WHERE post_type IN ('post', 'page') 
+                    AND post_status IN ('publish', 'draft', 'private') 
+                    ORDER BY post_modified DESC 
+                    LIMIT 50
+                ", ARRAY_A);
+                ?>
+                
+                <table class="wp-list-table widefat fixed striped">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th style="width: 60%;">Title</th>
+                            <th style="width: 15%;">Type</th>
+                            <th style="width: 15%;">Status</th>
+                            <th style="width: 20%;">Last Modified</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($all_posts)): ?>
+                            <?php foreach ($all_posts as $post_item): ?>
+                                <tr style="cursor: pointer;" onclick="window.location.href='<?php echo admin_url('admin.php?page=dioptra_content_editor&post=' . $post_item['ID']); ?>'">
+                                    <td><?php echo $post_item['ID']; ?></td>
+                                    <td style="cursor: pointer; color: #0073aa; text-decoration: underline;">
+                                        <strong><?php echo esc_html($post_item['post_title'] ?: '(No Title)'); ?></strong>
+                                    </td>
+                                    <td><?php echo ucfirst($post_item['post_type']); ?></td>
+                                    <td>
+                                        <span style="
+                                            padding: 2px 6px; 
+                                            border-radius: 3px; 
+                                            font-size: 11px; 
+                                            background: <?php echo $post_item['post_status'] === 'publish' ? '#28a745' : '#ffc107'; ?>; 
+                                            color: white;
+                                        ">
+                                            <?php echo ucfirst($post_item['post_status']); ?>
+                                        </span>
+                                    </td>
+                                    <td><?php echo date('M j, Y g:i A', strtotime($post_item['post_modified'])); ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 20px; color: #666;">No posts or pages found.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+                
+                <p style="margin-top: 15px; color: #666; font-size: 13px;">
+                    <em>Click on any row to edit that post's content with Dioptra. Showing the 50 most recently modified items.</em>
+                </p>
             </div>
         <?php else: ?>
             <div style="margin-top: 20px;">
@@ -4302,4 +4359,9 @@ function ruplin_render_dioptra_screen() {
 
     </script>
     <?php
+}
+
+// Call the function if this file is accessed directly through admin menu
+if (isset($_GET['page']) && $_GET['page'] === 'dioptra_content_editor') {
+    ruplin_render_dioptra_screen();
 }
