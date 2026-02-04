@@ -170,6 +170,30 @@ function ruplin_render_dioptra_screen() {
     ", ARRAY_A);
     
     ?>
+    
+    <!-- AGGRESSIVE NOTICE SUPPRESSION for Dioptra Screen -->
+    <style>
+        /* Hide all WordPress admin notices on Dioptra page */
+        .notice, .notice-warning, .notice-error, .notice-success, .notice-info,
+        .updated, .error, .update-nag, .admin-notice,
+        div.notice, div.updated, div.error, div.update-nag,
+        .wrap > .notice, .wrap > .updated, .wrap > .error,
+        #adminmenu + .notice, #adminmenu + .updated, #adminmenu + .error,
+        .update-php, .php-update-nag,
+        .plugin-update-tr, .theme-update-message,
+        .update-message, .updating-message,
+        #update-nag, #deprecation-warning,
+        .update-core-php, .notice-alt,
+        .activated, .deactivated {
+            display: none !important;
+        }
+        
+        /* Hide specific plugin notices that commonly appear */
+        .gp-premium-notice, .elementor-notice, .brimora-notice {
+            display: none !important;
+        }
+    </style>
+    
     <div class="wrap">
         <div style="display: flex; align-items: center; margin-bottom: 0;">
             <h1 style="margin-right: 20px; margin-bottom: 0;">Dioptra</h1>

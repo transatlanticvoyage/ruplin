@@ -16,6 +16,7 @@ class Snefuru_Admin {
         $this->change_password_mar = new Ruplin_Change_Password_Mar();
         
         add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_head', array($this, 'admin_head_styles'));
         add_action('admin_init', array($this, 'init_settings'));
         
         // Early admin notice suppression for all snefuruplin pages
@@ -346,6 +347,35 @@ class Snefuru_Admin {
     }
     
     /**
+     * Add custom admin head styles
+     */
+    public function admin_head_styles() {
+        ?>
+        <style>
+        /* Custom maroon background for Edit Content - Dioptra menu item */
+        #adminmenu li.toplevel_page_dioptra_content_editor a.toplevel_page_dioptra_content_editor,
+        #adminmenu li.toplevel_page_dioptra_content_editor:hover a.toplevel_page_dioptra_content_editor,
+        #adminmenu li.toplevel_page_dioptra_content_editor.current a.toplevel_page_dioptra_content_editor,
+        #adminmenu li.toplevel_page_dioptra_content_editor.wp-has-current-submenu a.toplevel_page_dioptra_content_editor {
+            background-color: #800020 !important; /* Maroon color */
+            color: #fff !important;
+        }
+        
+        /* Ensure hover state maintains maroon */
+        #adminmenu li.toplevel_page_dioptra_content_editor:hover a.toplevel_page_dioptra_content_editor {
+            background-color: #600018 !important; /* Darker maroon on hover */
+            color: #fff !important;
+        }
+        
+        /* Icon color for the menu item */
+        #adminmenu li.toplevel_page_dioptra_content_editor a.toplevel_page_dioptra_content_editor .wp-menu-image {
+            filter: brightness(0) invert(1); /* Make icon white */
+        }
+        </style>
+        <?php
+    }
+    
+    /**
      * Initialize settings
      */
     public function init_settings() {
@@ -482,6 +512,9 @@ class Snefuru_Admin {
      * Dioptra Content Editor page - shows posts/pages table or individual editor
      */
     public function dioptra_content_editor_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
         // Include and render the dioptra screen
         require_once SNEFURU_PLUGIN_PATH . 'dioptra/dioptra_screen.php';
         ruplin_render_dioptra_screen();
