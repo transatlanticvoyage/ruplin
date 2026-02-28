@@ -116,6 +116,7 @@ class Silkweaver_Menu_Renderer {
                 // Check for pinned link first
                 if (preg_match('/custom_raw_link_pinned=([^\s]+)\s+(.+)/', $line, $matches)) {
                     $anchor_text = $matches[2];
+                    $original_anchor = $anchor_text;
                     
                     // Replace placeholders with database values if they exist
                     if ($anchor_text === '{home_anchor_for_silkweaver_services}' && 
@@ -126,11 +127,17 @@ class Silkweaver_Menu_Renderer {
                         $anchor_text = $sitespren_data->driggs_city;
                     }
                     
-                    $pinned_links[] = array(
-                        'url' => $matches[1],
-                        'anchor' => $anchor_text
-                    );
-                    error_log("Silkweaver parsed pinned service link: " . $matches[1] . " -> " . $anchor_text);
+                    // Only add the link if it's not a placeholder (doesn't start with { and end with })
+                    // This skips empty/null database values that would show as {placeholder}
+                    if (!(substr($anchor_text, 0, 1) === '{' && substr($anchor_text, -1) === '}')) {
+                        $pinned_links[] = array(
+                            'url' => $matches[1],
+                            'anchor' => $anchor_text
+                        );
+                        error_log("Silkweaver parsed pinned service link: " . $matches[1] . " -> " . $anchor_text);
+                    } else {
+                        error_log("Silkweaver skipped pinned service link with empty placeholder: " . $original_anchor);
+                    }
                 } elseif (preg_match('/custom_raw_link=([^\s]+)\s+(.+)/', $line, $matches)) {
                     $custom_links[] = array(
                         'url' => $matches[1],
@@ -155,6 +162,7 @@ class Silkweaver_Menu_Renderer {
                 // Check for pinned link first
                 if (preg_match('/custom_raw_link_pinned=([^\s]+)\s+(.+)/', $line, $matches)) {
                     $anchor_text = $matches[2];
+                    $original_anchor = $anchor_text;
                     
                     // Replace placeholders with database values if they exist
                     if ($anchor_text === '{home_anchor_for_silkweaver_locations}' && 
@@ -165,11 +173,17 @@ class Silkweaver_Menu_Renderer {
                         $anchor_text = $sitespren_data->driggs_city;
                     }
                     
-                    $pinned_links[] = array(
-                        'url' => $matches[1],
-                        'anchor' => $anchor_text
-                    );
-                    error_log("Silkweaver parsed pinned location link: " . $matches[1] . " -> " . $anchor_text);
+                    // Only add the link if it's not a placeholder (doesn't start with { and end with })
+                    // This skips empty/null database values that would show as {placeholder}
+                    if (!(substr($anchor_text, 0, 1) === '{' && substr($anchor_text, -1) === '}')) {
+                        $pinned_links[] = array(
+                            'url' => $matches[1],
+                            'anchor' => $anchor_text
+                        );
+                        error_log("Silkweaver parsed pinned location link: " . $matches[1] . " -> " . $anchor_text);
+                    } else {
+                        error_log("Silkweaver skipped pinned location link with empty placeholder: " . $original_anchor);
+                    }
                 } elseif (preg_match('/custom_raw_link=([^\s]+)\s+(.+)/', $line, $matches)) {
                     $custom_links[] = array(
                         'url' => $matches[1],
