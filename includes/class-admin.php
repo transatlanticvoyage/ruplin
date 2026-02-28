@@ -57,6 +57,8 @@ class Snefuru_Admin {
         
         // Add dioptra button to admin toolbar
         add_action('admin_bar_menu', array($this, 'add_dioptra_toolbar_button'), 999);
+        add_action('admin_bar_menu', array($this, 'add_telescope_toolbar_button'), 1000);
+        add_action('wp_head', array($this, 'add_telescope_toolbar_styles'));
         
         // Driggs management AJAX actions
         add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
@@ -193,6 +195,17 @@ class Snefuru_Admin {
             array($this, 'dioptra_content_editor_page'),
             'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"/></svg>'),
             3.7
+        );
+        
+        // Add Edit Content - Telescope menu item (purple background)
+        add_menu_page(
+            'Edit Content - Telescope',
+            'Edit Content - Telescope',
+            'manage_options',
+            'telescope_content_editor',
+            array($this, 'telescope_content_editor_page'),
+            'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M21.87 11.5c-.64-1.11-4.16-6.68-5.75-4.5-1.39 1.9-.58 4.47.39 4.47.97 0 1.24.51.88 2.75-.36 2.23-2.15 2.34-2.49.11-.32-2.12-2.89-1.27-2.89 1.29 0 3.79 3.29 5.38 6.54 5.38 4.17 0 5.45-3.82 5.45-6.03 0-1.16-.54-2.49-2.13-3.47m-9.37 3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1m-10-8L7 10V7c0-.55.45-1 1-1s1 .45 1 1v3c0 .55-.45 1-1 1H5l4.5-4.5z"/></svg>'),
+            3.8
         );
         
         // Add Cockpit as the first submenu item
@@ -371,6 +384,26 @@ class Snefuru_Admin {
         #adminmenu li.toplevel_page_dioptra_content_editor a.toplevel_page_dioptra_content_editor .wp-menu-image {
             filter: brightness(0) invert(1); /* Make icon white */
         }
+        
+        /* Custom purple background for Edit Content - Telescope menu item */
+        #adminmenu li.toplevel_page_telescope_content_editor a.toplevel_page_telescope_content_editor,
+        #adminmenu li.toplevel_page_telescope_content_editor:hover a.toplevel_page_telescope_content_editor,
+        #adminmenu li.toplevel_page_telescope_content_editor.current a.toplevel_page_telescope_content_editor,
+        #adminmenu li.toplevel_page_telescope_content_editor.wp-has-current-submenu a.toplevel_page_telescope_content_editor {
+            background-color: #764ba2 !important; /* Purple color */
+            color: #fff !important;
+        }
+        
+        /* Ensure hover state maintains purple */
+        #adminmenu li.toplevel_page_telescope_content_editor:hover a.toplevel_page_telescope_content_editor {
+            background-color: #5e3a82 !important; /* Darker purple on hover */
+            color: #fff !important;
+        }
+        
+        /* Icon color for the Telescope menu item */
+        #adminmenu li.toplevel_page_telescope_content_editor a.toplevel_page_telescope_content_editor .wp-menu-image {
+            filter: brightness(0) invert(1); /* Make icon white */
+        }
         </style>
         <?php
     }
@@ -518,6 +551,18 @@ class Snefuru_Admin {
         // Include and render the dioptra screen
         require_once SNEFURU_PLUGIN_PATH . 'dioptra/dioptra_screen.php';
         ruplin_render_dioptra_screen();
+    }
+    
+    /**
+     * Telescope Content Editor page - Advanced content management interface
+     */
+    public function telescope_content_editor_page() {
+        // AGGRESSIVE NOTICE SUPPRESSION - Remove ALL WordPress admin notices
+        $this->suppress_all_admin_notices();
+        
+        // Include and render the telescope screen
+        require_once SNEFURU_PLUGIN_PATH . 'telescope/telescope_screen.php';
+        ruplin_render_telescope_screen();
     }
     
     /**
@@ -11028,6 +11073,72 @@ class Snefuru_Admin {
             'href'   => admin_url('admin.php?page=dioptra&post=' . $post->ID),
             'parent' => false
         ));
+    }
+    
+    /**
+     * Add Telescope Editor button to admin toolbar (far right)
+     */
+    public function add_telescope_toolbar_button($wp_admin_bar) {
+        // Only show on frontend pages that have a post ID
+        if (is_admin() || !is_singular()) {
+            return;
+        }
+        
+        global $post;
+        if (!$post || !$post->ID) {
+            return;
+        }
+        
+        // Add the Telescope Editor button at the far right
+        $wp_admin_bar->add_node(array(
+            'id'     => 'telescope-editor',
+            'title'  => 'Telescope Editor',
+            'href'   => admin_url('admin.php?page=telescope_content_editor&post=' . $post->ID),
+            'parent' => 'top-secondary', // This puts it on the right side of the admin bar
+            'meta'   => array(
+                'class' => 'telescope-editor-toolbar-link',
+                'title' => 'Edit this page in Telescope'
+            )
+        ));
+    }
+    
+    /**
+     * Add custom styles for Telescope toolbar button
+     */
+    public function add_telescope_toolbar_styles() {
+        // Only add styles if user is logged in and can see admin bar
+        if (!is_user_logged_in() || is_admin()) {
+            return;
+        }
+        ?>
+        <style type="text/css">
+            /* Style for Telescope Editor button in admin bar */
+            #wp-admin-bar-telescope-editor .ab-item {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                color: white !important;
+                font-weight: 600 !important;
+                padding: 0 12px !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            #wp-admin-bar-telescope-editor:hover .ab-item {
+                background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+                transform: scale(1.05);
+            }
+            
+            /* Ensure it stays on the right */
+            #wp-admin-bar-telescope-editor {
+                float: right !important;
+            }
+            
+            /* Add a subtle glow effect */
+            #wp-admin-bar-telescope-editor .ab-item:before {
+                content: "🔭 ";
+                font-size: 16px;
+                vertical-align: middle;
+            }
+        </style>
+        <?php
     }
     
     /**
