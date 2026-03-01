@@ -22,6 +22,7 @@ function ruplin_render_telescope_screen() {
     
     // Enqueue media scripts for image selection
     wp_enqueue_media();
+    wp_enqueue_script('jquery');
     
     // Ensure user has proper capabilities
     if (!current_user_can('manage_options')) {
@@ -649,10 +650,7 @@ function telescope_render_edit_form($post_id) {
     // Define all the database columns for Cherry template
     $fields = [
         // ========== NON-TEMPLATE FIELDS (General/Utility) ==========
-        'post_title' => ['type' => 'text', 'table' => 'posts'],
-        'hero_subheading' => ['type' => 'text', 'table' => 'pylons'],
         'hero_style_setting_background_size' => ['type' => 'text', 'table' => 'pylons'],
-        'paragon_featured_image_id' => ['type' => 'text', 'table' => 'pylons'],
         'pylon_archetype' => ['type' => 'text', 'table' => 'pylons'],
         'locpage_gmaps_string' => ['type' => 'text', 'table' => 'pylons'],
         'driggs_phone_1' => ['type' => 'text', 'table' => 'zen_sitespren'],
@@ -668,6 +666,15 @@ function telescope_render_edit_form($post_id) {
         '__separator__' => ['type' => 'separator', 'table' => 'none'],
         
         // ========== CHERRY TEMPLATE FIELDS (in order of rendering) ==========
+        
+        // Hero Section Fields (render at the very top of page)
+        'post_title' => ['type' => 'text', 'table' => 'posts'],
+        'hero_subheading' => ['type' => 'text', 'table' => 'pylons'],
+        'paragon_featured_image_id' => ['type' => 'text', 'table' => 'pylons'],
+        'hero_overlay_opacity' => ['type' => 'text', 'table' => 'pylons'],
+        
+        // Black separator after hero fields
+        '__hero_separator__' => ['type' => 'hero_separator', 'table' => 'none'],
         
         // 1. Chen Cards (renders first after hero)
         'chenblock_card1_title' => ['type' => 'text', 'table' => 'pylons'],
@@ -850,6 +857,16 @@ function telescope_render_edit_form($post_id) {
                         <td colspan="3" style="background: #f0f0f0; padding: 10px; text-align: center; font-weight: bold; font-size: 14px; text-transform: uppercase;">
                             Cherry Template Fields (In Order of Rendering)
                         </td>
+                    </tr>
+                    <?php
+                            continue;
+                        }
+                        
+                        // Handle hero separator (4px black line only)
+                        if ($field_config['type'] === 'hero_separator') {
+                    ?>
+                    <tr>
+                        <td colspan="3" style="background: #000; height: 4px; padding: 0;"></td>
                     </tr>
                     <?php
                             continue;
@@ -1159,17 +1176,34 @@ function telescope_render_edit_form($post_id) {
     });
     
     // Media Library JavaScript
-    jQuery(document).ready(function($) {
-        // Enqueue media if not already loaded
+    if (typeof jQuery === 'undefined') {
+        console.error('jQuery is not loaded! Cannot initialize media selector.');
+    } else {
+        console.log('jQuery version:', jQuery.fn.jquery);
+        
+        (function($) {
+            $(document).ready(function() {
+            console.log('Telescope Media Library JS Loading...');
+            console.log('wp object:', typeof wp);
+            console.log('wp.media object:', typeof wp !== 'undefined' ? typeof wp.media : 'wp not defined');
+        
+        // Check if media library is available
         if (typeof wp !== 'undefined' && typeof wp.media !== 'undefined') {
+            console.log('WordPress media library is available');
             
-            // Handle Select Image button clicks
-            $('.telescope-media-select').on('click', function(e) {
+            // Use document.on for dynamic binding in case elements load after script
+            $(document).on('click', '.telescope-media-select', function(e) {
                 e.preventDefault();
+                console.log('Select Image button clicked');
                 
                 const button = $(this);
                 const targetField = $('#' + button.data('target'));
                 const previewDiv = $('#' + button.data('preview'));
+                
+                console.log('Target field:', button.data('target'));
+                console.log('Preview div:', button.data('preview'));
+                console.log('Target field element found:', targetField.length > 0);
+                console.log('Preview div element found:', previewDiv.length > 0);
                 
                 // Create media frame
                 const mediaFrame = wp.media({
@@ -1186,22 +1220,25 @@ function telescope_render_edit_form($post_id) {
                 // When image is selected
                 mediaFrame.on('select', function() {
                     const attachment = mediaFrame.state().get('selection').first().toJSON();
+                    console.log('Image selected:', attachment);
                     
                     // Update the field with image ID
                     targetField.val(attachment.id);
                     
                     // Update preview
-                    let thumbnailUrl = attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
+                    let thumbnailUrl = attachment.sizes && attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
                     previewDiv.html('<img src="' + thumbnailUrl + '" style="max-width: 150px; height: auto; border: 1px solid #ddd; padding: 3px;">');
                 });
                 
                 // Open the media frame
+                console.log('Opening media frame...');
                 mediaFrame.open();
             });
             
-            // Handle Remove button clicks
-            $('.telescope-media-remove').on('click', function(e) {
+            // Handle Remove button clicks - also use document.on for dynamic binding
+            $(document).on('click', '.telescope-media-remove', function(e) {
                 e.preventDefault();
+                console.log('Remove button clicked');
                 
                 const button = $(this);
                 const targetField = $('#' + button.data('target'));
@@ -1213,8 +1250,18 @@ function telescope_render_edit_form($post_id) {
                 // Clear the preview
                 previewDiv.html('');
             });
+            
+            // Count media select buttons on page
+            const mediaButtons = $('.telescope-media-select');
+            console.log('Found', mediaButtons.length, 'media select buttons on page');
+            
+        } else {
+            console.error('WordPress media library is NOT available!');
+            console.error('This usually means wp_enqueue_media() was not called');
         }
-    });
+        });
+        })(jQuery);
+    }
     </script>
     <?php
 }
@@ -1327,7 +1374,7 @@ function telescope_save_post_data($post_id, $form_data) {
             foreach ($pylons_fields as $field_name => $value) {
                 if (in_array($field_name, ['pylon_id', 'rel_wp_post_id', 'plasma_page_id', 
                                            'osb_services_per_row', 'osb_max_services_display', 
-                                           'paragon_featured_image_id', 'jchronology_order_for_blog_posts', 
+                                           'paragon_featured_image_id', 'hero_overlay_opacity', 'jchronology_order_for_blog_posts', 
                                            'jchronology_batch', 'exempt_from_silkweaver_menu_dynamical', 
                                            'osb_is_enabled'])) {
                     $format_array[] = '%d';  // Integer fields
