@@ -165,6 +165,18 @@ class Snefuru_Admin {
      * Add admin menu pages
      */
     public function add_admin_menu() {
+        // Add AI1WM - Backups as a direct link (appears just below Posts)
+        global $menu;
+        $menu[6] = array(
+            'AI1WM - Backups',                    // Menu title
+            'manage_options',                      // Capability
+            'admin.php?page=ai1wm_backups',       // Direct URL
+            'AI1WM - Backups',                    // Page title
+            'menu-top toplevel_page_ai1wm_backups_custom',  // CSS classes
+            'ai1wm_backups_custom',               // Menu slug for CSS targeting
+            'dashicons-backup'                     // Icon
+        );
+        
         // Add new Nuke Mar top-level menu item (appears above Ruplin Hub)
         add_menu_page(
             'Nuke Mar',
@@ -365,6 +377,26 @@ class Snefuru_Admin {
     public function admin_head_styles() {
         ?>
         <style>
+        /* Custom baby blue background for AI1WM - Backups menu item */
+        #adminmenu li.toplevel_page_ai1wm_backups_custom > a,
+        #adminmenu li.toplevel_page_ai1wm_backups_custom:hover > a,
+        #adminmenu li.toplevel_page_ai1wm_backups_custom.current > a,
+        #adminmenu li.toplevel_page_ai1wm_backups_custom.wp-has-current-submenu > a {
+            background-color: #89CFF0 !important; /* Baby blue color */
+            color: #fff !important;
+        }
+        
+        /* Ensure hover state maintains baby blue */
+        #adminmenu li.toplevel_page_ai1wm_backups_custom:hover > a {
+            background-color: #6AB5DB !important; /* Slightly darker baby blue on hover */
+            color: #fff !important;
+        }
+        
+        /* Icon color for the AI1WM Backups menu item */
+        #adminmenu li.toplevel_page_ai1wm_backups_custom .wp-menu-image:before {
+            color: #fff !important;
+        }
+        
         /* Custom maroon background for Edit Content - Dioptra menu item */
         #adminmenu li.toplevel_page_dioptra_content_editor a.toplevel_page_dioptra_content_editor,
         #adminmenu li.toplevel_page_dioptra_content_editor:hover a.toplevel_page_dioptra_content_editor,
@@ -11411,8 +11443,12 @@ class Snefuru_Admin {
                         if ($field_name === 'paragon_featured_image_id') {
                             error_log("===== PARAGON_FEATURED_IMAGE_ID DEBUG =====");
                             error_log("Raw value from POST: '" . $value . "'");
+                            error_log("Type of raw value: " . gettype($value));
+                            error_log("Is numeric? " . (is_numeric($value) ? 'YES' : 'NO'));
                             error_log("Converted to integer: " . intval($value));
                             error_log("Stored in update_data: " . $update_data[$field_name]);
+                            error_log("Field name in update_data: " . $field_name);
+                            error_log("Current pylon data for this field: " . ($pylon_data[$field_name] ?? 'NOT SET'));
                         }
                     } else {
                         // For ALL text fields, use text sanitization that NEVER adds slashes
@@ -11564,6 +11600,36 @@ class Snefuru_Admin {
             error_log("Dioptra save - Rows affected: " . $pylon_result);
             error_log("Dioptra save - Last DB error: " . $wpdb->last_error);
             error_log("Dioptra save - Last query: " . $wpdb->last_query);
+            
+            // DEBUG: Check paragon_featured_image_id AFTER update
+            if (isset($update_data['paragon_featured_image_id'])) {
+                $saved_paragon_id = $wpdb->get_var($wpdb->prepare(
+                    "SELECT paragon_featured_image_id FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+                    $post_id
+                ));
+                error_log("===== PARAGON_FEATURED_IMAGE_ID POST-SAVE CHECK =====");
+                error_log("Value we tried to save: " . $update_data['paragon_featured_image_id']);
+                error_log("Value in DB after save: " . ($saved_paragon_id ?? 'NULL'));
+                error_log("Save successful? " . ($saved_paragon_id == $update_data['paragon_featured_image_id'] ? 'YES' : 'NO'));
+                
+                if ($saved_paragon_id != $update_data['paragon_featured_image_id']) {
+                    error_log("⚠️ PARAGON SAVE FAILED! Attempting direct SQL update...");
+                    $direct_result = $wpdb->query($wpdb->prepare(
+                        "UPDATE {$pylons_table} SET paragon_featured_image_id = %d WHERE rel_wp_post_id = %d",
+                        $update_data['paragon_featured_image_id'],
+                        $post_id
+                    ));
+                    error_log("Direct SQL result: " . var_export($direct_result, true));
+                    error_log("Direct SQL query: " . $wpdb->last_query);
+                    
+                    // Check one more time
+                    $final_check = $wpdb->get_var($wpdb->prepare(
+                        "SELECT paragon_featured_image_id FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+                        $post_id
+                    ));
+                    error_log("Final value after direct SQL: " . ($final_check ?? 'NULL'));
+                }
+            }
             
             // DEBUG: Check value AFTER update
             if (isset($update_data['staircase_page_template_desired'])) {

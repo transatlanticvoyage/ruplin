@@ -2849,6 +2849,13 @@ function ruplin_render_dioptra_screen() {
         // Now append unique fields to FormData
         for (const [name, value] of fieldMap) {
             formData.append(name, value);
+            // DEBUG: Log paragon_featured_image_id specifically
+            if (name === 'field_paragon_featured_image_id') {
+                console.log('🎯 PARAGON DEBUG - Sending to server:');
+                console.log('  Field name:', name);
+                console.log('  Field value:', value);
+                console.log('  Value type:', typeof value);
+            }
         }
         
         // Get hero styling field
