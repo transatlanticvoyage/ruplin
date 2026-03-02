@@ -5,6 +5,31 @@
  * This file handles the Telescope content editor interface.
  * Implements aggressive WordPress notice/message/warning suppression.
  * 
+ * ============================================================
+ * CLAUDE CRITICAL DOCUMENTATION - TELESCOPE SAVE ISSUES
+ * ============================================================
+ * 
+ * COMMON PROBLEM: Fields not saving to database
+ * 
+ * SOLUTION CHECKLIST:
+ * 1. Check if field exists in $fields array (line ~667)
+ * 2. Check if database column exists in wp_pylons table
+ * 3. Check browser console for missing column warnings
+ * 4. Check PHP error log for save verification messages
+ * 
+ * HOW TO ADD NEW FIELDS:
+ * 1. Add database column to wp_pylons table
+ * 2. Add field definition to $fields array:
+ *    'field_name' => ['type' => 'text|textarea|number|media_select', 'table' => 'pylons']
+ * 3. Refresh Telescope page - check for warnings
+ * 
+ * AUTO-DETECTION:
+ * - System automatically detects missing columns
+ * - Yellow warning box shows if columns exist but aren't defined
+ * - Check error_log for detailed save verification
+ * 
+ * ============================================================
+ * 
  * @package Ruplin
  * @subpackage Telescope
  */
@@ -314,6 +339,17 @@ function ruplin_render_telescope_screen() {
             <span style="font-size: 12px; display: block; line-height: 1.2;">end</span>
         </button>
         <?php endif; ?>
+        
+        <!-- Jezel Save Button -->
+        <button 
+            id="jezel-save" 
+            class="jezel-btn"
+            onclick="document.getElementById('telescope-form').submit();"
+            title="Save Content"
+            style="background-color: #23bb73 !important; color: white !important; border-color: #23bb73 !important;"
+        >
+            <span style="font-size: 12px; display: block; line-height: 1.2;">save</span>
+        </button>
     </div>
     
     <style>
@@ -647,6 +683,22 @@ function telescope_render_edit_form($post_id) {
         $post_id
     ), ARRAY_A);
     
+    /**
+     * ============================================================
+     * CLAUDE CRITICAL: FIELD DEFINITION ARRAY
+     * ============================================================
+     * This array determines which fields are displayed and can be saved.
+     * 
+     * RULES FOR CLAUDE:
+     * 1. When adding a new database column, MUST add it here
+     * 2. When removing a database column, MUST remove it here
+     * 3. Format: 'column_name' => ['type' => 'text|textarea|number|media_select', 'table' => 'pylons|zen_sitespren|posts']
+     * 
+     * AUTO-DETECTION HELPER:
+     * The code below will warn about missing columns in the browser console
+     * ============================================================
+     */
+    
     // Define all the database columns for Cherry template
     $fields = [
         // ========== NON-TEMPLATE FIELDS (General/Utility) ==========
@@ -822,6 +874,9 @@ function telescope_render_edit_form($post_id) {
             <!-- Save button at top -->
             <div class="telescope-actions-top">
                 <button type="submit" class="button button-primary button-large">💾 Save Changes</button>
+                <button type="button" class="button button-secondary button-large" id="copy-markdown-btn" style="margin-left: 10px;">
+                    📋 Copy content in markdown
+                </button>
             </div>
             
             <!-- Main editing table -->
@@ -964,6 +1019,58 @@ function telescope_render_edit_form($post_id) {
         </form>
     </div>
     
+    <?php
+    /**
+     * ============================================================
+     * CLAUDE: AUTO-DETECTION OF MISSING DATABASE COLUMNS
+     * ============================================================
+     * This code detects database columns that exist but aren't in the $fields array
+     * and displays a warning to help developers add them.
+     * ============================================================
+     */
+    
+    // Get all columns from pylons table
+    $all_pylons_columns = $wpdb->get_col("SHOW COLUMNS FROM {$wpdb->prefix}pylons");
+    
+    // Get defined field names for pylons table
+    $defined_pylons_fields = [];
+    foreach ($fields as $field_name => $config) {
+        if ($config['table'] === 'pylons') {
+            $defined_pylons_fields[] = $field_name;
+        }
+    }
+    
+    // Find missing columns (exclude system columns)
+    $system_columns = ['pylon_id', 'rel_wp_post_id', 'plasma_page_id', 'created_at', 'updated_at'];
+    $missing_columns = [];
+    foreach ($all_pylons_columns as $column) {
+        if (!in_array($column, $system_columns) && !in_array($column, $defined_pylons_fields)) {
+            $missing_columns[] = $column;
+        }
+    }
+    
+    // Display warning if columns are missing
+    if (!empty($missing_columns)): ?>
+        <div class="telescope-missing-columns-warning" style="
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px;
+            color: #856404;
+        ">
+            <h3 style="margin-top: 0; color: #ff6b6b;">⚠️ CLAUDE: Missing Database Columns Detected!</h3>
+            <p><strong>The following database columns exist but are NOT in the $fields array:</strong></p>
+            <ul style="list-style: disc; margin-left: 30px;">
+                <?php foreach ($missing_columns as $column): ?>
+                    <li><code><?php echo esc_html($column); ?></code></li>
+                <?php endforeach; ?>
+            </ul>
+            <p><strong>To fix this:</strong> Add these columns to the <code>$fields</code> array in telescope_screen.php around line 667.</p>
+            <p>Example: <code>'<?php echo esc_html($missing_columns[0] ?? 'column_name'); ?>' => ['type' => 'text', 'table' => 'pylons'],</code></p>
+        </div>
+    <?php endif; ?>
+    
     <style>
     .telescope-editor {
         padding: 20px 0;
@@ -983,6 +1090,12 @@ function telescope_render_edit_form($post_id) {
     .telescope-actions-top,
     .telescope-actions-bottom {
         padding: 15px 0;
+    }
+    
+    /* Green Save button styles */
+    #jezel-save-btn:hover {
+        background-color: #218838 !important;
+        border-color: #1e7e34 !important;
     }
     
     .telescope-edit-table {
@@ -1272,26 +1385,33 @@ function telescope_render_edit_form($post_id) {
 function telescope_save_post_data($post_id, $form_data) {
     global $wpdb;
     
+    /**
+     * ============================================================
+     * CLAUDE IMPORTANT: TELESCOPE SAVE FUNCTIONALITY
+     * ============================================================
+     * This function handles saving ALL fields from the Telescope form.
+     * 
+     * CRITICAL RULES FOR CLAUDE:
+     * 1. NEVER remove fields from the $fields array without checking if they exist in database
+     * 2. When adding new fields to database, ALWAYS add them to the $fields array
+     * 3. The $fields array is the MASTER LIST of what gets displayed and saved
+     * 4. If a field exists in database but not in $fields array, it WON'T be saved
+     * 
+     * COMMON ISSUES:
+     * - Fields not saving: Check if field exists in $fields array
+     * - New columns not appearing: Add to $fields array with correct type
+     * - Fields disappearing: Someone removed them from $fields array
+     * ============================================================
+     */
+    
     // DEBUG: Log all incoming form data
     error_log("===== TELESCOPE SAVE DEBUG START =====");
     error_log("Post ID: " . $post_id);
     error_log("Form data keys: " . implode(', ', array_keys($form_data)));
     
-    // DEBUG: Check for all important fields
-    $fields_to_check = ['baynar1_main', 'baynar2_main', 'content_ocean_1', 'content_ocean_2', 'content_ocean_3', 'content_bay_1', 'content_bay_2', 'content_lake', 'content_sea'];
-    foreach ($fields_to_check as $field_check) {
-        $field_found = false;
-        foreach ($form_data as $key => $value) {
-            if (strpos($key, $field_check) !== false) {
-                error_log("Found $field_check: $key = '" . substr($value, 0, 100) . "...'");
-                $field_found = true;
-                break;
-            }
-        }
-        if (!$field_found) {
-            error_log("⚠️ WARNING: $field_check not found in form data!");
-        }
-    }
+    // Get all columns from pylons table for verification
+    $pylons_columns = $wpdb->get_col("SHOW COLUMNS FROM {$wpdb->prefix}pylons");
+    error_log("Available pylons columns: " . implode(', ', $pylons_columns));
     
     // Separate fields by table
     $posts_fields = [];
@@ -1305,13 +1425,21 @@ function telescope_save_post_data($post_id, $form_data) {
             // Remove WordPress/PHP magic quotes slashes
             $value = wp_unslash($value);
             
-            // DEBUG: Log field processing for important fields
-            if (in_array($field_name, ['baynar1_main', 'baynar2_main', 'content_ocean_1', 'content_ocean_2', 'content_ocean_3', 'content_bay_1', 'content_bay_2', 'content_lake', 'content_sea'])) {
-                error_log("🎯 " . strtoupper($field_name) . " FOUND!");
-                error_log("  Raw key: $key");
-                error_log("  Field name: $field_name");
-                error_log("  Value length: " . strlen($value));
-                error_log("  First 100 chars: '" . substr($value, 0, 100) . "...'");
+            /**
+             * CLAUDE: Check if this field exists in the database
+             * If it's not in the database columns, it won't be saved!
+             */
+            if (in_array($field_name, $pylons_columns)) {
+                error_log("✓ Field '$field_name' exists in pylons table and will be saved");
+            } else {
+                // Check if it's for a different table
+                if (in_array($field_name, ['post_title', 'post_content'])) {
+                    error_log("✓ Field '$field_name' is for wp_posts table");
+                } elseif (strpos($field_name, 'driggs_') === 0) {
+                    error_log("✓ Field '$field_name' is for zen_sitespren table");
+                } else {
+                    error_log("⚠️ WARNING: Field '$field_name' NOT found in any known table - WON'T BE SAVED!");
+                }
             }
             
             // Determine which table this field belongs to

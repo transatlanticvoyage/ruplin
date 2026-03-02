@@ -36,8 +36,8 @@ class Silkweaver_Menu_System {
         // Admin menu is now handled in class-admin.php
         // add_action('admin_menu', array($this, 'add_admin_menu'));
         
-        // Enqueue styles
-        add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
+        // Enqueue styles - DISABLED: Styles now handled by Staircase theme
+        // add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
     }
     
     /**
