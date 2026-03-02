@@ -368,6 +368,15 @@ class Snefuru_Admin {
             array($this, 'change_password_mar_page')
         );
         
+        add_submenu_page(
+            'snefuru',
+            'CTA Horizontal Jackal System',
+            'CTA Horizontal Jackal System',
+            'manage_options',
+            'cta_jackal',
+            array($this, 'cta_jackal_page')
+        );
+        
         // Note: Aragon Image Manager menu is handled by its own class
     }
     
@@ -13657,5 +13666,18 @@ class Snefuru_Admin {
         
         // Render the change password page
         $this->change_password_mar->render_page();
+    }
+    
+    /**
+     * CTA Horizontal Jackal System page
+     */
+    public function cta_jackal_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        require_once SNEFURUPLUGIN_PATH . 'cta_jackal/cta_jackal_screen.php';
+        cta_jackal_page();
     }
 } 
