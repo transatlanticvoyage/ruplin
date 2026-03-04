@@ -142,6 +142,9 @@ class SnefuruPlugin {
         // Load Favicon Manager
         require_once SNEFURU_PLUGIN_PATH . 'favicon_manager/class-favicon-manager.php';
         
+        // Load Nuke Mar AJAX handler
+        require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar-ajax.php';
+        
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
