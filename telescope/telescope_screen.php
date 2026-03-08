@@ -758,7 +758,59 @@ function telescope_render_edit_form($post_id) {
         'osb_services_per_row' => ['type' => 'text', 'table' => 'pylons'],
         'osb_max_services_display' => ['type' => 'text', 'table' => 'pylons'],
         
-        // 8. Serena FAQ Box
+        // 8. Reviewsbox Section
+        'reviewsbox_section_start' => ['type' => 'collapsible_header', 'title' => 'Reviewsbox Manager', 'table' => 'none'],
+        'reviewsbox_heading' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_subheading' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_description' => ['type' => 'textarea', 'table' => 'pylons'],
+        // Review 1
+        'reviewsbox_review1_separator' => ['type' => 'subsection', 'title' => 'Review 1', 'table' => 'none'],
+        'reviewsbox_review1_stars' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review1_content' => ['type' => 'textarea', 'table' => 'pylons'],
+        'reviewsbox_review1_name' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review1_location' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review1_service' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review1_image_id' => ['type' => 'media_select', 'table' => 'pylons'],
+        'reviewsbox_review1_date' => ['type' => 'text', 'table' => 'pylons'],
+        // Review 2
+        'reviewsbox_review2_separator' => ['type' => 'subsection', 'title' => 'Review 2', 'table' => 'none'],
+        'reviewsbox_review2_stars' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review2_content' => ['type' => 'textarea', 'table' => 'pylons'],
+        'reviewsbox_review2_name' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review2_location' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review2_service' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review2_image_id' => ['type' => 'media_select', 'table' => 'pylons'],
+        'reviewsbox_review2_date' => ['type' => 'text', 'table' => 'pylons'],
+        // Review 3
+        'reviewsbox_review3_separator' => ['type' => 'subsection', 'title' => 'Review 3', 'table' => 'none'],
+        'reviewsbox_review3_stars' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review3_content' => ['type' => 'textarea', 'table' => 'pylons'],
+        'reviewsbox_review3_name' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review3_location' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review3_service' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review3_image_id' => ['type' => 'media_select', 'table' => 'pylons'],
+        'reviewsbox_review3_date' => ['type' => 'text', 'table' => 'pylons'],
+        // Review 4
+        'reviewsbox_review4_separator' => ['type' => 'subsection', 'title' => 'Review 4', 'table' => 'none'],
+        'reviewsbox_review4_stars' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review4_content' => ['type' => 'textarea', 'table' => 'pylons'],
+        'reviewsbox_review4_name' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review4_location' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review4_service' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review4_image_id' => ['type' => 'media_select', 'table' => 'pylons'],
+        'reviewsbox_review4_date' => ['type' => 'text', 'table' => 'pylons'],
+        // Review 5
+        'reviewsbox_review5_separator' => ['type' => 'subsection', 'title' => 'Review 5', 'table' => 'none'],
+        'reviewsbox_review5_stars' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review5_content' => ['type' => 'textarea', 'table' => 'pylons'],
+        'reviewsbox_review5_name' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review5_location' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review5_service' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_review5_image_id' => ['type' => 'media_select', 'table' => 'pylons'],
+        'reviewsbox_review5_date' => ['type' => 'text', 'table' => 'pylons'],
+        'reviewsbox_section_end' => ['type' => 'collapsible_end', 'table' => 'none'],
+        
+        // 9. Serena FAQ Box
         'serena_faq_box_q1' => ['type' => 'text', 'table' => 'pylons'],
         'serena_faq_box_a1' => ['type' => 'textarea', 'table' => 'pylons'],
         'serena_faq_box_q2' => ['type' => 'text', 'table' => 'pylons'],
@@ -902,6 +954,40 @@ function telescope_render_edit_form($post_id) {
                     );
                     
                     foreach ($fields as $field_name => $field_config): 
+                        // Handle collapsible header
+                        if ($field_config['type'] === 'collapsible_header') {
+                    ?>
+                    <tr class="collapsible-header" data-section="<?php echo esc_attr($field_name); ?>">
+                        <td colspan="3" style="background: #2271b1; color: white; padding: 12px; cursor: pointer; user-select: none;">
+                            <strong style="font-size: 14px;">
+                                <span class="toggle-icon" style="display: inline-block; width: 20px; transition: transform 0.3s;">▶</span>
+                                <?php echo esc_html($field_config['title']); ?>
+                            </strong>
+                            <span style="float: right; font-size: 12px; opacity: 0.8;">Click to expand/collapse</span>
+                        </td>
+                    </tr>
+                    <?php
+                            continue;
+                        }
+                        
+                        // Handle collapsible end
+                        if ($field_config['type'] === 'collapsible_end') {
+                            // This just marks the end of a collapsible section
+                            continue;
+                        }
+                        
+                        // Handle subsection separator
+                        if ($field_config['type'] === 'subsection') {
+                    ?>
+                    <tr class="collapsible-content subsection-header" style="display: none;">
+                        <td colspan="3" style="background: #f0f0f0; padding: 8px; font-weight: bold; border-left: 4px solid #2271b1;">
+                            <?php echo esc_html($field_config['title']); ?>
+                        </td>
+                    </tr>
+                    <?php
+                            continue;
+                        }
+                        
                         // Handle separator row
                         if ($field_config['type'] === 'separator') {
                     ?>
@@ -947,7 +1033,7 @@ function telescope_render_edit_form($post_id) {
                             $rows = 8;
                         }
                     ?>
-                    <tr>
+                    <tr class="<?php echo (strpos($field_name, 'reviewsbox_') === 0 && $field_name !== 'reviewsbox_section_start' && $field_name !== 'reviewsbox_section_end') ? 'collapsible-content' : ''; ?>" <?php echo (strpos($field_name, 'reviewsbox_') === 0 && $field_name !== 'reviewsbox_section_start' && $field_name !== 'reviewsbox_section_end') ? 'style="display: none;"' : ''; ?>>
                         <td class="field-name">
                             <strong style="font-size: 16px; text-transform: lowercase; display: block;">
                                 <?php echo esc_html($field_name); ?>
@@ -1372,6 +1458,52 @@ function telescope_render_edit_form($post_id) {
             console.error('WordPress media library is NOT available!');
             console.error('This usually means wp_enqueue_media() was not called');
         }
+        });
+        
+        // Collapsible sections functionality
+        $('.collapsible-header').on('click', function() {
+            var $header = $(this);
+            var sectionName = $header.data('section');
+            var $icon = $header.find('.toggle-icon');
+            var isCollapsed = $icon.css('transform') === 'none' || $icon.css('transform') === 'matrix(1, 0, 0, 1, 0, 0)';
+            
+            // Find all rows that belong to this section
+            var inSection = false;
+            var $rows = $header.nextAll('tr');
+            
+            $rows.each(function() {
+                var $row = $(this);
+                
+                // Stop if we hit another collapsible header or the end marker
+                if ($row.hasClass('collapsible-header') || $row.find('[name*="section_end"]').length > 0) {
+                    return false;
+                }
+                
+                // Toggle visibility of content rows
+                if ($row.hasClass('collapsible-content')) {
+                    if (isCollapsed) {
+                        $row.show();
+                    } else {
+                        $row.hide();
+                    }
+                }
+            });
+            
+            // Rotate the arrow icon
+            if (isCollapsed) {
+                $icon.css('transform', 'rotate(90deg)');
+            } else {
+                $icon.css('transform', 'rotate(0deg)');
+            }
+        });
+        
+        // Auto-collapse reviewsbox section on page load
+        $(window).on('load', function() {
+            // Ensure reviewsbox section starts collapsed
+            $('.collapsible-header[data-section="reviewsbox_section_start"]').each(function() {
+                var $icon = $(this).find('.toggle-icon');
+                $icon.css('transform', 'rotate(0deg)');
+            });
         });
         })(jQuery);
     }
