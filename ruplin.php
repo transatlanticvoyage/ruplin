@@ -447,6 +447,7 @@ class SnefuruPlugin {
             weasel_footer_code_for_contact_form TEXT DEFAULT NULL,
             ratingvalue_for_schema DECIMAL(3,2) DEFAULT NULL,
             reviewcount_for_schema DECIMAL(10,0) DEFAULT NULL,
+            avg_rating_box_hide_sitewide BOOLEAN DEFAULT FALSE,
             driggs_hours_for_schema TEXT DEFAULT NULL,
             georadius_for_schema INT(10) UNSIGNED DEFAULT NULL,
             home_anchor_for_silkweaver_services TEXT DEFAULT NULL,
@@ -671,6 +672,7 @@ class SnefuruPlugin {
             reviewsbox_review5_image_id BIGINT(20) UNSIGNED DEFAULT NULL,
             reviewsbox_review5_service TEXT DEFAULT NULL,
             reviewsbox_review5_date DATETIME DEFAULT NULL,
+            avg_rating_box_hide BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -1265,6 +1267,20 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.6.0');
+        }
+        
+        // Add avg_rating_box_hide column if it doesn't exist (rating column removed - now using sitespren)
+        $column_exists_hide = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'avg_rating_box_hide'");
+        if (empty($column_exists_hide)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN avg_rating_box_hide BOOLEAN DEFAULT FALSE");
+            error_log('Snefuru: Added avg_rating_box_hide column to pylons table');
+        }
+        
+        // Add avg_rating_box_hide_sitewide to zen_sitespren if it doesn't exist
+        $column_exists_sitewide_hide = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'avg_rating_box_hide_sitewide'");
+        if (empty($column_exists_sitewide_hide)) {
+            $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN avg_rating_box_hide_sitewide BOOLEAN DEFAULT FALSE");
+            error_log('Snefuru: Added avg_rating_box_hide_sitewide column to zen_sitespren table');
         }
     }
     

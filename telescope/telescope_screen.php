@@ -660,6 +660,56 @@ function telescope_render_post_selector() {
     .status-draft { background: #fff3cd; color: #856404; }
     .status-pending { background: #cce5ff; color: #004085; }
     .status-private { background: #f8d7da; color: #721c24; }
+    
+    /* Toggle Switch Styles */
+    .telescope-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 28px;
+    }
+    
+    .telescope-toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .telescope-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 28px;
+    }
+    
+    .telescope-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    .telescope-toggle-switch input:checked + .telescope-toggle-slider {
+        background-color: #2196F3;
+    }
+    
+    .telescope-toggle-switch input:focus + .telescope-toggle-slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+    
+    .telescope-toggle-switch input:checked + .telescope-toggle-slider:before {
+        transform: translateX(32px);
+    }
     </style>
     <?php
 }
@@ -727,6 +777,10 @@ function telescope_render_edit_form($post_id) {
         
         // Black separator after hero fields
         '__hero_separator__' => ['type' => 'hero_separator', 'table' => 'none'],
+        
+        // Average Rating Box Fields (renders after hero, before chen cards)
+        // Note: Rating value is now pulled from zen_sitespren.ratingvalue_for_schema (sitewide)
+        'avg_rating_box_hide' => ['type' => 'checkbox', 'table' => 'pylons'],
         
         // 1. Chen Cards (renders first after hero)
         'chenblock_card1_title' => ['type' => 'text', 'table' => 'pylons'],
@@ -1080,6 +1134,19 @@ function telescope_render_edit_form($post_id) {
                                         endif; ?>
                                     </div>
                                 </div>
+                            <?php elseif ($field_config['type'] === 'checkbox'): ?>
+                                <label class="telescope-toggle-switch">
+                                    <input 
+                                        type="checkbox" 
+                                        name="field_<?php echo esc_attr($field_name); ?>"
+                                        value="1"
+                                        <?php checked($value, 1); ?>
+                                        class="telescope-field-checkbox"
+                                        data-table="<?php echo esc_attr($field_config['table']); ?>"
+                                    />
+                                    <span class="telescope-toggle-slider"></span>
+                                </label>
+                                <span style="margin-left: 10px; color: #666;">Hide rating box on this page</span>
                             <?php else: ?>
                                 <input 
                                     type="text" 
@@ -1557,6 +1624,11 @@ function telescope_save_post_data($post_id, $form_data) {
             // Remove WordPress/PHP magic quotes slashes
             $value = wp_unslash($value);
             
+            // Handle checkbox fields - if not present in form_data, it means unchecked (0)
+            if ($field_name === 'avg_rating_box_hide') {
+                $value = isset($form_data['field_' . $field_name]) ? 1 : 0;
+            }
+            
             /**
              * CLAUDE: Check if this field exists in the database
              * If it's not in the database columns, it won't be saved!
@@ -1606,6 +1678,16 @@ function telescope_save_post_data($post_id, $form_data) {
         }
     }
     
+    // Handle checkbox fields that weren't submitted (unchecked)
+    // These fields need to be explicitly set to 0 when unchecked
+    $checkbox_fields = ['avg_rating_box_hide'];
+    foreach ($checkbox_fields as $checkbox_field) {
+        if (!isset($form_data['field_' . $checkbox_field])) {
+            $pylons_fields[$checkbox_field] = 0;
+            error_log("Setting unchecked checkbox field '$checkbox_field' to 0");
+        }
+    }
+    
     // Update wp_posts if needed
     if (!empty($posts_fields)) {
         $wpdb->update(
@@ -1636,7 +1718,7 @@ function telescope_save_post_data($post_id, $form_data) {
                                            'osb_services_per_row', 'osb_max_services_display', 
                                            'paragon_featured_image_id', 'hero_overlay_opacity', 'jchronology_order_for_blog_posts', 
                                            'jchronology_batch', 'exempt_from_silkweaver_menu_dynamical', 
-                                           'osb_is_enabled'])) {
+                                           'osb_is_enabled', 'avg_rating_box_hide'])) {
                     $format_array[] = '%d';  // Integer fields
                 } else {
                     $format_array[] = '%s';  // String/text fields (including baynar1_main)
