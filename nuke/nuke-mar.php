@@ -319,10 +319,7 @@ function ruplin_render_nuke_mar_page() {
             }
             
             // Double confirmation for safety
-            var secondConfirm = prompt('Type "DELETE" to confirm this action:');
-            
-            if (secondConfirm !== 'DELETE') {
-                alert('Action cancelled. The confirmation text did not match.');
+            if (!confirm('Final confirmation: Proceed with deletion?')) {
                 e.preventDefault();
                 return false;
             }

@@ -12,7 +12,6 @@
  * Test comment 2: Testing git sync at 2025-09-19
  * Test comment 7: Final VSCode dual visibility test - 2025-09-19 16:48
  * Git test trigger comment: 2025-10-26
- * TEST RUPLIN - VSCode source control verification - 2026-03-16
  */
 
 // Prevent direct access
@@ -674,6 +673,7 @@ class SnefuruPlugin {
             reviewsbox_review5_service TEXT DEFAULT NULL,
             reviewsbox_review5_date DATETIME DEFAULT NULL,
             avg_rating_box_hide BOOLEAN DEFAULT FALSE,
+            victoria_blog_box_hide BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),

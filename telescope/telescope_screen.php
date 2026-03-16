@@ -755,15 +755,10 @@ function telescope_render_edit_form($post_id) {
         'hero_style_setting_background_size' => ['type' => 'text', 'table' => 'pylons'],
         'pylon_archetype' => ['type' => 'text', 'table' => 'pylons'],
         'locpage_gmaps_string' => ['type' => 'text', 'table' => 'pylons'],
-        'driggs_phone_1' => ['type' => 'text', 'table' => 'zen_sitespren'],
         'driggs_city' => ['type' => 'text', 'table' => 'zen_sitespren'],
-        'driggs_state_full' => ['type' => 'text', 'table' => 'zen_sitespren'],
-        'driggs_state_code' => ['type' => 'text', 'table' => 'zen_sitespren'],
-        'driggs_country' => ['type' => 'text', 'table' => 'zen_sitespren'],
         'driggs_brand_name' => ['type' => 'text', 'table' => 'zen_sitespren'],
         'staircase_page_template_desired' => ['type' => 'text', 'table' => 'pylons'],
-        'baynar1_main' => ['type' => 'textarea', 'table' => 'pylons'],
-        'baynar2_main' => ['type' => 'textarea', 'table' => 'pylons'],
+        'victoria_blog_box_hide' => ['type' => 'select', 'table' => 'pylons', 'options' => ['0' => 'Show Blog Box', '1' => 'Hide Blog Box (Default)']],
         
         // ========== SEPARATOR ==========
         '__separator__' => ['type' => 'separator', 'table' => 'none'],
@@ -1148,6 +1143,23 @@ function telescope_render_edit_form($post_id) {
                                     <span class="telescope-toggle-slider"></span>
                                 </label>
                                 <span style="margin-left: 10px; color: #666;">Hide rating box on this page</span>
+                            <?php elseif ($field_config['type'] === 'select' && isset($field_config['options'])): ?>
+                                <select 
+                                    name="field_<?php echo esc_attr($field_name); ?>"
+                                    class="telescope-field-input"
+                                    data-table="<?php echo esc_attr($field_config['table']); ?>"
+                                    style="width: 100%; max-width: 300px;">
+                                    <?php foreach ($field_config['options'] as $option_value => $option_label): ?>
+                                        <option value="<?php echo esc_attr($option_value); ?>" <?php selected($value, $option_value); ?>>
+                                            <?php echo esc_html($option_label); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <?php if (empty($value) || $value === '' || $value === null): ?>
+                                    <p style="margin-top: 5px; color: #888; font-size: 12px; font-style: italic;">
+                                        Controls whether the Recent Posts blog widget appears on this page
+                                    </p>
+                                <?php endif; ?>
                             <?php else: ?>
                                 <input 
                                     type="text" 
