@@ -761,6 +761,7 @@ function telescope_render_edit_form($post_id) {
         'driggs_state_code' => ['type' => 'text', 'table' => 'zen_sitespren'],
         'driggs_country' => ['type' => 'text', 'table' => 'zen_sitespren'],
         'driggs_brand_name' => ['type' => 'text', 'table' => 'zen_sitespren'],
+        'staircase_page_template_desired' => ['type' => 'text', 'table' => 'pylons'],
         'baynar1_main' => ['type' => 'textarea', 'table' => 'pylons'],
         'baynar2_main' => ['type' => 'textarea', 'table' => 'pylons'],
         
