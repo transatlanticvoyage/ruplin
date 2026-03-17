@@ -626,6 +626,7 @@ function telescope_render_post_selector() {
     
     .telescope-posts-table {
         width: 100%;
+        margin-left: 12px;
         border-collapse: collapse;
         background: white;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -768,7 +769,7 @@ function telescope_render_edit_form($post_id) {
         // Hero Section Fields (render at the very top of page)
         'post_title' => ['type' => 'text', 'table' => 'posts'],
         'hero_subheading' => ['type' => 'text', 'table' => 'pylons'],
-        'paragon_featured_image_id' => ['type' => 'text', 'table' => 'pylons'],
+        'paragon_featured_image_id' => ['type' => 'media_select', 'table' => 'pylons'],
         'hero_overlay_opacity' => ['type' => 'text', 'table' => 'pylons'],
         
         // Black separator after hero fields
@@ -995,6 +996,92 @@ function telescope_render_edit_form($post_id) {
                 </thead>
                 <tbody>
                     <?php 
+                    // Get current site title
+                    $current_site_title = get_option('blogname');
+                    ?>
+                    
+                    <!-- WordPress Site Title Row -->
+                    <tr style="background: #f0f8ff; border: 2px solid #0073aa;">
+                        <td style="padding: 15px; vertical-align: middle;">
+                            <span class="field-name" style="font-weight: bold; color: #0073aa;">
+                                WP Site Title
+                            </span>
+                            <div class="field-description" style="font-size: 11px; color: #666; margin-top: 5px;">
+                                WordPress native site title (Settings → General)
+                            </div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <input 
+                                type="text" 
+                                id="wp_site_title" 
+                                name="wp_site_title" 
+                                value="<?php echo esc_attr($current_site_title); ?>" 
+                                style="width: 100%; padding: 8px; border: 1px solid #0073aa; border-radius: 4px; font-size: 14px;">
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="color: #666; font-size: 12px;">
+                                <strong>Database:</strong> wp_options table<br>
+                                <strong>Option name:</strong> blogname<br>
+                                <strong>Current value:</strong> <?php echo esc_html($current_site_title); ?>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Separator after site title -->
+                    <tr>
+                        <td colspan="3" style="background: #0073aa; height: 2px; padding: 0;"></td>
+                    </tr>
+                    
+                    <?php 
+                    // Get current sitewide rating box hide setting from zen_sitespren table
+                    $sitewide_rating_hide = $wpdb->get_var("SELECT avg_rating_box_hide_sitewide FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
+                    ?>
+                    
+                    <!-- Sitewide Rating Box Hide Row -->
+                    <tr style="background: #fff4e6; border: 2px solid #ff9800;">
+                        <td style="padding: 15px; vertical-align: middle;">
+                            <span class="field-name" style="font-weight: bold; color: #ff6f00;">
+                                avg_rating_box_hide_sitewide
+                            </span>
+                            <div class="field-description" style="font-size: 11px; color: #666; margin-top: 5px;">
+                                Hide average rating box on ALL pages sitewide
+                            </div>
+                        </td>
+                        <td style="padding: 15px;">
+                            <label class="toggle-switch" style="position: relative; display: inline-block; width: 60px; height: 34px;">
+                                <input 
+                                    type="checkbox" 
+                                    id="avg_rating_box_hide_sitewide" 
+                                    name="avg_rating_box_hide_sitewide" 
+                                    value="1"
+                                    <?php echo $sitewide_rating_hide == 1 ? 'checked' : ''; ?>
+                                    style="opacity: 0; width: 0; height: 0;">
+                                <span class="toggle-slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;">
+                                    <span class="toggle-label" style="position: absolute; top: 50%; transform: translateY(-50%); left: 8px; right: 8px; text-align: center; color: white; font-weight: bold; font-size: 12px; pointer-events: none;">
+                                        <?php echo $sitewide_rating_hide == 1 ? 'HIDDEN' : 'VISIBLE'; ?>
+                                    </span>
+                                </span>
+                            </label>
+                            <span style="margin-left: 15px; color: #666; font-size: 13px;">
+                                Currently: <strong><?php echo $sitewide_rating_hide == 1 ? 'Hidden sitewide' : 'Visible sitewide'; ?></strong>
+                            </span>
+                        </td>
+                        <td style="padding: 15px;">
+                            <div style="color: #666; font-size: 12px;">
+                                <strong>Database:</strong> wp_zen_sitespren table<br>
+                                <strong>Column:</strong> avg_rating_box_hide_sitewide<br>
+                                <strong>Type:</strong> Boolean (0 = show, 1 = hide)<br>
+                                <strong>Note:</strong> Overrides individual page settings
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Separator after sitewide setting -->
+                    <tr>
+                        <td colspan="3" style="background: #ff9800; height: 2px; padding: 0;"></td>
+                    </tr>
+                    
+                    <?php 
                     // Get data from multiple tables
                     $pylon_data = $wpdb->get_row($wpdb->prepare(
                         "SELECT * FROM {$wpdb->prefix}pylons WHERE rel_wp_post_id = %d",
@@ -1113,7 +1200,7 @@ function telescope_render_edit_form($post_id) {
                                         style="width: 100px;"
                                     />
                                     <button type="button" 
-                                            class="button telescope-media-button" 
+                                            class="button telescope-media-select" 
                                             data-target="field_<?php echo esc_attr($field_name); ?>"
                                             data-preview="preview_<?php echo esc_attr($field_name); ?>">
                                         Select Image
@@ -1187,6 +1274,37 @@ function telescope_render_edit_form($post_id) {
             </div>
         </form>
     </div>
+    
+    <style>
+    /* Toggle Switch Styles for Sitewide Rating Hide */
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: #ff6f00;
+    }
+    
+    .toggle-switch input:not(:checked) + .toggle-slider {
+        background-color: #4CAF50;
+    }
+    
+    .toggle-switch .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    .toggle-switch input:checked + .toggle-slider:before {
+        transform: translateX(26px);
+    }
+    
+    .toggle-switch:hover .toggle-slider {
+        box-shadow: 0 0 4px #2196F3;
+    }
+    </style>
     
     <?php
     /**
@@ -1269,6 +1387,7 @@ function telescope_render_edit_form($post_id) {
     
     .telescope-edit-table {
         width: 100%;
+        margin-left: 12px;
         border-collapse: collapse;
         background: white;
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -1465,129 +1584,198 @@ function telescope_render_edit_form($post_id) {
         
         (function($) {
             $(document).ready(function() {
-            console.log('Telescope Media Library JS Loading...');
-            console.log('wp object:', typeof wp);
-            console.log('wp.media object:', typeof wp !== 'undefined' ? typeof wp.media : 'wp not defined');
-        
-        // Check if media library is available
-        if (typeof wp !== 'undefined' && typeof wp.media !== 'undefined') {
-            console.log('WordPress media library is available');
+                console.log('Telescope Media Library JS Loading...');
+                console.log('wp object:', typeof wp);
+                console.log('wp.media object:', typeof wp !== 'undefined' ? typeof wp.media : 'wp not defined');
             
-            // Use document.on for dynamic binding in case elements load after script
-            $(document).on('click', '.telescope-media-select', function(e) {
-                e.preventDefault();
-                console.log('Select Image button clicked');
-                
-                const button = $(this);
-                const targetField = $('#' + button.data('target'));
-                const previewDiv = $('#' + button.data('preview'));
-                
-                console.log('Target field:', button.data('target'));
-                console.log('Preview div:', button.data('preview'));
-                console.log('Target field element found:', targetField.length > 0);
-                console.log('Preview div element found:', previewDiv.length > 0);
-                
-                // Create media frame
-                const mediaFrame = wp.media({
-                    title: 'Select Image',
-                    button: {
-                        text: 'Use This Image'
-                    },
-                    multiple: false,
-                    library: {
-                        type: 'image'
+                // Check if media library is available
+                if (typeof wp !== 'undefined' && typeof wp.media !== 'undefined') {
+                    console.log('WordPress media library is available');
+                    
+                    // Debug: Check what buttons exist after a small delay (in case they're rendered dynamically)
+                    setTimeout(function() {
+                        console.log('Looking for .telescope-media-select buttons...');
+                        var selectButtons = $('.telescope-media-select');
+                        console.log('Found', selectButtons.length, 'buttons with class .telescope-media-select');
+                        
+                        if (selectButtons.length === 0) {
+                            console.error('NO SELECT BUTTONS FOUND! Checking for other button classes...');
+                            console.log('Buttons with class "button":', $('.button').length);
+                            console.log('All button elements:', $('button').length);
+                            
+                            // List all buttons on the page
+                            $('button').each(function(index) {
+                                console.log('Button', index + 1, 'classes:', $(this).attr('class'), 'text:', $(this).text().trim());
+                            });
+                        } else {
+                            selectButtons.each(function(index) {
+                                console.log('Button', index + 1, ':', $(this).attr('data-target'), $(this).attr('class'));
+                            });
+                        }
+                    }, 1000);
+                    
+                    // Only use delegated binding to avoid duplicate events
+                    $(document).on('click', '.telescope-media-select', function(e) {
+                        e.preventDefault();
+                        console.log('Select Image button clicked');
+                        handleMediaSelect($(this));
+                    });
+                    
+                    // Function to handle media selection
+                    function handleMediaSelect(button) {
+                        console.log('handleMediaSelect called');
+                        console.log('Button element:', button);
+                        
+                        const targetField = $('#' + button.data('target'));
+                        const previewDiv = $('#' + button.data('preview'));
+                        
+                        console.log('Target field:', button.data('target'));
+                        console.log('Preview div:', button.data('preview'));
+                        console.log('Target field element found:', targetField.length > 0);
+                        console.log('Preview div element found:', previewDiv.length > 0);
+                        
+                        try {
+                            // Create media frame
+                            const mediaFrame = wp.media({
+                                title: 'Select Image',
+                                button: {
+                                    text: 'Use This Image'
+                                },
+                                multiple: false,
+                                library: {
+                                    type: 'image'
+                                },
+                                frame: 'select'
+                            });
+                            
+                            // Force the media library tab to be active when opened
+                            mediaFrame.on('open', function() {
+                                // Get the frame content
+                                var content = mediaFrame.content.get();
+                                
+                                // Switch to browse/library mode if available
+                                if (content && content.mode) {
+                                    content.mode('browse');
+                                }
+                                
+                                // Alternative: directly activate the library tab
+                                var menu = mediaFrame.menu.get();
+                                if (menu) {
+                                    menu.activate('library');
+                                }
+                            });
+                            
+                            // When image is selected
+                            mediaFrame.on('select', function() {
+                                const attachment = mediaFrame.state().get('selection').first().toJSON();
+                                console.log('Image selected:', attachment);
+                                
+                                // Update the field with image ID
+                                targetField.val(attachment.id);
+                                
+                                // Update preview
+                                let thumbnailUrl = attachment.sizes && attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
+                                previewDiv.html('<img src="' + thumbnailUrl + '" style="max-width: 150px; height: auto; border: 1px solid #ddd; padding: 3px;">');
+                                
+                                // Close the media frame
+                                mediaFrame.close();
+                            });
+                            
+                            // Open the media frame
+                            console.log('Opening media frame...');
+                            mediaFrame.open();
+                        } catch (error) {
+                            console.error('Error in handleMediaSelect:', error);
+                            alert('Error opening media library: ' + error.message);
+                        }
                     }
-                });
-                
-                // When image is selected
-                mediaFrame.on('select', function() {
-                    const attachment = mediaFrame.state().get('selection').first().toJSON();
-                    console.log('Image selected:', attachment);
                     
-                    // Update the field with image ID
-                    targetField.val(attachment.id);
+                    // Handle Remove button clicks - also use document.on for dynamic binding
+                    $(document).on('click', '.telescope-media-remove', function(e) {
+                        e.preventDefault();
+                        console.log('Remove button clicked');
+                        
+                        const button = $(this);
+                        const targetField = $('#' + button.data('target'));
+                        const previewDiv = $('#' + button.data('preview'));
+                        
+                        // Clear the field value
+                        targetField.val('');
+                        
+                        // Clear the preview
+                        previewDiv.html('');
+                    });
                     
-                    // Update preview
-                    let thumbnailUrl = attachment.sizes && attachment.sizes.thumbnail ? attachment.sizes.thumbnail.url : attachment.url;
-                    previewDiv.html('<img src="' + thumbnailUrl + '" style="max-width: 150px; height: auto; border: 1px solid #ddd; padding: 3px;">');
-                });
-                
-                // Open the media frame
-                console.log('Opening media frame...');
-                mediaFrame.open();
-            });
-            
-            // Handle Remove button clicks - also use document.on for dynamic binding
-            $(document).on('click', '.telescope-media-remove', function(e) {
-                e.preventDefault();
-                console.log('Remove button clicked');
-                
-                const button = $(this);
-                const targetField = $('#' + button.data('target'));
-                const previewDiv = $('#' + button.data('preview'));
-                
-                // Clear the field value
-                targetField.val('');
-                
-                // Clear the preview
-                previewDiv.html('');
-            });
-            
-            // Count media select buttons on page
-            const mediaButtons = $('.telescope-media-select');
-            console.log('Found', mediaButtons.length, 'media select buttons on page');
-            
-        } else {
-            console.error('WordPress media library is NOT available!');
-            console.error('This usually means wp_enqueue_media() was not called');
-        }
-        });
-        
-        // Collapsible sections functionality
-        $('.collapsible-header').on('click', function() {
-            var $header = $(this);
-            var sectionName = $header.data('section');
-            var $icon = $header.find('.toggle-icon');
-            var isCollapsed = $icon.css('transform') === 'none' || $icon.css('transform') === 'matrix(1, 0, 0, 1, 0, 0)';
-            
-            // Find all rows that belong to this section
-            var inSection = false;
-            var $rows = $header.nextAll('tr');
-            
-            $rows.each(function() {
-                var $row = $(this);
-                
-                // Stop if we hit another collapsible header or the end marker
-                if ($row.hasClass('collapsible-header') || $row.find('[name*="section_end"]').length > 0) {
-                    return false;
+                    // Count media select buttons on page
+                    const mediaButtons = $('.telescope-media-select');
+                    console.log('Found', mediaButtons.length, 'media select buttons on page');
+                    
+                } else {
+                    console.error('WordPress media library is NOT available!');
+                    console.error('This usually means wp_enqueue_media() was not called');
                 }
                 
-                // Toggle visibility of content rows
-                if ($row.hasClass('collapsible-content')) {
+                // Collapsible sections functionality
+                $('.collapsible-header').on('click', function() {
+                    var $header = $(this);
+                    var sectionName = $header.data('section');
+                    var $icon = $header.find('.toggle-icon');
+                    var isCollapsed = $icon.css('transform') === 'none' || $icon.css('transform') === 'matrix(1, 0, 0, 1, 0, 0)';
+                    
+                    // Find all rows that belong to this section
+                    var inSection = false;
+                    var $rows = $header.nextAll('tr');
+                    
+                    $rows.each(function() {
+                        var $row = $(this);
+                        
+                        // Stop if we hit another collapsible header or the end marker
+                        if ($row.hasClass('collapsible-header') || $row.find('[name*="section_end"]').length > 0) {
+                            return false;
+                        }
+                        
+                        // Toggle visibility of content rows
+                        if ($row.hasClass('collapsible-content')) {
+                            if (isCollapsed) {
+                                $row.show();
+                            } else {
+                                $row.hide();
+                            }
+                        }
+                    });
+                    
+                    // Rotate the arrow icon
                     if (isCollapsed) {
-                        $row.show();
+                        $icon.css('transform', 'rotate(90deg)');
                     } else {
-                        $row.hide();
+                        $icon.css('transform', 'rotate(0deg)');
                     }
-                }
-            });
-            
-            // Rotate the arrow icon
-            if (isCollapsed) {
-                $icon.css('transform', 'rotate(90deg)');
-            } else {
-                $icon.css('transform', 'rotate(0deg)');
-            }
-        });
-        
-        // Auto-collapse reviewsbox section on page load
-        $(window).on('load', function() {
-            // Ensure reviewsbox section starts collapsed
-            $('.collapsible-header[data-section="reviewsbox_section_start"]').each(function() {
-                var $icon = $(this).find('.toggle-icon');
-                $icon.css('transform', 'rotate(0deg)');
-            });
-        });
+                });
+                
+                // Auto-collapse reviewsbox section on page load
+                $(window).on('load', function() {
+                    // Ensure reviewsbox section starts collapsed
+                    $('.collapsible-header[data-section="reviewsbox_section_start"]').each(function() {
+                        var $icon = $(this).find('.toggle-icon');
+                        $icon.css('transform', 'rotate(0deg)');
+                    });
+                });
+                
+                // Toggle switch functionality for sitewide rating hide
+                $('#avg_rating_box_hide_sitewide').on('change', function() {
+                    var isChecked = $(this).is(':checked');
+                    var $label = $(this).siblings('.toggle-slider').find('.toggle-label');
+                    var $status = $(this).closest('td').find('strong');
+                    
+                    if (isChecked) {
+                        $label.text('HIDDEN');
+                        $status.text('Hidden sitewide');
+                    } else {
+                        $label.text('VISIBLE');
+                        $status.text('Visible sitewide');
+                    }
+                });
+            }); // End of $(document).ready()
         })(jQuery);
     }
     </script>
@@ -1627,6 +1815,59 @@ function telescope_save_post_data($post_id, $form_data) {
      * - Fields disappearing: Someone removed them from $fields array
      * ============================================================
      */
+    
+    // Handle WordPress Site Title update FIRST
+    if (isset($form_data['wp_site_title'])) {
+        $new_site_title = sanitize_text_field($form_data['wp_site_title']);
+        $old_site_title = get_option('blogname');
+        
+        if ($new_site_title !== $old_site_title) {
+            update_option('blogname', $new_site_title);
+            error_log("✅ WordPress Site Title updated from '$old_site_title' to '$new_site_title'");
+        } else {
+            error_log("⏭️ WordPress Site Title unchanged: '$new_site_title'");
+        }
+    }
+    
+    // Handle Sitewide Rating Box Hide setting
+    $sitewide_hide_value = isset($form_data['avg_rating_box_hide_sitewide']) ? 1 : 0;
+    
+    // Check if zen_sitespren table exists
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}zen_sitespren'") != null;
+    
+    if ($table_exists) {
+        // Check if column exists
+        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM {$wpdb->prefix}zen_sitespren LIKE 'avg_rating_box_hide_sitewide'");
+        
+        if (!empty($column_exists)) {
+            // Update the sitewide setting
+            $update_result = $wpdb->update(
+                $wpdb->prefix . 'zen_sitespren',
+                array('avg_rating_box_hide_sitewide' => $sitewide_hide_value),
+                array('id' => 1) // Assuming single row table
+            );
+            
+            if ($update_result !== false) {
+                error_log("✅ Sitewide rating box hide setting updated to: " . ($sitewide_hide_value ? 'HIDDEN' : 'VISIBLE'));
+            } else {
+                // If update fails, might need to insert
+                $row_exists = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}zen_sitespren");
+                if ($row_exists == 0) {
+                    $wpdb->insert(
+                        $wpdb->prefix . 'zen_sitespren',
+                        array('avg_rating_box_hide_sitewide' => $sitewide_hide_value)
+                    );
+                    error_log("✅ Sitewide rating box hide setting inserted as: " . ($sitewide_hide_value ? 'HIDDEN' : 'VISIBLE'));
+                } else {
+                    error_log("❌ Failed to update sitewide rating box hide setting");
+                }
+            }
+        } else {
+            error_log("⚠️ Column 'avg_rating_box_hide_sitewide' does not exist in zen_sitespren table");
+        }
+    } else {
+        error_log("⚠️ Table '{$wpdb->prefix}zen_sitespren' does not exist");
+    }
     
     // DEBUG: Log all incoming form data
     error_log("===== TELESCOPE SAVE DEBUG START =====");
