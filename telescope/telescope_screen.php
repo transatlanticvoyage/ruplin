@@ -976,6 +976,9 @@ function telescope_render_edit_form($post_id) {
             <!-- Save button at top -->
             <div class="telescope-actions-top">
                 <button type="submit" class="button button-primary button-large">💾 Save Changes</button>
+                <button type="button" class="button button-secondary button-large microscope-copy-btn" data-post-id="<?php echo $post_id; ?>" style="margin-left: 10px; background: maroon; color: white; border-color: maroon;">
+                    🔬 Copy Microscope Data
+                </button>
                 <button type="button" class="button button-secondary button-large" id="copy-markdown-btn" style="margin-left: 10px;">
                     📋 Copy content in markdown
                 </button>
@@ -1588,6 +1591,15 @@ function telescope_render_edit_form($post_id) {
         })(jQuery);
     }
     </script>
+    
+    <?php 
+    // Add Microscope copy functionality using centralized class
+    require_once SNEFURU_PLUGIN_PATH . 'includes/class-microscope.php';
+    
+    // Output the copy script for the Microscope button
+    Ruplin_Microscope::output_copy_script('.microscope-copy-btn');
+    ?>
+    
     <?php
 }
 

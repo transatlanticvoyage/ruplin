@@ -4,6 +4,9 @@
 class Snefuru_Admin {
     
     public function __construct() {
+        // Include Microscope class for centralized data handling
+        require_once SNEFURU_PLUGIN_PATH . 'includes/class-microscope.php';
+        
         // Set global admin instance for page files
         global $snefuru_admin;
         $snefuru_admin = $this;
@@ -57,8 +60,12 @@ class Snefuru_Admin {
         
         // Add dioptra button to admin toolbar
         add_action('admin_bar_menu', array($this, 'add_dioptra_toolbar_button'), 999);
-        add_action('admin_bar_menu', array($this, 'add_telescope_toolbar_button'), 1000);
+        add_action('admin_bar_menu', array($this, 'add_microscope_toolbar_button'), 1000);
+        add_action('admin_bar_menu', array($this, 'add_telescope_toolbar_button'), 1001);
         add_action('wp_head', array($this, 'add_telescope_toolbar_styles'));
+        add_action('wp_head', array($this, 'add_microscope_toolbar_styles'));
+        add_action('wp_ajax_microscope_get_page_data', array($this, 'handle_microscope_get_page_data'));
+        add_action('wp_ajax_nopriv_microscope_get_page_data', array($this, 'handle_microscope_get_page_data'));
         
         // Driggs management AJAX actions
         add_action('wp_ajax_rup_driggs_get_data', array($this, 'rup_driggs_get_data'));
@@ -11141,6 +11148,98 @@ class Snefuru_Admin {
                 'title' => 'Edit this page in Telescope'
             )
         ));
+    }
+    
+    /**
+     * Add microscope button to admin toolbar
+     */
+    public function add_microscope_toolbar_button($wp_admin_bar) {
+        // Only show on frontend pages that have a post ID
+        if (is_admin() || !is_singular()) {
+            return;
+        }
+        
+        global $post;
+        if (!$post || !$post->ID) {
+            return;
+        }
+        
+        // Add the Microscope button to the left of Telescope
+        $wp_admin_bar->add_node(array(
+            'id'     => 'microscope-copy',
+            'title'  => 'Copy Microscope Data',
+            'href'   => '#',
+            'parent' => 'top-secondary', // This puts it on the right side of the admin bar
+            'meta'   => array(
+                'class' => 'microscope-copy-toolbar-link',
+                'title' => 'Copy page data for Microscope system',
+                'onclick' => 'copyMicroscopeData(' . $post->ID . '); return false;'
+            )
+        ));
+    }
+    
+    /**
+     * Handle AJAX request to get microscope page data
+     * Uses centralized Microscope class for data formatting
+     */
+    public function handle_microscope_get_page_data() {
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        // Use centralized Microscope class
+        $result = Ruplin_Microscope::get_formatted_data($post_id);
+        
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        } else {
+            wp_send_json_success(array(
+                'data' => $result['data']
+            ));
+        }
+    }
+    
+    /**
+     * Add custom styles for Microscope toolbar button
+     */
+    public function add_microscope_toolbar_styles() {
+        // Only add styles if user is logged in and can see admin bar
+        if (!is_user_logged_in() || is_admin()) {
+            return;
+        }
+        ?>
+        <style type="text/css">
+            /* Style for Microscope Copy button in admin bar */
+            #wp-admin-bar-microscope-copy .ab-item {
+                background: maroon !important;
+                color: white !important;
+                font-weight: 600 !important;
+                padding: 0 12px !important;
+                transition: all 0.3s ease !important;
+                margin-right: 5px !important;
+            }
+            
+            #wp-admin-bar-microscope-copy:hover .ab-item {
+                background: #8B0000 !important;
+                transform: scale(1.05);
+            }
+            
+            /* Ensure it stays on the right */
+            #wp-admin-bar-microscope-copy {
+                float: right !important;
+            }
+            
+            /* Add icon */
+            #wp-admin-bar-microscope-copy .ab-item:before {
+                content: "🔬 ";
+                font-size: 16px;
+                vertical-align: middle;
+            }
+        </style>
+        
+        <?php 
+        // Output the centralized copy script for toolbar
+        Ruplin_Microscope::output_copy_script('#wp-admin-bar-microscope-copy .ab-item');
+        ?>
+        <?php
     }
     
     /**
