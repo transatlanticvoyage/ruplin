@@ -57,6 +57,12 @@ function ruplin_render_nuke_mar_page() {
             $posts_published = $post_counts->publish ?? 0;
             $posts_draft = $post_counts->draft ?? 0;
             $posts_all = $posts_published + $posts_draft + ($post_counts->private ?? 0) + ($post_counts->future ?? 0) + ($post_counts->pending ?? 0);
+            
+            // Get total pylons count
+            $pylons_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}pylons");
+            if ($pylons_count === null) {
+                $pylons_count = 0; // Table might not exist
+            }
             ?>
             
             <!-- Counter Badges Container -->
@@ -129,6 +135,14 @@ function ruplin_render_nuke_mar_page() {
                            <?php echo number_format($posts_all); ?>
                         </a>
                     </div>
+                </div>
+                
+                <!-- Pylons Counter Badge -->
+                <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: linear-gradient(135deg, #ff6f00 0%, #ff9100 100%); border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <span style="color: white; font-weight: 600; font-size: 13px;">Total Pylons</span>
+                    <span style="background: rgba(255,255,255,0.9); color: #ff6f00; padding: 4px 10px; border-radius: 4px; font-size: 14px; font-weight: bold;">
+                        <?php echo number_format($pylons_count); ?>
+                    </span>
                 </div>
             </div>
             
@@ -236,6 +250,42 @@ function ruplin_render_nuke_mar_page() {
                                     echo '<span class="dashicons dashicons-database"></span> ' . esc_html($row_count) . ' row';
                                 } else {
                                     echo '<span class="dashicons dashicons-database"></span> Table not found';
+                                }
+                                ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <input type="checkbox" 
+                                       id="protect_blog_page" 
+                                       name="protect_blog_page" 
+                                       value="1" 
+                                       checked="checked">
+                            </td>
+                            <td>
+                                <label for="protect_blog_page">
+                                    <strong><?php echo esc_html__('Ignore the page set as "page_for_posts" (blog roll page) in WP native settings', 'ruplin'); ?></strong>
+                                </label>
+                            </td>
+                            <td>
+                                <?php echo esc_html__('Protects the designated blog posts page from deletion', 'ruplin'); ?>
+                            </td>
+                            <td>
+                                <?php 
+                                $posts_page_id = get_option('page_for_posts');
+                                if ($posts_page_id) {
+                                    $posts_page = get_post($posts_page_id);
+                                    if ($posts_page) {
+                                        echo '<span class="dashicons dashicons-admin-page" style="color: #0073aa;"></span> ';
+                                        echo esc_html($posts_page->post_title);
+                                        echo '<br><small style="color: #666;">/' . esc_html($posts_page->post_name) . '/</small>';
+                                    } else {
+                                        echo '<span class="dashicons dashicons-warning" style="color: #d63638;"></span> ';
+                                        echo esc_html__('Page not found', 'ruplin');
+                                    }
+                                } else {
+                                    echo '<span class="dashicons dashicons-minus"></span> ';
+                                    echo esc_html__('Not set', 'ruplin');
                                 }
                                 ?>
                             </td>

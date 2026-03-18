@@ -29,6 +29,7 @@ function ruplin_process_nuke_action($post_data) {
     $delete_pages = isset($post_data['delete_all_pages']) && $post_data['delete_all_pages'] === '1';
     $delete_posts = isset($post_data['delete_all_posts']) && $post_data['delete_all_posts'] === '1';
     $wipe_sitespren = isset($post_data['wipe_sitespren_values']) && $post_data['wipe_sitespren_values'] === '1';
+    $protect_blog_page = isset($post_data['protect_blog_page']) && $post_data['protect_blog_page'] === '1';
     
     // Process URL exclusions
     $excluded_urls = array();
@@ -55,7 +56,7 @@ function ruplin_process_nuke_action($post_data) {
     try {
         // Delete all pages if selected
         if ($delete_pages) {
-            $pages_deleted = ruplin_delete_all_content('page', $excluded_urls);
+            $pages_deleted = ruplin_delete_all_content('page', $excluded_urls, $protect_blog_page);
             
             // Log the action
             ruplin_log_nuke_action('pages_deleted', $pages_deleted);
@@ -63,7 +64,7 @@ function ruplin_process_nuke_action($post_data) {
         
         // Delete all posts if selected
         if ($delete_posts) {
-            $posts_deleted = ruplin_delete_all_content('post', $excluded_urls);
+            $posts_deleted = ruplin_delete_all_content('post', $excluded_urls, $protect_blog_page);
             
             // Log the action
             ruplin_log_nuke_action('posts_deleted', $posts_deleted);
@@ -131,9 +132,10 @@ function ruplin_process_nuke_action($post_data) {
  * 
  * @param string $post_type The post type to delete
  * @param array $excluded_urls Array of URL slugs to exclude from deletion
+ * @param bool $protect_blog_page Whether to protect the page_for_posts page
  * @return int Number of items deleted
  */
-function ruplin_delete_all_content($post_type, $excluded_urls = array()) {
+function ruplin_delete_all_content($post_type, $excluded_urls = array(), $protect_blog_page = false) {
     global $wpdb;
     
     $deleted_count = 0;
@@ -150,7 +152,14 @@ function ruplin_delete_all_content($post_type, $excluded_urls = array()) {
     // Build exclusion list
     $excluded_post_ids = array();
     
-    // No automatic system page exclusions - let nuke delete everything unless manually excluded
+    // Protect the page_for_posts (blog page) if option is enabled
+    if ($protect_blog_page && $post_type === 'page') {
+        $posts_page_id = get_option('page_for_posts');
+        if ($posts_page_id) {
+            $excluded_post_ids[] = intval($posts_page_id);
+            error_log('Ruplin: Protecting blog page (page_for_posts) with ID: ' . $posts_page_id);
+        }
+    }
     
     // Get post IDs to exclude based on URL slugs
     if (!empty($excluded_urls)) {
