@@ -12,6 +12,7 @@
  * Test comment 2: Testing git sync at 2025-09-19
  * Test comment 7: Final VSCode dual visibility test - 2025-09-19 16:48
  * Git test trigger comment: 2025-10-26
+ * Test comment: VSCode source control pane test - 2026-03-20
  */
 
 // Prevent direct access
