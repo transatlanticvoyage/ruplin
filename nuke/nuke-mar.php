@@ -22,6 +22,8 @@ function ruplin_render_nuke_mar_page() {
         wp_die(__('You do not have sufficient permissions to access this page.', 'ruplin'));
     }
     
+    global $wpdb; // Declare global database object
+    
     // Handle form submission
     if (isset($_POST['ruplin_nuke_action']) && $_POST['ruplin_nuke_action'] === 'f494_nuke_wipe') {
         // Verify nonce
