@@ -384,6 +384,15 @@ class Snefuru_Admin {
             array($this, 'cta_jackal_page')
         );
         
+        add_submenu_page(
+            'snefuru',
+            'Fundamental Image Setter',
+            'Fundamental Image Setter',
+            'manage_options',
+            'fundamental_image_setter',
+            array($this, 'fundamental_image_setter_page')
+        );
+        
         // Note: Aragon Image Manager menu is handled by its own class
     }
     
@@ -13776,7 +13785,25 @@ class Snefuru_Admin {
             wp_die(__('You do not have sufficient permissions to access this page.'));
         }
         
-        require_once SNEFURUPLUGIN_PATH . 'cta_jackal/cta_jackal_screen.php';
+        require_once SNEFURU_PLUGIN_PATH . 'cta_jackal/cta_jackal_screen.php';
         cta_jackal_page();
+    }
+    
+    /**
+     * Render the Fundamental Image Setter admin page
+     */
+    public function fundamental_image_setter_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        // Load the controller
+        require_once SNEFURU_PLUGIN_PATH . 'fundamental-image-setter/class-fundamental-image-setter-controller.php';
+        
+        // Initialize and render the page
+        $controller = new Ruplin_Fundamental_Image_Setter_Controller();
+        $controller->init_hooks();
+        $controller->render();
     }
 } 
