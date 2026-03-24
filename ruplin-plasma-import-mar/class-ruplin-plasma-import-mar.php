@@ -61,6 +61,13 @@ class Ruplin_Plasma_Import_Mar {
                         Plasma Import Mar
                     </h1>
                     
+                    <!-- Fundamental Image Setter Button -->
+                    <a href="<?php echo admin_url('admin.php?page=fundamental_image_setter'); ?>" 
+                       class="button ruplin-button" 
+                       style="background: #8B4513; color: white; text-decoration: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; display: inline-block; transition: background-color 0.3s ease; align-self: center;">
+                        <span style="color: #FFD700;">go to ruplin</span> - <span style="color: white;">fundamental_image_setter</span>
+                    </a>
+                    
                     <!-- Counter Badges Container -->
                     <div style="display: flex; gap: 15px; align-items: center; margin-left: auto;">
                         <!-- Pages Counter Badge -->
@@ -1384,6 +1391,9 @@ class Ruplin_Plasma_Import_Mar {
         </script>
 
         <style>
+        .ruplin-button:hover {
+            background: #A0522D !important;
+        }
         .widefat th, .widefat td {
             border: 1px solid #ddd;
         }
