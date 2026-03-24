@@ -184,6 +184,17 @@ class Snefuru_Admin {
             'dashicons-backup'                     // Icon
         );
         
+        // Add Maintenance Mode as a direct link (appears between Media and Pages)
+        $menu[15] = array(
+            'Maintenance Mode',                    // Menu title
+            'manage_options',                      // Capability
+            'options-general.php?page=hkdev_Maintenance_Mode',  // Direct URL
+            'Maintenance Mode',                    // Page title
+            'menu-top toplevel_page_maintenance_mode_custom',  // CSS classes
+            'maintenance_mode_custom',             // Menu slug for CSS targeting
+            'dashicons-admin-tools'                // Icon (wrench icon)
+        );
+        
         // Add new Nuke Mar top-level menu item (appears above Ruplin Hub)
         add_menu_page(
             'Nuke Mar',
@@ -391,6 +402,15 @@ class Snefuru_Admin {
             'manage_options',
             'fundamental_image_setter',
             array($this, 'fundamental_image_setter_page')
+        );
+        
+        add_submenu_page(
+            'snefuru',
+            'Ruplin Plasma Import Mar',
+            'Ruplin Plasma Import Mar',
+            'manage_options',
+            'ruplin_plasma_import_mar',
+            array($this, 'ruplin_plasma_import_mar_page')
         );
         
         // Note: Aragon Image Manager menu is handled by its own class
@@ -13805,5 +13825,22 @@ class Snefuru_Admin {
         $controller = new Ruplin_Fundamental_Image_Setter_Controller();
         $controller->init_hooks();
         $controller->render();
+    }
+    
+    /**
+     * Render the Ruplin Plasma Import Mar admin page
+     */
+    public function ruplin_plasma_import_mar_page() {
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        // Load the Ruplin Plasma Import Mar class
+        require_once SNEFURU_PLUGIN_PATH . 'ruplin-plasma-import-mar/class-ruplin-plasma-import-mar.php';
+        
+        // Initialize and render the page
+        $plasma_import = new Ruplin_Plasma_Import_Mar();
+        $plasma_import->ruplin_plasma_import_mar_page();
     }
 } 

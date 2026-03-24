@@ -46,12 +46,6 @@ function ruplin_render_nuke_mar_page() {
                 <span style="color: #FFA500;">Go To Grove</span> - <span style="color: white;">plasma_import_mar</span>
             </a>
             
-            <a href="<?php echo admin_url('admin.php?page=fundamental_image_setter'); ?>" 
-               class="button ruplin-button" 
-               style="background: #8B4513; color: white; text-decoration: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; display: inline-block; transition: background-color 0.3s ease;">
-                <span style="color: #FFD700;">go to ruplin</span> - <span style="color: white;">fundamental_image_setter</span>
-            </a>
-            
             <?php
             // Get post counts
             $page_counts = wp_count_posts('page');
@@ -157,9 +151,6 @@ function ruplin_render_nuke_mar_page() {
             <style>
                 .grove-button:hover {
                     background: #87CEEB !important;
-                }
-                .ruplin-button:hover {
-                    background: #D2691E !important;
                 }
             </style>
         </div>

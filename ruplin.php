@@ -175,6 +175,9 @@ class SnefuruPlugin {
         new Snefuru_Admin();
         new Snefuru_Settings();
         new Snefuru_Upload_Handler();
+        
+        // Initialize Ruplin Plasma Import functionality
+        $this->init_ruplin_plasma_import();
         new Snefuru_Media_Tab();
         new Snefuru_CSS_Endpoint();
         new Snefuru_Barkro_Updater();
@@ -1411,6 +1414,25 @@ class SnefuruPlugin {
     public function inject_vectornode_meta_tags() {
         // DISABLED - using new VectorNode system instead
         return;
+    }
+    
+    /**
+     * Initialize Ruplin Plasma Import functionality
+     */
+    private function init_ruplin_plasma_import() {
+        // Load the processor class
+        require_once SNEFURU_PLUGIN_PATH . 'ruplin-plasma-import-mar/class-ruplin-plasma-import-processor.php';
+        $processor = new Ruplin_Plasma_Import_Processor();
+        
+        // Register AJAX handlers
+        add_action('wp_ajax_ruplin_plasma_import', array($processor, 'handle_ajax_import'));
+        add_action('wp_ajax_nopriv_ruplin_plasma_import', array($processor, 'handle_ajax_import'));
+        add_action('wp_ajax_ruplin_driggs_data_import', array($processor, 'handle_ajax_driggs_import'));
+        add_action('wp_ajax_nopriv_ruplin_driggs_data_import', array($processor, 'handle_ajax_driggs_import'));
+        
+        // File upload handler
+        add_action('wp_ajax_ruplin_upload_json_file', array($processor, 'handle_file_upload'));
+        add_action('wp_ajax_nopriv_ruplin_upload_json_file', array($processor, 'handle_file_upload'));
     }
 }
 

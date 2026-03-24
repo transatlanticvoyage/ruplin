@@ -116,6 +116,8 @@ class Ruplin_Fundamental_Image_Setter_Page_Renderer {
                 }
             </style>
             
+            <?php $this->render_filezilla_section(); ?>
+            
             <div class="fundamental-header">
                 <h1>🎯 Fundamental Image Setter</h1>
                 <div class="subtitle">Quick updates for essential page settings and images</div>
@@ -906,6 +908,126 @@ class Ruplin_Fundamental_Image_Setter_Page_Renderer {
                 updateJezelButtons();
             });
         });
+        </script>
+        <?php
+    }
+    
+    /**
+     * Render FileZilla path section
+     */
+    private function render_filezilla_section() {
+        global $wpdb;
+        
+        // Get the sitespren_base from database
+        $sitespren_base = $wpdb->get_var("SELECT sitespren_base FROM {$wpdb->prefix}zen_sitespren LIMIT 1");
+        
+        // Fall back to current domain if sitespren_base is not set
+        if (empty($sitespren_base)) {
+            $site_url = get_site_url();
+            $parsed_url = parse_url($site_url);
+            $domain = $parsed_url['host'] ?? '';
+            
+            // Remove www. if present but keep other subdomains
+            if (strpos($domain, 'www.') === 0) {
+                $domain = substr($domain, 4);
+            }
+            $sitespren_base = $domain;
+        }
+        
+        // Build the FileZilla path
+        $filezilla_path = '/' . $sitespren_base . '/wp-content/ai1wm-backups';
+        ?>
+        
+        <!-- FileZilla Path Section - Top of page -->
+        <div style="display: flex; align-items: center; gap: 15px; margin: 0 -20px 20px -20px; padding: 20px 30px; background: #2c3e50; border-bottom: 3px solid #1e3a5f;">
+            <button type="button" 
+                    id="copy-filezilla-btn"
+                    class="button" 
+                    style="background: #1e3a5f; color: white; text-decoration: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; display: inline-block; transition: background-color 0.3s ease; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+                    onclick="copyFileZillaPath()">
+                <span style="color: #FFA500;">copy filezilla path</span>
+            </button>
+            
+            <input type="text" 
+                   id="filezilla-path-input"
+                   value="<?php echo esc_attr($filezilla_path); ?>" 
+                   readonly
+                   size="<?php echo strlen($filezilla_path) + 2; ?>"
+                   style="padding: 10px; font-size: 14px; font-family: monospace; border: 1px solid #34495e; border-radius: 4px; background: white; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+            
+            <button type="button" 
+                    id="copy-domain-btn"
+                    class="button" 
+                    style="background: #27ae60; color: white; text-decoration: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; display: inline-block; transition: background-color 0.3s ease; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"
+                    onclick="copyDomainOnly()">
+                <span style="color: #f1c40f;">copy domain only</span>
+            </button>
+            
+            <input type="hidden" id="domain-only-input" value="<?php echo esc_attr($sitespren_base); ?>">
+            
+            <span id="copy-feedback" style="display: none; color: #2ecc71; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">✓ Copied!</span>
+        </div>
+        
+        <style>
+            #copy-filezilla-btn:hover {
+                background: #87CEEB !important;
+                transform: translateY(-1px);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
+            }
+            #copy-domain-btn:hover {
+                background: #229954 !important;
+                transform: translateY(-1px);
+                box-shadow: 0 3px 6px rgba(0,0,0,0.3) !important;
+            }
+        </style>
+        
+        <script>
+        function copyFileZillaPath() {
+            var pathInput = document.getElementById('filezilla-path-input');
+            var feedback = document.getElementById('copy-feedback');
+            
+            // Select the text
+            pathInput.select();
+            pathInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            // Copy the text
+            document.execCommand('copy');
+            
+            // Show feedback
+            feedback.style.display = 'inline';
+            feedback.innerHTML = '✓ FileZilla Path Copied!';
+            setTimeout(function() {
+                feedback.style.display = 'none';
+            }, 2000);
+            
+            // Remove selection
+            window.getSelection().removeAllRanges();
+        }
+        
+        function copyDomainOnly() {
+            var domainInput = document.getElementById('domain-only-input');
+            var feedback = document.getElementById('copy-feedback');
+            
+            // Create temporary input to copy from
+            var tempInput = document.createElement('input');
+            tempInput.value = domainInput.value;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999);
+            
+            // Copy the text
+            document.execCommand('copy');
+            
+            // Remove temporary input
+            document.body.removeChild(tempInput);
+            
+            // Show feedback
+            feedback.style.display = 'inline';
+            feedback.innerHTML = '✓ Domain Copied!';
+            setTimeout(function() {
+                feedback.style.display = 'none';
+            }, 2000);
+        }
         </script>
         <?php
     }
