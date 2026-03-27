@@ -58,6 +58,27 @@ class Ruplin_Condor_API {
             'callback' => array($this, 'get_pylons_count'),
             'permission_callback' => array($this, 'check_permission'),
         ));
+        
+        // Nuke content endpoint - deletes all pages, posts and pylons
+        register_rest_route($namespace, '/nuke-content', array(
+            'methods' => 'DELETE',
+            'callback' => array($this, 'nuke_content'),
+            'permission_callback' => array($this, 'check_permission'),
+        ));
+        
+        // Nuke driggs endpoint - clears wp_zen_sitespren data
+        register_rest_route($namespace, '/nuke-driggs', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'nuke_driggs'),
+            'permission_callback' => array($this, 'check_permission'),
+        ));
+        
+        // Inject sitespren data endpoint
+        register_rest_route($namespace, '/inject-sitespren', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'inject_sitespren'),
+            'permission_callback' => array($this, 'check_permission'),
+        ));
     }
     
     /**
@@ -244,6 +265,194 @@ class Ruplin_Condor_API {
         $pylons_table = $wpdb->prefix . 'pylons';
         $columns = $wpdb->get_col("SHOW COLUMNS FROM `{$pylons_table}`");
         return $columns ? $columns : array();
+    }
+    
+    /**
+     * Nuke all content - Delete all pages, posts, and pylons
+     */
+    public function nuke_content($request) {
+        global $wpdb;
+        
+        // Count items before deletion
+        $pages_count = wp_count_posts('page')->publish + wp_count_posts('page')->draft;
+        $posts_count = wp_count_posts('post')->publish + wp_count_posts('post')->draft;
+        
+        // Delete all pages
+        $pages = get_posts(array(
+            'post_type' => 'page',
+            'numberposts' => -1,
+            'post_status' => 'any'
+        ));
+        
+        foreach ($pages as $page) {
+            wp_delete_post($page->ID, true); // Force delete (bypass trash)
+        }
+        
+        // Delete all posts
+        $posts = get_posts(array(
+            'post_type' => 'post',
+            'numberposts' => -1,
+            'post_status' => 'any'
+        ));
+        
+        foreach ($posts as $post) {
+            wp_delete_post($post->ID, true); // Force delete (bypass trash)
+        }
+        
+        // Delete all pylons
+        $pylons_table = $wpdb->prefix . 'pylons';
+        $pylons_deleted = $wpdb->query("DELETE FROM {$pylons_table}");
+        
+        return new WP_REST_Response(array(
+            'success' => true,
+            'pages_deleted' => count($pages),
+            'posts_deleted' => count($posts),
+            'pylons_deleted' => $pylons_deleted,
+            'message' => 'All content has been deleted'
+        ), 200);
+    }
+    
+    /**
+     * Nuke driggs data - Clear all values in wp_zen_sitespren except primary key
+     */
+    public function nuke_driggs($request) {
+        global $wpdb;
+        
+        $zen_table = $wpdb->prefix . 'zen_sitespren';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$zen_table}'");
+        if (!$table_exists) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'wp_zen_sitespren table does not exist'
+            ), 404);
+        }
+        
+        // Get all columns except primary key
+        $columns = $wpdb->get_col("SHOW COLUMNS FROM `{$zen_table}`");
+        $primary_key = 'id'; // Assuming 'id' is the primary key
+        
+        // Build update query to set all columns to NULL except primary key
+        $set_clauses = array();
+        foreach ($columns as $column) {
+            if ($column !== $primary_key) {
+                $set_clauses[] = "`{$column}` = NULL";
+            }
+        }
+        
+        if (empty($set_clauses)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No columns to update'
+            ), 400);
+        }
+        
+        // Update the single row (wp_zen_sitespren always has exactly 1 row)
+        $sql = "UPDATE {$zen_table} SET " . implode(', ', $set_clauses) . " WHERE {$primary_key} = 1";
+        $result = $wpdb->query($sql);
+        
+        if ($result === false) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Failed to clear driggs data',
+                'error' => $wpdb->last_error
+            ), 500);
+        }
+        
+        return new WP_REST_Response(array(
+            'success' => true,
+            'message' => 'All driggs data has been cleared',
+            'fields_cleared' => count($set_clauses)
+        ), 200);
+    }
+    
+    /**
+     * Inject sitespren data from React app into wp_zen_sitespren
+     */
+    public function inject_sitespren($request) {
+        global $wpdb;
+        
+        $params = $request->get_json_params();
+        
+        if (!isset($params['sitespren_data']) || !is_array($params['sitespren_data'])) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No sitespren data provided'
+            ), 400);
+        }
+        
+        $sitespren_data = $params['sitespren_data'];
+        $zen_table = $wpdb->prefix . 'zen_sitespren';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$zen_table}'");
+        if (!$table_exists) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'wp_zen_sitespren table does not exist'
+            ), 404);
+        }
+        
+        // Get columns from wp_zen_sitespren
+        $zen_columns = $wpdb->get_col("SHOW COLUMNS FROM `{$zen_table}`");
+        $primary_key = 'id';
+        
+        // First, clear existing data (except primary key)
+        $clear_clauses = array();
+        foreach ($zen_columns as $column) {
+            if ($column !== $primary_key) {
+                $clear_clauses[] = "`{$column}` = NULL";
+            }
+        }
+        
+        if (!empty($clear_clauses)) {
+            $clear_sql = "UPDATE {$zen_table} SET " . implode(', ', $clear_clauses) . " WHERE {$primary_key} = 1";
+            $wpdb->query($clear_sql);
+        }
+        
+        // Now inject new data - auto-map matching columns
+        $update_data = array();
+        $fields_updated = 0;
+        
+        foreach ($sitespren_data as $key => $value) {
+            // Skip if column doesn't exist in wp_zen_sitespren or is primary key
+            if (!in_array($key, $zen_columns) || $key === $primary_key) {
+                continue;
+            }
+            
+            // Add to update data
+            $update_data[$key] = $value;
+            $fields_updated++;
+        }
+        
+        if (empty($update_data)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No matching fields found to update'
+            ), 400);
+        }
+        
+        // Update the row
+        $result = $wpdb->update(
+            $zen_table,
+            $update_data,
+            array($primary_key => 1) // WHERE id = 1
+        );
+        
+        if ($result === false) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Failed to inject sitespren data',
+                'error' => $wpdb->last_error
+            ), 500);
+        }
+        
+        return new WP_REST_Response(array(
+            'success' => true,
+            'message' => 'Sitespren data injected successfully',
+            'fields_updated' => $fields_updated
+        ), 200);
     }
 }
 
