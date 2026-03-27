@@ -455,6 +455,7 @@ class SnefuruPlugin {
             ratingvalue_for_schema DECIMAL(3,2) DEFAULT NULL,
             reviewcount_for_schema DECIMAL(10,0) DEFAULT NULL,
             avg_rating_box_hide_sitewide BOOLEAN DEFAULT FALSE,
+            footer_disclaimer TEXT DEFAULT NULL,
             driggs_hours_for_schema TEXT DEFAULT NULL,
             georadius_for_schema INT(10) UNSIGNED DEFAULT NULL,
             home_anchor_for_silkweaver_services TEXT DEFAULT NULL,
@@ -1289,6 +1290,13 @@ class SnefuruPlugin {
         if (empty($column_exists_sitewide_hide)) {
             $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN avg_rating_box_hide_sitewide BOOLEAN DEFAULT FALSE");
             error_log('Snefuru: Added avg_rating_box_hide_sitewide column to zen_sitespren table');
+        }
+        
+        // Add footer_disclaimer column to zen_sitespren table if it doesn't exist
+        $column_exists_footer_disclaimer = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'footer_disclaimer'");
+        if (empty($column_exists_footer_disclaimer)) {
+            $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN footer_disclaimer TEXT DEFAULT NULL");
+            error_log('Snefuru: Added footer_disclaimer column to zen_sitespren table');
         }
     }
     
