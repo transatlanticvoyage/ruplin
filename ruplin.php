@@ -116,6 +116,9 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
         
+        // Load Condor API for Plasma Wizard Step 130 integration
+        require_once SNEFURU_PLUGIN_PATH . 'condor/class-condor-api.php';
+        
         // Load Silkweaver Menu System
         require_once SNEFURU_PLUGIN_PATH . 'silkweaver_menu/silkweaver_init.php';
         
