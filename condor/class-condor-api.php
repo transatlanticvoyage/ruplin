@@ -66,6 +66,13 @@ class Ruplin_Condor_API {
             'permission_callback' => array($this, 'check_permission'),
         ));
         
+        // Create blog and sitemap pages endpoint
+        register_rest_route($namespace, '/create-blog-sitemap-pages', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'create_blog_sitemap_pages'),
+            'permission_callback' => array($this, 'check_permission'),
+        ));
+        
         // Nuke driggs endpoint - clears wp_zen_sitespren data
         register_rest_route($namespace, '/nuke-driggs', array(
             'methods' => 'POST',
@@ -273,19 +280,41 @@ class Ruplin_Condor_API {
     public function nuke_content($request) {
         global $wpdb;
         
+        $params = $request->get_json_params();
+        $exclude_blog_sitemap = isset($params['exclude_blog_sitemap']) ? $params['exclude_blog_sitemap'] : true;
+        
         // Count items before deletion
         $pages_count = wp_count_posts('page')->publish + wp_count_posts('page')->draft;
         $posts_count = wp_count_posts('post')->publish + wp_count_posts('post')->draft;
         
-        // Delete all pages
+        // Get excluded page IDs if option is enabled
+        $excluded_ids = array();
+        if ($exclude_blog_sitemap) {
+            // Find blog page
+            $blog_page = get_page_by_path('blog');
+            if ($blog_page) {
+                $excluded_ids[] = $blog_page->ID;
+            }
+            
+            // Find sitemap page
+            $sitemap_page = get_page_by_path('sitemap');
+            if ($sitemap_page) {
+                $excluded_ids[] = $sitemap_page->ID;
+            }
+        }
+        
+        // Delete all pages (except excluded)
         $pages = get_posts(array(
             'post_type' => 'page',
             'numberposts' => -1,
-            'post_status' => 'any'
+            'post_status' => 'any',
+            'exclude' => $excluded_ids
         ));
         
+        $pages_deleted = 0;
         foreach ($pages as $page) {
             wp_delete_post($page->ID, true); // Force delete (bypass trash)
+            $pages_deleted++;
         }
         
         // Delete all posts
@@ -295,20 +324,28 @@ class Ruplin_Condor_API {
             'post_status' => 'any'
         ));
         
+        $posts_deleted = 0;
         foreach ($posts as $post) {
             wp_delete_post($post->ID, true); // Force delete (bypass trash)
+            $posts_deleted++;
         }
         
-        // Delete all pylons
+        // Delete all pylons (except those related to excluded pages)
         $pylons_table = $wpdb->prefix . 'pylons';
-        $pylons_deleted = $wpdb->query("DELETE FROM {$pylons_table}");
+        if (!empty($excluded_ids)) {
+            $excluded_ids_string = implode(',', array_map('intval', $excluded_ids));
+            $pylons_deleted = $wpdb->query("DELETE FROM {$pylons_table} WHERE rel_wp_post_id NOT IN ({$excluded_ids_string})");
+        } else {
+            $pylons_deleted = $wpdb->query("DELETE FROM {$pylons_table}");
+        }
         
         return new WP_REST_Response(array(
             'success' => true,
-            'pages_deleted' => count($pages),
-            'posts_deleted' => count($posts),
+            'pages_deleted' => $pages_deleted,
+            'posts_deleted' => $posts_deleted,
             'pylons_deleted' => $pylons_deleted,
-            'message' => 'All content has been deleted'
+            'excluded_pages' => count($excluded_ids),
+            'message' => $exclude_blog_sitemap ? 'Content deleted (blog and sitemap pages preserved)' : 'All content has been deleted'
         ), 200);
     }
     
@@ -454,6 +491,115 @@ class Ruplin_Condor_API {
             'success' => true,
             'message' => 'Sitespren data injected successfully (preserved id and wppma_id)',
             'fields_updated' => $fields_updated
+        ), 200);
+    }
+    
+    /**
+     * Create Blog and Sitemap pages with pylons
+     */
+    public function create_blog_sitemap_pages($request) {
+        global $wpdb;
+        
+        $results = array();
+        $pylons_table = $wpdb->prefix . 'pylons';
+        
+        // Create Blog page
+        $blog_page_id = null;
+        $existing_blog = get_page_by_path('blog');
+        
+        if (!$existing_blog) {
+            $blog_page_id = wp_insert_post(array(
+                'post_title' => 'Blog',
+                'post_name' => 'blog',
+                'post_content' => '', // Empty content for blog page
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_author' => get_current_user_id()
+            ));
+            
+            if (!is_wp_error($blog_page_id)) {
+                // Set as posts page in WordPress settings
+                update_option('page_for_posts', $blog_page_id);
+                
+                // Create pylon record for blog page
+                $wpdb->insert($pylons_table, array(
+                    'rel_wp_post_id' => $blog_page_id,
+                    'pylon_archetype' => 'blogpage',
+                    'staircase_page_template_desired' => 'bilberry'
+                ));
+                
+                $results['blog'] = array(
+                    'success' => true,
+                    'page_id' => $blog_page_id,
+                    'message' => 'Blog page created successfully'
+                );
+            } else {
+                $results['blog'] = array(
+                    'success' => false,
+                    'message' => 'Failed to create blog page: ' . $blog_page_id->get_error_message()
+                );
+            }
+        } else {
+            $results['blog'] = array(
+                'success' => false,
+                'message' => 'Blog page already exists',
+                'page_id' => $existing_blog->ID
+            );
+        }
+        
+        // Create Sitemap page
+        $sitemap_page_id = null;
+        $existing_sitemap = get_page_by_path('sitemap');
+        
+        if (!$existing_sitemap) {
+            // Sitemap content with shortcode
+            $sitemap_content = '[ruplin_sitemap_method_3
+      zservice_anchor="post_title"
+      zneighborhood_anchor="post_title"
+      zcity_anchor="city"
+      zabout_anchor="post_title"
+      zcontact_anchor="post_title"
+      zcustom_anchors=\'{"zdowntown-jersey-city":"Downtown","zabout":"Our Story","zcontact":"Get In Touch","zplumbing":"Expert Plumbing","zblog/latest-news":"Recent Updates","zprivacy-policy":"Privacy"}\']';
+            
+            $sitemap_page_id = wp_insert_post(array(
+                'post_title' => 'Sitemap',
+                'post_name' => 'sitemap',
+                'post_content' => $sitemap_content,
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_author' => get_current_user_id()
+            ));
+            
+            if (!is_wp_error($sitemap_page_id)) {
+                // Create pylon record for sitemap page
+                $wpdb->insert($pylons_table, array(
+                    'rel_wp_post_id' => $sitemap_page_id,
+                    'pylon_archetype' => 'sitemappage',
+                    'staircase_page_template_desired' => 'bilberry'
+                ));
+                
+                $results['sitemap'] = array(
+                    'success' => true,
+                    'page_id' => $sitemap_page_id,
+                    'message' => 'Sitemap page created successfully'
+                );
+            } else {
+                $results['sitemap'] = array(
+                    'success' => false,
+                    'message' => 'Failed to create sitemap page: ' . $sitemap_page_id->get_error_message()
+                );
+            }
+        } else {
+            $results['sitemap'] = array(
+                'success' => false,
+                'message' => 'Sitemap page already exists',
+                'page_id' => $existing_sitemap->ID
+            );
+        }
+        
+        return new WP_REST_Response(array(
+            'success' => true,
+            'results' => $results
         ), 200);
     }
 }
