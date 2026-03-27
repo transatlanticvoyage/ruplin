@@ -313,7 +313,7 @@ class Ruplin_Condor_API {
     }
     
     /**
-     * Nuke driggs data - Clear all values in wp_zen_sitespren except primary key
+     * Nuke driggs data - Clear all values in wp_zen_sitespren except id and wppma_id
      */
     public function nuke_driggs($request) {
         global $wpdb;
@@ -329,14 +329,14 @@ class Ruplin_Condor_API {
             ), 404);
         }
         
-        // Get all columns except primary key
+        // Get all columns except id and wppma_id (both must be preserved)
         $columns = $wpdb->get_col("SHOW COLUMNS FROM `{$zen_table}`");
-        $primary_key = 'id'; // Assuming 'id' is the primary key
+        $preserved_columns = array('id', 'wppma_id'); // Do not touch these columns
         
-        // Build update query to set all columns to NULL except primary key
+        // Build update query to set all columns to NULL except preserved columns
         $set_clauses = array();
         foreach ($columns as $column) {
-            if ($column !== $primary_key) {
+            if (!in_array($column, $preserved_columns)) {
                 $set_clauses[] = "`{$column}` = NULL";
             }
         }
@@ -349,7 +349,8 @@ class Ruplin_Condor_API {
         }
         
         // Update the single row (wp_zen_sitespren always has exactly 1 row)
-        $sql = "UPDATE {$zen_table} SET " . implode(', ', $set_clauses) . " WHERE {$primary_key} = 1";
+        // Using wppma_id = 1 since that's the standard identifier
+        $sql = "UPDATE {$zen_table} SET " . implode(', ', $set_clauses) . " WHERE wppma_id = 1";
         $result = $wpdb->query($sql);
         
         if ($result === false) {
@@ -362,7 +363,7 @@ class Ruplin_Condor_API {
         
         return new WP_REST_Response(array(
             'success' => true,
-            'message' => 'All driggs data has been cleared',
+            'message' => 'All driggs data has been cleared (preserved id and wppma_id)',
             'fields_cleared' => count($set_clauses)
         ), 200);
     }
@@ -396,18 +397,19 @@ class Ruplin_Condor_API {
         
         // Get columns from wp_zen_sitespren
         $zen_columns = $wpdb->get_col("SHOW COLUMNS FROM `{$zen_table}`");
-        $primary_key = 'id';
+        $preserved_columns = array('id', 'wppma_id'); // Do not touch these columns
         
-        // First, clear existing data (except primary key)
+        // First, clear existing data (except id and wppma_id)
         $clear_clauses = array();
         foreach ($zen_columns as $column) {
-            if ($column !== $primary_key) {
+            if (!in_array($column, $preserved_columns)) {
                 $clear_clauses[] = "`{$column}` = NULL";
             }
         }
         
         if (!empty($clear_clauses)) {
-            $clear_sql = "UPDATE {$zen_table} SET " . implode(', ', $clear_clauses) . " WHERE {$primary_key} = 1";
+            // Using wppma_id = 1 for the WHERE clause
+            $clear_sql = "UPDATE {$zen_table} SET " . implode(', ', $clear_clauses) . " WHERE wppma_id = 1";
             $wpdb->query($clear_sql);
         }
         
@@ -416,8 +418,8 @@ class Ruplin_Condor_API {
         $fields_updated = 0;
         
         foreach ($sitespren_data as $key => $value) {
-            // Skip if column doesn't exist in wp_zen_sitespren or is primary key
-            if (!in_array($key, $zen_columns) || $key === $primary_key) {
+            // Skip if column doesn't exist in wp_zen_sitespren or is a preserved column
+            if (!in_array($key, $zen_columns) || in_array($key, $preserved_columns)) {
                 continue;
             }
             
@@ -433,11 +435,11 @@ class Ruplin_Condor_API {
             ), 400);
         }
         
-        // Update the row
+        // Update the row using wppma_id as the identifier
         $result = $wpdb->update(
             $zen_table,
             $update_data,
-            array($primary_key => 1) // WHERE id = 1
+            array('wppma_id' => 1) // WHERE wppma_id = 1
         );
         
         if ($result === false) {
@@ -450,7 +452,7 @@ class Ruplin_Condor_API {
         
         return new WP_REST_Response(array(
             'success' => true,
-            'message' => 'Sitespren data injected successfully',
+            'message' => 'Sitespren data injected successfully (preserved id and wppma_id)',
             'fields_updated' => $fields_updated
         ), 200);
     }
