@@ -110,6 +110,12 @@ class Spearhead_Application_Password_Connector {
             'callback' => array($this, 'handle_callback'),
             'permission_callback' => '__return_true', // Public endpoint
         ));
+        
+        register_rest_route('spearhead/v1', '/debug/https-check', array(
+            'methods'  => 'GET',
+            'callback' => array($this, 'debug_https_check'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
     }
     
     /**
@@ -208,6 +214,27 @@ class Spearhead_Application_Password_Connector {
         // after application password is created
         wp_safe_redirect(home_url());
         exit;
+    }
+    
+    /**
+     * Debug HTTPS and application password availability
+     */
+    public function debug_https_check($request) {
+        return array(
+            'is_ssl' => is_ssl(),
+            'wp_is_using_https' => function_exists('wp_is_using_https') ? wp_is_using_https() : 'function not found',
+            'wp_is_application_passwords_available' => function_exists('wp_is_application_passwords_available') ? wp_is_application_passwords_available() : 'function not found',
+            'server_https' => isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : 'not set',
+            'server_port' => isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : 'not set',
+            'server_scheme' => isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'not set',
+            'constants' => array(
+                'FORCE_SSL_ADMIN' => defined('FORCE_SSL_ADMIN') ? FORCE_SSL_ADMIN : 'not defined',
+                'SPEARHEAD_HTTPS_OVERRIDE' => defined('SPEARHEAD_HTTPS_OVERRIDE') ? SPEARHEAD_HTTPS_OVERRIDE : 'not defined',
+            ),
+            'site_url' => site_url(),
+            'home_url' => home_url(),
+            'admin_url' => admin_url(),
+        );
     }
     
     /**
@@ -338,7 +365,35 @@ class Spearhead_Application_Password_Connector {
     }
 }
 
-// Initialize the connector
+// Initialize the connector very early
 add_action('plugins_loaded', function() {
+    // Check for Spearhead requests IMMEDIATELY
+    if (isset($_GET['app_name']) && strpos($_GET['app_name'], 'Tregnar') === 0) {
+        // If we have a localhost success URL, override HTTPS immediately
+        if (isset($_GET['success_url'])) {
+            $success_url = urldecode($_GET['success_url']);
+            if (strpos($success_url, 'http://localhost') !== false || 
+                strpos($success_url, 'http://127.0.0.1') !== false ||
+                strpos($success_url, 'http://192.168.') !== false) {
+                
+                // Force HTTPS environment BEFORE WordPress checks
+                $_SERVER['HTTPS'] = 'on';
+                $_SERVER['SERVER_PORT'] = 443;
+                $_SERVER['REQUEST_SCHEME'] = 'https';
+                
+                // Override all possible HTTPS checks
+                add_filter('wp_is_application_passwords_available', '__return_true', 1);
+                add_filter('wp_is_application_passwords_available_for_user', '__return_true', 1);
+                add_filter('wp_is_using_https', '__return_true', 1);
+                add_filter('wp_is_https_supported', '__return_true', 1);
+                add_filter('wp_is_site_url_using_https', '__return_true', 1);
+                add_filter('wp_is_home_url_using_https', '__return_true', 1);
+                
+                // Also override the is_ssl() function result
+                add_filter('is_ssl', '__return_true', 1);
+            }
+        }
+    }
+    
     Spearhead_Application_Password_Connector::get_instance();
-});
+}, 1); // Priority 1 to run very early
