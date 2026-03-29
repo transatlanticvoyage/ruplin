@@ -44,11 +44,12 @@ class Spearhead_Helper_Page {
      * Add admin menu
      */
     public function add_admin_menu() {
+        // Use 'read' capability so any logged-in user can access
         add_submenu_page(
             null, // Hidden page (no parent menu)
             'Spearhead Connect Helper',
             'Spearhead Connect Helper',
-            'manage_options',
+            'read', // Changed from 'manage_options' to 'read' - any logged in user
             'spearhead_connect_helper_screen',
             array($this, 'render_page')
         );

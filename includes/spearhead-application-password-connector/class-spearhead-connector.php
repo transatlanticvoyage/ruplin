@@ -116,6 +116,12 @@ class Spearhead_Application_Password_Connector {
             'callback' => array($this, 'debug_https_check'),
             'permission_callback' => '__return_true', // Public endpoint
         ));
+        
+        register_rest_route('spearhead/v1', '/debug/full-report', array(
+            'methods'  => 'GET',
+            'callback' => array($this, 'debug_full_report'),
+            'permission_callback' => '__return_true', // Public endpoint
+        ));
     }
     
     /**
@@ -235,6 +241,54 @@ class Spearhead_Application_Password_Connector {
             'home_url' => home_url(),
             'admin_url' => admin_url(),
         );
+    }
+    
+    /**
+     * Full debug report - comprehensive information
+     */
+    public function debug_full_report($request) {
+        $report = array(
+            'critical' => array(
+                'siteurl' => get_option('siteurl'),
+                'home' => get_option('home'),
+                'siteurl_is_https' => strpos(get_option('siteurl'), 'https://') === 0,
+                'home_is_https' => strpos(get_option('home'), 'https://') === 0,
+            ),
+            'https_detection' => array(
+                'is_ssl' => is_ssl(),
+                'wp_is_using_https' => function_exists('wp_is_using_https') ? wp_is_using_https() : false,
+                'server_https' => isset($_SERVER['HTTPS']) ? $_SERVER['HTTPS'] : 'not set',
+                'server_port' => $_SERVER['SERVER_PORT'] ?? 'not set',
+                'x_forwarded_proto' => $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'not set',
+                'x_forwarded_ssl' => $_SERVER['HTTP_X_FORWARDED_SSL'] ?? 'not set',
+                'cloudflare_https' => $_SERVER['HTTP_CF_VISITOR'] ?? 'not set',
+            ),
+            'application_passwords' => array(
+                'available' => function_exists('wp_is_application_passwords_available') ? wp_is_application_passwords_available() : false,
+                'wp_app_passwords_constant' => defined('WP_APPLICATION_PASSWORDS') ? WP_APPLICATION_PASSWORDS : 'not defined',
+                'force_ssl_admin' => defined('FORCE_SSL_ADMIN') ? FORCE_SSL_ADMIN : 'not defined',
+            ),
+            'diagnosis' => array(),
+            'fix_suggestions' => array(),
+        );
+        
+        // Add diagnosis
+        if (!$report['critical']['siteurl_is_https']) {
+            $report['diagnosis'][] = 'CRITICAL: siteurl in database is using HTTP';
+            $report['fix_suggestions'][] = "UPDATE wp_options SET option_value = REPLACE(option_value, 'http://', 'https://') WHERE option_name = 'siteurl';";
+        }
+        if (!$report['critical']['home_is_https']) {
+            $report['diagnosis'][] = 'CRITICAL: home URL in database is using HTTP';
+            $report['fix_suggestions'][] = "UPDATE wp_options SET option_value = REPLACE(option_value, 'http://', 'https://') WHERE option_name = 'home';";
+        }
+        if (!$report['https_detection']['is_ssl']) {
+            $report['diagnosis'][] = 'WordPress is_ssl() returns false - server configuration issue';
+        }
+        if (!$report['application_passwords']['available']) {
+            $report['diagnosis'][] = 'Application passwords are not available';
+        }
+        
+        return $report;
     }
     
     /**
