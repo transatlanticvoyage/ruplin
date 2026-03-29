@@ -55,8 +55,14 @@ class Spearhead_Application_Password_Connector {
         // Add custom query vars
         add_filter('query_vars', array($this, 'add_query_vars'));
         
-        // Handle the authorization page modifications
+        // Handle the authorization page modifications - hook very early
+        add_action('init', array($this, 'modify_authorization_page'), 1);
+        
+        // Also hook into admin_init for additional processing
         add_action('admin_init', array($this, 'modify_authorization_page'));
+        
+        // Override HTTPS checks for Spearhead requests
+        add_action('init', array($this, 'override_https_checks_for_spearhead'), 1);
     }
     
     /**
@@ -246,6 +252,51 @@ class Spearhead_Application_Password_Connector {
     }
     
     /**
+     * Override HTTPS checks specifically for Spearhead requests
+     */
+    public function override_https_checks_for_spearhead() {
+        // Only apply on admin pages
+        if (!is_admin()) {
+            return;
+        }
+        
+        // Check if this is an authorization page request with Tregnar
+        if (isset($_GET['app_name']) && strpos($_GET['app_name'], 'Tregnar') === 0) {
+            // Check if we have a localhost success URL
+            if (isset($_GET['success_url'])) {
+                $success_url = urldecode($_GET['success_url']);
+                
+                // If it's a development URL, override HTTPS checks
+                if (strpos($success_url, 'http://localhost') !== false || 
+                    strpos($success_url, 'http://127.0.0.1') !== false ||
+                    strpos($success_url, 'http://192.168.') !== false) {
+                    
+                    // Force WordPress to think it's using HTTPS
+                    if (!defined('FORCE_SSL_ADMIN')) {
+                        define('FORCE_SSL_ADMIN', false);
+                    }
+                    
+                    // Override the application password availability check
+                    add_filter('wp_is_application_passwords_available', '__return_true', 1);
+                    add_filter('wp_is_application_passwords_available_for_user', '__return_true', 1);
+                    
+                    // Override HTTPS detection
+                    add_filter('wp_is_using_https', '__return_true', 1);
+                    
+                    // Modify server variables to fake HTTPS
+                    if (!isset($_SERVER['HTTPS'])) {
+                        $_SERVER['HTTPS'] = 'on';
+                    }
+                    $_SERVER['SERVER_PORT'] = 443;
+                    
+                    // Set a flag so we know we've overridden
+                    define('SPEARHEAD_OVERRIDE_HTTPS', true);
+                }
+            }
+        }
+    }
+    
+    /**
      * Modify authorization page behavior
      */
     public function modify_authorization_page() {
@@ -259,11 +310,29 @@ class Spearhead_Application_Password_Connector {
             return;
         }
         
-        // Store the success URL in a transient for later use
+        // For Spearhead requests with localhost callback, bypass HTTPS requirement
         if (isset($_GET['success_url'])) {
+            $success_url = $_GET['success_url'];
+            
+            // Check if this is a localhost/development URL
+            if (strpos($success_url, 'localhost') !== false || 
+                strpos($success_url, '127.0.0.1') !== false ||
+                strpos($success_url, '192.168.') !== false ||
+                strpos($success_url, '10.0.') !== false) {
+                
+                // Hook into WordPress's HTTPS check to bypass for localhost
+                add_filter('wp_is_application_passwords_available', '__return_true', 999);
+                add_filter('wp_is_application_passwords_available_for_user', '__return_true', 999);
+                
+                // Override the HTTPS requirement check
+                add_filter('wp_is_using_https', '__return_true', 999);
+                add_filter('wp_is_https_supported', '__return_true', 999);
+            }
+            
+            // Store the success URL in a transient for later use
             $user_id = get_current_user_id();
             if ($user_id) {
-                set_transient('spearhead_success_url_' . $user_id, esc_url($_GET['success_url']), 300); // 5 minutes
+                set_transient('spearhead_success_url_' . $user_id, esc_url_raw($success_url), 300); // 5 minutes
             }
         }
     }
