@@ -148,6 +148,7 @@ class SnefuruPlugin {
         
         // Load Spearhead Application Password Connector
         require_once SNEFURU_PLUGIN_PATH . 'includes/spearhead-application-password-connector/class-spearhead-connector.php';
+        require_once SNEFURU_PLUGIN_PATH . 'includes/spearhead-application-password-connector/class-spearhead-helper-page.php';
         
         // Load Nuke Mar AJAX handler
         require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar-ajax.php';
