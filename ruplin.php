@@ -146,6 +146,9 @@ class SnefuruPlugin {
         // Load Favicon Manager
         require_once SNEFURU_PLUGIN_PATH . 'favicon_manager/class-favicon-manager.php';
         
+        // Load Spearhead Application Password Connector
+        require_once SNEFURU_PLUGIN_PATH . 'includes/spearhead-application-password-connector/class-spearhead-connector.php';
+        
         // Load Nuke Mar AJAX handler
         require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar-ajax.php';
         
