@@ -472,6 +472,9 @@ class SnefuruPlugin {
             georadius_for_schema INT(10) UNSIGNED DEFAULT NULL,
             home_anchor_for_silkweaver_services TEXT DEFAULT NULL,
             home_anchor_for_silkweaver_locations TEXT DEFAULT NULL,
+            site_default_footer TEXT DEFAULT NULL,
+            site_default_header TEXT DEFAULT NULL,
+            site_default_sidebar TEXT DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
@@ -1293,6 +1296,35 @@ class SnefuruPlugin {
             
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.6.0');
+        }
+        
+        // Migration for version 2.7.0 - Add site default columns to zen_sitespren
+        if (version_compare($current_migration, '2.7.0', '<')) {
+            $zen_sitespren_table = $wpdb->prefix . 'zen_sitespren';
+            
+            // Add site_default_footer column
+            $site_footer_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'site_default_footer'");
+            if (empty($site_footer_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN site_default_footer TEXT DEFAULT NULL");
+                error_log('Snefuru: Added site_default_footer column to zen_sitespren table');
+            }
+            
+            // Add site_default_header column
+            $site_header_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'site_default_header'");
+            if (empty($site_header_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN site_default_header TEXT DEFAULT NULL");
+                error_log('Snefuru: Added site_default_header column to zen_sitespren table');
+            }
+            
+            // Add site_default_sidebar column
+            $site_sidebar_exists = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'site_default_sidebar'");
+            if (empty($site_sidebar_exists)) {
+                $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN site_default_sidebar TEXT DEFAULT NULL");
+                error_log('Snefuru: Added site_default_sidebar column to zen_sitespren table');
+            }
+            
+            // Update migration version
+            update_option('snefuru_pylons_migration_version', '2.7.0');
         }
         
         // Add avg_rating_box_hide column if it doesn't exist (rating column removed - now using sitespren)

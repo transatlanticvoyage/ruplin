@@ -266,6 +266,36 @@ class CashewEditorAdmin {
                             </td>
                         </tr>
                         <tr>
+                            <td class="cashew-field-label">header_desired</td>
+                            <td>
+                                <input type="text" 
+                                       name="header_desired"
+                                       class="cashew-field-input" 
+                                       value="<?php echo esc_attr($pylon_data['header_desired'] ?? ''); ?>"
+                                       placeholder="e.g. homeservice_header_1, homeservice_header_2">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label">footer_desired</td>
+                            <td>
+                                <input type="text" 
+                                       name="footer_desired"
+                                       class="cashew-field-input" 
+                                       value="<?php echo esc_attr($pylon_data['footer_desired'] ?? ''); ?>"
+                                       placeholder="e.g. homeservice_footer_1, homeservice_footer_2">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label">sidebar_desired</td>
+                            <td>
+                                <input type="text" 
+                                       name="sidebar_desired"
+                                       class="cashew-field-input" 
+                                       value="<?php echo esc_attr($pylon_data['sidebar_desired'] ?? ''); ?>"
+                                       placeholder="e.g. homeservice_sidebar_1, homeservice_sidebar_2">
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="cashew-field-label">wp_posts.post_title</td>
                             <td>
                                 <input type="text" 
@@ -344,7 +374,7 @@ class CashewEditorAdmin {
         $pylons_table = $wpdb->prefix . 'pylons';
         
         $pylon_data = $wpdb->get_row($wpdb->prepare(
-            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
             $post_id
         ), ARRAY_A);
         
@@ -377,7 +407,10 @@ class CashewEditorAdmin {
             'pylon_archetype' => sanitize_text_field($_POST['pylon_archetype'] ?? ''),
             'cashew_html_expanse' => wp_unslash($_POST['cashew_html_expanse'] ?? ''),
             'staircase_page_template_desired' => sanitize_text_field($_POST['staircase_page_template_desired'] ?? ''),
-            'expanse_width' => sanitize_text_field($_POST['expanse_width'] ?? 'full')
+            'expanse_width' => sanitize_text_field($_POST['expanse_width'] ?? 'full'),
+            'header_desired' => sanitize_text_field($_POST['header_desired'] ?? ''),
+            'footer_desired' => sanitize_text_field($_POST['footer_desired'] ?? ''),
+            'sidebar_desired' => sanitize_text_field($_POST['sidebar_desired'] ?? '')
         );
         
         if ($exists) {
@@ -386,7 +419,7 @@ class CashewEditorAdmin {
                 $pylons_table,
                 $pylon_data,
                 array('rel_wp_post_id' => $post_id),
-                array('%s', '%s', '%s', '%s'),
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s'),
                 array('%d')
             );
         } else {
@@ -395,7 +428,7 @@ class CashewEditorAdmin {
             $wpdb->insert(
                 $pylons_table,
                 $pylon_data,
-                array('%d', '%s', '%s', '%s', '%s')
+                array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
             );
         }
         
