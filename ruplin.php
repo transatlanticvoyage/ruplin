@@ -150,6 +150,11 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/spearhead-application-password-connector/class-spearhead-connector.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/spearhead-application-password-connector/class-spearhead-helper-page.php';
         
+        // Vibrantcashew template system moved to staircase theme
+        
+        // Load Cashew Editor Admin Page
+        require_once SNEFURU_PLUGIN_PATH . 'cashew_editor/cashew_editor_admin.php';
+        
         // Load Nuke Mar AJAX handler
         require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar-ajax.php';
         
@@ -689,6 +694,11 @@ class SnefuruPlugin {
             reviewsbox_review5_date DATETIME DEFAULT NULL,
             avg_rating_box_hide BOOLEAN DEFAULT FALSE,
             victoria_blog_box_hide BOOLEAN DEFAULT TRUE,
+            cashew_html_expanse TEXT DEFAULT NULL,
+            expanse_width TEXT DEFAULT NULL,
+            header_desired TEXT DEFAULT NULL,
+            footer_desired TEXT DEFAULT NULL,
+            sidebar_desired TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),

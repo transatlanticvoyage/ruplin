@@ -61,9 +61,11 @@ class Snefuru_Admin {
         // Add dioptra button to admin toolbar
         add_action('admin_bar_menu', array($this, 'add_dioptra_toolbar_button'), 999);
         add_action('admin_bar_menu', array($this, 'add_microscope_toolbar_button'), 1000);
+        add_action('admin_bar_menu', array($this, 'add_cashew_homepage_toolbar_button'), 1000.5);
         add_action('admin_bar_menu', array($this, 'add_telescope_toolbar_button'), 1001);
         add_action('wp_head', array($this, 'add_telescope_toolbar_styles'));
         add_action('wp_head', array($this, 'add_microscope_toolbar_styles'));
+        add_action('wp_head', array($this, 'add_cashew_homepage_toolbar_styles'));
         add_action('wp_ajax_microscope_get_page_data', array($this, 'handle_microscope_get_page_data'));
         add_action('wp_ajax_nopriv_microscope_get_page_data', array($this, 'handle_microscope_get_page_data'));
         
@@ -11180,6 +11182,40 @@ class Snefuru_Admin {
     }
     
     /**
+     * Add Custom Homepage Editor button to admin toolbar (left of telescope)
+     */
+    public function add_cashew_homepage_toolbar_button($wp_admin_bar) {
+        // Only show on frontend pages
+        if (is_admin()) {
+            return;
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        // Get the homepage post ID from WordPress settings
+        $homepage_id = get_option('page_on_front');
+        if (!$homepage_id) {
+            // If no static homepage is set, don't show the button
+            return;
+        }
+        
+        // Add the Custom Homepage Editor button
+        $wp_admin_bar->add_node(array(
+            'id'     => 'cashew-homepage-editor',
+            'title'  => 'Custom Homepage Editor',
+            'href'   => admin_url('admin.php?page=cashew_editor&post_id=' . $homepage_id),
+            'parent' => 'top-secondary', // This puts it on the right side of the admin bar
+            'meta'   => array(
+                'class' => 'cashew-homepage-editor-toolbar-link',
+                'title' => 'Edit homepage content with Custom Homepage Editor'
+            )
+        ));
+    }
+    
+    /**
      * Add microscope button to admin toolbar
      */
     public function add_microscope_toolbar_button($wp_admin_bar) {
@@ -11303,6 +11339,46 @@ class Snefuru_Admin {
             /* Add a subtle glow effect */
             #wp-admin-bar-telescope-editor .ab-item:before {
                 content: "🔭 ";
+                font-size: 16px;
+                vertical-align: middle;
+            }
+        </style>
+        <?php
+    }
+    
+    /**
+     * Add custom styles for Custom Homepage Editor toolbar button
+     */
+    public function add_cashew_homepage_toolbar_styles() {
+        // Only add styles if user is logged in and can see admin bar
+        if (!is_user_logged_in() || is_admin()) {
+            return;
+        }
+        ?>
+        <style type="text/css">
+            /* Style for Custom Homepage Editor button in admin bar */
+            #wp-admin-bar-cashew-homepage-editor .ab-item {
+                background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%) !important;
+                color: white !important;
+                font-weight: 600 !important;
+                padding: 0 12px !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            #wp-admin-bar-cashew-homepage-editor:hover .ab-item {
+                background: linear-gradient(135deg, #D2691E 0%, #8B4513 100%) !important;
+                transform: scale(1.05);
+            }
+            
+            /* Ensure proper positioning */
+            #wp-admin-bar-cashew-homepage-editor {
+                float: right !important;
+                margin-right: 5px !important;
+            }
+            
+            /* Add a cashew nut icon */
+            #wp-admin-bar-cashew-homepage-editor .ab-item:before {
+                content: "🥜 ";
                 font-size: 16px;
                 vertical-align: middle;
             }
