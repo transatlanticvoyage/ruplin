@@ -62,6 +62,7 @@ class Snefuru_Admin {
         add_action('admin_bar_menu', array($this, 'add_dioptra_toolbar_button'), 999);
         add_action('admin_bar_menu', array($this, 'add_microscope_toolbar_button'), 1000);
         add_action('admin_bar_menu', array($this, 'add_cashew_homepage_toolbar_button'), 1000.5);
+        add_action('admin_bar_menu', array($this, 'add_hp_toolbar_button'), 1000.7);
         add_action('admin_bar_menu', array($this, 'add_telescope_toolbar_button'), 1001);
         add_action('wp_head', array($this, 'add_telescope_toolbar_styles'));
         add_action('wp_head', array($this, 'add_microscope_toolbar_styles'));
@@ -258,6 +259,16 @@ class Snefuru_Admin {
             'manage_options',
             'rup_old_links',
             array($this, 'rup_old_links_page')
+        );
+        
+        // Add Vulture TXT Flattener menu item
+        add_submenu_page(
+            'snefuru',
+            'Vulture TXT Flattener',
+            'Vulture TXT Flattener',
+            'manage_options',
+            'vulture_txt_flattener_mar',
+            'vulture_txt_flattener_admin_page'
         );
         
         add_submenu_page(
@@ -11182,9 +11193,41 @@ class Snefuru_Admin {
     }
     
     /**
-     * Add Custom Homepage Editor button to admin toolbar (left of telescope)
+     * Add Cashew Editor button to admin toolbar
      */
     public function add_cashew_homepage_toolbar_button($wp_admin_bar) {
+        // Only show on frontend pages that have a post ID
+        if (is_admin() || !is_singular()) {
+            return;
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        global $post;
+        if (!$post || !$post->ID) {
+            return;
+        }
+        
+        // Add the Cashew Editor button (uses current post ID like telescope)
+        $wp_admin_bar->add_node(array(
+            'id'     => 'cashew-homepage-editor',
+            'title'  => 'Cashew Editor',
+            'href'   => admin_url('admin.php?page=cashew_editor&post_id=' . $post->ID),
+            'parent' => 'top-secondary', // This puts it on the right side of the admin bar
+            'meta'   => array(
+                'class' => 'cashew-homepage-editor-toolbar-link',
+                'title' => 'Edit this page in Cashew Editor'
+            )
+        ));
+    }
+    
+    /**
+     * Add HP button to admin toolbar (between Cashew and Telescope)
+     */
+    public function add_hp_toolbar_button($wp_admin_bar) {
         // Only show on frontend pages
         if (is_admin()) {
             return;
@@ -11202,15 +11245,15 @@ class Snefuru_Admin {
             return;
         }
         
-        // Add the Custom Homepage Editor button
+        // Add the HP button (hardcoded to homepage)
         $wp_admin_bar->add_node(array(
-            'id'     => 'cashew-homepage-editor',
-            'title'  => 'Custom Homepage Editor',
+            'id'     => 'cashew-hp-button',
+            'title'  => 'HP',
             'href'   => admin_url('admin.php?page=cashew_editor&post_id=' . $homepage_id),
             'parent' => 'top-secondary', // This puts it on the right side of the admin bar
             'meta'   => array(
-                'class' => 'cashew-homepage-editor-toolbar-link',
-                'title' => 'Edit homepage content with Custom Homepage Editor'
+                'class' => 'cashew-hp-toolbar-link',
+                'title' => 'Edit homepage in Cashew Editor'
             )
         ));
     }
@@ -11347,7 +11390,7 @@ class Snefuru_Admin {
     }
     
     /**
-     * Add custom styles for Custom Homepage Editor toolbar button
+     * Add custom styles for Cashew Editor and HP toolbar buttons
      */
     public function add_cashew_homepage_toolbar_styles() {
         // Only add styles if user is logged in and can see admin bar
@@ -11356,7 +11399,7 @@ class Snefuru_Admin {
         }
         ?>
         <style type="text/css">
-            /* Style for Custom Homepage Editor button in admin bar */
+            /* Style for Cashew Editor button in admin bar */
             #wp-admin-bar-cashew-homepage-editor .ab-item {
                 background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%) !important;
                 color: white !important;
@@ -11370,8 +11413,29 @@ class Snefuru_Admin {
                 transform: scale(1.05);
             }
             
+            /* Style for HP button in admin bar */
+            #wp-admin-bar-cashew-hp-button .ab-item {
+                background: linear-gradient(135deg, #4169E1 0%, #1E90FF 100%) !important;
+                color: white !important;
+                font-weight: 700 !important;
+                padding: 0 10px !important;
+                transition: all 0.3s ease !important;
+                min-width: 35px !important;
+                text-align: center !important;
+            }
+            
+            #wp-admin-bar-cashew-hp-button:hover .ab-item {
+                background: linear-gradient(135deg, #1E90FF 0%, #4169E1 100%) !important;
+                transform: scale(1.05);
+            }
+            
             /* Ensure proper positioning */
             #wp-admin-bar-cashew-homepage-editor {
+                float: right !important;
+                margin-right: 5px !important;
+            }
+            
+            #wp-admin-bar-cashew-hp-button {
                 float: right !important;
                 margin-right: 5px !important;
             }

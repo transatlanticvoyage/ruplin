@@ -1,0 +1,192 @@
+.vulture-wrap {
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.vulture-info-row {
+    background: #f0f0f1;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    border-left: 4px solid #2271b1;
+    font-size: 14px;
+}
+
+.vulture-info-row span {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.vulture-info-row .sep {
+    color: #999;
+    margin: 0 10px;
+}
+
+.vulture-options-panel {
+    background: #fff;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.vulture-options-panel h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vulture-options {
+    margin-bottom: 20px;
+}
+
+.vulture-options label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.vulture-options input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+#vulture-flatten-btn {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 30px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: none;
+}
+
+#vulture-flatten-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.vulture-status-area {
+    margin: 20px 0;
+}
+
+.vulture-status-area .notice {
+    margin: 0;
+    padding: 12px;
+}
+
+.vulture-generations-panel {
+    background: #fff;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+}
+
+.vulture-generations-panel h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vulture-generations-panel table {
+    margin-top: 15px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.vulture-generations-panel th {
+    font-weight: 600;
+    background: #f6f7f7;
+}
+
+.column-number {
+    width: 50px;
+}
+
+.column-folder {
+    width: 25%;
+}
+
+.column-files {
+    width: 20%;
+}
+
+.column-status {
+    width: 100px;
+}
+
+.column-date {
+    width: auto;
+}
+
+.column-download {
+    width: 120px;
+    text-align: center;
+}
+
+.vulture-status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.vulture-status-pending {
+    background: #f0f0f1;
+    color: #666;
+}
+
+.vulture-status-processing {
+    background: #2271b1;
+    color: #fff;
+}
+
+.vulture-status-complete {
+    background: #00a32a;
+    color: #fff;
+}
+
+.vulture-status-error {
+    background: #d63638;
+    color: #fff;
+}
+
+.vulture-download-btn {
+    min-height: 30px;
+}
+
+.vulture-generations-panel .description {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+@media screen and (max-width: 782px) {
+    .vulture-info-row {
+        padding: 10px 15px;
+    }
+    
+    .vulture-info-row span {
+        display: block;
+        margin: 5px 0;
+    }
+    
+    .vulture-info-row .sep {
+        display: none;
+    }
+    
+    #vulture-flatten-btn {
+        width: 100%;
+    }
+    
+    .vulture-generations-panel table {
+        display: block;
+        overflow-x: auto;
+    }
+}

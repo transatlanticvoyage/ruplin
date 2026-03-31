@@ -170,6 +170,12 @@ class SnefuruPlugin {
         // Load VectorNode SEO system
         require_once SNEFURU_PLUGIN_PATH . 'vectornode_seo_meta/class-vectornode-core.php';
         
+        // Load Vulture TXT Flattener
+        require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/class-vulture-db.php';
+        require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/class-vulture-controller.php';
+        require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/class-vulture-ajax.php';
+        require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/vulture-admin-page.php';
+        
         // DEBUG: Disabled - VectorNode debug output
         // if (file_exists(WP_CONTENT_DIR . '/vectornode-debug.php')) {
         //     require_once WP_CONTENT_DIR . '/vectornode-debug.php';
@@ -215,6 +221,9 @@ class SnefuruPlugin {
         
         // Initialize Hurricane feature
         new Snefuru_Hurricane();
+        
+        // Initialize Vulture TXT Flattener
+        new Vulture_Ajax();
         
         // Initialize Ferret Snippets feature
         require_once plugin_dir_path(__FILE__) . 'includes/ferret-snippets/class-ferret-snippets.php';
