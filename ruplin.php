@@ -185,6 +185,13 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/class-vulture-ajax.php';
         require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/vulture-admin-page.php';
         
+        // Load Loon Static Site Generator
+        require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/class-loon-db.php';
+        require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/class-loon-controller.php';
+        require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/class-loon-ajax.php';
+        require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/loon-admin-page.php';
+        require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/class-loon-admin.php';
+        
         // DEBUG: Disabled - VectorNode debug output
         // if (file_exists(WP_CONTENT_DIR . '/vectornode-debug.php')) {
         //     require_once WP_CONTENT_DIR . '/vectornode-debug.php';
@@ -806,6 +813,30 @@ class SnefuruPlugin {
             KEY idx_rel_page_post_id        (rel_page_post_id)
         ) $charset_collate;";
         dbDelta($blovian_sql);
+
+        // Create wp_loon_static_site_generations table (Static site HTML generator)
+        $loon_generations_table = $wpdb->prefix . 'loon_static_site_generations';
+        $loon_sql = "CREATE TABLE $loon_generations_table (
+            generation_id              int(11)              NOT NULL AUTO_INCREMENT,
+            folder_number              int(11)              NOT NULL,
+            site_domain                varchar(255)         NOT NULL,
+            output_path                text,
+            page_count                 int(11)              DEFAULT 0,
+            post_count                 int(11)              DEFAULT 0,
+            total_files                int(11)              DEFAULT 0,
+            total_size_mb              decimal(10,2)        DEFAULT 0.00,
+            zip_filename               varchar(255),
+            zip_path                   text,
+            status                     varchar(50)          DEFAULT 'pending',
+            options_json               text,
+            error_message              text,
+            created_at                 datetime             DEFAULT CURRENT_TIMESTAMP,
+            completed_at               datetime             DEFAULT NULL,
+            PRIMARY KEY (generation_id),
+            KEY idx_folder_number (folder_number),
+            KEY idx_status (status)
+        ) $charset_collate;";
+        dbDelta($loon_sql);
 
         // Handle migration of box_order column to box_order_json
         $this->migrate_box_orders_table();
