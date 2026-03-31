@@ -1434,6 +1434,31 @@ class SnefuruPlugin {
             $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN site_default_anteheader TEXT DEFAULT NULL");
             error_log('Snefuru: Added site_default_anteheader column to zen_sitespren table');
         }
+
+        // Add medic_orgid columns to pylons table (Structure Medic identifier scan data)
+        $medic_has_findings_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'medic_orgid_has_findings'");
+        if (empty($medic_has_findings_exists)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN medic_orgid_has_findings TINYINT(1) DEFAULT 0");
+            error_log('Snefuru: Added medic_orgid_has_findings column to pylons table');
+        }
+
+        $medic_types_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'medic_orgid_types_found'");
+        if (empty($medic_types_exists)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN medic_orgid_types_found TEXT DEFAULT NULL");
+            error_log('Snefuru: Added medic_orgid_types_found column to pylons table');
+        }
+
+        $medic_excerpts_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'medic_orgid_raw_excerpts'");
+        if (empty($medic_excerpts_exists)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN medic_orgid_raw_excerpts LONGTEXT DEFAULT NULL");
+            error_log('Snefuru: Added medic_orgid_raw_excerpts column to pylons table');
+        }
+
+        $medic_scanned_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'medic_orgid_scanned_at'");
+        if (empty($medic_scanned_exists)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN medic_orgid_scanned_at DATETIME DEFAULT NULL");
+            error_log('Snefuru: Added medic_orgid_scanned_at column to pylons table');
+        }
     }
     
     /**
