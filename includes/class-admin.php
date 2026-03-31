@@ -270,6 +270,16 @@ class Snefuru_Admin {
             'vulture_txt_flattener_mar',
             'vulture_txt_flattener_admin_page'
         );
+
+        // Add Blovian Image Entity menu item
+        add_submenu_page(
+            'snefuru',
+            'Blovian Image Entity',
+            'Blovian Image Entity',
+            'manage_options',
+            'blovian_image_entity_mar',
+            'render_blovian_image_entity_page'
+        );
         
         add_submenu_page(
             'snefuru',

@@ -170,6 +170,9 @@ class SnefuruPlugin {
         // Load VectorNode SEO system
         require_once SNEFURU_PLUGIN_PATH . 'vectornode_seo_meta/class-vectornode-core.php';
         
+        // Load Blovian Image Entity admin page
+        require_once SNEFURU_PLUGIN_PATH . 'blovian_image_entity/blovian-admin-page.php';
+
         // Load Vulture TXT Flattener
         require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/class-vulture-db.php';
         require_once SNEFURU_PLUGIN_PATH . 'vulture_txt_flattener/class-vulture-controller.php';
