@@ -241,6 +241,48 @@ function ruplin_render_telescope_screen() {
             <div class="subtitle">Advanced content management and optimization interface</div>
         </div>
         
+        <!-- Editor Navigation Button Bar -->
+        <div class="editor-navigation-bar" style="background: #f0f0f1; padding: 10px 20px; border-bottom: 1px solid #c3c4c7; margin-bottom: 20px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <?php 
+                $nav_post_id = $post_id ?: get_option('page_on_front');
+                $nav_post_url = $nav_post_id ? get_permalink($nav_post_id) : home_url('/');
+                ?>
+                
+                <!-- Pendulum (WP Native Editor) -->
+                <a href="<?php echo admin_url('post.php?post=' . $nav_post_id . '&action=edit'); ?>" 
+                   target="_blank" 
+                   class="button button-secondary"
+                   style="display: inline-flex; align-items: center; gap: 5px;">
+                    pendulum (wp native editor)
+                </a>
+                
+                <!-- Telescope -->
+                <a href="<?php echo admin_url('admin.php?page=telescope_content_editor&post=' . $nav_post_id); ?>" 
+                   target="_blank" 
+                   class="button button-primary"
+                   style="display: inline-flex; align-items: center; gap: 5px;">
+                    telescope
+                </a>
+                
+                <!-- Cashew -->
+                <a href="<?php echo admin_url('admin.php?page=cashew_editor&post_id=' . $nav_post_id); ?>" 
+                   target="_blank" 
+                   class="button button-secondary"
+                   style="display: inline-flex; align-items: center; gap: 5px;">
+                    cashew
+                </a>
+                
+                <!-- Front End -->
+                <a href="<?php echo esc_url($nav_post_url); ?>" 
+                   target="_blank" 
+                   class="button button-secondary"
+                   style="display: inline-flex; align-items: center; gap: 5px;">
+                    front end
+                </a>
+            </div>
+        </div>
+        
         <div class="telescope-content">
             <?php if ($post_id): ?>
                 <?php telescope_render_edit_form($post_id); ?>

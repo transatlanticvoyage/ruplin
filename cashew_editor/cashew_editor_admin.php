@@ -11,6 +11,7 @@ class CashewEditorAdmin {
         add_action('admin_head', array($this, 'suppress_notices'));
         add_action('admin_notices', array($this, 'suppress_admin_notices'), 1);
         add_action('all_admin_notices', array($this, 'suppress_admin_notices'), 1);
+        add_filter('admin_title', array($this, 'fix_admin_title'), 10, 2);
     }
 
     public function add_admin_menu() {
@@ -221,9 +222,86 @@ class CashewEditorAdmin {
                 .cashew-save-btn:hover {
                     background: #047857;
                 }
+
+                .cashew-adjunct-column {
+                    padding: 8px;
+                    vertical-align: top;
+                    width: 200px;
+                }
+
+                .pill-buttons {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 4px;
+                }
+
+                .pill-btn {
+                    background: #f3f4f6;
+                    border: 1px solid #d1d5db;
+                    border-radius: 12px;
+                    padding: 4px 8px;
+                    font-size: 11px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    color: #374151;
+                    font-weight: 500;
+                }
+
+                .pill-btn:hover {
+                    background: #e5e7eb;
+                    border-color: #9ca3af;
+                    transform: translateY(-1px);
+                }
+
+                .pill-btn:active {
+                    background: #d1d5db;
+                    transform: translateY(0);
+                }
             </style>
 
             <h1>Cashew Editor</h1>
+            
+            <!-- Editor Navigation Button Bar -->
+            <div class="editor-navigation-bar" style="background: #f0f0f1; padding: 10px 20px; border: 1px solid #c3c4c7; border-radius: 4px; margin: 20px 0;">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <?php 
+                    $nav_post_id = $post_id ?: get_option('page_on_front');
+                    $nav_post_url = $nav_post_id ? get_permalink($nav_post_id) : home_url('/');
+                    ?>
+                    
+                    <!-- Pendulum (WP Native Editor) -->
+                    <a href="<?php echo admin_url('post.php?post=' . $nav_post_id . '&action=edit'); ?>" 
+                       target="_blank" 
+                       class="button button-secondary"
+                       style="display: inline-flex; align-items: center; gap: 5px;">
+                        pendulum (wp native editor)
+                    </a>
+                    
+                    <!-- Telescope -->
+                    <a href="<?php echo admin_url('admin.php?page=telescope_content_editor&post=' . $nav_post_id); ?>" 
+                       target="_blank" 
+                       class="button button-secondary"
+                       style="display: inline-flex; align-items: center; gap: 5px;">
+                        telescope
+                    </a>
+                    
+                    <!-- Cashew -->
+                    <a href="<?php echo admin_url('admin.php?page=cashew_editor&post_id=' . $nav_post_id); ?>" 
+                       target="_blank" 
+                       class="button button-primary"
+                       style="display: inline-flex; align-items: center; gap: 5px;">
+                        cashew
+                    </a>
+                    
+                    <!-- Front End -->
+                    <a href="<?php echo esc_url($nav_post_url); ?>" 
+                       target="_blank" 
+                       class="button button-secondary"
+                       style="display: inline-flex; align-items: center; gap: 5px;">
+                        front end
+                    </a>
+                </div>
+            </div>
             
             <form method="post" action="">
                 <?php wp_nonce_field('cashew_editor_save', 'cashew_editor_nonce'); ?>
@@ -234,6 +312,7 @@ class CashewEditorAdmin {
                         <tr>
                             <th>Field Name</th>
                             <th>Datum House</th>
+                            <th>adjunct 1</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -245,6 +324,9 @@ class CashewEditorAdmin {
                                        value="<?php echo esc_attr($post_data['ID'] ?? ''); ?>" 
                                        readonly>
                             </td>
+                            <td class="cashew-adjunct-column">
+                                <!-- Read-only field, no buttons needed -->
+                            </td>
                         </tr>
                         <tr>
                             <td class="cashew-field-label">staircase_page_template_desired</td>
@@ -253,6 +335,9 @@ class CashewEditorAdmin {
                                        name="staircase_page_template_desired"
                                        class="cashew-field-input" 
                                        value="<?php echo esc_attr($pylon_data['staircase_page_template_desired'] ?? ''); ?>">
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <!-- Template buttons would go here if needed -->
                             </td>
                         </tr>
                         <tr>
@@ -264,6 +349,12 @@ class CashewEditorAdmin {
                                        value="<?php echo esc_attr($pylon_data['expanse_width'] ?? 'full'); ?>"
                                        placeholder="full or partial (default: full)">
                             </td>
+                            <td class="cashew-adjunct-column">
+                                <div class="pill-buttons">
+                                    <button type="button" class="pill-btn" data-target="expanse_width" data-value="full">full</button>
+                                    <button type="button" class="pill-btn" data-target="expanse_width" data-value="partial">partial</button>
+                                </div>
+                            </td>
                         </tr>
                         <tr>
                             <td class="cashew-field-label">header_desired</td>
@@ -272,7 +363,14 @@ class CashewEditorAdmin {
                                        name="header_desired"
                                        class="cashew-field-input" 
                                        value="<?php echo esc_attr($pylon_data['header_desired'] ?? ''); ?>"
-                                       placeholder="e.g. homeservice_header_1, homeservice_header_2">
+                                       placeholder="e.g. header1, header2, header3">
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <div class="pill-buttons">
+                                    <button type="button" class="pill-btn" data-target="header_desired" data-value="header1">header1</button>
+                                    <button type="button" class="pill-btn" data-target="header_desired" data-value="header2">header2</button>
+                                    <button type="button" class="pill-btn" data-target="header_desired" data-value="header3">header3</button>
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -282,7 +380,14 @@ class CashewEditorAdmin {
                                        name="footer_desired"
                                        class="cashew-field-input" 
                                        value="<?php echo esc_attr($pylon_data['footer_desired'] ?? ''); ?>"
-                                       placeholder="e.g. homeservice_footer_1, homeservice_footer_2">
+                                       placeholder="e.g. footer1, footer2, footer3">
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <div class="pill-buttons">
+                                    <button type="button" class="pill-btn" data-target="footer_desired" data-value="footer1">footer1</button>
+                                    <button type="button" class="pill-btn" data-target="footer_desired" data-value="footer2">footer2</button>
+                                    <button type="button" class="pill-btn" data-target="footer_desired" data-value="footer3">footer3</button>
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -292,7 +397,29 @@ class CashewEditorAdmin {
                                        name="sidebar_desired"
                                        class="cashew-field-input" 
                                        value="<?php echo esc_attr($pylon_data['sidebar_desired'] ?? ''); ?>"
-                                       placeholder="e.g. homeservice_sidebar_1, homeservice_sidebar_2">
+                                       placeholder="e.g. sidebar1, sidebar2">
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <div class="pill-buttons">
+                                    <button type="button" class="pill-btn" data-target="sidebar_desired" data-value="sidebar1">sidebar1</button>
+                                    <button type="button" class="pill-btn" data-target="sidebar_desired" data-value="sidebar2">sidebar2</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label">anteheader_desired</td>
+                            <td>
+                                <input type="text" 
+                                       name="anteheader_desired"
+                                       class="cashew-field-input" 
+                                       value="<?php echo esc_attr($pylon_data['anteheader_desired'] ?? ''); ?>"
+                                       placeholder="e.g. anteheader1, anteheader2 (optional)">
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <div class="pill-buttons">
+                                    <button type="button" class="pill-btn" data-target="anteheader_desired" data-value="anteheader1">anteheader1</button>
+                                    <button type="button" class="pill-btn" data-target="anteheader_desired" data-value="anteheader2">anteheader2</button>
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -303,6 +430,9 @@ class CashewEditorAdmin {
                                        class="cashew-field-input" 
                                        value="<?php echo esc_attr($post_data['post_title'] ?? ''); ?>">
                             </td>
+                            <td class="cashew-adjunct-column">
+                                <!-- Text field, no specific buttons needed -->
+                            </td>
                         </tr>
                         <tr>
                             <td class="cashew-field-label">wp_pylons.pylon_archetype</td>
@@ -312,6 +442,9 @@ class CashewEditorAdmin {
                                        class="cashew-field-input" 
                                        value="<?php echo esc_attr($pylon_data['pylon_archetype'] ?? ''); ?>">
                             </td>
+                            <td class="cashew-adjunct-column">
+                                <!-- Archetype field, no specific buttons needed -->
+                            </td>
                         </tr>
                         <tr>
                             <td class="cashew-field-label">wp_pylons.cashew_html_expanse</td>
@@ -319,6 +452,9 @@ class CashewEditorAdmin {
                                 <textarea name="cashew_html_expanse" 
                                           class="cashew-field-textarea"
                                           placeholder="Enter your custom HTML content here..."><?php echo esc_textarea($pylon_data['cashew_html_expanse'] ?? ''); ?></textarea>
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <!-- HTML content field, no specific buttons needed -->
                             </td>
                         </tr>
                     </tbody>
@@ -355,6 +491,36 @@ class CashewEditorAdmin {
                     const targetPosition = scrollHeight * percentage;
                     window.scrollTo({ top: targetPosition, behavior: 'smooth' });
                 }
+
+                // Pill Button Functionality
+                document.addEventListener('DOMContentLoaded', function() {
+                    const pillButtons = document.querySelectorAll('.pill-btn');
+                    
+                    pillButtons.forEach(function(button) {
+                        button.addEventListener('click', function() {
+                            const targetFieldName = this.getAttribute('data-target');
+                            const value = this.getAttribute('data-value');
+                            
+                            // Find the input field by name
+                            const targetInput = document.querySelector('input[name="' + targetFieldName + '"]');
+                            if (targetInput) {
+                                targetInput.value = value;
+                                
+                                // Visual feedback
+                                this.style.background = '#10b981';
+                                this.style.color = '#ffffff';
+                                this.style.borderColor = '#10b981';
+                                
+                                // Reset visual feedback after a short delay
+                                setTimeout(() => {
+                                    this.style.background = '';
+                                    this.style.color = '';
+                                    this.style.borderColor = '';
+                                }, 200);
+                            }
+                        });
+                    });
+                });
             </script>
         </div>
         <?php
@@ -374,7 +540,7 @@ class CashewEditorAdmin {
         $pylons_table = $wpdb->prefix . 'pylons';
         
         $pylon_data = $wpdb->get_row($wpdb->prepare(
-            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
             $post_id
         ), ARRAY_A);
         
@@ -410,7 +576,8 @@ class CashewEditorAdmin {
             'expanse_width' => sanitize_text_field($_POST['expanse_width'] ?? 'full'),
             'header_desired' => sanitize_text_field($_POST['header_desired'] ?? ''),
             'footer_desired' => sanitize_text_field($_POST['footer_desired'] ?? ''),
-            'sidebar_desired' => sanitize_text_field($_POST['sidebar_desired'] ?? '')
+            'sidebar_desired' => sanitize_text_field($_POST['sidebar_desired'] ?? ''),
+            'anteheader_desired' => sanitize_text_field($_POST['anteheader_desired'] ?? '')
         );
         
         if ($exists) {
@@ -419,7 +586,7 @@ class CashewEditorAdmin {
                 $pylons_table,
                 $pylon_data,
                 array('rel_wp_post_id' => $post_id),
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s'),
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'), // 8 fields: pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired
                 array('%d')
             );
         } else {
@@ -428,7 +595,7 @@ class CashewEditorAdmin {
             $wpdb->insert(
                 $pylons_table,
                 $pylon_data,
-                array('%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s')
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d') // 8 text fields + 1 integer (rel_wp_post_id)
             );
         }
         
@@ -462,6 +629,13 @@ class CashewEditorAdmin {
             ob_clean();
             return false;
         }
+    }
+    
+    public function fix_admin_title($admin_title, $title) {
+        if (isset($_GET['page']) && $_GET['page'] === 'cashew_editor') {
+            return 'Cashew Editor - WordPress';
+        }
+        return $admin_title;
     }
 
     public function enqueue_scripts($hook) {
