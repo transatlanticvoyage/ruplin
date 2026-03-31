@@ -63,6 +63,7 @@ class Snefuru_Admin {
         add_action('admin_bar_menu', array($this, 'add_microscope_toolbar_button'), 1000);
         add_action('admin_bar_menu', array($this, 'add_cashew_homepage_toolbar_button'), 1000.5);
         add_action('admin_bar_menu', array($this, 'add_hp_toolbar_button'), 1000.7);
+        add_action('admin_bar_menu', array($this, 'add_nec_toolbar_button'), 1000.8);
         add_action('admin_bar_menu', array($this, 'add_telescope_toolbar_button'), 1001);
         add_action('wp_head', array($this, 'add_telescope_toolbar_styles'));
         add_action('wp_head', array($this, 'add_microscope_toolbar_styles'));
@@ -11269,6 +11270,39 @@ class Snefuru_Admin {
     }
     
     /**
+     * Add NEC (Nectar Controls) button to admin toolbar - right after HP button
+     */
+    public function add_nec_toolbar_button($wp_admin_bar) {
+        // Only show on frontend pages
+        if (is_admin()) {
+            return;
+        }
+        
+        // Check user permissions
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        // Get current post ID
+        $post_id = get_the_ID();
+        if (!$post_id) {
+            return;
+        }
+        
+        // Add the NEC button (dynamic link based on current post)
+        $wp_admin_bar->add_node(array(
+            'id'     => 'nectar-controls-button',
+            'title'  => 'NEC',
+            'href'   => admin_url('admin.php?page=nectar_controls_mar&post=' . $post_id),
+            'parent' => 'top-secondary', // This puts it on the right side of the admin bar
+            'meta'   => array(
+                'class' => 'nectar-controls-toolbar-link',
+                'title' => 'Edit Nectar settings for this page'
+            )
+        ));
+    }
+    
+    /**
      * Add microscope button to admin toolbar
      */
     public function add_microscope_toolbar_button($wp_admin_bar) {
@@ -11439,6 +11473,22 @@ class Snefuru_Admin {
                 transform: scale(1.05);
             }
             
+            /* Style for NEC button in admin bar */
+            #wp-admin-bar-nectar-controls-button .ab-item {
+                background: linear-gradient(135deg, #9370DB 0%, #8A2BE2 100%) !important;
+                color: white !important;
+                font-weight: 700 !important;
+                padding: 0 10px !important;
+                transition: all 0.3s ease !important;
+                min-width: 40px !important;
+                text-align: center !important;
+            }
+            
+            #wp-admin-bar-nectar-controls-button:hover .ab-item {
+                background: linear-gradient(135deg, #8A2BE2 0%, #9370DB 100%) !important;
+                transform: scale(1.05);
+            }
+            
             /* Ensure proper positioning */
             #wp-admin-bar-cashew-homepage-editor {
                 float: right !important;
@@ -11446,6 +11496,11 @@ class Snefuru_Admin {
             }
             
             #wp-admin-bar-cashew-hp-button {
+                float: right !important;
+                margin-right: 5px !important;
+            }
+            
+            #wp-admin-bar-nectar-controls-button {
                 float: right !important;
                 margin-right: 5px !important;
             }

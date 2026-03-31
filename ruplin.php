@@ -140,6 +140,9 @@ class SnefuruPlugin {
         // Load Work Projects Mar Management Page
         require_once SNEFURU_PLUGIN_PATH . 'professional_work_projects/work-projects-mar-page.php';
         
+        // Load Nectar Controls Mar Management Page
+        require_once SNEFURU_PLUGIN_PATH . 'nectar_controls_mar/nectar-controls-mar-page.php';
+        
         // Load Sitemap Shortcode Mar Management Page
         require_once SNEFURU_PLUGIN_PATH . 'sitemap_shortcodes/class-sitemap-shortcode-mar.php';
         
