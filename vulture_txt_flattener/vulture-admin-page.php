@@ -78,12 +78,12 @@ function vulture_txt_flattener_admin_page() {
                         <?php foreach ($generations as $gen) : ?>
                             <tr>
                                 <td><?php echo esc_html($gen['folder_number']); ?></td>
-                                <td><?php echo esc_html($gen['folder_number'] . '_' . $gen['domain']); ?></td>
+                                <td><?php echo esc_html($gen['folder_number'] . '_' . $gen['site_domain']); ?></td>
                                 <td>
                                     <?php echo esc_html($gen['total_files']); ?>
                                     <span class="description">
-                                        (<?php echo esc_html($gen['total_pages']); ?> pages, 
-                                        <?php echo esc_html($gen['total_posts']); ?> posts)
+                                        (<?php echo esc_html($gen['page_count']); ?> pages, 
+                                        <?php echo esc_html($gen['post_count']); ?> posts)
                                     </span>
                                 </td>
                                 <td>
@@ -91,7 +91,7 @@ function vulture_txt_flattener_admin_page() {
                                         <?php echo esc_html($gen['status']); ?>
                                     </span>
                                 </td>
-                                <td><?php echo esc_html($gen['completed_at'] ?: $gen['started_at']); ?></td>
+                                <td><?php echo esc_html($gen['completed_at'] ?: $gen['created_at']); ?></td>
                                 <td>
                                     <?php if ($gen['zip_path']) : ?>
                                         <button type="button" 

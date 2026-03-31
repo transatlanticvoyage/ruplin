@@ -29,11 +29,11 @@ class Vulture_Controller {
         
         $generation_id = $this->db->insert_generation(array(
             'folder_number' => $folder_number,
-            'domain' => $domain,
-            'folder_path' => $folder_name . '/iteration_1_original_dont_edit/',
-            'include_pages' => $options['include_pages'] ? 1 : 0,
-            'include_posts' => $options['include_posts'] ? 1 : 0,
-            'status' => 'processing'
+            'site_domain' => $domain,
+            'iteration_number' => 1,
+            'output_path' => $folder_name . '/iteration_1_original_dont_edit/',
+            'status' => 'processing',
+            'triggered_by' => get_current_user_id()
         ));
         
         if (!$generation_id) {
@@ -72,9 +72,10 @@ class Vulture_Controller {
         }
         
         $this->db->update_generation($generation_id, array(
-            'total_pages' => $total_pages,
-            'total_posts' => $total_posts,
+            'page_count' => $total_pages,
+            'post_count' => $total_posts,
             'total_files' => $total_files,
+            'zip_filename' => $zip_path ? basename($zip_path) : null,
             'zip_path' => $zip_path,
             'status' => 'complete',
             'completed_at' => current_time('mysql')

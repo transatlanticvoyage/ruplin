@@ -30,13 +30,13 @@ class Vulture_Ajax {
                 'generation_id' => $result['generation_id'],
                 'folder_number' => $result['folder_number'],
                 'total_files' => $result['total_files'],
-                'total_pages' => $result['total_pages'],
-                'total_posts' => $result['total_posts'],
-                'zip_filename' => $result['zip_path'],
+                'page_count' => $result['page_count'],
+                'post_count' => $result['post_count'],
+                'zip_filename' => $result['zip_filename'],
                 'message' => sprintf(
                     'Successfully flattened %d pages and %d posts into %d files', 
-                    $result['total_pages'], 
-                    $result['total_posts'], 
+                    $result['page_count'], 
+                    $result['post_count'], 
                     $result['total_files']
                 )
             ));

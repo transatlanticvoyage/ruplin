@@ -14,28 +14,26 @@ class Vulture_DB {
     public function insert_generation($data) {
         $defaults = array(
             'folder_number' => 0,
-            'domain' => '',
-            'folder_path' => '',
-            'zip_path' => null,
-            'total_pages' => 0,
-            'total_posts' => 0,
+            'site_domain' => '',
+            'iteration_number' => 1,
+            'output_path' => '',
+            'page_count' => 0,
+            'post_count' => 0,
             'total_files' => 0,
+            'zip_filename' => null,
+            'zip_path' => null,
             'status' => 'pending',
-            'started_at' => current_time('mysql'),
+            'triggered_by' => get_current_user_id(),
+            'created_at' => current_time('mysql'),
             'completed_at' => null,
-            'include_pages' => 1,
-            'include_posts' => 0
+            'notes' => null
         );
         
         $data = wp_parse_args($data, $defaults);
         
         $result = $this->wpdb->insert(
             $this->table_name,
-            $data,
-            array(
-                '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%s', 
-                '%s', '%s', '%d', '%d'
-            )
+            $data
         );
         
         if ($result === false) {
