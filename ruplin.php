@@ -475,6 +475,7 @@ class SnefuruPlugin {
             site_default_footer TEXT DEFAULT NULL,
             site_default_header TEXT DEFAULT NULL,
             site_default_sidebar TEXT DEFAULT NULL,
+            site_default_anteheader TEXT DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
@@ -559,6 +560,7 @@ class SnefuruPlugin {
             locpage_state_code TEXT DEFAULT NULL,
             locpage_state_full TEXT DEFAULT NULL,
             locpage_gmaps_string TEXT DEFAULT NULL,
+            service_category TEXT DEFAULT NULL,
             short_anchor TEXT DEFAULT NULL,
             serena_faq_box_q1 TEXT DEFAULT NULL,
             serena_faq_box_a1 TEXT DEFAULT NULL,
@@ -702,6 +704,7 @@ class SnefuruPlugin {
             header_desired TEXT DEFAULT NULL,
             footer_desired TEXT DEFAULT NULL,
             sidebar_desired TEXT DEFAULT NULL,
+            anteheader_desired TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -727,6 +730,46 @@ class SnefuruPlugin {
         
         dbDelta($box_orders_sql);
         
+        // Create wp_service_categories table
+        $service_categories_table = $wpdb->prefix . 'service_categories';
+        $service_categories_sql = "CREATE TABLE IF NOT EXISTS $service_categories_table (
+            category_id INT(11) NOT NULL AUTO_INCREMENT,
+            category_name TEXT NOT NULL,
+            category_description TEXT DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (category_id),
+            INDEX idx_created_at (created_at),
+            INDEX idx_updated_at (updated_at)
+        ) $charset_collate;";
+        
+        dbDelta($service_categories_sql);
+        
+        // Create wp_vulture_txt_flattener_generations table (Vulture TXT Flattener feature)
+        $vulture_table = $wpdb->prefix . 'vulture_txt_flattener_generations';
+        $vulture_sql = "CREATE TABLE IF NOT EXISTS $vulture_table (
+            generation_id      INT(11) UNSIGNED     NOT NULL AUTO_INCREMENT,
+            folder_number      INT(11) UNSIGNED     NOT NULL,
+            site_domain        VARCHAR(255)         NOT NULL,
+            iteration_number   INT(11) UNSIGNED     NOT NULL DEFAULT 1,
+            output_path        TEXT                 DEFAULT NULL,
+            page_count         INT(11) UNSIGNED     DEFAULT 0,
+            post_count         INT(11) UNSIGNED     DEFAULT 0,
+            total_files        INT(11) UNSIGNED     DEFAULT 0,
+            zip_filename       VARCHAR(255)         DEFAULT NULL,
+            zip_path           TEXT                 DEFAULT NULL,
+            status             VARCHAR(50)          NOT NULL DEFAULT 'pending',
+            triggered_by       BIGINT(20) UNSIGNED  DEFAULT NULL,
+            created_at         datetime             NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            completed_at       datetime             DEFAULT NULL,
+            notes              TEXT                 DEFAULT NULL,
+            PRIMARY KEY (generation_id),
+            KEY idx_folder_number (folder_number),
+            KEY idx_site_domain   (site_domain(100)),
+            KEY idx_status        (status)
+        ) $charset_collate;";
+        dbDelta($vulture_sql);
+
         // Handle migration of box_order column to box_order_json
         $this->migrate_box_orders_table();
         
@@ -1367,6 +1410,20 @@ class SnefuruPlugin {
         if (empty($column_exists_hide_footer_legal_links)) {
             $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN hide_footer_legal_links BOOLEAN DEFAULT FALSE");
             error_log('Snefuru: Added hide_footer_legal_links column to zen_sitespren table');
+        }
+        
+        // Add anteheader_desired column to pylons table if it doesn't exist
+        $column_exists_anteheader = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'anteheader_desired'");
+        if (empty($column_exists_anteheader)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN anteheader_desired TEXT DEFAULT NULL");
+            error_log('Snefuru: Added anteheader_desired column to pylons table');
+        }
+        
+        // Add site_default_anteheader column to zen_sitespren table if it doesn't exist
+        $column_exists_site_anteheader = $wpdb->get_results("SHOW COLUMNS FROM $zen_sitespren_table LIKE 'site_default_anteheader'");
+        if (empty($column_exists_site_anteheader)) {
+            $wpdb->query("ALTER TABLE $zen_sitespren_table ADD COLUMN site_default_anteheader TEXT DEFAULT NULL");
+            error_log('Snefuru: Added site_default_anteheader column to zen_sitespren table');
         }
     }
     
