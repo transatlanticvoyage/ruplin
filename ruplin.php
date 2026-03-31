@@ -785,7 +785,8 @@ class SnefuruPlugin {
             entity_id                  BIGINT(20) UNSIGNED  NOT NULL AUTO_INCREMENT,
             native_wp_image_post_id    BIGINT(20) UNSIGNED  DEFAULT NULL,
             rel_page_post_id           BIGINT(20) UNSIGNED  DEFAULT NULL,
-            rel_pylon_archetype        TEXT                 DEFAULT NULL,
+            d_pylon_archetype        TEXT                 DEFAULT NULL,
+            d_post_title             TEXT                 DEFAULT NULL,
             created_at                 datetime             NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at                 datetime             NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (entity_id),
@@ -1475,7 +1476,7 @@ class SnefuruPlugin {
             error_log('Snefuru: Added medic_orgid_scanned_at column to pylons table');
         }
 
-        // Create triggers for wp_blovian_image_entities to auto-populate rel_pylon_archetype
+        // Create triggers for wp_blovian_image_entities to auto-populate d_pylon_archetype
         // Triggers must be created via direct query (dbDelta does not support them)
         $blovian_table = $wpdb->prefix . 'blovian_image_entities';
         $blovian_exists = $wpdb->get_var("SHOW TABLES LIKE '$blovian_table'") === $blovian_table;
@@ -1489,10 +1490,16 @@ class SnefuruPlugin {
                 FOR EACH ROW
                 BEGIN
                     IF NEW.rel_page_post_id IS NOT NULL THEN
-                        SET NEW.rel_pylon_archetype = (
+                        SET NEW.d_pylon_archetype = (
                             SELECT pylon_archetype
                             FROM $pylons_table
                             WHERE rel_wp_post_id = NEW.rel_page_post_id
+                            LIMIT 1
+                        );
+                        SET NEW.d_post_title = (
+                            SELECT post_title
+                            FROM {$wpdb->posts}
+                            WHERE ID = NEW.rel_page_post_id
                             LIMIT 1
                         );
                     END IF;
@@ -1509,10 +1516,16 @@ class SnefuruPlugin {
                     IF NEW.rel_page_post_id IS NOT NULL
                        AND (OLD.rel_page_post_id IS NULL OR NEW.rel_page_post_id != OLD.rel_page_post_id)
                     THEN
-                        SET NEW.rel_pylon_archetype = (
+                        SET NEW.d_pylon_archetype = (
                             SELECT pylon_archetype
                             FROM $pylons_table
                             WHERE rel_wp_post_id = NEW.rel_page_post_id
+                            LIMIT 1
+                        );
+                        SET NEW.d_post_title = (
+                            SELECT post_title
+                            FROM {$wpdb->posts}
+                            WHERE ID = NEW.rel_page_post_id
                             LIMIT 1
                         );
                     END IF;
@@ -1530,7 +1543,7 @@ class SnefuruPlugin {
                 error_log('Snefuru: DB triggers created for blovian_image_entities (MySQL trigger privilege available)');
             } else {
                 // Trigger creation failed (restricted host) — PHP fallback will be used instead
-                error_log('Snefuru: DB triggers not available on this host — blovian rel_pylon_archetype will be synced via PHP helper');
+                error_log('Snefuru: DB triggers not available on this host — blovian d_pylon_archetype will be synced via PHP helper');
             }
         }
     }
@@ -1540,23 +1553,33 @@ class SnefuruPlugin {
      * Sets up hooks for injecting header and footer codes
      */
     /**
-     * PHP fallback for blovian_image_entities.rel_pylon_archetype sync.
+     * PHP fallback for wp_blovian_image_entities denormalized column sync.
      * Used on hosts where MySQL TRIGGER privilege is not available.
      * Call this before any INSERT or UPDATE to wp_blovian_image_entities
-     * when rel_page_post_id is being set.
+     * when rel_page_post_id is being set. Returns both d_ values so the
+     * caller can include them in the INSERT/UPDATE data array.
      *
      * @param int $rel_page_post_id  The wp_posts.ID of the related page
-     * @return string|null           The pylon_archetype value, or null if not found
+     * @return array                 ["d_pylon_archetype" => "...", "d_post_title" => "..."]
      */
-    public static function get_blovian_pylon_archetype( $rel_page_post_id ) {
+    public static function get_blovian_denormalized_fields( $rel_page_post_id ) {
         global $wpdb;
         if ( empty( $rel_page_post_id ) ) {
-            return null;
+            return [ "d_pylon_archetype" => null, "d_post_title" => null ];
         }
-        return $wpdb->get_var( $wpdb->prepare(
+        $id = intval( $rel_page_post_id );
+        $d_pylon_archetype = $wpdb->get_var( $wpdb->prepare(
             "SELECT pylon_archetype FROM {$wpdb->prefix}pylons WHERE rel_wp_post_id = %d LIMIT 1",
-            intval( $rel_page_post_id )
+            $id
         ) );
+        $d_post_title = $wpdb->get_var( $wpdb->prepare(
+            "SELECT post_title FROM {$wpdb->posts} WHERE ID = %d LIMIT 1",
+            $id
+        ) );
+        return [
+            "d_pylon_archetype" => $d_pylon_archetype,
+            "d_post_title"      => $d_post_title,
+        ];
     }
 
     private function init_weasel_code_injection() {
