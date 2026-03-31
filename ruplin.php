@@ -779,6 +779,21 @@ class SnefuruPlugin {
         ) $charset_collate;";
         dbDelta($vulture_sql);
 
+        // Create wp_blovian_image_entities table
+        $blovian_table = $wpdb->prefix . 'blovian_image_entities';
+        $blovian_sql = "CREATE TABLE IF NOT EXISTS $blovian_table (
+            entity_id                  BIGINT(20) UNSIGNED  NOT NULL AUTO_INCREMENT,
+            native_wp_image_post_id    BIGINT(20) UNSIGNED  DEFAULT NULL,
+            rel_page_post_id           BIGINT(20) UNSIGNED  DEFAULT NULL,
+            rel_pylon_archetype        TEXT                 DEFAULT NULL,
+            created_at                 datetime             NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at                 datetime             NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (entity_id),
+            KEY idx_native_wp_image_post_id (native_wp_image_post_id),
+            KEY idx_rel_page_post_id        (rel_page_post_id)
+        ) $charset_collate;";
+        dbDelta($blovian_sql);
+
         // Handle migration of box_order column to box_order_json
         $this->migrate_box_orders_table();
         
@@ -1458,6 +1473,53 @@ class SnefuruPlugin {
         if (empty($medic_scanned_exists)) {
             $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN medic_orgid_scanned_at DATETIME DEFAULT NULL");
             error_log('Snefuru: Added medic_orgid_scanned_at column to pylons table');
+        }
+
+        // Create triggers for wp_blovian_image_entities to auto-populate rel_pylon_archetype
+        // Triggers must be created via direct query (dbDelta does not support them)
+        $blovian_table = $wpdb->prefix . 'blovian_image_entities';
+        $blovian_exists = $wpdb->get_var("SHOW TABLES LIKE '$blovian_table'") === $blovian_table;
+
+        if ($blovian_exists) {
+            // Drop and re-create BEFORE INSERT trigger
+            $wpdb->query("DROP TRIGGER IF EXISTS trg_blovian_image_entities_before_insert");
+            $wpdb->query("
+                CREATE TRIGGER trg_blovian_image_entities_before_insert
+                BEFORE INSERT ON $blovian_table
+                FOR EACH ROW
+                BEGIN
+                    IF NEW.rel_page_post_id IS NOT NULL THEN
+                        SET NEW.rel_pylon_archetype = (
+                            SELECT pylon_archetype
+                            FROM $pylons_table
+                            WHERE rel_wp_post_id = NEW.rel_page_post_id
+                            LIMIT 1
+                        );
+                    END IF;
+                END
+            ");
+
+            // Drop and re-create BEFORE UPDATE trigger
+            $wpdb->query("DROP TRIGGER IF EXISTS trg_blovian_image_entities_before_update");
+            $wpdb->query("
+                CREATE TRIGGER trg_blovian_image_entities_before_update
+                BEFORE UPDATE ON $blovian_table
+                FOR EACH ROW
+                BEGIN
+                    IF NEW.rel_page_post_id IS NOT NULL
+                       AND (OLD.rel_page_post_id IS NULL OR NEW.rel_page_post_id != OLD.rel_page_post_id)
+                    THEN
+                        SET NEW.rel_pylon_archetype = (
+                            SELECT pylon_archetype
+                            FROM $pylons_table
+                            WHERE rel_wp_post_id = NEW.rel_page_post_id
+                            LIMIT 1
+                        );
+                    END IF;
+                END
+            ");
+
+            error_log('Snefuru: Created/updated triggers for blovian_image_entities table');
         }
     }
     
