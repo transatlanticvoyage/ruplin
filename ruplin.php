@@ -1481,7 +1481,7 @@ class SnefuruPlugin {
         $blovian_exists = $wpdb->get_var("SHOW TABLES LIKE '$blovian_table'") === $blovian_table;
 
         if ($blovian_exists) {
-            // Drop and re-create BEFORE INSERT trigger
+            // Attempt to create BEFORE INSERT trigger (silently skip on restricted hosts)
             $wpdb->query("DROP TRIGGER IF EXISTS trg_blovian_image_entities_before_insert");
             $wpdb->query("
                 CREATE TRIGGER trg_blovian_image_entities_before_insert
@@ -1499,7 +1499,7 @@ class SnefuruPlugin {
                 END
             ");
 
-            // Drop and re-create BEFORE UPDATE trigger
+            // Attempt to create BEFORE UPDATE trigger (silently skip on restricted hosts)
             $wpdb->query("DROP TRIGGER IF EXISTS trg_blovian_image_entities_before_update");
             $wpdb->query("
                 CREATE TRIGGER trg_blovian_image_entities_before_update
@@ -1519,7 +1519,19 @@ class SnefuruPlugin {
                 END
             ");
 
-            error_log('Snefuru: Created/updated triggers for blovian_image_entities table');
+            // Check if triggers were created (will be NULL on restricted hosts)
+            $trigger_exists = $wpdb->get_var("
+                SELECT TRIGGER_NAME FROM information_schema.TRIGGERS
+                WHERE TRIGGER_NAME = 'trg_blovian_image_entities_before_insert'
+                AND TRIGGER_SCHEMA = DATABASE()
+            ");
+
+            if ($trigger_exists) {
+                error_log('Snefuru: DB triggers created for blovian_image_entities (MySQL trigger privilege available)');
+            } else {
+                // Trigger creation failed (restricted host) — PHP fallback will be used instead
+                error_log('Snefuru: DB triggers not available on this host — blovian rel_pylon_archetype will be synced via PHP helper');
+            }
         }
     }
     
@@ -1527,6 +1539,26 @@ class SnefuruPlugin {
      * Initialize Weasel Code Injection
      * Sets up hooks for injecting header and footer codes
      */
+    /**
+     * PHP fallback for blovian_image_entities.rel_pylon_archetype sync.
+     * Used on hosts where MySQL TRIGGER privilege is not available.
+     * Call this before any INSERT or UPDATE to wp_blovian_image_entities
+     * when rel_page_post_id is being set.
+     *
+     * @param int $rel_page_post_id  The wp_posts.ID of the related page
+     * @return string|null           The pylon_archetype value, or null if not found
+     */
+    public static function get_blovian_pylon_archetype( $rel_page_post_id ) {
+        global $wpdb;
+        if ( empty( $rel_page_post_id ) ) {
+            return null;
+        }
+        return $wpdb->get_var( $wpdb->prepare(
+            "SELECT pylon_archetype FROM {$wpdb->prefix}pylons WHERE rel_wp_post_id = %d LIMIT 1",
+            intval( $rel_page_post_id )
+        ) );
+    }
+
     private function init_weasel_code_injection() {
         // Only run on frontend (not admin)
         if (!is_admin()) {
