@@ -2,6 +2,7 @@
 /**
  * Mobile Menu Handler Class
  * Handles mobile menu behavior and JavaScript functionality for all headers
+ * Test comment to show in VSCode source control
  */
 
 if (!defined('ABSPATH')) {

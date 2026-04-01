@@ -2,6 +2,7 @@
 /**
  * Phone Formatter Class
  * Handles phone number formatting and HTML generation for headers
+ * Test comment to show in VSCode source control
  */
 
 if (!defined('ABSPATH')) {

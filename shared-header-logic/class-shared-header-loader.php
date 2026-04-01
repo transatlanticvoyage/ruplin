@@ -2,6 +2,7 @@
 /**
  * Shared Header Loader Class
  * Initializes and coordinates all shared header logic classes
+ * Test comment to show in VSCode source control
  */
 
 if (!defined('ABSPATH')) {

@@ -3,6 +3,7 @@
  * Silkweaver Integration Class
  * Handles menu system logic for all headers
  * Transforms Silkweaver menu output for different header types
+ * Test comment to show in VSCode source control
  */
 
 if (!defined('ABSPATH')) {

@@ -3,6 +3,7 @@
  * Ferret Header Injection Class
  * Handles code injection logic for all headers
  * Manages ferret snippets and wp_head/wp_footer integration
+ * Test comment to show in VSCode source control
  */
 
 if (!defined('ABSPATH')) {

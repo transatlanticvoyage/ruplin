@@ -3,6 +3,7 @@
  * Header Manager Class
  * Central coordinator for all header functionality
  * Handles logo retrieval, template variables, and rendering coordination
+ * Test comment to show in VSCode source control
  */
 
 if (!defined('ABSPATH')) {
