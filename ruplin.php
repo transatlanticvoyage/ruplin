@@ -71,11 +71,30 @@ define('SNEFURU_PLUGIN_URL', plugin_dir_url(__FILE__));
 class SnefuruPlugin {
     
     private $elementor_available = false;
+    private $shared_header_loader = null;
     
     public function __construct() {
         add_action('init', array($this, 'init'));
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+        
+        // Initialize shared header logic early
+        add_action('plugins_loaded', array($this, 'init_shared_header_logic'), 5);
+    }
+    
+    /**
+     * Initialize shared header logic system
+     */
+    public function init_shared_header_logic() {
+        $shared_header_file = SNEFURU_PLUGIN_PATH . 'shared-header-logic/class-shared-header-loader.php';
+        
+        if (file_exists($shared_header_file)) {
+            require_once $shared_header_file;
+            
+            if (class_exists('Ruplin_Shared_Header_Loader')) {
+                $this->shared_header_loader = Ruplin_Shared_Header_Loader::getInstance();
+            }
+        }
     }
     
     /**
