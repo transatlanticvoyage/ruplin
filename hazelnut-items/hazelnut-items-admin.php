@@ -987,8 +987,8 @@ class Hazelnut_Items_Admin {
                     <?php if (strpos($_SERVER['HTTP_HOST'], '.local') !== false || $_SERVER['HTTP_HOST'] === 'localhost'): ?>
                     <div class="hazelnut-import-row">
                         <div class="hazelnut-import-title">Import from Local Folder</div>
-                        <div class="hazelnut-import-description">Select a folder from your local cashew homepage outputs</div>
-                        <div class="hazelnut-local-path">/Users/kylecampbell/Documents/repos/cashew_homepage_outputs/</div>
+                        <div class="hazelnut-import-description">Select a folder from your local peanut page outputs</div>
+                        <div class="hazelnut-local-path">/Users/kylecampbell/Documents/repos/peanut_page_outputs/</div>
                         <input type="text" id="hazelnut-local-folder" placeholder="Enter folder name (e.g., 110 - chimney-exp_com)" style="width: 300px; padding: 8px; margin-right: 10px; border: 1px solid #d1d5db; border-radius: 4px;" />
                         <button class="hazelnut-btn hazelnut-btn-secondary" id="hazelnut-import-local">Generate ZIP and Import (Phase 1)</button>
                         <div style="margin-top: 10px;">
@@ -1329,7 +1329,7 @@ class Hazelnut_Items_Admin {
         }
         
         // Source and destination paths
-        $source_path = '/Users/kylecampbell/Documents/repos/cashew_homepage_outputs/' . $folder_name;
+        $source_path = '/Users/kylecampbell/Documents/repos/peanut_page_outputs/' . $folder_name;
         $dest_path = WP_CONTENT_DIR . '/hazelnut-holdings/' . $folder_name . '/';
         
         // Check if source exists

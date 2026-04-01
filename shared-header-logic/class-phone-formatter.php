@@ -115,25 +115,36 @@ class Ruplin_Phone_Formatter {
     }
     
     /**
-     * Get CSS classes for different header types
+     * Get component prefix mapping for ZX isolation system
+     */
+    private function get_component_prefixes() {
+        return array(
+            'header1' => 'zx_hd1_',
+            'header2' => 'zx_hd2_',
+            'header3' => 'zx_hd3_',
+            'footer1' => 'zx_ft1_',
+            'footer2' => 'zx_ft2_',
+            'footer3' => 'zx_ft3_',
+            'sidebar1' => 'zx_sd1_',
+            'sidebar2' => 'zx_sd2_',
+            'sidebar3' => 'zx_sd3_',
+            'anteheader1' => 'zx_anh1_',
+            'anteheader2' => 'zx_anh2_',
+            'anteheader3' => 'zx_anh3_'
+        );
+    }
+    
+    /**
+     * Get CSS classes for different header types using ZX prefixes
      */
     private function get_phone_classes($header_type) {
-        $classes = array(
-            'header1' => array(
-                'button' => 'header1-phone-button',
-                'icon' => 'header1-phone-icon'
-            ),
-            'header2' => array(
-                'button' => 'hs2-phone-button',
-                'icon' => 'hs2-phone-icon'
-            ),
-            'header3' => array(
-                'button' => 'header3-phone-button',
-                'icon' => 'header3-phone-icon'
-            )
-        );
+        $prefixes = $this->get_component_prefixes();
+        $prefix = isset($prefixes[$header_type]) ? $prefixes[$header_type] : 'zx_hd2_';
         
-        return isset($classes[$header_type]) ? $classes[$header_type] : $classes['header2'];
+        return array(
+            'button' => $prefix . 'phone_button',
+            'icon' => $prefix . 'phone_icon'
+        );
     }
     
     /**

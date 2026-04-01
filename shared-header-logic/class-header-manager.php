@@ -21,25 +21,54 @@ class Ruplin_Header_Manager {
     }
     
     /**
-     * Get header-specific configuration
+     * Get component prefix mapping for ZX isolation system
+     */
+    private function get_component_prefixes() {
+        return array(
+            'header1' => 'zx_hd1_',
+            'header2' => 'zx_hd2_',
+            'header3' => 'zx_hd3_',
+            'footer1' => 'zx_ft1_',
+            'footer2' => 'zx_ft2_',
+            'footer3' => 'zx_ft3_',
+            'sidebar1' => 'zx_sd1_',
+            'sidebar2' => 'zx_sd2_',
+            'sidebar3' => 'zx_sd3_',
+            'anteheader1' => 'zx_anh1_',
+            'anteheader2' => 'zx_anh2_',
+            'anteheader3' => 'zx_anh3_'
+        );
+    }
+    
+    /**
+     * Get prefixed class name for component isolation
+     */
+    private function get_prefixed_class($element_name) {
+        $prefixes = $this->get_component_prefixes();
+        $prefix = isset($prefixes[$this->header_type]) ? $prefixes[$this->header_type] : 'zx_hd2_';
+        return $prefix . $element_name;
+    }
+    
+    /**
+     * Get header-specific configuration with ZX prefixes
      */
     private function get_header_config() {
         $configs = array(
             'header1' => array(
-                'class' => 'header1-wrapper',
-                'container_class' => 'header1-container',
+                'class' => $this->get_prefixed_class('header'),
+                'container_class' => $this->get_prefixed_class('container'),
                 'sticky' => true,
                 'template' => 'header1-template.html'
             ),
             'header2' => array(
-                'class' => 'hs2-header',
-                'container_class' => 'hs2-container', 
+                'class' => $this->get_prefixed_class('header'),
+                'container_class' => $this->get_prefixed_class('container'), 
                 'sticky' => true,
                 'template' => 'header-template.html'
             ),
             'header3' => array(
-                'class' => 'header3-wrapper',
-                'container_class' => 'header3-container',
+                'class' => $this->get_prefixed_class('header'),
+                'container_class' => $this->get_prefixed_class('container'),
                 'sticky' => false,
                 'template' => 'header3-template.html'
             )
@@ -82,8 +111,8 @@ class Ruplin_Header_Manager {
         if (!empty($logo_url)) {
             return '<img src="' . esc_url($logo_url) . '" alt="' . esc_attr(get_bloginfo('name')) . '">';
         } else {
-            // Determine title class based on header type
-            $title_class = $this->header_type === 'header2' ? 'hs2-site-title' : 'site-title';
+            // Use ZX prefixed title class
+            $title_class = $this->get_prefixed_class('site_title');
             return '<h1 class="' . $title_class . '">' . get_bloginfo('name') . '</h1>';
         }
     }
@@ -109,19 +138,10 @@ class Ruplin_Header_Manager {
     }
     
     /**
-     * Get menu class based on header type
+     * Get menu class based on header type with ZX prefixes
      */
     private function get_menu_class() {
-        switch ($this->header_type) {
-            case 'header2':
-                return 'hs2-menu';
-            case 'header1':
-                return 'header1-menu';
-            case 'header3':
-                return 'header3-menu';
-            default:
-                return 'site-menu';
-        }
+        return $this->get_prefixed_class('menu');
     }
     
     /**
@@ -140,8 +160,8 @@ class Ruplin_Header_Manager {
                               staircase_get_formatted_phone() : $phone_raw;
             
             if (!empty($phone_raw)) {
-                $phone_class = $this->header_type === 'header2' ? 'hs2-phone-button' : 'phone-button';
-                $icon_class = $this->header_type === 'header2' ? 'hs2-phone-icon' : 'phone-icon';
+                $phone_class = $this->get_prefixed_class('phone_button');
+                $icon_class = $this->get_prefixed_class('phone_icon');
                 
                 return '<a href="tel:' . esc_attr(preg_replace('/[^0-9+]/', '', $phone_raw)) . '" class="' . $phone_class . '">' .
                        '<svg class="' . $icon_class . '" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">' .

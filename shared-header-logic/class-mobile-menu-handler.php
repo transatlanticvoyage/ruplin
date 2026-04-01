@@ -130,34 +130,39 @@ class Ruplin_Mobile_Menu_Handler {
     }
     
     /**
-     * Get CSS classes for mobile menu based on header type
+     * Get component prefix mapping for ZX isolation system
+     */
+    private function get_component_prefixes() {
+        return array(
+            'header1' => 'zx_hd1_',
+            'header2' => 'zx_hd2_',
+            'header3' => 'zx_hd3_',
+            'footer1' => 'zx_ft1_',
+            'footer2' => 'zx_ft2_',
+            'footer3' => 'zx_ft3_',
+            'sidebar1' => 'zx_sd1_',
+            'sidebar2' => 'zx_sd2_',
+            'sidebar3' => 'zx_sd3_',
+            'anteheader1' => 'zx_anh1_',
+            'anteheader2' => 'zx_anh2_',
+            'anteheader3' => 'zx_anh3_'
+        );
+    }
+    
+    /**
+     * Get CSS classes for mobile menu based on header type using ZX prefixes
      */
     private function get_mobile_menu_classes() {
-        $classes = array(
-            'header1' => array(
-                'toggle' => '.header1-mobile-toggle',
-                'wrapper' => '.header1-menu-wrapper',
-                'dropdown_icon' => '.header1-dropdown-icon',
-                'has_dropdown' => '.header1-has-dropdown',
-                'dropdown' => '.header1-dropdown'
-            ),
-            'header2' => array(
-                'toggle' => '.hs2-mobile-toggle',
-                'wrapper' => '.hs2-menu-wrapper',
-                'dropdown_icon' => '.hs2-dropdown-icon',
-                'has_dropdown' => '.hs2-has-dropdown',
-                'dropdown' => '.hs2-dropdown'
-            ),
-            'header3' => array(
-                'toggle' => '.header3-mobile-toggle',
-                'wrapper' => '.header3-menu-wrapper',
-                'dropdown_icon' => '.header3-dropdown-icon',
-                'has_dropdown' => '.header3-has-dropdown',
-                'dropdown' => '.header3-dropdown'
-            )
-        );
+        $prefixes = $this->get_component_prefixes();
+        $prefix = isset($prefixes[$this->header_type]) ? $prefixes[$this->header_type] : 'zx_hd2_';
         
-        return isset($classes[$this->header_type]) ? $classes[$this->header_type] : $classes['header2'];
+        return array(
+            'toggle' => '.' . $prefix . 'mobile_toggle',
+            'wrapper' => '.' . $prefix . 'menu_wrapper',
+            'dropdown_icon' => '.' . $prefix . 'dropdown_icon',
+            'has_dropdown' => '.' . $prefix . 'has_dropdown',
+            'dropdown' => '.' . $prefix . 'dropdown'
+        );
     }
     
     /**
@@ -228,10 +233,12 @@ class Ruplin_Mobile_Menu_Handler {
     }
     
     /**
-     * Get hamburger icon HTML based on header type
+     * Get hamburger icon HTML based on header type using ZX prefixes
      */
     private function get_hamburger_icon() {
-        $bar_class = $this->header_type === 'header2' ? 'hs2-toggle-bar' : 'toggle-bar';
+        $prefixes = $this->get_component_prefixes();
+        $prefix = isset($prefixes[$this->header_type]) ? $prefixes[$this->header_type] : 'zx_hd2_';
+        $bar_class = $prefix . 'toggle_bar';
         
         return '<span class="' . $bar_class . '"></span>' .
                '<span class="' . $bar_class . '"></span>' .
@@ -287,19 +294,12 @@ class Ruplin_Mobile_Menu_Handler {
     }
     
     /**
-     * Get header-specific mobile menu wrapper classes
+     * Get header-specific mobile menu wrapper classes using ZX prefixes
      */
     public function get_wrapper_classes() {
-        switch ($this->header_type) {
-            case 'header1':
-                return 'header1-menu-wrapper';
-            case 'header2':
-                return 'hs2-menu-wrapper';
-            case 'header3':
-                return 'header3-menu-wrapper';
-            default:
-                return 'menu-wrapper';
-        }
+        $prefixes = $this->get_component_prefixes();
+        $prefix = isset($prefixes[$this->header_type]) ? $prefixes[$this->header_type] : 'zx_hd2_';
+        return $prefix . 'menu_wrapper';
     }
     
     /**

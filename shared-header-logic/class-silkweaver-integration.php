@@ -81,37 +81,40 @@ class Ruplin_Silkweaver_Integration {
     }
     
     /**
-     * Get CSS classes for different header types
+     * Get component prefix mapping for ZX isolation system
+     */
+    private function get_component_prefixes() {
+        return array(
+            'header1' => 'zx_hd1_',
+            'header2' => 'zx_hd2_',
+            'header3' => 'zx_hd3_',
+            'footer1' => 'zx_ft1_',
+            'footer2' => 'zx_ft2_',
+            'footer3' => 'zx_ft3_',
+            'sidebar1' => 'zx_sd1_',
+            'sidebar2' => 'zx_sd2_',
+            'sidebar3' => 'zx_sd3_',
+            'anteheader1' => 'zx_anh1_',
+            'anteheader2' => 'zx_anh2_',
+            'anteheader3' => 'zx_anh3_'
+        );
+    }
+    
+    /**
+     * Get CSS classes for different header types using ZX prefixes
      */
     private function get_menu_classes($header_type) {
-        $classes = array(
-            'header1' => array(
-                'menu' => 'header1-menu',
-                'menu_item' => 'header1-menu-item',
-                'menu_link' => 'header1-menu-link',
-                'has_dropdown' => 'header1-has-dropdown',
-                'dropdown' => 'header1-dropdown',
-                'dropdown_icon' => 'header1-dropdown-icon'
-            ),
-            'header2' => array(
-                'menu' => 'hs2-menu',
-                'menu_item' => 'hs2-menu-item', 
-                'menu_link' => 'hs2-menu-link',
-                'has_dropdown' => 'hs2-has-dropdown',
-                'dropdown' => 'hs2-dropdown',
-                'dropdown_icon' => 'hs2-dropdown-icon'
-            ),
-            'header3' => array(
-                'menu' => 'header3-menu',
-                'menu_item' => 'header3-menu-item',
-                'menu_link' => 'header3-menu-link', 
-                'has_dropdown' => 'header3-has-dropdown',
-                'dropdown' => 'header3-dropdown',
-                'dropdown_icon' => 'header3-dropdown-icon'
-            )
-        );
+        $prefixes = $this->get_component_prefixes();
+        $prefix = isset($prefixes[$header_type]) ? $prefixes[$header_type] : 'zx_hd2_';
         
-        return isset($classes[$header_type]) ? $classes[$header_type] : $classes['header2'];
+        return array(
+            'menu' => $prefix . 'menu',
+            'menu_item' => $prefix . 'menu_item',
+            'menu_link' => $prefix . 'menu_link',
+            'has_dropdown' => $prefix . 'has_dropdown',
+            'dropdown' => $prefix . 'dropdown',
+            'dropdown_icon' => $prefix . 'dropdown_icon'
+        );
     }
     
     /**
