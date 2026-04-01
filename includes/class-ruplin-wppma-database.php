@@ -343,22 +343,32 @@ class Ruplin_WP_Database_Horse_Class {
             error_log('Snefuru: General shortcodes table dbDelta result: ' . print_r($general_shortcodes_result, true));
             
             // Add any missing columns to existing tables
+            error_log("DEBUG: About to call add_missing_columns()");
             self::add_missing_columns();
+            error_log("DEBUG: Completed add_missing_columns()");
             
             // Clean up any PHP code that was incorrectly inserted into shortcodes
+            error_log("DEBUG: About to call clean_php_shortcodes()");
             self::clean_php_shortcodes();
+            error_log("DEBUG: Completed clean_php_shortcodes()");
             
             // Update database version
             update_option(self::DB_VERSION_OPTION, self::DB_VERSION);
             
             // Verify tables were created
+            error_log("DEBUG: Starting table verification");
             $services_exists = $wpdb->get_var("SHOW TABLES LIKE '$services_table'") == $services_table;
             $locations_exists = $wpdb->get_var("SHOW TABLES LIKE '$locations_table'") == $locations_table;
             $orbitposts_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
             $factory_codes_exists = $wpdb->get_var("SHOW TABLES LIKE '$factory_codes_table'") == $factory_codes_table;
             $cache_reports_exists = $wpdb->get_var("SHOW TABLES LIKE '$cache_reports_table'") == $cache_reports_table;
             $friendly_names_exists = $wpdb->get_var("SHOW TABLES LIKE '$friendly_names_table'") == $friendly_names_table;
-            $general_shortcodes_exists = $wpdb->get_var("SHOW TABLES LIKE '$general_shortcodes_table'") == $general_shortcodes_table;
+            
+            error_log("DEBUG: Checking general_shortcodes table: $general_shortcodes_table");
+            $check_result = $wpdb->get_var("SHOW TABLES LIKE '$general_shortcodes_table'");
+            error_log("DEBUG: get_var returned: " . var_export($check_result, true));
+            $general_shortcodes_exists = $check_result == $general_shortcodes_table;
+            error_log("DEBUG: general_shortcodes_exists = " . var_export($general_shortcodes_exists, true));
             
             // Log verification results
             error_log('Snefuru: Services table exists: ' . ($services_exists ? 'YES' : 'NO'));
@@ -828,10 +838,26 @@ class Ruplin_WP_Database_Horse_Class {
     public static function clean_php_shortcodes() {
         global $wpdb;
         
+        error_log("DEBUG: clean_php_shortcodes() called - START");
+        error_log("DEBUG: Stack trace: " . wp_debug_backtrace_summary());
+        
         $table_name = $wpdb->prefix . 'zen_general_shortcodes';
+        error_log("DEBUG: Attempting to clean table: $table_name");
+        
+        // Check if table exists first for debugging
+        $table_check = $wpdb->get_var("SHOW TABLES LIKE '$table_name'");
+        error_log("DEBUG: Table existence check result: " . var_export($table_check, true));
         
         // Delete any shortcodes that contain PHP code (they shouldn't be in the database)
+        $wpdb->hide_errors(); // Temporarily hide errors
         $result = $wpdb->query("DELETE FROM $table_name WHERE shortcode_content LIKE '%<?php%'");
+        $last_error = $wpdb->last_error;
+        $wpdb->show_errors(); // Re-enable error display
+        
+        error_log("DEBUG: DELETE query result: " . var_export($result, true));
+        if (!empty($last_error)) {
+            error_log("DEBUG: Database error occurred: " . $last_error);
+        }
         
         if ($result !== false && $result > 0) {
             error_log("Snefuru: Removed $result PHP shortcode entries from database");
@@ -841,6 +867,7 @@ class Ruplin_WP_Database_Horse_Class {
         
         // Reset the defaults version so no PHP code gets re-inserted
         delete_option('snefuru_general_shortcodes_defaults_version');
+        error_log("DEBUG: clean_php_shortcodes() - END");
     }
     
     /**

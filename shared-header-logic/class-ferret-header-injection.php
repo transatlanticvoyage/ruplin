@@ -92,9 +92,30 @@ class Ruplin_Ferret_Header_Injection {
         }
         
         // Fallback to Ferret Snippets if available
+        error_log("DEBUG: Checking if Ferret_Snippets class exists");
         if (class_exists('Ferret_Snippets')) {
-            $ferret = new Ferret_Snippets();
-            return $ferret->get_header_code();
+            error_log("DEBUG: Ferret_Snippets class exists, attempting to get instance (it's a singleton)");
+            try {
+                // Note: Ferret_Snippets uses singleton pattern with private constructor
+                // WRONG: $ferret = new Ferret_Snippets(); // This will cause fatal error
+                // RIGHT: Use get_instance() method
+                $ferret = Ferret_Snippets::get_instance();
+                error_log("DEBUG: Ferret_Snippets instance retrieved successfully");
+                if (method_exists($ferret, 'get_header_code')) {
+                    error_log("DEBUG: get_header_code method exists, calling it");
+                    return $ferret->get_header_code();
+                } else {
+                    error_log("DEBUG: ERROR - get_header_code method does not exist on Ferret_Snippets");
+                }
+            } catch (Exception $e) {
+                error_log("DEBUG: Exception while getting Ferret_Snippets instance: " . $e->getMessage());
+                error_log("DEBUG: Stack trace: " . $e->getTraceAsString());
+            } catch (Error $e) {
+                error_log("DEBUG: Fatal error while getting Ferret_Snippets instance: " . $e->getMessage());
+                error_log("DEBUG: Stack trace: " . $e->getTraceAsString());
+            }
+        } else {
+            error_log("DEBUG: Ferret_Snippets class does not exist");
         }
         
         // Final fallback to option
