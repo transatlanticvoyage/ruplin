@@ -12,6 +12,12 @@ class CashewEditorAdmin {
         add_action('admin_notices', array($this, 'suppress_admin_notices'), 1);
         add_action('all_admin_notices', array($this, 'suppress_admin_notices'), 1);
         add_filter('admin_title', array($this, 'fix_admin_title'), 10, 2);
+        
+        // Add AJAX handler for cherry template generation
+        add_action('wp_ajax_generate_cherry_template_html', array($this, 'ajax_generate_cherry_template'));
+        
+        // Add AJAX handler for creating orbitposts row
+        add_action('wp_ajax_create_orbitposts_row', array($this, 'ajax_create_orbitposts_row'));
     }
 
     public function add_admin_menu() {
@@ -40,6 +46,7 @@ class CashewEditorAdmin {
         // Get current data
         $post_data = $this->get_post_data($post_id);
         $pylon_data = $this->get_pylon_data($post_id);
+        $orbitposts_data = $this->get_orbitposts_data($post_id);
         
         ?>
         <div class="wrap cashew-editor-wrap">
@@ -145,11 +152,12 @@ class CashewEditorAdmin {
 
                 /* UI Table Grid Styles - Based on microscope editor */
                 .cashew-editor-table {
-                    width: 100%;
+                    width: auto;
                     border-collapse: collapse;
                     margin-top: 20px;
                     background: white;
                     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                    display: inline-table;
                 }
 
                 .cashew-editor-table thead {
@@ -174,6 +182,12 @@ class CashewEditorAdmin {
                     padding: 12px 16px;
                     border: 1px solid #e5e7eb;
                     vertical-align: top;
+                    white-space: nowrap;
+                }
+                
+                /* Allow wrapping for textarea cells */
+                .cashew-editor-table td:has(.cashew-field-textarea) {
+                    white-space: normal;
                 }
 
                 .cashew-field-label {
@@ -181,9 +195,14 @@ class CashewEditorAdmin {
                     color: #374151;
                     min-width: 200px;
                 }
+                
+                .cashew-adjunct-column {
+                    white-space: nowrap;
+                    min-width: auto;
+                }
 
                 .cashew-field-input {
-                    width: 100%;
+                    width: 300px;
                     padding: 8px 12px;
                     border: 1px solid #d1d5db;
                     border-radius: 4px;
@@ -191,7 +210,7 @@ class CashewEditorAdmin {
                 }
 
                 .cashew-field-textarea {
-                    width: 100%;
+                    width: 500px;
                     min-height: 200px;
                     padding: 12px;
                     border: 1px solid #d1d5db;
@@ -337,7 +356,9 @@ class CashewEditorAdmin {
                                        value="<?php echo esc_attr($pylon_data['staircase_page_template_desired'] ?? ''); ?>">
                             </td>
                             <td class="cashew-adjunct-column">
-                                <!-- Template buttons would go here if needed -->
+                                <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="cherry">cherry</button>
+                                <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="vibrantcashew">vibrantcashew</button>
+                                <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="bilberry">bilberry</button>
                             </td>
                         </tr>
                         <tr>
@@ -457,11 +478,85 @@ class CashewEditorAdmin {
                                 <!-- HTML content field, no specific buttons needed -->
                             </td>
                         </tr>
+                        
+                        <!-- Ferret Code Fields from wp_zen_orbitposts -->
+                        <tr>
+                            <td class="cashew-field-label"><b>wp_zen_orbitposts.ferret_header_code</b></td>
+                            <td>
+                                <?php if ($orbitposts_data): ?>
+                                    <input type="text" 
+                                           name="ferret_header_code"
+                                           class="cashew-field-input" 
+                                           value="<?php echo esc_attr($orbitposts_data['ferret_header_code'] ?? ''); ?>" 
+                                           placeholder="Enter header code...">
+                                <?php else: ?>
+                                    <span style="color: #666;">no orbitposts row found </span>
+                                    <button type="button" class="button button-small create-orbitposts-btn" data-post-id="<?php echo $post_id; ?>">(create one now)</button>
+                                <?php endif; ?>
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label"><b>wp_zen_orbitposts.ferret_header_code_2</b></td>
+                            <td>
+                                <?php if ($orbitposts_data): ?>
+                                    <input type="text" 
+                                           name="ferret_header_code_2"
+                                           class="cashew-field-input" 
+                                           value="<?php echo esc_attr($orbitposts_data['ferret_header_code_2'] ?? ''); ?>" 
+                                           placeholder="Enter header code 2...">
+                                <?php else: ?>
+                                    <span style="color: #666;">no orbitposts row found </span>
+                                    <button type="button" class="button button-small create-orbitposts-btn" data-post-id="<?php echo $post_id; ?>">(create one now)</button>
+                                <?php endif; ?>
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label"><b>wp_zen_orbitposts.ferret_footer_code</b></td>
+                            <td>
+                                <?php if ($orbitposts_data): ?>
+                                    <input type="text" 
+                                           name="ferret_footer_code"
+                                           class="cashew-field-input" 
+                                           value="<?php echo esc_attr($orbitposts_data['ferret_footer_code'] ?? ''); ?>" 
+                                           placeholder="Enter footer code...">
+                                <?php else: ?>
+                                    <span style="color: #666;">no orbitposts row found </span>
+                                    <button type="button" class="button button-small create-orbitposts-btn" data-post-id="<?php echo $post_id; ?>">(create one now)</button>
+                                <?php endif; ?>
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
                     </tbody>
                 </table>
                 
                 <button type="submit" class="cashew-save-btn">Save Changes</button>
             </form>
+            
+            <!-- Cherry Template Generation Section -->
+            <div class="cherry-template-generator" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e5e7eb;">
+                <div style="margin-bottom: 20px;">
+                    <button type="button" id="generate-cherry-template" class="cashew-save-btn" style="background: #8b5cf6;">
+                        Generate Cherry Page Template Raw Source Code with No Header and No Footer
+                    </button>
+                    <button type="button" id="copy-cherry-template" class="cashew-save-btn" style="background: #10b981; display: none; margin-left: 10px;">
+                        Copy to Clipboard
+                    </button>
+                </div>
+                
+                <div id="cherry-template-output" style="display: none;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 600; color: #374151;">
+                        Generated Cherry Template HTML:
+                    </label>
+                    <textarea id="cherry-template-html" 
+                              class="cashew-field-textarea" 
+                              style="width: 100%; height: 500px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;"
+                              wrap="off"
+                              readonly></textarea>
+                    <div id="cherry-template-status" style="margin-top: 10px; padding: 10px; display: none;"></div>
+                </div>
+            </div>
 
             <script>
                 // Jezel Button Functions
@@ -492,8 +587,102 @@ class CashewEditorAdmin {
                     window.scrollTo({ top: targetPosition, behavior: 'smooth' });
                 }
 
-                // Pill Button Functionality
+                // Cherry Template Generator Functionality
                 document.addEventListener('DOMContentLoaded', function() {
+                    // Generate Cherry Template Button
+                    const generateBtn = document.getElementById('generate-cherry-template');
+                    const copyBtn = document.getElementById('copy-cherry-template');
+                    const outputDiv = document.getElementById('cherry-template-output');
+                    const htmlTextarea = document.getElementById('cherry-template-html');
+                    const statusDiv = document.getElementById('cherry-template-status');
+                    
+                    if (generateBtn) {
+                        generateBtn.addEventListener('click', function() {
+                            const postId = <?php echo json_encode($post_id); ?>;
+                            
+                            if (!postId) {
+                                alert('No post ID found');
+                                return;
+                            }
+                            
+                            // Show loading state
+                            generateBtn.disabled = true;
+                            generateBtn.textContent = 'Generating...';
+                            statusDiv.style.display = 'block';
+                            statusDiv.style.background = '#fef3c7';
+                            statusDiv.style.color = '#92400e';
+                            statusDiv.innerHTML = 'Generating cherry template HTML...';
+                            
+                            // Make AJAX request
+                            jQuery.ajax({
+                                url: ajaxurl,
+                                type: 'POST',
+                                data: {
+                                    action: 'generate_cherry_template_html',
+                                    post_id: postId,
+                                    nonce: '<?php echo wp_create_nonce('generate_cherry_template'); ?>'
+                                },
+                                success: function(response) {
+                                    if (response.success) {
+                                        // Show the generated HTML
+                                        outputDiv.style.display = 'block';
+                                        copyBtn.style.display = 'inline-block';
+                                        htmlTextarea.value = response.data.html;
+                                        
+                                        // Update status
+                                        statusDiv.style.background = '#d1fae5';
+                                        statusDiv.style.color = '#065f46';
+                                        statusDiv.innerHTML = 'Cherry template HTML generated successfully!';
+                                        
+                                        // Auto-hide status after 3 seconds
+                                        setTimeout(function() {
+                                            statusDiv.style.display = 'none';
+                                        }, 3000);
+                                    } else {
+                                        // Show error
+                                        statusDiv.style.background = '#fee2e2';
+                                        statusDiv.style.color = '#991b1b';
+                                        statusDiv.innerHTML = 'Error: ' + (response.data.message || 'Failed to generate template');
+                                    }
+                                },
+                                error: function() {
+                                    statusDiv.style.background = '#fee2e2';
+                                    statusDiv.style.color = '#991b1b';
+                                    statusDiv.innerHTML = 'Network error occurred while generating template';
+                                },
+                                complete: function() {
+                                    generateBtn.disabled = false;
+                                    generateBtn.innerHTML = 'Generate Cherry Page Template Raw Source Code with No Header and No Footer';
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Copy to Clipboard Button
+                    if (copyBtn) {
+                        copyBtn.addEventListener('click', function() {
+                            htmlTextarea.select();
+                            htmlTextarea.setSelectionRange(0, 99999); // For mobile devices
+                            
+                            try {
+                                document.execCommand('copy');
+                                
+                                // Visual feedback
+                                copyBtn.textContent = 'Copied!';
+                                copyBtn.style.background = '#059669';
+                                
+                                // Reset after 2 seconds
+                                setTimeout(function() {
+                                    copyBtn.textContent = 'Copy to Clipboard';
+                                    copyBtn.style.background = '#10b981';
+                                }, 2000);
+                            } catch (err) {
+                                alert('Failed to copy to clipboard');
+                            }
+                        });
+                    }
+                    
+                    // Original Pill Button Functionality
                     const pillButtons = document.querySelectorAll('.pill-btn');
                     
                     pillButtons.forEach(function(button) {
@@ -522,6 +711,41 @@ class CashewEditorAdmin {
                     });
                 });
             </script>
+            
+            <script>
+            jQuery(document).ready(function($) {
+                // Handle create orbitposts row button click
+                $('.create-orbitposts-btn').on('click', function() {
+                    var button = $(this);
+                    var postId = button.data('post-id');
+                    
+                    button.prop('disabled', true).text('Creating...');
+                    
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: {
+                            action: 'create_orbitposts_row',
+                            post_id: postId,
+                            nonce: '<?php echo wp_create_nonce('create_orbitposts'); ?>'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                // Reload the page to show the new input fields
+                                location.reload();
+                            } else {
+                                alert('Error creating orbitposts row: ' + response.data.message);
+                                button.prop('disabled', false).text('(create one now)');
+                            }
+                        },
+                        error: function() {
+                            alert('An error occurred while creating the orbitposts row');
+                            button.prop('disabled', false).text('(create one now)');
+                        }
+                    });
+                });
+            });
+            </script>
         </div>
         <?php
     }
@@ -545,6 +769,26 @@ class CashewEditorAdmin {
         ), ARRAY_A);
         
         return $pylon_data ?: array();
+    }
+    
+    private function get_orbitposts_data($post_id) {
+        if (!$post_id) return null;
+        
+        global $wpdb;
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
+        if (!$table_exists) {
+            return null;
+        }
+        
+        $orbitposts_data = $wpdb->get_row($wpdb->prepare(
+            "SELECT ferret_header_code, ferret_header_code_2, ferret_footer_code FROM {$orbitposts_table} WHERE rel_wp_post_id = %d",
+            $post_id
+        ), ARRAY_A);
+        
+        return $orbitposts_data;
     }
 
     private function handle_form_submission($post_id) {
@@ -597,6 +841,43 @@ class CashewEditorAdmin {
                 $pylon_data,
                 array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d') // 8 text fields + 1 integer (rel_wp_post_id)
             );
+        }
+        
+        // Update/Insert wp_zen_orbitposts if ferret fields are submitted
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
+        
+        if ($table_exists && (isset($_POST['ferret_header_code']) || isset($_POST['ferret_header_code_2']) || isset($_POST['ferret_footer_code']))) {
+            // Check if orbitposts record exists
+            $orbit_exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT rel_wp_post_id FROM {$orbitposts_table} WHERE rel_wp_post_id = %d",
+                $post_id
+            ));
+            
+            $orbitposts_data = array(
+                'ferret_header_code' => wp_unslash($_POST['ferret_header_code'] ?? ''),
+                'ferret_header_code_2' => wp_unslash($_POST['ferret_header_code_2'] ?? ''),
+                'ferret_footer_code' => wp_unslash($_POST['ferret_footer_code'] ?? '')
+            );
+            
+            if ($orbit_exists) {
+                // Update existing record
+                $wpdb->update(
+                    $orbitposts_table,
+                    $orbitposts_data,
+                    array('rel_wp_post_id' => $post_id),
+                    array('%s', '%s', '%s'),
+                    array('%d')
+                );
+            } else {
+                // Insert new record
+                $orbitposts_data['rel_wp_post_id'] = $post_id;
+                $wpdb->insert(
+                    $orbitposts_table,
+                    $orbitposts_data,
+                    array('%s', '%s', '%s', '%d')
+                );
+            }
         }
         
         // Show success message
@@ -664,6 +945,269 @@ class CashewEditorAdmin {
                 observer.observe(document.body, { childList: true, subtree: true });
             });
         ');
+    }
+    
+    /**
+     * AJAX handler to generate cherry template HTML
+     */
+    public function ajax_create_orbitposts_row() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'create_orbitposts')) {
+            wp_send_json_error(array('message' => 'Invalid nonce'));
+            return;
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+            return;
+        }
+        
+        global $wpdb;
+        $orbitposts_table = $wpdb->prefix . 'zen_orbitposts';
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$orbitposts_table'") == $orbitposts_table;
+        if (!$table_exists) {
+            // Create the table if it doesn't exist
+            $charset_collate = $wpdb->get_charset_collate();
+            $sql = "CREATE TABLE IF NOT EXISTS $orbitposts_table (
+                id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                rel_wp_post_id BIGINT(20) UNSIGNED NOT NULL,
+                ferret_header_code LONGTEXT DEFAULT NULL,
+                ferret_header_code_2 LONGTEXT DEFAULT NULL,
+                ferret_footer_code LONGTEXT DEFAULT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY rel_wp_post_id (rel_wp_post_id)
+            ) $charset_collate;";
+            
+            require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+            dbDelta($sql);
+        }
+        
+        // Check if row already exists
+        $exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT rel_wp_post_id FROM {$orbitposts_table} WHERE rel_wp_post_id = %d",
+            $post_id
+        ));
+        
+        if ($exists) {
+            wp_send_json_error(array('message' => 'Orbitposts row already exists'));
+            return;
+        }
+        
+        // Insert new row
+        $result = $wpdb->insert(
+            $orbitposts_table,
+            array(
+                'rel_wp_post_id' => $post_id,
+                'ferret_header_code' => '',
+                'ferret_header_code_2' => '',
+                'ferret_footer_code' => ''
+            ),
+            array('%d', '%s', '%s', '%s')
+        );
+        
+        if ($result === false) {
+            wp_send_json_error(array('message' => 'Failed to create orbitposts row'));
+            return;
+        }
+        
+        wp_send_json_success(array('message' => 'Orbitposts row created successfully'));
+    }
+    
+    public function ajax_generate_cherry_template() {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'], 'generate_cherry_template')) {
+            wp_send_json_error(array('message' => 'Security verification failed'));
+        }
+        
+        // Get post ID
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+        }
+        
+        // Check if staircase theme functions exist
+        if (!function_exists('staircase_cherry_hero') || !function_exists('staircase_render_avg_rating_box')) {
+            wp_send_json_error(array('message' => 'Staircase theme functions not found. Please ensure Staircase theme is active.'));
+        }
+        
+        // Set up the post data
+        global $post;
+        $post = get_post($post_id);
+        if (!$post) {
+            wp_send_json_error(array('message' => 'Post not found'));
+        }
+        setup_postdata($post);
+        
+        // Start output buffering to capture the HTML
+        ob_start();
+        
+        try {
+            // Render cherry template components in order
+            
+            // 1. Batman Hero Section
+            if (function_exists('staircase_cherry_hero')) {
+                staircase_cherry_hero();
+            }
+            
+            // 2. Average Rating Box (always second in cherry template)
+            if (function_exists('staircase_render_avg_rating_box')) {
+                staircase_render_avg_rating_box();
+            }
+            
+            // 3. Chen Cards
+            if (function_exists('staircase_render_chen_cards')) {
+                staircase_render_chen_cards();
+            }
+            
+            // 4. Get box order and render other boxes
+            global $wpdb;
+            $pylons_table = $wpdb->prefix . 'pylons';
+            $pylon_data = $wpdb->get_row($wpdb->prepare(
+                "SELECT * FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+                $post_id
+            ), ARRAY_A);
+            
+            // Check for custom box order
+            $box_order_json = $pylon_data['box_order_json'] ?? '';
+            $custom_box_order = array();
+            
+            if (!empty($box_order_json)) {
+                $decoded_order = json_decode($box_order_json, true);
+                if (is_array($decoded_order)) {
+                    $custom_box_order = $decoded_order;
+                }
+            }
+            
+            // Default cherry template box order
+            $default_order = array(
+                'content_fields',
+                'osb_box', 
+                'reviewsbox',
+                'faq',
+                'video_box',
+                'elf_form_box',
+                'city_links',
+                'content_2',
+                'content_3',
+                'content_4',
+                'content_5',
+                'testimonial_box',
+                'cta_banner_box',
+                'map_driving_directions',
+                'service_area_box'
+            );
+            
+            $boxes_to_render = !empty($custom_box_order) ? $custom_box_order : $default_order;
+            
+            // Render each box
+            foreach ($boxes_to_render as $box_name) {
+                // Skip hero and rating box as they're already rendered
+                if (in_array($box_name, array('batman_hero_box', 'avg_rating_box', 'chen_cards'))) {
+                    continue;
+                }
+                
+                // Map box names to their render functions
+                switch ($box_name) {
+                    case 'content_fields':
+                        if (function_exists('staircase_render_content_fields')) {
+                            staircase_render_content_fields();
+                        }
+                        break;
+                    case 'osb_box':
+                        if (function_exists('staircase_render_osb_box')) {
+                            staircase_render_osb_box();
+                        }
+                        break;
+                    case 'reviewsbox':
+                        if (function_exists('staircase_render_reviewsbox')) {
+                            staircase_render_reviewsbox();
+                        }
+                        break;
+                    case 'faq':
+                        if (function_exists('staircase_render_faq')) {
+                            staircase_render_faq();
+                        }
+                        break;
+                    case 'video_box':
+                        if (function_exists('staircase_render_video_box')) {
+                            staircase_render_video_box();
+                        }
+                        break;
+                    case 'elf_form_box':
+                        if (function_exists('staircase_render_elf_form_box')) {
+                            staircase_render_elf_form_box();
+                        }
+                        break;
+                    case 'city_links':
+                        if (function_exists('staircase_render_city_links')) {
+                            staircase_render_city_links();
+                        }
+                        break;
+                    case 'content_2':
+                        if (function_exists('staircase_render_content_2')) {
+                            staircase_render_content_2();
+                        }
+                        break;
+                    case 'content_3':
+                        if (function_exists('staircase_render_content_3')) {
+                            staircase_render_content_3();
+                        }
+                        break;
+                    case 'content_4':
+                        if (function_exists('staircase_render_content_4')) {
+                            staircase_render_content_4();
+                        }
+                        break;
+                    case 'content_5':
+                        if (function_exists('staircase_render_content_5')) {
+                            staircase_render_content_5();
+                        }
+                        break;
+                    case 'testimonial_box':
+                        if (function_exists('staircase_render_testimonial_box')) {
+                            staircase_render_testimonial_box();
+                        }
+                        break;
+                    case 'cta_banner_box':
+                        if (function_exists('staircase_render_cta_banner_box')) {
+                            staircase_render_cta_banner_box();
+                        }
+                        break;
+                    case 'map_driving_directions':
+                        if (function_exists('staircase_render_map_driving_directions')) {
+                            staircase_render_map_driving_directions();
+                        }
+                        break;
+                    case 'service_area_box':
+                        if (function_exists('staircase_render_service_area_box')) {
+                            staircase_render_service_area_box();
+                        }
+                        break;
+                }
+            }
+            
+            // Get the generated HTML
+            $html = ob_get_clean();
+            
+            // Reset post data
+            wp_reset_postdata();
+            
+            // Return success with the HTML
+            wp_send_json_success(array(
+                'html' => $html,
+                'message' => 'Cherry template HTML generated successfully'
+            ));
+            
+        } catch (Exception $e) {
+            ob_end_clean();
+            wp_reset_postdata();
+            wp_send_json_error(array('message' => 'Error generating template: ' . $e->getMessage()));
+        }
     }
 }
 

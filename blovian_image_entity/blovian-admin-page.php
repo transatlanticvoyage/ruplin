@@ -91,7 +91,7 @@ function render_blovian_image_entity_page() {
     ];
     ?>
     <div class="wrap blovian-wrap">
-        <h1>blovian_image_entity_mar</h1>
+        <h1>wp_blovian_image_entities</h1>
 
         <?php if ( $deleted ) : ?>
             <div class="notice notice-success is-dismissible"><p>Row deleted.</p></div>

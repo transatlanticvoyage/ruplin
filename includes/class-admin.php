@@ -275,8 +275,8 @@ class Snefuru_Admin {
         // Add Blovian Image Entity menu item
         add_submenu_page(
             'snefuru',
-            'Blovian Image Entity',
-            'Blovian Image Entity',
+            'Blovian Service Image Entities',
+            'Blovian Service Image Entities',
             'manage_options',
             'blovian_image_entity_mar',
             'render_blovian_image_entity_page'

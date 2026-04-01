@@ -161,6 +161,12 @@ class SnefuruPlugin {
         // Load Cashew Editor Admin Page
         require_once SNEFURU_PLUGIN_PATH . 'cashew_editor/cashew_editor_admin.php';
         
+        // Load SLD Editor Admin Page
+        require_once SNEFURU_PLUGIN_PATH . 'sld-editor/sld-editor-admin.php';
+        
+        // Load Hazelnut Items Manager Admin Page
+        require_once SNEFURU_PLUGIN_PATH . 'hazelnut-items/hazelnut-items-admin.php';
+        
         // Load Nuke Mar AJAX handler
         require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar-ajax.php';
         
@@ -837,6 +843,44 @@ class SnefuruPlugin {
             KEY idx_status (status)
         ) $charset_collate;";
         dbDelta($loon_sql);
+
+        // Create wp_hazelnut_items table for static HTML upload management
+        $hazelnut_items_table = $wpdb->prefix . 'hazelnut_items';
+        $hazelnut_items_sql = "CREATE TABLE IF NOT EXISTS $hazelnut_items_table (
+            item_id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+            rel_post_id BIGINT(20) UNSIGNED DEFAULT NULL,
+            rel_post_status_of_implementation TEXT DEFAULT NULL,
+            upload_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            folder_name VARCHAR(255) NOT NULL,
+            original_zip_filename VARCHAR(255) DEFAULT NULL,
+            upload_path TEXT NOT NULL,
+            main_html_file VARCHAR(255) DEFAULT NULL,
+            html_file_w_hardcoded_references TEXT DEFAULT NULL,
+            file3_w_hardcoded_refs_sanitized TEXT DEFAULT NULL,
+            file3_dependencies_html TEXT DEFAULT NULL,
+            file3_extracted_dependencies_json LONGTEXT DEFAULT NULL,
+            file3_extracted_sanitization_metadata TEXT DEFAULT NULL,
+            total_files_count INT(11) DEFAULT 0,
+            total_size_bytes BIGINT DEFAULT 0,
+            asset_types TEXT DEFAULT NULL,
+            upload_status ENUM('pending', 'processing', 'completed', 'failed', 'archived') DEFAULT 'pending',
+            error_message TEXT DEFAULT NULL,
+            source_local_path TEXT DEFAULT NULL,
+            has_been_imported TINYINT(1) DEFAULT 0,
+            import_date datetime DEFAULT NULL,
+            metadata_json LONGTEXT DEFAULT NULL,
+            notes TEXT DEFAULT NULL,
+            is_active TINYINT(1) DEFAULT 1,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (item_id),
+            KEY idx_folder_name (folder_name),
+            KEY idx_upload_status (upload_status),
+            KEY idx_has_been_imported (has_been_imported),
+            KEY idx_is_active (is_active),
+            KEY idx_upload_date (upload_date)
+        ) $charset_collate;";
+        dbDelta($hazelnut_items_sql);
 
         // Handle migration of box_order column to box_order_json
         $this->migrate_box_orders_table();
