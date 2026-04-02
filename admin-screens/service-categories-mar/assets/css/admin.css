@@ -1,0 +1,193 @@
+/**
+ * Service Categories MAR - Admin Styles
+ */
+
+.service-categories-mar-admin {
+    max-width: 100%;
+    margin: 20px 20px 20px 0;
+}
+
+.service-categories-mar-container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+/* Table actions */
+.table-actions {
+    margin-bottom: 20px;
+}
+
+/* Create new button */
+#create-new-row {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+#create-new-row:hover {
+    background: #005a87;
+    border-color: #005a87;
+}
+
+/* Table wrapper */
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+/* Main table styles */
+.service-categories-table {
+    width: auto;
+    border-collapse: collapse;
+    background: white;
+}
+
+/* Table header styles */
+.service-categories-table th {
+    border: 1px solid gray;
+    padding: 10px;
+    text-align: left;
+    font-size: 16px;
+    color: #242424;
+    font-weight: normal;
+    text-transform: lowercase;
+    background: #f6f7f7;
+    white-space: nowrap;
+}
+
+/* Table cell styles */
+.service-categories-table td {
+    border: 1px solid gray;
+    padding: 8px;
+    vertical-align: middle;
+    font-size: 14px;
+    color: #333;
+    position: relative;
+}
+
+/* Editable cells */
+.service-categories-table td.editable {
+    cursor: pointer;
+    min-width: 50px;
+}
+
+.service-categories-table td.editable:hover {
+    background: #f0f8ff;
+}
+
+/* Inline editing */
+.service-categories-table td.editing {
+    padding: 0;
+}
+
+.service-categories-table td.editing input,
+.service-categories-table td.editing textarea {
+    width: 100%;
+    border: 2px solid #0073aa;
+    padding: 7px;
+    font-size: 14px;
+    font-family: inherit;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.service-categories-table td.editing textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+/* Actions column */
+.service-categories-table td.actions {
+    white-space: nowrap;
+}
+
+.service-categories-table .delete-row {
+    background: #dc3232;
+    border-color: #dc3232;
+    color: #fff;
+}
+
+.service-categories-table .delete-row:hover {
+    background: #a02222;
+    border-color: #a02222;
+}
+
+/* No data row */
+.service-categories-table .no-data {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 30px;
+}
+
+/* Table row hover effect */
+.service-categories-table tbody tr:hover {
+    background: #f5f5f5;
+}
+
+/* New row highlight */
+.service-categories-table tr.new-row {
+    background: #ffffcc !important;
+    animation: highlight-fade 2s ease-out;
+}
+
+@keyframes highlight-fade {
+    from {
+        background: #ffffcc;
+    }
+    to {
+        background: transparent;
+    }
+}
+
+/* Saving indicator */
+.service-categories-table td.saving {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.service-categories-table td.saving::after {
+    content: 'Saving...';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #0073aa;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Success/Error feedback */
+.service-categories-table td.success {
+    background: #d4edda !important;
+    transition: background 1s ease-out;
+}
+
+.service-categories-table td.error {
+    background: #f8d7da !important;
+    transition: background 1s ease-out;
+}
+
+/* Responsive design */
+@media screen and (max-width: 782px) {
+    .service-categories-table {
+        font-size: 12px;
+    }
+    
+    .service-categories-table th,
+    .service-categories-table td {
+        padding: 5px;
+    }
+    
+    .service-categories-table th {
+        font-size: 14px;
+    }
+}

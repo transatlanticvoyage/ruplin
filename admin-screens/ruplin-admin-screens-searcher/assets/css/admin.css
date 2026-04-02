@@ -1,0 +1,196 @@
+/**
+ * Ruplin Admin Screens Searcher - Admin Styles
+ * 
+ * Styles for the Admin Screens Searcher interface
+ */
+
+.ruplin-admin-screens-searcher {
+    max-width: 100%;
+    margin: 20px 20px 20px 0;
+}
+
+.ruplin-admin-screens-searcher-controls {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+}
+
+.ruplin-admin-screens-searcher-controls .scan-status {
+    margin-left: 15px;
+    color: #2271b1;
+    font-style: italic;
+    display: none;
+}
+
+.ruplin-admin-screens-searcher-controls .scan-status.active {
+    display: inline-block;
+}
+
+.ruplin-admin-screens-searcher-container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+    min-height: 400px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+/* Search Box Styles */
+.search-box-wrapper {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#ruplin-screen-search {
+    width: 300px;
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.screen-count {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Table Styles */
+.screens-table-wrapper {
+    overflow-x: auto;
+}
+
+#ruplin-screens-table {
+    width: 100%;
+    margin-top: 0;
+}
+
+#ruplin-screens-table th {
+    font-weight: 600;
+    background: #f6f7f7;
+}
+
+#ruplin-screens-table td {
+    vertical-align: middle;
+    padding: 10px;
+}
+
+#ruplin-screens-table .no-items {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 40px;
+}
+
+#ruplin-screens-table .view-link {
+    text-decoration: none;
+    color: #2271b1;
+}
+
+#ruplin-screens-table .view-link:hover {
+    color: #135e96;
+    text-decoration: underline;
+}
+
+#ruplin-screens-table .file-path {
+    font-family: monospace;
+    font-size: 12px;
+    color: #666;
+}
+
+#ruplin-screens-table .parent-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    background: #f0f0f1;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Highlight for unregistered/potential screens */
+#ruplin-screens-table tr.unregistered {
+    background: #fff8e5;
+}
+
+#ruplin-screens-table tr.unregistered td {
+    opacity: 0.7;
+}
+
+/* Loading state */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #2271b1;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Action buttons */
+.action-button {
+    padding: 4px 8px;
+    text-decoration: none;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+.action-button.view {
+    background: #2271b1;
+    color: white;
+}
+
+.action-button.view:hover {
+    background: #135e96;
+    color: white;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 782px) {
+    .search-box-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    #ruplin-screen-search {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    #ruplin-screens-table {
+        font-size: 12px;
+    }
+    
+    #ruplin-screens-table th,
+    #ruplin-screens-table td {
+        padding: 5px;
+    }
+}
+
+/* Ensure proper display hierarchy */
+.wrap.ruplin-admin-screens-searcher h1 {
+    display: block !important;
+}
+
+.wrap.ruplin-admin-screens-searcher .ruplin-admin-screens-searcher-controls,
+.wrap.ruplin-admin-screens-searcher .ruplin-admin-screens-searcher-container {
+    display: block !important;
+}

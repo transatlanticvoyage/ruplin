@@ -190,6 +190,21 @@ class SnefuruPlugin {
         // Load Nuke Mar AJAX handler
         require_once SNEFURU_PLUGIN_PATH . 'nuke/nuke-mar-ajax.php';
         
+        // Load Service Categories Mar Admin Page
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/service-categories-mar/class-service-categories-mar-admin.php';
+        
+        // Load Service Category Assigner Mar Admin Page
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/service-category-assigner-mar/class-service-category-assigner-mar.php';
+        
+        // Load Ruplin Admin Screens Searcher
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/ruplin-admin-screens-searcher/class-ruplin-admin-screens-searcher.php';
+        
+        // Load Ruplin Hub 2 MAR
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/ruplin-hub-2-mar/class-ruplin-hub-2-mar.php';
+
+        // Load Polyansk Service Categories Tiles Custom Page Section
+        require_once SNEFURU_PLUGIN_PATH . 'custom-page-sections/polyansk-service-categories-tiles-custom-page-section/class-polyansk-service-categories-tiles.php';
+
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
@@ -759,10 +774,13 @@ class SnefuruPlugin {
             enable_nectar_blog_feed BOOLEAN DEFAULT FALSE,
             nectar_blog_feed_items_qty INT DEFAULT NULL,
             nectar_blog_feed_rules TEXT DEFAULT NULL,
+            rel_service_category_id BIGINT DEFAULT NULL,
+            show_polyansk_custom_page_section BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
-            KEY plasma_page_id (plasma_page_id)
+            KEY plasma_page_id (plasma_page_id),
+            KEY rel_service_category_id (rel_service_category_id)
         ) $charset_collate;";
         
         dbDelta($pylons_sql);
@@ -789,6 +807,7 @@ class SnefuruPlugin {
         $service_categories_sql = "CREATE TABLE IF NOT EXISTS $service_categories_table (
             category_id INT(11) NOT NULL AUTO_INCREMENT,
             category_name TEXT NOT NULL,
+            longer_name TEXT DEFAULT NULL,
             category_description TEXT DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

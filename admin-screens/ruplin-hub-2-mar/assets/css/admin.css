@@ -1,0 +1,39 @@
+/**
+ * Ruplin Hub 2 MAR - Admin Styles
+ * 
+ * Styles for the Ruplin Hub 2 interface
+ */
+
+.ruplin-hub-2-mar {
+    max-width: 1200px;
+    margin: 20px 20px 20px 0;
+}
+
+.ruplin-hub-2-mar-container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+    min-height: 400px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+/* Placeholder styles - remove when adding content */
+.ruplin-hub-2-mar-container:empty::before {
+    content: "Ruplin Hub 2 MAR - Content will be added here";
+    display: block;
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 40px;
+}
+
+/* Ensure proper display hierarchy */
+.wrap.ruplin-hub-2-mar h1 {
+    display: block !important;
+}
+
+.wrap.ruplin-hub-2-mar .ruplin-hub-2-mar-container {
+    display: block !important;
+}

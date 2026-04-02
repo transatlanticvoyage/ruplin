@@ -317,6 +317,14 @@ class Ruplin_Work_Projects_Mar_Page {
                 </button>
             </div>
             
+            <?php 
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'work_projects';
+            ?>
+            <div style="background: #f0f0f1; padding: 10px 15px; margin-bottom: 10px; border-left: 4px solid #2271b1;">
+                <strong>Database Table:</strong> <code style="background: #fff; padding: 2px 5px; font-family: monospace;"><?php echo esc_html($table_name); ?></code>
+            </div>
+            
             <div class="work-projects-table-container" style="background: white; padding: 0; border: 1px solid #ccc;">
                 <table id="work-projects-table" class="work-projects-table" style="width: 100%; border-collapse: collapse;">
                     <thead>

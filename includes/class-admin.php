@@ -212,7 +212,7 @@ class Snefuru_Admin {
         
         add_menu_page(
             'Snefuruplin Dashboard',
-            'Ruplin Hub',
+            'Ruplin Hub 1',
             'manage_options',
             'snefuru',
             array($this, 'admin_page'),
@@ -281,16 +281,6 @@ class Snefuru_Admin {
             'blovian_image_entity_mar',
             'render_blovian_image_entity_page'
         );
-        
-        add_submenu_page(
-            'snefuru',
-            'Dashboard',
-            'Ruplin Hub',
-            'manage_options',
-            'snefuru',
-            array($this, 'admin_page')
-        );
-        
         
         // New Ruplin pages
         add_submenu_page(

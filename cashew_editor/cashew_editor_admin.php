@@ -228,18 +228,58 @@ class CashewEditorAdmin {
                 }
 
                 .cashew-save-btn {
-                    background: #059669;
+                    background: #16a34a;
                     color: white;
                     border: none;
-                    padding: 10px 20px;
+                    padding: 12px 28px;
                     border-radius: 6px;
                     font-weight: 600;
+                    font-size: 15px;
                     cursor: pointer;
-                    margin-top: 20px;
                 }
 
                 .cashew-save-btn:hover {
-                    background: #047857;
+                    background: #15803d;
+                }
+
+                .cashew-save-btn-top {
+                    margin-bottom: 16px;
+                }
+
+                .cashew-save-btn-bottom {
+                    margin-top: 20px;
+                }
+
+                /* Polyansk toggle switch */
+                .cashew-toggle {
+                    width: 48px;
+                    height: 26px;
+                    background: #d1d5db;
+                    border-radius: 13px;
+                    cursor: pointer;
+                    position: relative;
+                    transition: background 0.2s;
+                    display: inline-block;
+                }
+
+                .cashew-toggle-on {
+                    background: #16a34a;
+                }
+
+                .cashew-toggle-dial {
+                    width: 22px;
+                    height: 22px;
+                    background: #ffffff;
+                    border-radius: 50%;
+                    position: absolute;
+                    top: 2px;
+                    left: 2px;
+                    transition: left 0.2s;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                }
+
+                .cashew-toggle-on .cashew-toggle-dial {
+                    left: 24px;
                 }
 
                 .cashew-adjunct-column {
@@ -325,6 +365,8 @@ class CashewEditorAdmin {
             <form method="post" action="">
                 <?php wp_nonce_field('cashew_editor_save', 'cashew_editor_nonce'); ?>
                 
+                <button type="submit" class="cashew-save-btn cashew-save-btn-top">Save Changes</button>
+
                 <!-- UI Table Grid -->
                 <table class="cashew-editor-table">
                     <thead>
@@ -468,6 +510,17 @@ class CashewEditorAdmin {
                             </td>
                         </tr>
                         <tr>
+                            <td class="cashew-field-label">show_polyansk_custom_page_section</td>
+                            <td>
+                                <?php $polyansk_val = !empty($pylon_data['show_polyansk_custom_page_section']); ?>
+                                <input type="hidden" name="show_polyansk_custom_page_section" value="<?php echo $polyansk_val ? '1' : '0'; ?>">
+                                <div class="cashew-toggle <?php echo $polyansk_val ? 'cashew-toggle-on' : ''; ?>" data-field="show_polyansk_custom_page_section">
+                                    <div class="cashew-toggle-dial"></div>
+                                </div>
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <tr>
                             <td class="cashew-field-label">wp_pylons.cashew_html_expanse</td>
                             <td>
                                 <textarea name="cashew_html_expanse" 
@@ -531,7 +584,7 @@ class CashewEditorAdmin {
                     </tbody>
                 </table>
                 
-                <button type="submit" class="cashew-save-btn">Save Changes</button>
+                <button type="submit" class="cashew-save-btn cashew-save-btn-bottom">Save Changes</button>
             </form>
             
             <!-- Cherry Template Generation Section -->
@@ -559,6 +612,18 @@ class CashewEditorAdmin {
             </div>
 
             <script>
+                // Polyansk toggle switch
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.cashew-toggle').forEach(function(toggle) {
+                        toggle.addEventListener('click', function() {
+                            var field = this.getAttribute('data-field');
+                            var input = document.querySelector('input[name="' + field + '"]');
+                            var isOn = this.classList.toggle('cashew-toggle-on');
+                            input.value = isOn ? '1' : '0';
+                        });
+                    });
+                });
+
                 // Jezel Button Functions
                 function toggleJezelWidget() {
                     const buttons = document.getElementById('jezel-buttons');
@@ -764,7 +829,7 @@ class CashewEditorAdmin {
         $pylons_table = $wpdb->prefix . 'pylons';
         
         $pylon_data = $wpdb->get_row($wpdb->prepare(
-            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired, show_polyansk_custom_page_section FROM {$pylons_table} WHERE rel_wp_post_id = %d",
             $post_id
         ), ARRAY_A);
         
@@ -821,16 +886,17 @@ class CashewEditorAdmin {
             'header_desired' => sanitize_text_field($_POST['header_desired'] ?? ''),
             'footer_desired' => sanitize_text_field($_POST['footer_desired'] ?? ''),
             'sidebar_desired' => sanitize_text_field($_POST['sidebar_desired'] ?? ''),
-            'anteheader_desired' => sanitize_text_field($_POST['anteheader_desired'] ?? '')
+            'anteheader_desired' => sanitize_text_field($_POST['anteheader_desired'] ?? ''),
+            'show_polyansk_custom_page_section' => intval($_POST['show_polyansk_custom_page_section'] ?? 0)
         );
-        
+
         if ($exists) {
             // Update existing record
             $wpdb->update(
                 $pylons_table,
                 $pylon_data,
                 array('rel_wp_post_id' => $post_id),
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'), // 8 fields: pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d'), // 8 text fields + 1 integer (show_polyansk)
                 array('%d')
             );
         } else {
@@ -839,7 +905,7 @@ class CashewEditorAdmin {
             $wpdb->insert(
                 $pylons_table,
                 $pylon_data,
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d') // 8 text fields + 1 integer (rel_wp_post_id)
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d') // 8 text fields + 1 integer (show_polyansk) + 1 integer (rel_wp_post_id)
             );
         }
         
