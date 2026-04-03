@@ -51,20 +51,27 @@ class Silkweaver_Menu_Renderer {
         $config = get_option('silkweaver_menu_config', '');
         
         if (empty($config)) {
-            return '<ul class="silkweaver-menu"><li><a href="/">Home</a></li></ul>';
+            return '<nav class="silkweaver-nav" aria-label="Main navigation"><ul class="silkweaver-menu" role="list"><li><a href="/">Home</a></li></ul></nav>';
         }
-        
+
         $menu_items = $this->parse_config($config);
-        
+
+        // Detect current page URL for aria-current
+        $current_path = trailingslashit(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
+
         // Debug: Add comment to show parsed items count
         $html = '<!-- Silkweaver: Parsed ' . count($menu_items) . ' menu items -->';
-        $html .= '<ul class="silkweaver-menu">';
-        
+        $html .= '<nav class="silkweaver-nav" aria-label="Main navigation">';
+        $html .= '<ul class="silkweaver-menu" role="list">';
+
         foreach ($menu_items as $item) {
             if ($item['type'] === 'static') {
+                $item_path = trailingslashit(parse_url($item['url'], PHP_URL_PATH));
+                $is_current = ($current_path === $item_path);
                 $html .= sprintf(
-                    '<li><a href="%s">%s</a></li>',
+                    '<li><a href="%s"%s>%s</a></li>',
                     esc_url($item['url']),
+                    $is_current ? ' aria-current="page"' : '',
                     esc_html($item['anchor'])
                 );
             } elseif ($item['type'] === 'dynamic') {
@@ -75,8 +82,9 @@ class Silkweaver_Menu_Renderer {
                 $html .= $this->render_robust_locations_menu($item);
             }
         }
-        
+
         $html .= '</ul>';
+        $html .= '</nav>';
         
         return $html;
     }
@@ -304,11 +312,16 @@ class Silkweaver_Menu_Renderer {
         $all_links = array_merge($pinned_links, $sortable_links);
         
         if (empty($all_links)) {
-            return sprintf('<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button></li>', esc_html($item['title']));
+            return sprintf('<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false">%s</button></li>', esc_html($item['title']));
         }
-        
-        $html = sprintf('<li class="silkweaver-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button>', esc_html($item['title']));
-        $html .= '<ul class="silkweaver-dropdown-menu">';
+
+        $dropdown_id = 'sw-dropdown-' . sanitize_html_class($item['archetype']);
+        $html = sprintf(
+            '<li class="silkweaver-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false" aria-controls="%s">%s</button>',
+            esc_attr($dropdown_id),
+            esc_html($item['title'])
+        );
+        $html .= sprintf('<ul id="%s" class="silkweaver-dropdown-menu">', esc_attr($dropdown_id));
         
         // Generate all links without any whitespace between elements
         $link_html = '';
@@ -349,16 +362,22 @@ class Silkweaver_Menu_Renderer {
 
         if (empty($categories)) {
             return sprintf(
-                '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button></li>',
+                '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false">%s</button></li>',
                 esc_html($item['title'])
             );
         }
 
+        $panel_id = 'sw-robust-services-panel';
         $html  = sprintf(
-            '<li class="silkweaver-dropdown silkweaver-robust-dropdown silkweaver-robust-services-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button>',
+            '<li class="silkweaver-dropdown silkweaver-robust-dropdown silkweaver-robust-services-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false" aria-controls="%s" aria-haspopup="true">%s</button>',
+            esc_attr($panel_id),
             esc_html($item['title'])
         );
-        $html .= '<div class="silkweaver-robust-child-area">';
+        $html .= sprintf(
+            '<div id="%s" class="silkweaver-robust-child-area" role="region" aria-label="%s submenu">',
+            esc_attr($panel_id),
+            esc_attr($item['title'])
+        );
         $html .= '<div class="silkweaver-robust-tiles-wrapper">';
 
         foreach ($categories as $category) {
@@ -372,31 +391,31 @@ class Silkweaver_Menu_Renderer {
                 ORDER BY CASE WHEN py.moniker IS NULL OR py.moniker = '' THEN p.post_title ELSE py.moniker END ASC
             ", $category->category_id));
 
-            $html .= '<div class="silkweaver-robust-tile">';
+            $tile_label_id = 'sw-tile-cat-' . intval($category->category_id);
+            $html .= sprintf('<div class="silkweaver-robust-tile" role="group" aria-labelledby="%s">', esc_attr($tile_label_id));
 
             // Fixed-size image thumbnail area — always rendered regardless of image presence
             $img_url = '';
             if (!empty($category->rel_featured_image_id)) {
                 $img_url = wp_get_attachment_image_url($category->rel_featured_image_id, 'medium');
             }
-            $html .= '<div class="silkweaver-robust-tile-image">';
+            $html .= '<div class="silkweaver-robust-tile-image" aria-hidden="true">';
             if ($img_url) {
                 $html .= sprintf(
-                    '<img src="%s" alt="%s" loading="lazy">',
-                    esc_url($img_url),
-                    esc_attr($category->category_name)
+                    '<img src="%s" alt="" loading="lazy">',
+                    esc_url($img_url)
                 );
             }
             $html .= '</div>';
 
             $html .= '<div class="silkweaver-robust-tile-body">';
-            $html .= sprintf('<strong class="silkweaver-robust-tile-name">%s</strong>', esc_html($category->category_name));
+            $html .= sprintf('<strong id="%s" class="silkweaver-robust-tile-name">%s</strong>', esc_attr($tile_label_id), esc_html($category->category_name));
 
             // Child pages list — always visible, no interactive show/hide
             if (!empty($child_pages)) {
                 $bullet_on = (get_option('silkweaver_robust_services_child_area_servicepagepylons_moniker_bullet_yes_no', 'no') === 'yes');
                 $ul_class  = 'silkweaver-robust-child-pages' . ($bullet_on ? ' silkweaver-robust-child-pages--has-bullet' : '');
-                $html .= '<ul class="' . esc_attr($ul_class) . '">';
+                $html .= sprintf('<ul class="%s" role="list">', esc_attr($ul_class));
                 foreach ($child_pages as $page) {
                     $anchor = (!empty($page->moniker)) ? $page->moniker : $page->post_title;
                     $html  .= '<li>';
@@ -425,14 +444,89 @@ class Silkweaver_Menu_Renderer {
     }
 
     /**
-     * Render robust locations dropdown (logic TBD)
+     * Render robust locations dropdown — single tile containing all published location pages
      */
     private function render_robust_locations_menu($item) {
-        // Robust child area logic for locations not yet defined — renders parent label only
-        return sprintf(
-            '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button></li>',
+        global $wpdb;
+
+        // Get all published location pages via wp_pylons
+        $location_pages = $wpdb->get_results("
+            SELECT p.ID, p.post_title, py.locpage_neighborhood, py.locpage_city
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->prefix}pylons py ON p.ID = py.rel_wp_post_id
+            WHERE py.pylon_archetype = 'locationpage'
+            AND p.post_status = 'publish'
+            ORDER BY
+                CASE
+                    WHEN py.locpage_neighborhood IS NOT NULL AND py.locpage_neighborhood != '' THEN py.locpage_neighborhood
+                    WHEN py.locpage_city IS NOT NULL AND py.locpage_city != '' THEN py.locpage_city
+                    ELSE p.post_title
+                END ASC
+        ");
+
+        if (empty($location_pages)) {
+            return sprintf(
+                '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false">%s</button></li>',
+                esc_html($item['title'])
+            );
+        }
+
+        $panel_id     = 'sw-robust-locations-panel';
+        $tile_label_id = 'sw-tile-locations-label';
+        $html  = sprintf(
+            '<li class="silkweaver-dropdown silkweaver-robust-dropdown silkweaver-robust-locations-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false" aria-controls="%s" aria-haspopup="true">%s</button>',
+            esc_attr($panel_id),
             esc_html($item['title'])
         );
+        $html .= sprintf(
+            '<div id="%s" class="silkweaver-robust-child-area" role="region" aria-label="%s submenu">',
+            esc_attr($panel_id),
+            esc_attr($item['title'])
+        );
+        $html .= '<div class="silkweaver-robust-tiles-wrapper">';
+
+        // Single tile containing all location pages
+        $html .= sprintf('<div class="silkweaver-robust-tile" role="group" aria-labelledby="%s">', esc_attr($tile_label_id));
+
+        // Fixed-size image placeholder area (no image source for now)
+        $html .= '<div class="silkweaver-robust-tile-image" aria-hidden="true"></div>';
+
+        $html .= '<div class="silkweaver-robust-tile-body">';
+        $html .= sprintf('<strong id="%s" class="silkweaver-robust-tile-name">Areas We Service:</strong>', esc_attr($tile_label_id));
+
+        // Location pages list
+        $html .= '<ul class="silkweaver-robust-child-pages" role="list">';
+        foreach ($location_pages as $page) {
+            // Anchor text: locpage_neighborhood → locpage_city → post_title
+            if (!empty($page->locpage_neighborhood)) {
+                $anchor = $page->locpage_neighborhood;
+            } elseif (!empty($page->locpage_city)) {
+                $anchor = $page->locpage_city;
+            } else {
+                $anchor = $page->post_title;
+            }
+
+            $html .= '<li>';
+            $html .= '<div class="silkweaver-robust-moniker-row">';
+            $html .= '<span class="silkweaver-robust-moniker-bullet" aria-hidden="true"></span>';
+            $html .= sprintf(
+                '<a href="%s">%s</a>',
+                esc_url(get_permalink($page->ID)),
+                esc_html($anchor)
+            );
+            $html .= '</div>';
+            $html .= '</li>';
+        }
+        $html .= '</ul>';
+
+        $html .= '</div>'; // .silkweaver-robust-tile-body
+        $html .= '</div>'; // .silkweaver-robust-tile
+
+        $html .= '</div>'; // .silkweaver-robust-tiles-wrapper
+        $html .= '</div>'; // .silkweaver-robust-child-area
+        $html .= '</li>';
+
+        return $html;
     }
 
     /**

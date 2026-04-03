@@ -146,6 +146,9 @@ class SnefuruPlugin {
 
         // Load Silkweaver Robust Services Child Area Settings admin page
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/silkweaver-robust-services-child-area-settings/class-silkweaver-robust-services-child-area-settings-admin.php';
+
+        // Load Silkweaver Robust Locations Child Area Settings admin page
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/silkweaver-robust-locations-child-area-settings/class-silkweaver-robust-locations-child-area-settings-admin.php';
         
         // Load Scorpion Search & Replace System
         require_once SNEFURU_PLUGIN_PATH . 'scorpion_search_replace/class-scorpion-search-replace.php';

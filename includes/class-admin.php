@@ -58,8 +58,8 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_services_create', array($this, 'rup_services_create'));
         add_action('wp_ajax_rup_services_get_image_url', array($this, 'rup_services_get_image_url'));
         
-        // Add dioptra button to admin toolbar
-        add_action('admin_bar_menu', array($this, 'add_dioptra_toolbar_button'), 999);
+        // Add SILK button to admin toolbar
+        add_action('admin_bar_menu', array($this, 'add_silk_toolbar_button'), 999);
         add_action('admin_bar_menu', array($this, 'add_microscope_toolbar_button'), 1000);
         add_action('admin_bar_menu', array($this, 'add_cashew_homepage_toolbar_button'), 1000.5);
         add_action('admin_bar_menu', array($this, 'add_hp_toolbar_button'), 1000.7);
@@ -11145,24 +11145,18 @@ class Snefuru_Admin {
     }
     
     /**
-     * Add Dioptra button to WordPress admin toolbar on frontend
+     * Add SILK button to WordPress admin toolbar on frontend
      */
-    public function add_dioptra_toolbar_button($wp_admin_bar) {
-        // Only show on frontend pages that have a post ID
-        if (is_admin() || !is_singular()) {
+    public function add_silk_toolbar_button($wp_admin_bar) {
+        if (is_admin()) {
             return;
         }
-        
-        global $post;
-        if (!$post || !$post->ID) {
-            return;
-        }
-        
+
         $wp_admin_bar->add_node(array(
-            'id'     => 'dioptra',
-            'title'  => 'dioptra',
-            'href'   => admin_url('admin.php?page=dioptra&post=' . $post->ID),
-            'parent' => false
+            'id'     => 'silk',
+            'title'  => 'SILK',
+            'href'   => admin_url('admin.php?page=silkweaver_mar'),
+            'parent' => false,
         ));
     }
     

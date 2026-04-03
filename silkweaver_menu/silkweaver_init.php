@@ -56,25 +56,103 @@ class Silkweaver_Menu_System {
         ?>
         <script>
         (function() {
+            var isMobile = function() { return window.innerWidth <= 768; };
+
+            function setExpanded(btn, expanded) {
+                if (btn) btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            }
+
             function centerRobustPanels() {
+                if (isMobile()) return; // static positioning on mobile — no centering needed
                 document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dropdown) {
                     var panel = dropdown.querySelector('.silkweaver-robust-child-area');
                     if (!panel) return;
                     var dropdownRect = dropdown.getBoundingClientRect();
                     var panelWidth   = panel.offsetWidth;
                     var viewportMid  = window.innerWidth / 2;
-                    // Offset needed so panel center aligns with viewport center
                     var targetLeft   = viewportMid - dropdownRect.left - (panelWidth / 2);
                     panel.style.left = targetLeft + 'px';
                 });
             }
 
-            // Run on hover entry so width is known
+            function closeAllRobust() {
+                document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dd) {
+                    dd.classList.remove('is-open');
+                    setExpanded(dd.querySelector('.silkweaver-parent-button'), false);
+                });
+            }
+
             document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dropdown) {
-                dropdown.addEventListener('mouseenter', centerRobustPanels);
+                var btn = dropdown.querySelector('.silkweaver-parent-button');
+
+                // ── Desktop: hover ──────────────────────────────────────────
+                dropdown.addEventListener('mouseenter', function() {
+                    if (isMobile()) return;
+                    setExpanded(btn, true);
+                    centerRobustPanels();
+                });
+                dropdown.addEventListener('mouseleave', function() {
+                    if (isMobile()) return;
+                    setExpanded(btn, false);
+                });
+
+                // ── Keyboard: toggle on Enter / Space; close on Escape ──────
+                if (btn) {
+                    btn.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            var isOpen = btn.getAttribute('aria-expanded') === 'true';
+                            if (isOpen) {
+                                // Close
+                                dropdown.classList.remove('is-open');
+                                setExpanded(btn, false);
+                            } else {
+                                // Open (close others first)
+                                closeAllRobust();
+                                dropdown.classList.add('is-open');
+                                setExpanded(btn, true);
+                                if (!isMobile()) centerRobustPanels();
+                            }
+                        } else if (e.key === 'Escape') {
+                            dropdown.classList.remove('is-open');
+                            setExpanded(btn, false);
+                            btn.focus();
+                        }
+                    });
+                }
+
+                // Escape from anywhere inside the panel closes it
+                dropdown.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dropdown.classList.remove('is-open');
+                        setExpanded(btn, false);
+                        if (btn) btn.focus();
+                    }
+                });
+
+                // ── Mobile: tap/click toggle ────────────────────────────────
+                if (btn) {
+                    btn.addEventListener('click', function(e) {
+                        if (!isMobile()) return;
+                        e.preventDefault();
+                        var wasOpen = dropdown.classList.contains('is-open');
+                        closeAllRobust();
+                        if (!wasOpen) {
+                            dropdown.classList.add('is-open');
+                            setExpanded(btn, true);
+                        }
+                    });
+                }
             });
 
-            // Re-center on resize
+            // Close robust panels when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.silkweaver-robust-dropdown')) {
+                    closeAllRobust();
+                }
+            });
+
+            // Re-center on resize (desktop only)
             window.addEventListener('resize', centerRobustPanels);
         })();
         </script>
