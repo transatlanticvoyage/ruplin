@@ -264,7 +264,7 @@ class Snefuru_Admin {
         
         // Add Vulture TXT Flattener menu item
         add_submenu_page(
-            'snefuru',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Vulture TXT Flattener',
             'Vulture TXT Flattener',
             'manage_options',
@@ -274,7 +274,7 @@ class Snefuru_Admin {
 
         // Add Blovian Image Entity menu item
         add_submenu_page(
-            'snefuru',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Blovian Service Image Entities',
             'Blovian Service Image Entities',
             'manage_options',
@@ -419,7 +419,7 @@ class Snefuru_Admin {
         );
         
         add_submenu_page(
-            'snefuru',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Ruplin Plasma Import Mar',
             'Ruplin Plasma Import Mar',
             'manage_options',

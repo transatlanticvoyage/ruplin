@@ -18,10 +18,11 @@ class Ruplin_Silkweaver_Integration {
     public function get_menu_for_header($header_type = 'header2') {
         // Check if Silkweaver is available and enabled
         if (function_exists('silkweaver_render_menu') && get_option('silkweaver_use_system', true)) {
-            $silkweaver_menu = silkweaver_render_menu();
-            return $this->transform_menu_for_header($silkweaver_menu, $header_type);
+            // Return silkweaver output directly — no transformation.
+            // Each header styles the shared silkweaver classes via its own scoped CSS.
+            return silkweaver_render_menu();
         }
-        
+
         // Fallback to WordPress menu with appropriate walker
         return $this->get_wordpress_menu($header_type);
     }

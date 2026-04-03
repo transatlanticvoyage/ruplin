@@ -30,7 +30,7 @@ class SLD_Editor_Admin {
      */
     public function add_admin_menu() {
         add_submenu_page(
-            'snefuru',  // Parent slug (Ruplin's main menu)
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'SLD Editor (Site Level Data)',  // Page title
             'SLD Editor (Site Level Data)',  // Menu title
             'manage_options',  // Capability
@@ -503,7 +503,7 @@ class SLD_Editor_Admin {
      */
     public function enqueue_scripts($hook) {
         // Only load on our admin page
-        if ($hook !== 'snefuru_page_sld_editor') {
+        if ($hook !== 'ruplin-hub-2_page_sld_editor') {
             return;
         }
         

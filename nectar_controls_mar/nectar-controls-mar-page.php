@@ -38,7 +38,7 @@ class Ruplin_Nectar_Controls_Mar_Page {
      */
     public function add_admin_menu() {
         add_submenu_page(
-            'snefuru',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Nectar Controls Mar',
             'Nectar Controls Mar',
             'manage_options',

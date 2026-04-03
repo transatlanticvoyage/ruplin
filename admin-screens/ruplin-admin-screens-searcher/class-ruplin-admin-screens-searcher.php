@@ -56,7 +56,7 @@ class Ruplin_Admin_Screens_Searcher {
     public function add_admin_menu() {
         // Add as submenu under Ruplin Hub 1
         add_submenu_page(
-            'snefuru',  // Parent slug (Ruplin Hub 1)
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Ruplin Admin Screens Searcher',  // Page title
             'Ruplin Admin Screens Searcher',  // Menu title
             'manage_options',  // Capability
@@ -157,7 +157,7 @@ class Ruplin_Admin_Screens_Searcher {
      */
     public function enqueue_admin_assets($hook) {
         // Only load on our specific page
-        if ($hook !== 'ruplin-hub-1_page_ruplin_admin_screens_searcher') {
+        if ($hook !== 'ruplin-hub-2_page_ruplin_admin_screens_searcher') {
             return;
         }
         
@@ -200,39 +200,39 @@ class Ruplin_Admin_Screens_Searcher {
             ?>
             <style>
                 /* Ultra-aggressive notice suppression for Admin Screens Searcher page */
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .notice,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .notice-error,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .notice-warning,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .notice-success,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .notice-info,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .error,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .updated,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .update-nag,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .wp-pointer,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher #message,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .jetpack-jitm-message,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .woocommerce-message,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .woocommerce-error,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher div.fs-notice,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .monsterinsights-notice,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .yoast-notification,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .notice-alt,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .update-php,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .php-update-nag,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher #update-nag,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher #deprecation-warning,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .plugin-update-tr,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .theme-update-message,
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher [class*="notice"],
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher [class*="updated"],
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher [class*="error"],
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher [id*="notice"],
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher [id*="message"] {
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .notice,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .notice-error,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .notice-warning,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .notice-success,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .notice-info,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .error,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .updated,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .update-nag,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .wp-pointer,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher #message,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .jetpack-jitm-message,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .woocommerce-message,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .woocommerce-error,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher div.fs-notice,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .monsterinsights-notice,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .yoast-notification,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .notice-alt,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .update-php,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .php-update-nag,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher #update-nag,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher #deprecation-warning,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .plugin-update-tr,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .theme-update-message,
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher [class*="notice"],
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher [class*="updated"],
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher [class*="error"],
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher [id*="notice"],
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher [id*="message"] {
                     display: none !important;
                 }
                 
                 /* Keep our own notices visible if needed */
-                body.ruplin-hub-1_page_ruplin_admin_screens_searcher .ruplin-admin-screens-searcher-notice {
+                body.ruplin-hub-2_page_ruplin_admin_screens_searcher .ruplin-admin-screens-searcher-notice {
                     display: block !important;
                 }
             </style>

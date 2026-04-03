@@ -1,15 +1,15 @@
 /**
- * Service Category Assigner MAR - Admin Styles
- * 
- * Styles for the Service Category Assigner interface
+ * Cherry Page Section Controller Grid - Admin Styles
+ *
+ * Styles for the Cherry Page Section Controller Grid interface
  */
 
-.service-category-assigner-mar {
+.cherry-controller-grid {
     max-width: 100%;
     margin: 20px 20px 20px 0;
 }
 
-.service-category-assigner-mar-container {
+.cherry-controller-grid-container {
     background: #fff;
     border: 1px solid #ccd0d4;
     border-radius: 4px;
@@ -19,7 +19,7 @@
 }
 
 /* Table description text */
-.table-description {
+.cherry-controller-grid .table-description {
     font-size: 18px;
     font-weight: bold;
     color: #555;
@@ -32,20 +32,20 @@
 }
 
 /* Table wrapper */
-.table-wrapper {
+.cherry-controller-grid .table-wrapper {
     overflow-x: auto;
     margin-top: 20px;
 }
 
 /* Main table styles */
-.service-category-table {
+.cherry-controller-table {
     width: auto;
     border-collapse: collapse;
     background: white;
 }
 
 /* Table header styles */
-.service-category-table th {
+.cherry-controller-table th {
     border: 1px solid gray;
     padding: 10px;
     text-align: left;
@@ -58,7 +58,7 @@
 }
 
 /* Table cell styles */
-.service-category-table td {
+.cherry-controller-table td {
     border: 1px solid gray;
     padding: 8px;
     vertical-align: middle;
@@ -68,7 +68,7 @@
 }
 
 /* No data row */
-.service-category-table .no-data {
+.cherry-controller-table .no-data {
     text-align: center;
     color: #999;
     font-style: italic;
@@ -76,31 +76,25 @@
 }
 
 /* Table row hover effect */
-.service-category-table tbody tr:hover {
+.cherry-controller-table tbody tr:hover {
     background: #f5f5f5;
 }
 
-/* Alternating row colors (optional) */
-.service-category-table tbody tr:nth-child(even) {
+/* Alternating row colors */
+.cherry-controller-table tbody tr:nth-child(even) {
     background: #fafafa;
 }
 
-.service-category-table tbody tr:nth-child(even):hover {
+.cherry-controller-table tbody tr:nth-child(even):hover {
     background: #f5f5f5;
 }
 
-/* Remove fixed width from Post ID column - let it size to content */
-.service-category-table th:first-child,
-.service-category-table td:first-child {
-    /* width removed - using auto-sizing */
-}
-
 /* Tools column */
-.sca-tools-cell {
+.ccg-tools-cell {
     white-space: nowrap;
 }
 
-.sca-tool-btn {
+.ccg-tool-btn {
     display: inline-block;
     padding: 2px 6px;
     margin: 1px 2px;
@@ -113,56 +107,46 @@
     cursor: pointer;
 }
 
-.sca-tool-btn:hover {
+.ccg-tool-btn:hover {
     background: #e0e0e0;
     color: #000;
 }
 
 /* Status column (shifted +1 for tools column) */
-.service-category-table th:nth-child(5),
-.service-category-table td:nth-child(5) {
+.cherry-controller-table th:nth-child(5),
+.cherry-controller-table td:nth-child(5) {
     border-right: 2px solid black;
 }
 
-.service-category-table td:nth-child(5) {
+.cherry-controller-table td:nth-child(5) {
     font-weight: 500;
 }
 
-/* Published status */
-.service-category-table td:nth-child(5):contains("publish") {
-    color: #46b450;
-}
-
-/* Draft status */
-.service-category-table td:nth-child(5):contains("draft") {
-    color: #f0b849;
-}
-
 /* category_id column - black 2px left separator (shifted +1 for tools column) */
-.service-category-table th:nth-child(12),
-.service-category-table td:nth-child(12) {
+.cherry-controller-table th:nth-child(12),
+.cherry-controller-table td:nth-child(12) {
     border-left: 2px solid black;
 }
 
 /* Table actions */
-.table-actions {
+.cherry-controller-grid .table-actions {
     margin-bottom: 20px;
 }
 
 /* Save button styles */
-#save-changes {
+.cherry-controller-grid #save-changes {
     background: #0073aa;
     border-color: #0073aa;
     color: #fff;
 }
 
-#save-changes:hover:not(:disabled) {
+.cherry-controller-grid #save-changes:hover:not(:disabled) {
     background: #005a87;
     border-color: #005a87;
 }
 
-#save-changes:disabled,
-#save-changes.button-disabled {
+.cherry-controller-grid #save-changes:disabled,
+.cherry-controller-grid #save-changes.button-disabled {
     background: #ddd !important;
     border-color: #ddd !important;
     color: #a0a5aa !important;
@@ -171,45 +155,45 @@
 }
 
 /* Editable field styles */
-.editable-field {
+.cherry-controller-grid .editable-field {
     border: 1px solid #ddd;
     padding: 3px 5px;
     font-size: 13px;
 }
 
-.editable-field:focus {
+.cherry-controller-grid .editable-field:focus {
     border-color: #0073aa;
     box-shadow: 0 0 0 1px #0073aa;
     outline: none;
 }
 
 /* Save status */
-#save-status {
+.cherry-controller-grid #save-status {
     font-weight: 500;
     font-size: 14px;
 }
 
 /* Ensure proper display hierarchy */
-.wrap.service-category-assigner-mar h1 {
+.wrap.cherry-controller-grid h1 {
     display: block !important;
 }
 
-.wrap.service-category-assigner-mar .service-category-assigner-mar-container {
+.wrap.cherry-controller-grid .cherry-controller-grid-container {
     display: block !important;
 }
 
 /* Responsive design for smaller screens */
 @media screen and (max-width: 782px) {
-    .service-category-table {
+    .cherry-controller-table {
         font-size: 12px;
     }
-    
-    .service-category-table th,
-    .service-category-table td {
+
+    .cherry-controller-table th,
+    .cherry-controller-table td {
         padding: 5px;
     }
-    
-    .table-description {
+
+    .cherry-controller-grid .table-description {
         font-size: 16px;
     }
 }

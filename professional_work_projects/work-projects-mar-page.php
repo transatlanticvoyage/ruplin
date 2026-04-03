@@ -39,7 +39,7 @@ class Ruplin_Work_Projects_Mar_Page {
      */
     public function add_admin_menu() {
         add_submenu_page(
-            'snefuru',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Work Projects Mar',
             'Work Projects Mar',
             'manage_options',

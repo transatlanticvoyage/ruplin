@@ -36,7 +36,7 @@ class Hazelnut_Items_Admin {
      */
     public function add_admin_menu() {
         add_submenu_page(
-            'snefuru',  // Parent slug (Ruplin's main menu)
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Hazelnut Items Mar',  // Page title
             'Hazelnut Items Mar',  // Menu title
             'manage_options',  // Capability
@@ -1168,7 +1168,7 @@ class Hazelnut_Items_Admin {
      */
     public function enqueue_scripts($hook) {
         // Only load on our admin page
-        if ($hook !== 'snefuru_page_hazelnut_items_mar') {
+        if ($hook !== 'ruplin-hub-2_page_hazelnut_items_mar') {
             return;
         }
         

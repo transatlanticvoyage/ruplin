@@ -201,6 +201,7 @@ class SnefuruPlugin {
         
         // Load Ruplin Hub 2 MAR
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/ruplin-hub-2-mar/class-ruplin-hub-2-mar.php';
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/cherry-page-section-controller-grid/class-cherry-page-section-controller-grid.php';
 
         // Load Polyansk Service Categories Tiles Custom Page Section
         require_once SNEFURU_PLUGIN_PATH . 'custom-page-sections/polyansk-service-categories-tiles-custom-page-section/class-polyansk-service-categories-tiles.php';
@@ -627,6 +628,8 @@ class SnefuruPlugin {
             locpage_state_full TEXT DEFAULT NULL,
             locpage_gmaps_string TEXT DEFAULT NULL,
             service_category TEXT DEFAULT NULL,
+            service_description TEXT DEFAULT NULL,
+            rel_aeronaut_service_image_id INTEGER DEFAULT NULL,
             short_anchor TEXT DEFAULT NULL,
             serena_faq_box_q1 TEXT DEFAULT NULL,
             serena_faq_box_a1 TEXT DEFAULT NULL,
@@ -765,6 +768,29 @@ class SnefuruPlugin {
             reviewsbox_review5_date DATETIME DEFAULT NULL,
             avg_rating_box_hide BOOLEAN DEFAULT FALSE,
             victoria_blog_box_hide BOOLEAN DEFAULT TRUE,
+            batman_hero_box_hide BOOLEAN DEFAULT FALSE,
+            derek_blog_post_meta_box_hide BOOLEAN DEFAULT FALSE,
+            chen_cards_box_hide BOOLEAN DEFAULT FALSE,
+            polyansk_tiles_box_hide BOOLEAN DEFAULT FALSE,
+            kristina_cta_box_instance_1_hide BOOLEAN DEFAULT FALSE,
+            content_bay_1_box_hide BOOLEAN DEFAULT FALSE,
+            content_bay_2_box_hide BOOLEAN DEFAULT FALSE,
+            content_lake_box_hide BOOLEAN DEFAULT FALSE,
+            content_sea_box_hide BOOLEAN DEFAULT FALSE,
+            osb_box_hide BOOLEAN DEFAULT FALSE,
+            reviews_box_hide BOOLEAN DEFAULT FALSE,
+            serena_faq_box_hide BOOLEAN DEFAULT FALSE,
+            nile_map_box_hide BOOLEAN DEFAULT FALSE,
+            kristina_cta_box_instance_2_hide BOOLEAN DEFAULT FALSE,
+            ocean_1_box_hide BOOLEAN DEFAULT FALSE,
+            ocean_2_box_hide BOOLEAN DEFAULT FALSE,
+            ocean_3_box_hide BOOLEAN DEFAULT FALSE,
+            brook_video_box_hide BOOLEAN DEFAULT FALSE,
+            olivia_auth_links_box_hide BOOLEAN DEFAULT FALSE,
+            ava_why_choose_us_box_hide BOOLEAN DEFAULT FALSE,
+            kendall_our_process_box_hide BOOLEAN DEFAULT FALSE,
+            sara_custom_html_box_hide BOOLEAN DEFAULT FALSE,
+            liz_pricing_box_hide BOOLEAN DEFAULT FALSE,
             cashew_html_expanse TEXT DEFAULT NULL,
             expanse_width TEXT DEFAULT NULL,
             header_desired TEXT DEFAULT NULL,
@@ -809,14 +835,22 @@ class SnefuruPlugin {
             category_name TEXT NOT NULL,
             longer_name TEXT DEFAULT NULL,
             category_description TEXT DEFAULT NULL,
+            rel_featured_image_id INTEGER DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (category_id),
             INDEX idx_created_at (created_at),
             INDEX idx_updated_at (updated_at)
         ) $charset_collate;";
-        
+
         dbDelta($service_categories_sql);
+
+        // Add rel_featured_image_id column to service_categories table if it doesn't exist
+        $sc_featured_img_exists = $wpdb->get_results("SHOW COLUMNS FROM $service_categories_table LIKE 'rel_featured_image_id'");
+        if (empty($sc_featured_img_exists)) {
+            $wpdb->query("ALTER TABLE $service_categories_table ADD COLUMN rel_featured_image_id INTEGER DEFAULT NULL AFTER category_description");
+            error_log('Snefuru: Added rel_featured_image_id column to service_categories table');
+        }
         
         // Create wp_vulture_txt_flattener_generations table (Vulture TXT Flattener feature)
         $vulture_table = $wpdb->prefix . 'vulture_txt_flattener_generations';
@@ -1600,6 +1634,54 @@ class SnefuruPlugin {
         if (empty($medic_scanned_exists)) {
             $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN medic_orgid_scanned_at DATETIME DEFAULT NULL");
             error_log('Snefuru: Added medic_orgid_scanned_at column to pylons table');
+        }
+
+        // Add service_description column to pylons table if it doesn't exist
+        $service_desc_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'service_description'");
+        if (empty($service_desc_exists)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN service_description TEXT DEFAULT NULL AFTER service_category");
+            error_log('Snefuru: Added service_description column to pylons table');
+        }
+
+        // Add rel_aeronaut_service_image_id column to pylons table if it doesn't exist
+        $aeronaut_img_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'rel_aeronaut_service_image_id'");
+        if (empty($aeronaut_img_exists)) {
+            $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN rel_aeronaut_service_image_id INTEGER DEFAULT NULL AFTER service_description");
+            error_log('Snefuru: Added rel_aeronaut_service_image_id column to pylons table');
+        }
+
+        // Add cherry page section box_hide columns to pylons table if they don't exist
+        $cherry_box_hide_columns = array(
+            'batman_hero_box_hide',
+            'derek_blog_post_meta_box_hide',
+            'chen_cards_box_hide',
+            'polyansk_tiles_box_hide',
+            'kristina_cta_box_instance_1_hide',
+            'content_bay_1_box_hide',
+            'content_bay_2_box_hide',
+            'content_lake_box_hide',
+            'content_sea_box_hide',
+            'osb_box_hide',
+            'reviews_box_hide',
+            'serena_faq_box_hide',
+            'nile_map_box_hide',
+            'kristina_cta_box_instance_2_hide',
+            'ocean_1_box_hide',
+            'ocean_2_box_hide',
+            'ocean_3_box_hide',
+            'brook_video_box_hide',
+            'olivia_auth_links_box_hide',
+            'ava_why_choose_us_box_hide',
+            'kendall_our_process_box_hide',
+            'sara_custom_html_box_hide',
+            'liz_pricing_box_hide',
+        );
+        foreach ($cherry_box_hide_columns as $col) {
+            $col_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE '$col'");
+            if (empty($col_exists)) {
+                $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN $col BOOLEAN DEFAULT FALSE");
+                error_log("Snefuru: Added $col column to pylons table");
+            }
         }
 
         // Create triggers for wp_blovian_image_entities to auto-populate d_pylon_archetype

@@ -34,7 +34,7 @@ class Ruplin_Sitemap_Shortcode_Mar_Page {
      */
     public function add_admin_menu() {
         add_submenu_page(
-            'snefuru',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Sitemap Shortcode Examples',
             'Sitemap_Shortcode_Mar',
             'manage_options',

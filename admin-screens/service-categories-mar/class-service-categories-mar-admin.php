@@ -57,7 +57,7 @@ class Ruplin_Service_Categories_Mar_Admin {
     public function add_admin_menu() {
         // Add as submenu under Ruplin Hub 1
         add_submenu_page(
-            'snefuru',  // Parent slug (Ruplin Hub 1)
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
             'Service Categories MAR',  // Page title
             'Service Categories Mar',  // Menu title
             'manage_options',  // Capability
@@ -136,7 +136,7 @@ class Ruplin_Service_Categories_Mar_Admin {
      */
     public function enqueue_admin_assets($hook) {
         // Only load on our specific page
-        if ($hook !== 'ruplin-hub-1_page_service_categories_mar') {
+        if ($hook !== 'ruplin-hub-2_page_service_categories_mar') {
             return;
         }
         
@@ -444,27 +444,27 @@ class Ruplin_Service_Categories_Mar_Admin {
             ?>
             <style>
                 /* Aggressive notice suppression for Service Categories MAR page */
-                body.ruplin-hub-1_page_service_categories_mar .notice,
-                body.ruplin-hub-1_page_service_categories_mar .notice-error,
-                body.ruplin-hub-1_page_service_categories_mar .notice-warning,
-                body.ruplin-hub-1_page_service_categories_mar .notice-success,
-                body.ruplin-hub-1_page_service_categories_mar .notice-info,
-                body.ruplin-hub-1_page_service_categories_mar .error,
-                body.ruplin-hub-1_page_service_categories_mar .updated,
-                body.ruplin-hub-1_page_service_categories_mar .update-nag,
-                body.ruplin-hub-1_page_service_categories_mar .wp-pointer,
-                body.ruplin-hub-1_page_service_categories_mar #message,
-                body.ruplin-hub-1_page_service_categories_mar .jetpack-jitm-message,
-                body.ruplin-hub-1_page_service_categories_mar .woocommerce-message,
-                body.ruplin-hub-1_page_service_categories_mar .woocommerce-error,
-                body.ruplin-hub-1_page_service_categories_mar div.fs-notice,
-                body.ruplin-hub-1_page_service_categories_mar .monsterinsights-notice,
-                body.ruplin-hub-1_page_service_categories_mar .yoast-notification {
+                body.ruplin-hub-2_page_service_categories_mar .notice,
+                body.ruplin-hub-2_page_service_categories_mar .notice-error,
+                body.ruplin-hub-2_page_service_categories_mar .notice-warning,
+                body.ruplin-hub-2_page_service_categories_mar .notice-success,
+                body.ruplin-hub-2_page_service_categories_mar .notice-info,
+                body.ruplin-hub-2_page_service_categories_mar .error,
+                body.ruplin-hub-2_page_service_categories_mar .updated,
+                body.ruplin-hub-2_page_service_categories_mar .update-nag,
+                body.ruplin-hub-2_page_service_categories_mar .wp-pointer,
+                body.ruplin-hub-2_page_service_categories_mar #message,
+                body.ruplin-hub-2_page_service_categories_mar .jetpack-jitm-message,
+                body.ruplin-hub-2_page_service_categories_mar .woocommerce-message,
+                body.ruplin-hub-2_page_service_categories_mar .woocommerce-error,
+                body.ruplin-hub-2_page_service_categories_mar div.fs-notice,
+                body.ruplin-hub-2_page_service_categories_mar .monsterinsights-notice,
+                body.ruplin-hub-2_page_service_categories_mar .yoast-notification {
                     display: none !important;
                 }
                 
                 /* Keep our own notices visible if needed */
-                body.ruplin-hub-1_page_service_categories_mar .service-categories-mar-notice {
+                body.ruplin-hub-2_page_service_categories_mar .service-categories-mar-notice {
                     display: block !important;
                 }
             </style>
