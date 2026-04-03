@@ -338,9 +338,9 @@ class Snefuru_Admin {
         );
         
         add_submenu_page(
-            'snefuru',
-            'Silkweaver',
-            'Silkweaver',
+            'ruplin_hub_2_mar',  // Parent slug (Ruplin Hub 2)
+            'Nav Menu - Silkweaver',
+            'Nav Menu - Silkweaver',
             'manage_options',
             'silkweaver_mar',
             array($this, 'silkweaver_page')

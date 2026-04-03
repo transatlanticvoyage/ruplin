@@ -86,6 +86,36 @@ class Ruplin_Condor_API {
             'callback' => array($this, 'inject_sitespren'),
             'permission_callback' => array($this, 'check_permission'),
         ));
+
+        // Get pylon by plasma_page_id - used by re-inject to find existing pylons
+        register_rest_route($namespace, '/get-pylon-by-plasma-page-id', array(
+            'methods' => 'GET',
+            'callback' => array($this, 'get_pylon_by_plasma_page_id'),
+            'permission_callback' => array($this, 'check_permission'),
+            'args' => array(
+                'plasma_page_id' => array(
+                    'required' => true,
+                    'type' => 'integer'
+                )
+            )
+        ));
+
+        // Update existing pylon record - used by re-inject to backfill missing column values
+        register_rest_route($namespace, '/update-pylon', array(
+            'methods' => 'POST',
+            'callback' => array($this, 'update_pylon'),
+            'permission_callback' => array($this, 'check_permission'),
+            'args' => array(
+                'pylon_id' => array(
+                    'required' => true,
+                    'type' => 'integer'
+                ),
+                'data' => array(
+                    'required' => true,
+                    'type' => 'object'
+                )
+            )
+        ));
     }
     
     /**
@@ -494,6 +524,130 @@ class Ruplin_Condor_API {
         ), 200);
     }
     
+    /**
+     * Get a pylon record by plasma_page_id
+     * Returns the full pylon row if found, or 404 if not
+     */
+    public function get_pylon_by_plasma_page_id($request) {
+        global $wpdb;
+
+        $plasma_page_id = intval($request->get_param('plasma_page_id'));
+        $pylons_table = $wpdb->prefix . 'pylons';
+
+        $pylon = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$pylons_table} WHERE plasma_page_id = %d LIMIT 1", $plasma_page_id),
+            ARRAY_A
+        );
+
+        if (!$pylon) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No pylon found for plasma_page_id ' . $plasma_page_id
+            ), 404);
+        }
+
+        return new WP_REST_Response($pylon, 200);
+    }
+
+    /**
+     * Update an existing pylon record
+     * Protected columns (pylon_id, rel_wp_post_id, plasma_page_id, rel_service_category_id)
+     * are only updated if their current value in the DB is NULL
+     */
+    public function update_pylon($request) {
+        global $wpdb;
+
+        $params = $request->get_json_params();
+        $pylon_id = intval($params['pylon_id']);
+        $data = $params['data'];
+        $pylons_table = $wpdb->prefix . 'pylons';
+
+        if (!is_array($data) || empty($data)) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No update data provided'
+            ), 400);
+        }
+
+        // Fetch the existing pylon row to check current values of protected columns
+        $existing = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$pylons_table} WHERE pylon_id = %d LIMIT 1", $pylon_id),
+            ARRAY_A
+        );
+
+        if (!$existing) {
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'No pylon found with pylon_id ' . $pylon_id
+            ), 404);
+        }
+
+        // Protected columns: only update if current DB value is NULL
+        $protected_columns = array('pylon_id', 'rel_wp_post_id', 'plasma_page_id', 'rel_service_category_id');
+
+        // Get valid columns from DB schema
+        $allowed_fields = $this->get_pylons_columns();
+
+        $update_data = array();
+
+        foreach ($data as $key => $value) {
+            // Skip if column doesn't exist in DB
+            if (!in_array($key, $allowed_fields)) {
+                continue;
+            }
+
+            // For protected columns, only update if current value is NULL
+            if (in_array($key, $protected_columns)) {
+                if ($existing[$key] !== null) {
+                    continue;
+                }
+            }
+
+            // Sanitize based on field type/name patterns (same logic as create_pylon)
+            if (strpos($key, '_id') !== false || $key === 'jchronology_order_for_blog_posts' || $key === 'jchronology_batch') {
+                $update_data[$key] = is_numeric($value) ? intval($value) : null;
+            } elseif (strpos($key, '_hide') !== false || strpos($key, 'is_enabled') !== false) {
+                $update_data[$key] = $value ? 1 : 0;
+            } elseif (strpos($key, '_date') !== false) {
+                $update_data[$key] = $value ? sanitize_text_field($value) : null;
+            } elseif (strpos($key, '_stars') !== false) {
+                $update_data[$key] = is_numeric($value) ? intval($value) : null;
+            } else {
+                $update_data[$key] = $value;
+            }
+        }
+
+        if (empty($update_data)) {
+            return new WP_REST_Response(array(
+                'success' => true,
+                'message' => 'No fields to update (all protected columns already have values)',
+                'fields_updated' => 0
+            ), 200);
+        }
+
+        $result = $wpdb->update(
+            $pylons_table,
+            $update_data,
+            array('pylon_id' => $pylon_id)
+        );
+
+        if ($result === false) {
+            error_log('Condor API - Failed to update pylon: ' . $wpdb->last_error);
+            return new WP_REST_Response(array(
+                'success' => false,
+                'message' => 'Failed to update pylon record',
+                'error' => $wpdb->last_error
+            ), 500);
+        }
+
+        return new WP_REST_Response(array(
+            'success' => true,
+            'pylon_id' => $pylon_id,
+            'message' => 'Pylon record updated successfully',
+            'fields_updated' => count($update_data)
+        ), 200);
+    }
+
     /**
      * Create Blog and Sitemap pages with pylons
      */
