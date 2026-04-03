@@ -182,6 +182,73 @@
     display: block !important;
 }
 
+/* Separator: 2px black right border on category_name column */
+.cherry-controller-table th.ccg-separator-right,
+.cherry-controller-table td.ccg-separator-right {
+    border-right: 2px solid black;
+}
+
+/* Toggle switch styles */
+.ccg-toggle-cell {
+    text-align: center;
+}
+
+.ccg-toggle {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+}
+
+.ccg-toggle .ccg-toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ccg-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.2s;
+    border-radius: 20px;
+}
+
+.ccg-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+}
+
+.ccg-toggle-input:checked + .ccg-toggle-slider {
+    background-color: #dc3232;
+}
+
+.ccg-toggle-input:checked + .ccg-toggle-slider:before {
+    transform: translateX(16px);
+}
+
+/* Wolf Exclusion Band - sticky columns (tools, post_id, post_title) */
+.cherry-controller-table th.wolf-exclusion-band,
+.cherry-controller-table td.wolf-exclusion-band {
+    background: #fffde7;
+    border-right: 2px solid black;
+}
+
+.cherry-controller-table th.wolf-exclusion-band {
+    background: #f5f0d0;
+}
+
 /* Responsive design for smaller screens */
 @media screen and (max-width: 782px) {
     .cherry-controller-table {

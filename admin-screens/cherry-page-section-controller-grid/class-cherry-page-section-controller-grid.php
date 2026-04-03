@@ -125,6 +125,135 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                     <span id="save-status" style="margin-left: 10px;"></span>
                 </div>
 
+                <!-- Rocket Chamber Div - Contains the pagination controls and search -->
+                <div class="rocket_chamber_div" style="border: 1px solid black; padding: 0; margin: 20px 0; position: relative;">
+                    <div style="position: absolute; top: 4px; left: 4px; font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="black" style="transform: rotate(15deg);">
+                            <ellipse cx="12" cy="8" rx="3" ry="6" fill="black"/>
+                            <path d="M12 2 L15 8 L9 8 Z" fill="black"/>
+                            <path d="M9 12 L7 14 L9 16 Z" fill="black"/>
+                            <path d="M15 12 L17 14 L15 16 Z" fill="black"/>
+                            <path d="M10 14 L9 18 L10.5 16 L12 20 L13.5 16 L15 18 L14 14 Z" fill="black"/>
+                            <circle cx="12" cy="6" r="1" fill="white"/>
+                        </svg>
+                        rocket_chamber
+                    </div>
+                    <div style="margin-top: 24px; padding-top: 4px; padding-bottom: 0; padding-left: 8px; padding-right: 8px;">
+                        <div style="display: flex; align-items: end; justify-content: space-between;">
+                            <div style="display: flex; align-items: end; gap: 32px;">
+                                <table style="border-collapse: collapse;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="border: 1px solid black; padding: 4px; text-align: center;">
+                                                <div style="font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                                    <span style="font-weight: bold;">row pagination</span>
+                                                    <span style="font-size: 14px; font-weight: normal;">
+                                                        Showing <span style="font-weight: bold;" id="ccg-services-showing">0</span> of <span style="font-weight: bold;" id="ccg-services-total">0</span> services
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td style="border: 1px solid black; padding: 4px; text-align: center;">
+                                                <div style="font-size: 16px; font-weight: bold;">
+                                                    search box 2
+                                                </div>
+                                            </td>
+                                            <td style="border: 1px solid black; padding: 4px; text-align: center;">
+                                                <div style="font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                                    <span style="font-weight: bold;">column pagination</span>
+                                                    <span style="font-size: 14px; font-weight: normal;">
+                                                        Showing <span style="font-weight: bold;" id="ccg-columns-showing">0</span> columns of <span style="font-weight: bold;" id="ccg-columns-total">0</span> total columns
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="border: 1px solid black; padding: 4px;">
+                                                <div style="display: flex; align-items: end; gap: 16px;">
+                                                    <!-- Row Pagination Bar 1: Items per page selector -->
+                                                    <div style="display: flex; align-items: center;">
+                                                        <span style="font-size: 12px; color: #4B5563; margin-right: 8px;">Rows/page:</span>
+                                                        <div style="display: inline-flex; border-radius: 6px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                                            <button type="button" data-rows="3" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; border-radius: 6px 0 0 6px; margin-right: -1px; cursor: pointer; background: white;">3</button>
+                                                            <button type="button" data-rows="4" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; margin-right: -1px; cursor: pointer; background: white;">4</button>
+                                                            <button type="button" data-rows="5" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; margin-right: -1px; cursor: pointer; background: white;">5</button>
+                                                            <button type="button" data-rows="10" class="ccg-rows-per-page-btn active" style="padding: 10px 8px; font-size: 14px; border: 1px solid #3B82F6; background: #3B82F6; color: white; margin-right: -1px; cursor: pointer;">10</button>
+                                                            <button type="button" data-rows="25" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; margin-right: -1px; cursor: pointer; background: white;">25</button>
+                                                            <button type="button" data-rows="50" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; margin-right: -1px; cursor: pointer; background: white;">50</button>
+                                                            <button type="button" data-rows="100" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; margin-right: -1px; cursor: pointer; background: white;">100</button>
+                                                            <button type="button" data-rows="200" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; margin-right: -1px; cursor: pointer; background: white;">200</button>
+                                                            <button type="button" data-rows="all" class="ccg-rows-per-page-btn" style="padding: 10px 8px; font-size: 14px; border: 1px solid #D1D5DB; border-radius: 0 6px 6px 0; cursor: pointer; background: white;">All</button>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Row Pagination Bar 2: Page navigation -->
+                                                    <div style="display: flex; align-items: center;">
+                                                        <span style="font-size: 12px; color: #4B5563; margin-right: 8px;">Row page:</span>
+                                                        <nav style="display: inline-flex; border-radius: 6px; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);">
+                                                            <button type="button" id="ccg-first-row-page" style="position: relative; display: inline-flex; align-items: center; border-radius: 6px 0 0 0; padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; color: #9CA3AF; border: 1px solid #D1D5DB; cursor: pointer; background: white;">≪</button>
+                                                            <button type="button" id="ccg-prev-row-page" style="position: relative; display: inline-flex; align-items: center; padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; color: #9CA3AF; border: 1px solid #D1D5DB; margin-left: -1px; cursor: pointer; background: white;">
+                                                                <svg style="width: 16px; height: 16px; color: #6B7280;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                                    <path d="M1 4v6h6" />
+                                                                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                                                </svg>
+                                                            </button>
+                                                            <span style="position: relative; display: inline-flex; align-items: center; padding: 8px 12px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #D1D5DB; margin-left: -1px; background: white; font-weight: bold;"><span id="ccg-current-row-page">1</span> of <span id="ccg-total-row-pages">1</span></span>
+                                                            <button type="button" id="ccg-next-row-page" style="position: relative; display: inline-flex; align-items: center; padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; color: #9CA3AF; border: 1px solid #D1D5DB; margin-left: -1px; cursor: pointer; background: white;">
+                                                                <svg style="width: 16px; height: 16px; color: #6B7280;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                                    <path d="M23 4v6h-6" />
+                                                                    <path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10" />
+                                                                </svg>
+                                                            </button>
+                                                            <button type="button" id="ccg-last-row-page" style="position: relative; display: inline-flex; align-items: center; border-radius: 0 6px 6px 0; padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; color: #9CA3AF; border: 1px solid #D1D5DB; margin-left: -1px; cursor: pointer; background: white;">≫</button>
+                                                        </nav>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="border: 1px solid black; padding: 4px;">
+                                                <div style="display: flex; align-items: end;">
+                                                    <input type="text" id="ccg-search" placeholder="Search..." style="width: 200px; margin-bottom: 3px; padding: 8px 12px; border: 1px solid #D1D5DB; border-radius: 4px; font-size: 14px; background: white; outline: none; transition: all 0.15s ease;" onFocus="this.style.outline='none'; this.style.borderColor='#3B82F6'; this.style.boxShadow='0 0 0 2px rgba(59, 130, 246, 0.1)'" onBlur="this.style.borderColor='#D1D5DB'; this.style.boxShadow='none'">
+                                                </div>
+                                            </td>
+                                            <td style="border: 1px solid black; padding: 4px;">
+                                                <div style="display: flex; align-items: end; gap: 16px;">
+                                                    <!-- Column Pagination Bar 1: Columns per page quantity selector -->
+                                                    <div style="display: flex; align-items: center;">
+                                                        <span style="font-size: 12px; color: #4B5563; margin-right: 8px;">Cols/page:</span>
+                                                        <button type="button" data-cols="4" class="ccg-cols-per-page-btn active" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; border-radius: 4px 0 0 4px; margin-right: -1px; cursor: pointer; background: #f8f782; color: black;">4</button>
+                                                        <button type="button" data-cols="5" class="ccg-cols-per-page-btn" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">5</button>
+                                                        <button type="button" data-cols="6" class="ccg-cols-per-page-btn" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">6</button>
+                                                        <button type="button" data-cols="8" class="ccg-cols-per-page-btn" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">8</button>
+                                                        <button type="button" data-cols="11" class="ccg-cols-per-page-btn" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">11</button>
+                                                        <button type="button" data-cols="15" class="ccg-cols-per-page-btn" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">15</button>
+                                                        <button type="button" data-cols="all" class="ccg-cols-per-page-btn" style="padding: 10px 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; border-radius: 0 4px 4px 0; cursor: pointer; background: white;">All</button>
+                                                    </div>
+                                                    <!-- Column Pagination Bar 2: Current column page selector -->
+                                                    <div style="display: flex; align-items: center;">
+                                                        <span style="font-size: 12px; color: #4B5563; margin-right: 8px;">Col page:</span>
+                                                        <button type="button" id="ccg-first-col-page" style="padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; border-radius: 4px 0 0 4px; margin-right: -1px; cursor: pointer; background: white;">≪</button>
+                                                        <button type="button" id="ccg-prev-col-page" style="padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">
+                                                            <svg style="width: 16px; height: 16px; color: #6B7280;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                                <path d="M1 4v6h6" />
+                                                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+                                                            </svg>
+                                                        </button>
+                                                        <span style="padding: 8px 12px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; background: white; font-weight: bold; display: inline-flex; align-items: center;"><span id="ccg-current-col-page">1</span> of <span id="ccg-total-col-pages">1</span></span>
+                                                        <button type="button" id="ccg-next-col-page" style="padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; margin-right: -1px; cursor: pointer; background: white;">
+                                                            <svg style="width: 16px; height: 16px; color: #6B7280;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                                                <path d="M23 4v6h-6" />
+                                                                <path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10" />
+                                                            </svg>
+                                                        </button>
+                                                        <button type="button" id="ccg-last-col-page" style="padding: 8px; font-size: 14px; padding-top: 10px; padding-bottom: 10px; border: 1px solid #000; border-radius: 0 4px 4px 0; cursor: pointer; background: white;">≫</button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="table-wrapper">
                     <table id="cherry-controller-table" class="cherry-controller-table">
                         <thead>
@@ -141,7 +270,32 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                                 <th>service_category</th>
                                 <th>rel_service_category_id</th>
                                 <th>category_id</th>
-                                <th>category_name</th>
+                                <th class="ccg-separator-right">category_name</th>
+                                <th>batman_hero_box_hide</th>
+                                <th>avg_rating_box_hide</th>
+                                <th>derek_blog_post_meta_box_hide</th>
+                                <th>chen_cards_box_hide</th>
+                                <th>polyansk_tiles_box_hide</th>
+                                <th>kristina_cta_box_instance_1_hide</th>
+                                <th>content_bay_1_box_hide</th>
+                                <th>content_bay_2_box_hide</th>
+                                <th>content_lake_box_hide</th>
+                                <th>content_sea_box_hide</th>
+                                <th>osb_box_hide</th>
+                                <th>reviews_box_hide</th>
+                                <th>serena_faq_box_hide</th>
+                                <th>nile_map_box_hide</th>
+                                <th>kristina_cta_box_instance_2_hide</th>
+                                <th>victoria_blog_box_hide</th>
+                                <th>ocean_1_box_hide</th>
+                                <th>ocean_2_box_hide</th>
+                                <th>ocean_3_box_hide</th>
+                                <th>brook_video_box_hide</th>
+                                <th>olivia_auth_links_box_hide</th>
+                                <th>ava_why_choose_us_box_hide</th>
+                                <th>kendall_our_process_box_hide</th>
+                                <th>sara_custom_html_box_hide</th>
+                                <th>liz_pricing_box_hide</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -336,7 +490,32 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                 pyl.service_category,
                 pyl.rel_service_category_id,
                 sc.category_id,
-                sc.category_name
+                sc.category_name,
+                pyl.batman_hero_box_hide,
+                pyl.avg_rating_box_hide,
+                pyl.derek_blog_post_meta_box_hide,
+                pyl.chen_cards_box_hide,
+                pyl.polyansk_tiles_box_hide,
+                pyl.kristina_cta_box_instance_1_hide,
+                pyl.content_bay_1_box_hide,
+                pyl.content_bay_2_box_hide,
+                pyl.content_lake_box_hide,
+                pyl.content_sea_box_hide,
+                pyl.osb_box_hide,
+                pyl.reviews_box_hide,
+                pyl.serena_faq_box_hide,
+                pyl.nile_map_box_hide,
+                pyl.kristina_cta_box_instance_2_hide,
+                pyl.victoria_blog_box_hide,
+                pyl.ocean_1_box_hide,
+                pyl.ocean_2_box_hide,
+                pyl.ocean_3_box_hide,
+                pyl.brook_video_box_hide,
+                pyl.olivia_auth_links_box_hide,
+                pyl.ava_why_choose_us_box_hide,
+                pyl.kendall_our_process_box_hide,
+                pyl.sara_custom_html_box_hide,
+                pyl.liz_pricing_box_hide
             FROM {$wpdb->posts} p
             INNER JOIN {$wpdb->prefix}pylons pyl ON p.ID = pyl.rel_wp_post_id
             LEFT JOIN {$wpdb->prefix}service_categories sc ON pyl.rel_service_category_id = sc.category_id
@@ -356,8 +535,36 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
         $data = $this->get_service_page_data();
         $output = '';
 
+        $box_hide_fields = array(
+            'batman_hero_box_hide',
+            'avg_rating_box_hide',
+            'derek_blog_post_meta_box_hide',
+            'chen_cards_box_hide',
+            'polyansk_tiles_box_hide',
+            'kristina_cta_box_instance_1_hide',
+            'content_bay_1_box_hide',
+            'content_bay_2_box_hide',
+            'content_lake_box_hide',
+            'content_sea_box_hide',
+            'osb_box_hide',
+            'reviews_box_hide',
+            'serena_faq_box_hide',
+            'nile_map_box_hide',
+            'kristina_cta_box_instance_2_hide',
+            'victoria_blog_box_hide',
+            'ocean_1_box_hide',
+            'ocean_2_box_hide',
+            'ocean_3_box_hide',
+            'brook_video_box_hide',
+            'olivia_auth_links_box_hide',
+            'ava_why_choose_us_box_hide',
+            'kendall_our_process_box_hide',
+            'sara_custom_html_box_hide',
+            'liz_pricing_box_hide',
+        );
+
         if (empty($data)) {
-            $output = '<tr><td colspan="13" class="no-data">No posts found with pylon_archetype = "servicepage"</td></tr>';
+            $output = '<tr><td colspan="38" class="no-data">No posts found with pylon_archetype = "servicepage"</td></tr>';
         } else {
             foreach ($data as $row) {
                 $output .= '<tr data-pylon-id="' . esc_attr($row['pylon_id']) . '">';
@@ -379,7 +586,20 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                 $output .= '<td><input type="text" class="editable-field" data-field="service_category" data-original="' . esc_attr($row['service_category'] ?? '') . '" value="' . esc_attr($row['service_category'] ?? '') . '" style="width: 100%;"></td>';
                 $output .= '<td><input type="text" class="editable-field" data-field="rel_service_category_id" data-original="' . esc_attr($row['rel_service_category_id'] ?? '') . '" value="' . esc_attr($row['rel_service_category_id'] ?? '') . '" style="width: 100%;"></td>';
                 $output .= '<td>' . esc_html($row['category_id'] ?? '') . '</td>';
-                $output .= '<td>' . esc_html($row['category_name'] ?? '') . '</td>';
+                $output .= '<td class="ccg-separator-right">' . esc_html($row['category_name'] ?? '') . '</td>';
+
+                // Toggle switches for box_hide boolean fields
+                foreach ($box_hide_fields as $field) {
+                    $val = intval($row[$field] ?? 0);
+                    $checked = $val ? ' checked' : '';
+                    $output .= '<td class="ccg-toggle-cell">';
+                    $output .= '<label class="ccg-toggle">';
+                    $output .= '<input type="checkbox" class="ccg-toggle-input editable-field" data-field="' . esc_attr($field) . '" data-original="' . $val . '"' . $checked . '>';
+                    $output .= '<span class="ccg-toggle-slider"></span>';
+                    $output .= '</label>';
+                    $output .= '</td>';
+                }
+
                 $output .= '</tr>';
             }
         }
@@ -434,25 +654,49 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
             $field = sanitize_text_field($change['field']);
             $value = $change['value'];
 
+            // Allowed boolean (box_hide) fields
+            $box_hide_fields = array(
+                'batman_hero_box_hide', 'avg_rating_box_hide', 'derek_blog_post_meta_box_hide',
+                'chen_cards_box_hide', 'polyansk_tiles_box_hide', 'kristina_cta_box_instance_1_hide',
+                'content_bay_1_box_hide', 'content_bay_2_box_hide', 'content_lake_box_hide',
+                'content_sea_box_hide', 'osb_box_hide', 'reviews_box_hide',
+                'serena_faq_box_hide', 'nile_map_box_hide', 'kristina_cta_box_instance_2_hide',
+                'victoria_blog_box_hide', 'ocean_1_box_hide', 'ocean_2_box_hide',
+                'ocean_3_box_hide', 'brook_video_box_hide', 'olivia_auth_links_box_hide',
+                'ava_why_choose_us_box_hide', 'kendall_our_process_box_hide',
+                'sara_custom_html_box_hide', 'liz_pricing_box_hide',
+            );
+
+            $text_fields = array('moniker', 'service_category', 'rel_service_category_id');
+
             // Validate field name
-            if (!in_array($field, array('moniker', 'service_category', 'rel_service_category_id'))) {
+            if (!in_array($field, $text_fields) && !in_array($field, $box_hide_fields)) {
                 $error_count++;
                 $errors[] = "Invalid field: $field";
                 continue;
             }
 
-            // Special handling for rel_service_category_id - should be numeric or null
-            if ($field === 'rel_service_category_id') {
+            // Type handling
+            if (in_array($field, $box_hide_fields)) {
+                $value = intval($value) ? 1 : 0;
+            } elseif ($field === 'rel_service_category_id') {
                 $value = !empty($value) ? intval($value) : null;
             } else {
                 $value = sanitize_text_field($value);
+            }
+
+            // Determine format specifier
+            if (in_array($field, $box_hide_fields) || ($field === 'rel_service_category_id' && $value !== null)) {
+                $format = array('%d');
+            } else {
+                $format = array('%s');
             }
 
             $result = $wpdb->update(
                 $pylons_table,
                 array($field => $value),
                 array('pylon_id' => $pylon_id),
-                ($field === 'rel_service_category_id' && $value !== null) ? array('%d') : array('%s'),
+                $format,
                 array('%d')
             );
 
