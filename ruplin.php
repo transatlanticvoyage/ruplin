@@ -800,6 +800,7 @@ class SnefuruPlugin {
             anteheader_desired TEXT DEFAULT NULL,
             enable_nectar_blog_feed BOOLEAN DEFAULT FALSE,
             nectar_blog_feed_items_qty INT DEFAULT NULL,
+            nectar_blog_is_excerpt BOOLEAN DEFAULT FALSE,
             nectar_blog_feed_rules TEXT DEFAULT NULL,
             rel_service_category_id BIGINT DEFAULT NULL,
             show_polyansk_custom_page_section BOOLEAN DEFAULT FALSE,
