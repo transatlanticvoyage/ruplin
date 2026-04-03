@@ -143,6 +143,9 @@ class SnefuruPlugin {
         
         // Load Silkweaver Menu System
         require_once SNEFURU_PLUGIN_PATH . 'silkweaver_menu/silkweaver_init.php';
+
+        // Load Silkweaver Robust Services Child Area Settings admin page
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/silkweaver-robust-services-child-area-settings/class-silkweaver-robust-services-child-area-settings-admin.php';
         
         // Load Scorpion Search & Replace System
         require_once SNEFURU_PLUGIN_PATH . 'scorpion_search_replace/class-scorpion-search-replace.php';
@@ -840,6 +843,7 @@ class SnefuruPlugin {
             longer_name TEXT DEFAULT NULL,
             category_description TEXT DEFAULT NULL,
             rel_featured_image_id INTEGER DEFAULT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (category_id),
@@ -854,6 +858,13 @@ class SnefuruPlugin {
         if (empty($sc_featured_img_exists)) {
             $wpdb->query("ALTER TABLE $service_categories_table ADD COLUMN rel_featured_image_id INTEGER DEFAULT NULL AFTER category_description");
             error_log('Snefuru: Added rel_featured_image_id column to service_categories table');
+        }
+
+        // Add is_active column to service_categories table if it doesn't exist
+        $sc_is_active_exists = $wpdb->get_results("SHOW COLUMNS FROM $service_categories_table LIKE 'is_active'");
+        if (empty($sc_is_active_exists)) {
+            $wpdb->query("ALTER TABLE $service_categories_table ADD COLUMN is_active BOOLEAN DEFAULT TRUE AFTER rel_featured_image_id");
+            error_log('Snefuru: Added is_active column to service_categories table');
         }
         
         // Create wp_vulture_txt_flattener_generations table (Vulture TXT Flattener feature)

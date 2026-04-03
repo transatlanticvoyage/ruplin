@@ -1,0 +1,12 @@
+[
+    {
+        "id": "option_1_rnr_site",
+        "label": "Option 1 - main RNR site menu",
+        "config": "target_url=/ anchor=Home\npull_all_service_pages_dynamically custom_raw_link_pinned=/ {home_anchor_for_silkweaver_services}\npull_all_location_pages_dynamically custom_raw_link_pinned=/ {driggs_city}"
+    },
+    {
+        "id": "option_2_local_biz_site",
+        "label": "Option 2 - actual local biz site",
+        "config": "target_url=/ anchor=Home\ntarget_url=/about-us/ anchor=About Us\npull_all_service_pages_dynamically_with_robust_child_area\npull_all_location_pages_dynamically_with_robust_child_area\ntarget_url=/faq/ anchor=FAQ\ntarget_url=/gallery/ anchor=Gallery\ntarget_url=/blog/ anchor=Blog"
+    }
+]

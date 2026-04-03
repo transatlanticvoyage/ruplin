@@ -488,10 +488,22 @@ class CashewEditorAdmin {
                         <tr>
                             <td class="cashew-field-label">wp_posts.post_title</td>
                             <td>
-                                <input type="text" 
+                                <input type="text"
                                        name="post_title"
-                                       class="cashew-field-input" 
+                                       class="cashew-field-input"
                                        value="<?php echo esc_attr($post_data['post_title'] ?? ''); ?>">
+                            </td>
+                            <td class="cashew-adjunct-column">
+                                <!-- Text field, no specific buttons needed -->
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label">wp_pylons.moniker</td>
+                            <td>
+                                <input type="text"
+                                       name="moniker"
+                                       class="cashew-field-input"
+                                       value="<?php echo esc_attr($pylon_data['moniker'] ?? ''); ?>">
                             </td>
                             <td class="cashew-adjunct-column">
                                 <!-- Text field, no specific buttons needed -->
@@ -880,6 +892,7 @@ class CashewEditorAdmin {
         
         $pylon_data = array(
             'pylon_archetype' => sanitize_text_field($_POST['pylon_archetype'] ?? ''),
+            'moniker' => sanitize_text_field($_POST['moniker'] ?? ''),
             'cashew_html_expanse' => wp_unslash($_POST['cashew_html_expanse'] ?? ''),
             'staircase_page_template_desired' => sanitize_text_field($_POST['staircase_page_template_desired'] ?? ''),
             'expanse_width' => sanitize_text_field($_POST['expanse_width'] ?? 'full'),
@@ -896,7 +909,7 @@ class CashewEditorAdmin {
                 $pylons_table,
                 $pylon_data,
                 array('rel_wp_post_id' => $post_id),
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d'), // 8 text fields + 1 integer (show_polyansk)
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d'), // 9 text fields + 1 integer (show_polyansk)
                 array('%d')
             );
         } else {
@@ -905,7 +918,7 @@ class CashewEditorAdmin {
             $wpdb->insert(
                 $pylons_table,
                 $pylon_data,
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d') // 8 text fields + 1 integer (show_polyansk) + 1 integer (rel_wp_post_id)
+                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d') // 9 text fields + 1 integer (show_polyansk) + 1 integer (rel_wp_post_id)
             );
         }
         

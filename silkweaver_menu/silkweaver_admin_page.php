@@ -35,6 +35,13 @@ function silkweaver_render_admin_page() {
         }
     </style>';
     
+    // Load menu templates from JSON file
+    $templates_file = dirname(__FILE__) . '/silkweaver_menu_templates.json';
+    $templates = array();
+    if (file_exists($templates_file)) {
+        $templates = json_decode(file_get_contents($templates_file), true) ?: array();
+    }
+
     // Get current settings
     $use_silkweaver = get_option('silkweaver_use_system', true);
     $menu_config = get_option('silkweaver_menu_config', '');
@@ -84,7 +91,20 @@ function silkweaver_render_admin_page() {
                 <div style="font-size: 15px; font-weight: bold; margin: 15px 0 10px 0;">
                     WordPress option silkweaver_menu_config
                 </div>
-                
+
+                <?php if (!empty($templates)): ?>
+                <div style="margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 8px;">
+                    <?php foreach ($templates as $template): ?>
+                    <button
+                        type="button"
+                        class="silkweaver-template-pill"
+                        data-config="<?php echo esc_attr($template['config']); ?>"
+                        style="border-radius: 20px; padding: 6px 18px; border: 1px solid #2271b1; background: #f0f6fc; color: #2271b1; cursor: pointer; font-size: 13px; font-weight: 600; line-height: 1.4;"
+                    ><?php echo esc_html($template['label']); ?></button>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
                 <textarea name="menu_config" id="menu_config" rows="15" style="width: 100%; font-family: 'Courier New', monospace; padding: 10px; border: 1px solid #ccd0d4;" <?php echo $use_silkweaver ? '' : 'readonly'; ?>><?php echo esc_textarea($menu_config); ?></textarea>
                 
                 <div style="margin-top: 15px; padding: 15px; background: #f0f0f1; border-radius: 4px;">
@@ -135,6 +155,16 @@ pull_all_location_pages_dynamically custom_raw_link_pinned=/service-areas Servic
     </div>
     
     <script>
+    // Template pill buttons — load config into textarea on click
+    document.querySelectorAll('.silkweaver-template-pill').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var config = this.getAttribute('data-config');
+            var textarea = document.getElementById('menu_config');
+            textarea.value = config;
+            textarea.focus();
+        });
+    });
+
     function updateMenuSystem(useSilkweaver) {
         document.getElementById('use_silkweaver_hidden').value = useSilkweaver ? '1' : '0';
         const configDiv = document.getElementById('silkweaver_config');

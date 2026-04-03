@@ -7,3 +7,107 @@
     margin: 0;
     padding: 0;
 }
+
+/* -------------------------------------------------------------------------
+   Robust child area — agnostic styles (work in any header)
+   ------------------------------------------------------------------------- */
+
+/* Wrapper that houses the tile grid — hidden until parent is hovered */
+.silkweaver-robust-dropdown {
+    position: relative;
+}
+
+.silkweaver-robust-child-area {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 600px;
+    background: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    z-index: 9999;
+    padding: 20px;
+}
+
+.silkweaver-robust-dropdown:hover .silkweaver-robust-child-area,
+.silkweaver-robust-dropdown:focus-within .silkweaver-robust-child-area {
+    display: block;
+}
+
+/* Tile grid */
+.silkweaver-robust-tiles-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* Individual tile */
+.silkweaver-robust-tile {
+    flex: 0 0 calc(33.333% - 12px);
+    box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+/* Featured image */
+.silkweaver-robust-tile-image img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Tile body */
+.silkweaver-robust-tile-body {
+    padding: 10px 12px;
+}
+
+.silkweaver-robust-tile-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #111;
+}
+
+.silkweaver-robust-tile-description {
+    font-size: 12px;
+    color: #555;
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+
+/* Child pages list — hidden by default, shown on tile hover */
+.silkweaver-robust-child-pages {
+    display: none;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 8px;
+}
+
+.silkweaver-robust-tile:hover .silkweaver-robust-child-pages {
+    display: block;
+}
+
+.silkweaver-robust-child-pages li {
+    margin: 0;
+    padding: 0;
+}
+
+.silkweaver-robust-child-pages a {
+    display: block;
+    padding: 4px 0;
+    font-size: 12px;
+    color: #333;
+    text-decoration: none;
+}
+
+.silkweaver-robust-child-pages a:hover {
+    text-decoration: underline;
+    color: #000;
+}

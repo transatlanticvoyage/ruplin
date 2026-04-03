@@ -69,6 +69,10 @@ class Silkweaver_Menu_Renderer {
                 );
             } elseif ($item['type'] === 'dynamic') {
                 $html .= $this->render_dynamic_menu($item);
+            } elseif ($item['type'] === 'dynamic_robust_services') {
+                $html .= $this->render_robust_services_menu($item);
+            } elseif ($item['type'] === 'dynamic_robust_locations') {
+                $html .= $this->render_robust_locations_menu($item);
             }
         }
         
@@ -108,6 +112,16 @@ class Silkweaver_Menu_Renderer {
                     );
                     error_log("Silkweaver added static item: " . $matches[1] . " -> " . $matches[2]);
                 }
+            } elseif (strpos($line, 'pull_all_service_pages_dynamically_with_robust_child_area') === 0) {
+                $menu_items[] = array(
+                    'type'  => 'dynamic_robust_services',
+                    'title' => 'Services',
+                );
+            } elseif (strpos($line, 'pull_all_location_pages_dynamically_with_robust_child_area') === 0) {
+                $menu_items[] = array(
+                    'type'  => 'dynamic_robust_locations',
+                    'title' => 'Areas We Serve',
+                );
             } elseif (strpos($line, 'pull_all_service_pages_dynamically') === 0) {
                 // Parse custom_raw_link and custom_raw_link_pinned if present
                 $custom_links = array();
@@ -317,6 +331,110 @@ class Silkweaver_Menu_Renderer {
     }
     
     
+    /**
+     * Render robust services dropdown with category tiles and child page listings
+     */
+    private function render_robust_services_menu($item) {
+        global $wpdb;
+
+        // Check if is_active column exists before filtering on it
+        $sc_table = $wpdb->prefix . 'service_categories';
+        $has_is_active = $wpdb->get_var("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$sc_table' AND COLUMN_NAME = 'is_active'");
+
+        if ($has_is_active) {
+            $categories = $wpdb->get_results("SELECT * FROM $sc_table WHERE is_active = 1 ORDER BY category_name ASC");
+        } else {
+            $categories = $wpdb->get_results("SELECT * FROM $sc_table ORDER BY category_name ASC");
+        }
+
+        if (empty($categories)) {
+            return sprintf(
+                '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button></li>',
+                esc_html($item['title'])
+            );
+        }
+
+        $html  = sprintf(
+            '<li class="silkweaver-dropdown silkweaver-robust-dropdown silkweaver-robust-services-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button>',
+            esc_html($item['title'])
+        );
+        $html .= '<div class="silkweaver-robust-child-area">';
+        $html .= '<div class="silkweaver-robust-tiles-wrapper">';
+
+        foreach ($categories as $category) {
+            // Get published child pages for this category via wp_pylons
+            $child_pages = $wpdb->get_results($wpdb->prepare("
+                SELECT p.ID, p.post_title, py.moniker
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->prefix}pylons py ON p.ID = py.rel_wp_post_id
+                WHERE py.rel_service_category_id = %d
+                AND p.post_status = 'publish'
+                ORDER BY CASE WHEN py.moniker IS NULL OR py.moniker = '' THEN p.post_title ELSE py.moniker END ASC
+            ", $category->category_id));
+
+            $html .= '<div class="silkweaver-robust-tile">';
+
+            // Fixed-size image thumbnail area — always rendered regardless of image presence
+            $img_url = '';
+            if (!empty($category->rel_featured_image_id)) {
+                $img_url = wp_get_attachment_image_url($category->rel_featured_image_id, 'medium');
+            }
+            $html .= '<div class="silkweaver-robust-tile-image">';
+            if ($img_url) {
+                $html .= sprintf(
+                    '<img src="%s" alt="%s" loading="lazy">',
+                    esc_url($img_url),
+                    esc_attr($category->category_name)
+                );
+            }
+            $html .= '</div>';
+
+            $html .= '<div class="silkweaver-robust-tile-body">';
+            $html .= sprintf('<strong class="silkweaver-robust-tile-name">%s</strong>', esc_html($category->category_name));
+
+            // Child pages list — always visible, no interactive show/hide
+            if (!empty($child_pages)) {
+                $bullet_on = (get_option('silkweaver_robust_services_child_area_servicepagepylons_moniker_bullet_yes_no', 'no') === 'yes');
+                $ul_class  = 'silkweaver-robust-child-pages' . ($bullet_on ? ' silkweaver-robust-child-pages--has-bullet' : '');
+                $html .= '<ul class="' . esc_attr($ul_class) . '">';
+                foreach ($child_pages as $page) {
+                    $anchor = (!empty($page->moniker)) ? $page->moniker : $page->post_title;
+                    $html  .= '<li>';
+                    $html  .= '<div class="silkweaver-robust-moniker-row">';
+                    $html  .= '<span class="silkweaver-robust-moniker-bullet" aria-hidden="true"></span>';
+                    $html  .= sprintf(
+                        '<a href="%s">%s</a>',
+                        esc_url(get_permalink($page->ID)),
+                        esc_html($anchor)
+                    );
+                    $html  .= '</div>';
+                    $html  .= '</li>';
+                }
+                $html .= '</ul>';
+            }
+
+            $html .= '</div>'; // .silkweaver-robust-tile-body
+            $html .= '</div>'; // .silkweaver-robust-tile
+        }
+
+        $html .= '</div>'; // .silkweaver-robust-tiles-wrapper
+        $html .= '</div>'; // .silkweaver-robust-child-area
+        $html .= '</li>';
+
+        return $html;
+    }
+
+    /**
+     * Render robust locations dropdown (logic TBD)
+     */
+    private function render_robust_locations_menu($item) {
+        // Robust child area logic for locations not yet defined — renders parent label only
+        return sprintf(
+            '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button">%s</button></li>',
+            esc_html($item['title'])
+        );
+    }
+
     /**
      * Clear menu cache (call when posts/pylons are updated)
      */

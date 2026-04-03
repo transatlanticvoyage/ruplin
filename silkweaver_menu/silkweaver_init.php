@@ -35,9 +35,50 @@ class Silkweaver_Menu_System {
     private function init_hooks() {
         // Admin menu is now handled in class-admin.php
         // add_action('admin_menu', array($this, 'add_admin_menu'));
-        
+
         // Enqueue styles - DISABLED: Styles now handled by Staircase theme
         // add_action('wp_enqueue_scripts', array($this, 'enqueue_frontend_styles'));
+
+        // Enqueue JS for robust child area viewport centering
+        add_action('wp_footer', array($this, 'enqueue_robust_centering_js'));
+
+        // Output user-defined CSS overrides for robust services child area
+        add_action('wp_head', array('Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin', 'output_frontend_css'), 99);
+    }
+
+    /**
+     * Output JS to viewport-center the robust child area panels
+     */
+    public function enqueue_robust_centering_js() {
+        if (!get_option('silkweaver_use_system', true)) {
+            return;
+        }
+        ?>
+        <script>
+        (function() {
+            function centerRobustPanels() {
+                document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dropdown) {
+                    var panel = dropdown.querySelector('.silkweaver-robust-child-area');
+                    if (!panel) return;
+                    var dropdownRect = dropdown.getBoundingClientRect();
+                    var panelWidth   = panel.offsetWidth;
+                    var viewportMid  = window.innerWidth / 2;
+                    // Offset needed so panel center aligns with viewport center
+                    var targetLeft   = viewportMid - dropdownRect.left - (panelWidth / 2);
+                    panel.style.left = targetLeft + 'px';
+                });
+            }
+
+            // Run on hover entry so width is known
+            document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dropdown) {
+                dropdown.addEventListener('mouseenter', centerRobustPanels);
+            });
+
+            // Re-center on resize
+            window.addEventListener('resize', centerRobustPanels);
+        })();
+        </script>
+        <?php
     }
     
     /**
