@@ -1,0 +1,206 @@
+/**
+ * Mass Updater For Page Templates MAR - Admin Styles
+ *
+ * Styles for the Mass Updater For Page Templates interface
+ */
+
+.mupt-mar {
+    max-width: 100%;
+    margin: 20px 20px 20px 0;
+}
+
+.mupt-mar-container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+/* Table description text */
+.mupt-table-description {
+    font-size: 18px;
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 20px;
+    text-transform: lowercase;
+    background: lightyellow;
+    padding: 8px 14px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Table wrapper */
+.mupt-table-wrapper {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+/* Main table styles */
+.mupt-table {
+    width: auto;
+    border-collapse: collapse;
+    background: white;
+}
+
+/* Table header styles */
+.mupt-table th {
+    border: 1px solid gray;
+    padding: 10px;
+    text-align: left;
+    font-size: 16px;
+    color: #242424;
+    font-weight: bold;
+    text-transform: lowercase;
+    background: #f6f7f7;
+    white-space: nowrap;
+}
+
+/* Table cell styles */
+.mupt-table td {
+    border: 1px solid gray;
+    padding: 8px;
+    vertical-align: middle;
+    font-size: 14px;
+    color: #333;
+    white-space: nowrap;
+}
+
+/* No data row */
+.mupt-table .no-data {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 30px;
+}
+
+/* Table row hover effect */
+.mupt-table tbody tr:hover {
+    background: #f5f5f5;
+}
+
+/* Alternating row colors */
+.mupt-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.mupt-table tbody tr:nth-child(even):hover {
+    background: #f5f5f5;
+}
+
+/* Tools column */
+.mupt-tools-cell {
+    white-space: nowrap;
+}
+
+.mupt-tool-btn {
+    display: inline-block;
+    padding: 2px 6px;
+    margin: 1px 2px;
+    font-size: 11px;
+    text-decoration: none;
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.mupt-tool-btn:hover {
+    background: #e0e0e0;
+    color: #000;
+}
+
+/* post_title column (3rd) - right separator before pylon_archetype/template columns */
+.mupt-table th:nth-child(3),
+.mupt-table td:nth-child(3) {
+    border-right: 2px solid black;
+}
+
+/* anteheader_desired column (9th) - right separator after template columns */
+.mupt-table th:nth-child(9),
+.mupt-table td:nth-child(9) {
+    border-right: 2px solid black;
+}
+
+/* post_status column (11th) */
+.mupt-table td:nth-child(11) {
+    font-weight: 500;
+}
+
+/* category_id column (17th) - black 2px left separator */
+.mupt-table th:nth-child(17),
+.mupt-table td:nth-child(17) {
+    border-left: 2px solid black;
+}
+
+/* Table actions */
+.mupt-table-actions {
+    margin-bottom: 20px;
+}
+
+/* Save button styles */
+#mupt-save-changes {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+}
+
+#mupt-save-changes:hover:not(:disabled) {
+    background: #005a87;
+    border-color: #005a87;
+}
+
+#mupt-save-changes:disabled,
+#mupt-save-changes.button-disabled {
+    background: #ddd !important;
+    border-color: #ddd !important;
+    color: #a0a5aa !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+/* Editable field styles */
+.mupt-editable-field {
+    border: 1px solid #ddd;
+    padding: 3px 5px;
+    font-size: 13px;
+}
+
+.mupt-editable-field:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: none;
+}
+
+/* Save status */
+#mupt-save-status {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Ensure proper display hierarchy */
+.wrap.mupt-mar h1 {
+    display: block !important;
+}
+
+.wrap.mupt-mar .mupt-mar-container {
+    display: block !important;
+}
+
+/* Responsive design for smaller screens */
+@media screen and (max-width: 782px) {
+    .mupt-table {
+        font-size: 12px;
+    }
+
+    .mupt-table th,
+    .mupt-table td {
+        padding: 5px;
+    }
+
+    .mupt-table-description {
+        font-size: 16px;
+    }
+}

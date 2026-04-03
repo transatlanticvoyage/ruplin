@@ -202,6 +202,7 @@ class SnefuruPlugin {
         // Load Ruplin Hub 2 MAR
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/ruplin-hub-2-mar/class-ruplin-hub-2-mar.php';
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/cherry-page-section-controller-grid/class-cherry-page-section-controller-grid.php';
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/mass-updater-for-page-templates-mar/class-mass-updater-for-page-templates-mar.php';
 
         // Load Polyansk Service Categories Tiles Custom Page Section
         require_once SNEFURU_PLUGIN_PATH . 'custom-page-sections/polyansk-service-categories-tiles-custom-page-section/class-polyansk-service-categories-tiles.php';

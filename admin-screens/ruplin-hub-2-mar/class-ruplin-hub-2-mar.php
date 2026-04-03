@@ -35,8 +35,8 @@ class Ruplin_Hub_2_Mar {
      * Initialize hooks
      */
     private function init_hooks() {
-        // Add admin menu - using priority 21 to appear right after Ruplin Hub 1
-        add_action('admin_menu', array($this, 'add_admin_menu'), 21);
+        // Add admin menu - must run before child subpages (sld_editor at 15, etc.)
+        add_action('admin_menu', array($this, 'add_admin_menu'), 14);
         
         // Enqueue scripts and styles
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
@@ -117,8 +117,13 @@ class Ruplin_Hub_2_Mar {
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
             
             <div class="ruplin-hub-2-mar-container">
-                <!-- Page content will go here -->
-                
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 8px;"><a href="<?php echo admin_url('admin.php?page=sld_editor'); ?>">SLD Editor (Site Level Data)</a></li>
+                    <li style="margin-bottom: 8px;"><a href="<?php echo admin_url('admin.php?page=hazelnut_items_mar'); ?>">Hazelnut Items Mar</a></li>
+                    <li style="margin-bottom: 8px;"><a href="<?php echo admin_url('admin.php?page=work_projects_mar'); ?>">Work Projects Mar</a></li>
+                    <li style="margin-bottom: 8px;"><a href="<?php echo admin_url('admin.php?page=nectar_controls_mar'); ?>">Nectar Controls Mar</a></li>
+                    <li style="margin-bottom: 8px;"><a href="<?php echo admin_url('admin.php?page=sitemap_shortcode_mar'); ?>">Sitemap Shortcode Mar</a></li>
+                </ul>
             </div>
         </div>
         <?php

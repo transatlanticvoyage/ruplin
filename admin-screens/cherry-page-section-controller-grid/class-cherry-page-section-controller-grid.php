@@ -117,7 +117,7 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
 
             <div class="cherry-controller-grid-container">
                 <div class="table-description">
-                    wp_posts items where wp_pylons.pylon_archetype = "servicepage"
+                    all wp_posts joined to wp_pylons (all pylon archetypes) &nbsp;&nbsp;|||| cherry page section controller grid
                 </div>
 
                 <div class="table-actions">
@@ -519,7 +519,7 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
             FROM {$wpdb->posts} p
             INNER JOIN {$wpdb->prefix}pylons pyl ON p.ID = pyl.rel_wp_post_id
             LEFT JOIN {$wpdb->prefix}service_categories sc ON pyl.rel_service_category_id = sc.category_id
-            WHERE pyl.pylon_archetype = 'servicepage'
+            WHERE p.post_status IN ('publish', 'draft', 'private', 'pending')
             ORDER BY p.post_title ASC
         ";
 
@@ -564,7 +564,7 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
         );
 
         if (empty($data)) {
-            $output = '<tr><td colspan="38" class="no-data">No posts found with pylon_archetype = "servicepage"</td></tr>';
+            $output = '<tr><td colspan="38" class="no-data">No posts with pylon data found</td></tr>';
         } else {
             foreach ($data as $row) {
                 $output .= '<tr data-pylon-id="' . esc_attr($row['pylon_id']) . '">';

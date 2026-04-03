@@ -18,7 +18,7 @@ class Snefuru_Admin {
         require_once SNEFURU_PLUGIN_PATH . 'change_pass/change-password-mar.php';
         $this->change_password_mar = new Ruplin_Change_Password_Mar();
         
-        add_action('admin_menu', array($this, 'add_admin_menu'));
+        add_action('admin_menu', array($this, 'add_admin_menu'), 22);
         add_action('admin_head', array($this, 'admin_head_styles'));
         add_action('admin_init', array($this, 'init_settings'));
         

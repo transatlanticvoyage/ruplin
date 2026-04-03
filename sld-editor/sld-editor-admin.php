@@ -607,12 +607,12 @@ class SLD_Editor_Admin {
                 }
             }
             
+            // Get the wppma_id of the existing row to use as WHERE clause
+            $row_id = $wpdb->get_var("SELECT wppma_id FROM $table_name LIMIT 1");
             $result = $wpdb->update(
                 $table_name,
                 $update_data,
-                array(), // Update all rows (should only be one)
-                null,
-                array() // No WHERE clause format
+                array('wppma_id' => $row_id)
             );
             
             if ($result !== false) {
