@@ -1,4 +1,6 @@
 <?php
+// test comment
+
 /**
  * Plugin Name: Ruplin (Elementor-Safe v4.5)
  * Plugin URI: https://github.com/transatlanticvoyage/ruplin
