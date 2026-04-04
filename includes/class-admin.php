@@ -58,6 +58,9 @@ class Snefuru_Admin {
         add_action('wp_ajax_rup_services_create', array($this, 'rup_services_create'));
         add_action('wp_ajax_rup_services_get_image_url', array($this, 'rup_services_get_image_url'));
         
+        // Show wp_posts.ID on native media attachment edit screen
+        add_action('add_meta_boxes', array($this, 'add_attachment_post_id_meta_box'));
+
         // Add SILK button to admin toolbar
         add_action('admin_bar_menu', array($this, 'add_silk_toolbar_button'), 999);
         add_action('admin_bar_menu', array($this, 'add_microscope_toolbar_button'), 1000);
@@ -11144,6 +11147,34 @@ class Snefuru_Admin {
         silkweaver_render_admin_page();
     }
     
+    /**
+     * Register meta box on native WP media attachment edit screen to display wp_posts.ID
+     */
+    public function add_attachment_post_id_meta_box() {
+        add_meta_box(
+            'ruplin_attachment_post_id',
+            'Ruplin: wp_posts.ID',
+            array($this, 'render_attachment_post_id_meta_box'),
+            'attachment',
+            'side',
+            'high'
+        );
+    }
+
+    public function render_attachment_post_id_meta_box($post) {
+        ?>
+        <p style="margin:6px 0 4px; font-size:13px; color:#555;">wp_posts.ID</p>
+        <input
+            type="text"
+            readonly
+            value="<?php echo esc_attr($post->ID); ?>"
+            style="width:100%; font-size:16px; font-weight:700; font-family:monospace; background:#f6f7f7; border:1px solid #c3c4c7; padding:6px 8px; box-sizing:border-box; cursor:text;"
+            onclick="this.select();"
+        />
+        <p style="margin:4px 0 0; font-size:11px; color:#888;">Click field to select &amp; copy</p>
+        <?php
+    }
+
     /**
      * Add SILK button to WordPress admin toolbar on frontend
      */

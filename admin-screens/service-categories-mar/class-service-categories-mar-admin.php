@@ -109,9 +109,30 @@ class Ruplin_Service_Categories_Mar_Admin {
                                     ?>
                                     <tr data-id="<?php echo esc_attr($row_id); ?>">
                                         <?php foreach ($columns as $column): ?>
-                                            <td class="editable" data-field="<?php echo esc_attr($column); ?>">
-                                                <?php echo esc_html($row->$column ?? ''); ?>
-                                            </td>
+                                            <?php if ($column === 'rel_featured_image_id'): ?>
+                                                <?php
+                                                $img_id   = intval($row->$column ?? 0);
+                                                $thumb_url = $img_id ? wp_get_attachment_image_url($img_id, 'thumbnail') : '';
+                                                ?>
+                                                <td class="image-picker-cell" data-field="rel_featured_image_id">
+                                                    <div class="image-picker-wrap">
+                                                        <div class="image-preview" style="min-height:30px; margin-bottom:4px;">
+                                                            <?php if ($thumb_url): ?>
+                                                                <img src="<?php echo esc_url($thumb_url); ?>" style="max-width:80px; max-height:60px; display:block;">
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <span class="image-id-display" style="font-size:11px; color:#666; display:block; margin-bottom:5px;">
+                                                            <?php echo $img_id ? 'ID: ' . $img_id : '(none)'; ?>
+                                                        </span>
+                                                        <button type="button" class="button button-small select-image-btn">Select Image</button>
+                                                        <button type="button" class="button button-small clear-image-btn" style="margin-left:4px;<?php echo $img_id ? '' : ' display:none;'; ?>">Clear</button>
+                                                    </div>
+                                                </td>
+                                            <?php else: ?>
+                                                <td class="editable" data-field="<?php echo esc_attr($column); ?>">
+                                                    <?php echo esc_html($row->$column ?? ''); ?>
+                                                </td>
+                                            <?php endif; ?>
                                         <?php endforeach; ?>
                                         <td class="actions">
                                             <button class="delete-row button button-small">Delete</button>
@@ -148,15 +169,18 @@ class Ruplin_Service_Categories_Mar_Admin {
             '1.0.0'
         );
         
+        // Enqueue WP media uploader (required for Select Image button)
+        wp_enqueue_media();
+
         // Enqueue JavaScript
         wp_enqueue_script(
             'service-categories-mar-admin',
             plugin_dir_url(__FILE__) . 'assets/js/admin.js',
             array('jquery'),
-            '1.0.0',
+            '1.0.1',
             true
         );
-        
+
         // Localize script for AJAX
         wp_localize_script('service-categories-mar-admin', 'service_categories_mar_ajax', array(
             'ajax_url' => admin_url('admin-ajax.php'),
@@ -285,13 +309,36 @@ class Ruplin_Service_Categories_Mar_Admin {
             wp_send_json_error('Cannot edit primary key');
         }
         
+        // Special case: rel_featured_image_id — save integer or SQL NULL
+        if ($field === 'rel_featured_image_id') {
+            if ($value !== '' && $value !== null && intval($value) > 0) {
+                $result = $wpdb->update(
+                    $table_name,
+                    array('rel_featured_image_id' => intval($value)),
+                    array('category_id' => $id),
+                    array('%d'),
+                    array('%d')
+                );
+            } else {
+                // Write SQL NULL via raw query (wpdb->update cannot emit NULL)
+                $result = $wpdb->query(
+                    $wpdb->prepare("UPDATE $table_name SET rel_featured_image_id = NULL WHERE category_id = %d", $id)
+                );
+            }
+
+            if ($result === false) {
+                wp_send_json_error('Failed to update');
+            }
+            wp_send_json_success('Updated successfully');
+        }
+
         // Sanitize based on field type
         if (in_array($field, array('id', 'category_id', 'parent_id', 'display_order', 'is_active'))) {
             $value = intval($value);
         } else {
             $value = sanitize_text_field($value);
         }
-        
+
         $result = $wpdb->update(
             $table_name,
             array($field => $value),

@@ -26,10 +26,14 @@
             $(document).on('click', '.service-categories-table td.editable', this.startEdit);
             $(document).on('blur', '.service-categories-table td.editing input, .service-categories-table td.editing textarea', this.saveEdit);
             $(document).on('keypress', '.service-categories-table td.editing input', this.handleEnterKey);
-            
+
+            // Image picker
+            $(document).on('click', '.select-image-btn', ServiceCategoriesMAR.openMediaPicker);
+            $(document).on('click', '.clear-image-btn', ServiceCategoriesMAR.clearImage);
+
             // Create new row
             $(document).on('click', '#create-new-row', this.createNewRow);
-            
+
             // Delete row
             $(document).on('click', '.delete-row', this.deleteRow);
         },
@@ -268,6 +272,102 @@
             });
         },
         
+        /**
+         * Open WP native media library picker for rel_featured_image_id
+         */
+        openMediaPicker: function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $btn  = $(this);
+            var $cell = $btn.closest('td.image-picker-cell');
+            var $row  = $btn.closest('tr');
+
+            // Create a new frame each time so state is fresh
+            var mediaFrame = wp.media({
+                title:    'Select Featured Image',
+                button:   { text: 'Use this image' },
+                multiple: false,
+                library:  { type: 'image' }
+            });
+
+            mediaFrame.on('select', function() {
+                var attachment = mediaFrame.state().get('selection').first().toJSON();
+                var attachmentId = attachment.id;
+
+                // Best available thumbnail URL
+                var thumbUrl = (attachment.sizes && attachment.sizes.thumbnail)
+                    ? attachment.sizes.thumbnail.url
+                    : attachment.url;
+
+                // Update cell UI immediately
+                $cell.find('.image-preview').html(
+                    '<img src="' + thumbUrl + '" style="max-width:80px; max-height:60px; display:block;">'
+                );
+                $cell.find('.image-id-display').text('ID: ' + attachmentId);
+                $cell.find('.clear-image-btn').show();
+
+                // Persist to DB
+                ServiceCategoriesMAR.saveImageField($row.data('id'), attachmentId, $cell);
+            });
+
+            mediaFrame.open();
+        },
+
+        /**
+         * Clear rel_featured_image_id (set to NULL in DB)
+         */
+        clearImage: function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var $btn  = $(this);
+            var $cell = $btn.closest('td.image-picker-cell');
+            var $row  = $btn.closest('tr');
+
+            // Update UI immediately
+            $cell.find('.image-preview').empty();
+            $cell.find('.image-id-display').text('(none)');
+            $btn.hide();
+
+            // Persist NULL to DB
+            ServiceCategoriesMAR.saveImageField($row.data('id'), '', $cell);
+        },
+
+        /**
+         * Save image attachment ID to DB via existing AJAX handler
+         */
+        saveImageField: function(rowId, attachmentId, $cell) {
+            $cell.addClass('saving');
+
+            $.ajax({
+                url:  service_categories_mar_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'service_categories_mar_save_field',
+                    nonce:  service_categories_mar_ajax.nonce,
+                    id:     rowId,
+                    field:  'rel_featured_image_id',
+                    value:  attachmentId
+                },
+                success: function(response) {
+                    $cell.removeClass('saving');
+                    if (response.success) {
+                        $cell.addClass('success');
+                        setTimeout(function() { $cell.removeClass('success'); }, 1000);
+                    } else {
+                        $cell.addClass('error');
+                        setTimeout(function() { $cell.removeClass('error'); }, 1500);
+                        console.error('Image save failed:', response.data);
+                    }
+                },
+                error: function() {
+                    $cell.removeClass('saving').addClass('error');
+                    setTimeout(function() { $cell.removeClass('error'); }, 1500);
+                }
+            });
+        },
+
         /**
          * Escape HTML
          */
