@@ -96,11 +96,11 @@ if (isset($_GET['warbler_error'])) {
 
             <div class="warbler-checkbox-row">
                 <input type="checkbox" name="include_themes" id="inc_themes" value="1" checked>
-                <label for="inc_themes">Theme — <code>staircase</code></label>
+                <label for="inc_themes">Themes — all themes in <code>wp-content/themes/</code></label>
             </div>
             <div class="warbler-checkbox-row">
                 <input type="checkbox" name="include_plugins" id="inc_plugins" value="1" checked>
-                <label for="inc_plugins">Plugins — <code>ruplin, grove, axiom, aardvark</code></label>
+                <label for="inc_plugins">Plugins — all plugins in <code>wp-content/plugins/</code></label>
             </div>
             <div class="warbler-checkbox-row">
                 <input type="checkbox" name="include_uploads" id="inc_uploads" value="1" checked>

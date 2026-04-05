@@ -21,18 +21,16 @@ class Warbler_File_Collector {
         $content_dir = WP_CONTENT_DIR;
 
         if (!empty($options['include_themes'])) {
-            $theme_path = $content_dir . '/themes/staircase';
-            if (is_dir($theme_path)) {
-                self::add_dir($zip, $theme_path, 'files/themes/staircase');
+            $themes_dir = $content_dir . '/themes';
+            foreach (self::list_dirs($themes_dir) as $theme) {
+                self::add_dir($zip, $themes_dir . '/' . $theme, 'files/themes/' . $theme);
             }
         }
 
         if (!empty($options['include_plugins'])) {
-            foreach (['ruplin', 'grove', 'axiom', 'aardvark'] as $plugin) {
-                $plugin_path = $content_dir . '/plugins/' . $plugin;
-                if (is_dir($plugin_path)) {
-                    self::add_dir($zip, $plugin_path, 'files/plugins/' . $plugin);
-                }
+            $plugins_dir = $content_dir . '/plugins';
+            foreach (self::list_dirs($plugins_dir) as $plugin) {
+                self::add_dir($zip, $plugins_dir . '/' . $plugin, 'files/plugins/' . $plugin);
             }
         }
 
@@ -70,6 +68,18 @@ class Warbler_File_Collector {
                 $zip->addFile($abs_path, $zip_path);
             }
         }
+    }
+
+    private static function list_dirs($path) {
+        $dirs = [];
+        if (!is_dir($path)) return $dirs;
+        foreach (scandir($path) as $item) {
+            if ($item === '.' || $item === '..') continue;
+            if (is_dir($path . '/' . $item)) {
+                $dirs[] = $item;
+            }
+        }
+        return $dirs;
     }
 
     private static function should_skip($path) {
