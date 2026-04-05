@@ -218,6 +218,12 @@ class SnefuruPlugin {
         // Load Polyansk Service Categories Tiles Custom Page Section
         require_once SNEFURU_PLUGIN_PATH . 'custom-page-sections/polyansk-service-categories-tiles-custom-page-section/class-polyansk-service-categories-tiles.php';
 
+        // Load Ruplin Hub 3 MAR
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/ruplin-hub-3-mar/class-ruplin-hub-3-mar.php';
+
+        // Load Warbler Migrator (self-contained migration tool, child of Ruplin Hub 3)
+        require_once SNEFURU_PLUGIN_PATH . 'warbler-migrator/class-warbler-migrator.php';
+
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
