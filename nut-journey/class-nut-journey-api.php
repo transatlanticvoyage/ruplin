@@ -198,6 +198,10 @@ class Ruplin_Nut_Journey_API {
 
         $transformed_html = $this->transform_references_to_absolute( $html_content, $item->upload_path, $item->main_html_file );
 
+        // Auto-inject <link>/<script> tags for any CSS/JS found in assets/ when the HTML
+        // has none — handles body-content-only peanut files that omit the <head> section.
+        $transformed_html = $this->inject_missing_asset_refs( $transformed_html, $item->upload_path, $item->main_html_file, $base_path );
+
         $path_info    = pathinfo( $item->main_html_file );
         $new_filename = $path_info['dirname'] . '/' . $path_info['filename'] . '_hardcoded_refs.html';
         $new_filename = ltrim( str_replace( '//', '/', $new_filename ), '/' );
@@ -319,14 +323,17 @@ class Ruplin_Nut_Journey_API {
         $pylon_data = array(
             'cashew_html_expanse'            => wp_unslash( $sanitized_html ),
             'staircase_page_template_desired' => 'vibrantcashew',
-            'updated_at'                     => current_time( 'mysql' ),
         );
 
         if ( $pylon_exists ) {
-            $wpdb->update( $pylons_table, $pylon_data, array( 'rel_wp_post_id' => $post_id ) );
+            $result = $wpdb->update( $pylons_table, $pylon_data, array( 'rel_wp_post_id' => $post_id ) );
         } else {
             $pylon_data['rel_wp_post_id'] = $post_id;
-            $wpdb->insert( $pylons_table, $pylon_data );
+            $result = $wpdb->insert( $pylons_table, $pylon_data );
+        }
+
+        if ( $result === false ) {
+            return new WP_Error( 'pylon_write_failed', 'Failed to write to wp_pylons: ' . $wpdb->last_error, array( 'status' => 500 ) );
         }
 
         // ── Ensure wp_zen_orbitposts table exists ─────────────
@@ -369,6 +376,8 @@ class Ruplin_Nut_Journey_API {
     // =========================================================
 
     public function run_full_journey( WP_REST_Request $request ) {
+        global $wpdb;
+
         $folder_name = $request->get_param( 'folder_name' );
         $post_id     = intval( $request->get_param( 'post_id' ) );
         $log         = array();
@@ -420,13 +429,61 @@ class Ruplin_Nut_Journey_API {
         }
         $log[] = 'Phase 4 complete — deployed to post ' . $post_id . '.';
 
+        // ── Post-write DB verification ────────────────────────
+        $pylons_table = $wpdb->prefix . 'pylons';
+        $verification = $wpdb->get_row( $wpdb->prepare(
+            "SELECT LENGTH(cashew_html_expanse) AS html_len, staircase_page_template_desired FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            $post_id
+        ) );
+
+        $verified_html_len = $verification ? intval( $verification->html_len ) : 0;
+        $verified_template = $verification ? $verification->staircase_page_template_desired : '';
+
+        if ( $verified_html_len === 0 || $verified_template !== 'vibrantcashew' ) {
+            return new WP_Error(
+                'phase4_verification_failed',
+                sprintf(
+                    'Phase 4 wrote but DB verification failed. cashew_html_expanse length=%d, staircase_page_template_desired="%s". The wp_pylons row may have been wiped by a concurrent save.',
+                    $verified_html_len,
+                    $verified_template
+                ),
+                array( 'status' => 500 )
+            );
+        }
+
+        $log[] = sprintf( 'DB verified — cashew_html_expanse: %d bytes, template: "%s".', $verified_html_len, $verified_template );
+
+        // ── Generate completion URLs txt file in peanut folder ─
+        $cashew_editor_url = admin_url( 'admin.php?page=cashew_editor&post_id=' . $post_id );
+        $frontend_url      = get_permalink( $post_id );
+
+        $txt_filename  = $folder_name . '__full_nut_journey_completion_urls_1.txt';
+        $txt_file_path = self::PEANUT_SOURCE_BASE . $folder_name . '/' . $txt_filename;
+        $txt_contents  = $cashew_editor_url . "\n" . $frontend_url . "\n";
+
+        file_put_contents( $txt_file_path, $txt_contents );
+        $log[] = 'Completion URLs file written: ' . $txt_filename;
+
+        // ── Set header_desired = 'header2' ────────────────────
+        $wpdb->update(
+            $pylons_table,
+            array( 'header_desired' => 'header2' ),
+            array( 'rel_wp_post_id' => $post_id )
+        );
+        $log[] = 'header_desired set to "header2".';
+
         return rest_ensure_response( array(
-            'success'     => true,
-            'message'     => 'Full journey complete.',
-            'folder_name' => $folder_name,
-            'post_id'     => $post_id,
-            'item_id'     => $item_id,
-            'log'         => $log,
+            'success'              => true,
+            'message'              => 'Full journey complete.',
+            'folder_name'          => $folder_name,
+            'post_id'              => $post_id,
+            'item_id'              => $item_id,
+            'log'                  => $log,
+            'verified_html_bytes'  => $verified_html_len,
+            'verified_template'    => $verified_template,
+            'cashew_editor_url'    => $cashew_editor_url,
+            'frontend_url'         => $frontend_url,
+            'completion_urls_file' => $txt_filename,
         ) );
     }
 
@@ -528,6 +585,65 @@ class Ruplin_Nut_Journey_API {
     /**
      * Rewrite relative asset references in HTML to absolute hazelnut-holdings URLs.
      */
+    /**
+     * If the HTML has no <link rel="stylesheet"> or <script src> tags, scan the standard
+     * assets/css/ and assets/js/ folders and prepend the found files as hardcoded absolute
+     * <link> and <script> tags. This makes Phase 2 robust against body-content-only peanut
+     * files that omit the <head> section entirely.
+     */
+    private function inject_missing_asset_refs( $html, $upload_path, $main_html_file, $base_path ) {
+        $has_stylesheet = (bool) preg_match( '/<link[^>]+rel=["\']stylesheet["\'][^>]*>/i', $html );
+        $has_script     = (bool) preg_match( '/<script[^>]*src=["\'][^"\']+["\'][^>]*>/i', $html );
+
+        if ( $has_stylesheet && $has_script ) {
+            return $html; // Already has asset references — nothing to inject
+        }
+
+        $html_dir  = dirname( $main_html_file );
+        $html_dir  = ( $html_dir === '.' ) ? '' : rtrim( $html_dir, '/' ) . '/';
+        $disk_base = $base_path . $html_dir;                          // absolute path on disk
+        $url_base  = rtrim( $upload_path, '/' ) . '/' . $html_dir;   // root-relative URL prefix
+
+        $injected = '';
+
+        if ( ! $has_stylesheet ) {
+            $css_disk_dir = $disk_base . 'assets/css/';
+            if ( is_dir( $css_disk_dir ) ) {
+                // Stable order: styles.css first, responsive.css second, then any others
+                $all_css = glob( $css_disk_dir . '*.css' ) ?: array();
+                usort( $all_css, function ( $a, $b ) {
+                    $order = array( 'styles.css' => 0, 'responsive.css' => 1 );
+                    $ka    = $order[ basename( $a ) ] ?? 99;
+                    $kb    = $order[ basename( $b ) ] ?? 99;
+                    return $ka <=> $kb;
+                } );
+                foreach ( $all_css as $css_file ) {
+                    $url      = $url_base . 'assets/css/' . basename( $css_file );
+                    $url      = preg_replace( '#/+#', '/', $url );
+                    $injected .= '<link rel="stylesheet" href="' . $url . '">' . "\n";
+                }
+            }
+        }
+
+        if ( ! $has_script ) {
+            $js_disk_dir = $disk_base . 'assets/js/';
+            if ( is_dir( $js_disk_dir ) ) {
+                $all_js = glob( $js_disk_dir . '*.js' ) ?: array();
+                foreach ( $all_js as $js_file ) {
+                    $url      = $url_base . 'assets/js/' . basename( $js_file );
+                    $url      = preg_replace( '#/+#', '/', $url );
+                    $injected .= '<script src="' . $url . '"></script>' . "\n";
+                }
+            }
+        }
+
+        if ( ! empty( $injected ) ) {
+            $html = $injected . $html;
+        }
+
+        return $html;
+    }
+
     private function transform_references_to_absolute( $html, $upload_path, $main_html_file ) {
         $html_dir = dirname( $main_html_file );
         $html_dir = ( $html_dir === '.' ) ? '' : $html_dir . '/';

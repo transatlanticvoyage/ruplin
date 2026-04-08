@@ -56,7 +56,7 @@ class Silkweaver_Menu_System {
         ?>
         <script>
         (function() {
-            var isMobile = function() { return window.innerWidth <= 768; };
+            var isMobile = function() { return window.innerWidth <= 1024; };
 
             function setExpanded(btn, expanded) {
                 if (btn) btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');

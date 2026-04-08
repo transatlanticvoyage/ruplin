@@ -419,14 +419,12 @@ class Silkweaver_Menu_Renderer {
                 foreach ($child_pages as $page) {
                     $anchor = (!empty($page->moniker)) ? $page->moniker : $page->post_title;
                     $html  .= '<li>';
+                    $html  .= sprintf('<a href="%s">', esc_url(get_permalink($page->ID)));
                     $html  .= '<div class="silkweaver-robust-moniker-row">';
                     $html  .= '<span class="silkweaver-robust-moniker-bullet" aria-hidden="true"></span>';
-                    $html  .= sprintf(
-                        '<a href="%s">%s</a>',
-                        esc_url(get_permalink($page->ID)),
-                        esc_html($anchor)
-                    );
+                    $html  .= esc_html($anchor);
                     $html  .= '</div>';
+                    $html  .= '</a>';
                     $html  .= '</li>';
                 }
                 $html .= '</ul>';
@@ -488,8 +486,26 @@ class Silkweaver_Menu_Renderer {
         // Single tile containing all location pages
         $html .= sprintf('<div class="silkweaver-robust-tile" role="group" aria-labelledby="%s">', esc_attr($tile_label_id));
 
-        // Fixed-size image placeholder area (no image source for now)
-        $html .= '<div class="silkweaver-robust-tile-image" aria-hidden="true"></div>';
+        // Image area — uses the featured image ID stored in wp_options if set
+        $featured_image_id = Ruplin_Silkweaver_Robust_Locations_Child_Area_Settings_Admin::get_main_featured_image_id();
+        if ($featured_image_id > 0) {
+            $img_url = wp_get_attachment_image_url($featured_image_id, 'medium');
+            if ($img_url) {
+                $html .= '<div class="silkweaver-robust-tile-image">';
+                $html .= sprintf('<img src="%s" alt="" style="width:100%%;height:100%%;object-fit:cover;">', esc_url($img_url));
+                $html .= '</div>';
+            } else {
+                $html .= '<div class="silkweaver-robust-tile-image" aria-hidden="true"></div>';
+            }
+        } else {
+            $html .= '<div class="silkweaver-robust-tile-image" aria-hidden="true"></div>';
+        }
+
+        // Custom HTML snippet 1 — injected between image and tile-body when activated
+        if (Ruplin_Silkweaver_Robust_Locations_Child_Area_Settings_Admin::is_snippet_1_active()) {
+            $snippet_content = Ruplin_Silkweaver_Robust_Locations_Child_Area_Settings_Admin::get_snippet_1_content();
+            $html .= '<div class="silkweaver-robust-locations-custom-html-snippet-1">' . $snippet_content . '</div>';
+        }
 
         $html .= '<div class="silkweaver-robust-tile-body">';
         $html .= sprintf('<strong id="%s" class="silkweaver-robust-tile-name">Areas We Service:</strong>', esc_attr($tile_label_id));
@@ -507,14 +523,12 @@ class Silkweaver_Menu_Renderer {
             }
 
             $html .= '<li>';
+            $html .= sprintf('<a href="%s">', esc_url(get_permalink($page->ID)));
             $html .= '<div class="silkweaver-robust-moniker-row">';
             $html .= '<span class="silkweaver-robust-moniker-bullet" aria-hidden="true"></span>';
-            $html .= sprintf(
-                '<a href="%s">%s</a>',
-                esc_url(get_permalink($page->ID)),
-                esc_html($anchor)
-            );
+            $html .= esc_html($anchor);
             $html .= '</div>';
+            $html .= '</a>';
             $html .= '</li>';
         }
         $html .= '</ul>';

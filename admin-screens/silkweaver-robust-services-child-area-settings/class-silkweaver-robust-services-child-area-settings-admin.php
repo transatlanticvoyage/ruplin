@@ -82,6 +82,11 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
             'hint'    => 'underline | none',
         ),
         array(
+            'key'     => 'silkweaver_robust_services_child_area_servicepagepylons_moniker_every_bg_color_on_hover',
+            'default' => '#f0f0f0',
+            'adjunct' => 'color',
+        ),
+        array(
             'key'     => 'silkweaver_robust_services_child_area_servicepagepylons_moniker_bullet_yes_no',
             'default' => 'no',
             'adjunct' => 'text_hint',
@@ -113,6 +118,18 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
             'key'     => 'silkweaver_robust_services_child_area_servicepagepylons_moniker_oscillate_bg_color_bg_color_2',
             'default' => '#f5f5f5',
             'adjunct' => 'color',
+        ),
+        array(
+            'key'     => 'silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_top_and_bottom',
+            'default' => '4px',
+            'adjunct' => 'text_hint',
+            'hint'    => 'e.g. 8px or 8 (px auto-added)',
+        ),
+        array(
+            'key'     => 'silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_left_and_right',
+            'default' => '12px',
+            'adjunct' => 'text_hint',
+            'hint'    => 'e.g. 16px or 16 (px auto-added)',
         ),
     );
 
@@ -152,9 +169,16 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
         // Handle save
         $saved = false;
         if (isset($_POST['srsca_save']) && check_admin_referer('srsca_save_settings', 'srsca_nonce')) {
+            $css_dim_keys = array(
+                'silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_top_and_bottom',
+                'silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_left_and_right',
+            );
             foreach (self::$fields as $field) {
                 $key = $field['key'];
                 $val = isset($_POST[$key]) ? sanitize_text_field(wp_unslash($_POST[$key])) : '';
+                if (in_array($key, $css_dim_keys, true)) {
+                    $val = self::sanitize_css_dimension($val);
+                }
                 update_option($key, $val);
             }
             $saved = true;
@@ -267,6 +291,34 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
         })();
         </script>
         <?php
+    }
+
+    /**
+     * Validate and normalize a CSS dimension value.
+     * - Bare integers/decimals (e.g. "8", "1.5") auto-get "px" appended.
+     * - Spaces between number and unit are stripped (e.g. "8 px" → "8px").
+     * - Allowed units: px, em, rem, %, vh, vw.
+     * - Bare "0" is valid (unitless zero is legal in CSS).
+     * - Returns '' if the value is empty or cannot be made valid.
+     */
+    private static function sanitize_css_dimension($value) {
+        $v = trim($value);
+        if ($v === '') {
+            return '';
+        }
+        if ($v === '0') {
+            return '0';
+        }
+        // Strip any space between number and unit
+        $v = preg_replace('/^(\d+(?:\.\d+)?)\s*(px|em|rem|%|vh|vw)$/i', '$1$2', $v);
+        // Auto-append px for bare numbers
+        if (preg_match('/^\d+(\.\d+)?$/', $v)) {
+            $v = $v . 'px';
+        }
+        if (preg_match('/^\d+(\.\d+)?(px|em|rem|%|vh|vw)$/i', $v)) {
+            return strtolower($v);
+        }
+        return ''; // invalid — treat as unset
     }
 
     /**
@@ -385,6 +437,28 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
             if ($color2 !== '') {
                 $css .= ".silkweaver-robust-child-pages li:nth-child(even) .silkweaver-robust-moniker-row { background: " . esc_attr($color2) . " !important; }\n";
             }
+        }
+
+        // Hover bg color for the entire moniker row item.
+        // Uses li:hover .silkweaver-robust-moniker-row (specificity 0,3,2) placed after the oscillate rules
+        // (same specificity 0,3,2) so it wins by source order and overrides oscillate bg on hover.
+        // The <a> inside is set to transparent so the row bg shows through it cleanly.
+        $moniker_hover_bg = get_option('silkweaver_robust_services_child_area_servicepagepylons_moniker_every_bg_color_on_hover', '');
+        if ($moniker_hover_bg !== '') {
+            $css .= ".silkweaver-robust-child-pages li:hover .silkweaver-robust-moniker-row { background: " . esc_attr($moniker_hover_bg) . " !important; }\n";
+            $css .= ".silkweaver-robust-child-pages li:hover a { background: transparent !important; }\n";
+        }
+
+        // Moniker row padding — output as a single padding shorthand so it cleanly overrides
+        // the theme's own "padding: 4px 12px !important" shorthand (avoids longhand vs shorthand
+        // cascade ambiguity). Falls back to the theme default for whichever dimension isn't set.
+        // sanitize_css_dimension is run here too so stale/invalid DB values are never used.
+        $pad_tb = self::sanitize_css_dimension(get_option('silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_top_and_bottom', ''));
+        $pad_lr = self::sanitize_css_dimension(get_option('silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_left_and_right', ''));
+        if ($pad_tb !== '' || $pad_lr !== '') {
+            $tb = ($pad_tb !== '') ? esc_attr($pad_tb) : '4px';
+            $lr = ($pad_lr !== '') ? esc_attr($pad_lr) : '12px';
+            $css .= ".silkweaver-robust-moniker-row { padding: {$tb} {$lr} !important; }\n";
         }
 
         if ($css !== '') {
