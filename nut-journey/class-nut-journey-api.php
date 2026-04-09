@@ -354,7 +354,14 @@ class Ruplin_Nut_Journey_API {
             $post_id
         ) );
 
-        $orbit_data = array( 'ferret_header_code' => wp_unslash( $deps_html ) );
+        // Restore real newlines that may have been corrupted to literal 'n' characters
+        // by wp_unslash() stripping backslashes from JSON-encoded \n sequences during
+        // REST request handling. Without this fix, <link> tags injected into wp_head
+        // contain stray 'n' characters that cause the HTML5 parser to close <head>
+        // prematurely, dropping CSS into <body> where it is non-render-blocking.
+        $clean_deps_html = str_replace( '\n', "\n", wp_unslash( $deps_html ) );
+
+        $orbit_data = array( 'ferret_header_code' => $clean_deps_html );
 
         if ( $orbit_exists ) {
             $wpdb->update( $orbitposts_table, $orbit_data, array( 'rel_wp_post_id' => $post_id ) );
@@ -453,6 +460,29 @@ class Ruplin_Nut_Journey_API {
 
         $log[] = sprintf( 'DB verified — cashew_html_expanse: %d bytes, template: "%s".', $verified_html_len, $verified_template );
 
+        // ── Verify ferret_header_code has no literal-n corruption ─
+        $orbitposts_table    = $wpdb->prefix . 'zen_orbitposts';
+        $stored_ferret_code  = $wpdb->get_var( $wpdb->prepare(
+            "SELECT ferret_header_code FROM {$orbitposts_table} WHERE rel_wp_post_id = %d",
+            $post_id
+        ) );
+
+        // Detect literal 'n' between tags — sign of \n corruption
+        if ( ! empty( $stored_ferret_code ) && strpos( $stored_ferret_code, ">n<" ) !== false ) {
+            return new WP_Error(
+                'ferret_header_corrupted',
+                'Phase 4 wrote ferret_header_code but it contains literal "n" characters instead of newlines — CSS/JS deps will not load correctly. This indicates a wp_unslash \\n corruption. Check class-nut-journey-api.php phase4_deploy.',
+                array( 'status' => 500 )
+            );
+        }
+
+        $has_link_tag = ! empty( $stored_ferret_code ) && strpos( $stored_ferret_code, '<link' ) !== false;
+        $log[] = sprintf(
+            'Ferret header verified — %d bytes, has <link> tag: %s.',
+            strlen( $stored_ferret_code ?? '' ),
+            $has_link_tag ? 'yes' : 'no (no external CSS — check peanut assets folder)'
+        );
+
         // ── Generate completion URLs txt file in peanut folder ─
         $cashew_editor_url = admin_url( 'admin.php?page=cashew_editor&post_id=' . $post_id );
         $frontend_url      = get_permalink( $post_id );
@@ -473,17 +503,18 @@ class Ruplin_Nut_Journey_API {
         $log[] = 'header_desired set to "header2".';
 
         return rest_ensure_response( array(
-            'success'              => true,
-            'message'              => 'Full journey complete.',
-            'folder_name'          => $folder_name,
-            'post_id'              => $post_id,
-            'item_id'              => $item_id,
-            'log'                  => $log,
-            'verified_html_bytes'  => $verified_html_len,
-            'verified_template'    => $verified_template,
-            'cashew_editor_url'    => $cashew_editor_url,
-            'frontend_url'         => $frontend_url,
-            'completion_urls_file' => $txt_filename,
+            'success'                  => true,
+            'message'                  => 'Full journey complete.',
+            'folder_name'              => $folder_name,
+            'post_id'                  => $post_id,
+            'item_id'                  => $item_id,
+            'log'                      => $log,
+            'verified_html_bytes'      => $verified_html_len,
+            'verified_template'        => $verified_template,
+            'verified_ferret_has_link' => $has_link_tag,
+            'cashew_editor_url'        => $cashew_editor_url,
+            'frontend_url'             => $frontend_url,
+            'completion_urls_file'     => $txt_filename,
         ) );
     }
 
