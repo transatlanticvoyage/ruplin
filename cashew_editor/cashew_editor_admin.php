@@ -552,11 +552,10 @@ class CashewEditorAdmin {
                         <tr>
                             <td class="cashew-field-label"><b>expanse<?php echo $i; ?></b></td>
                             <td>
-                                <input type="text"
-                                       name="expanse<?php echo $i; ?>"
-                                       class="cashew-field-input"
-                                       value="<?php echo esc_attr($pylon_data['expanse' . $i] ?? ''); ?>"
-                                       placeholder="">
+                                <textarea name="expanse<?php echo $i; ?>"
+                                          class="cashew-field-input cashew-html-field"
+                                          rows="6"
+                                          placeholder="HTML content for expanse<?php echo $i; ?>..."><?php echo esc_textarea($pylon_data['expanse' . $i] ?? ''); ?></textarea>
                             </td>
                             <td class="cashew-adjunct-column"></td>
                         </tr>
@@ -964,7 +963,7 @@ class CashewEditorAdmin {
         );
 
         for ($i = 1; $i <= 10; $i++) {
-            $pylon_data['expanse' . $i] = sanitize_text_field($_POST['expanse' . $i] ?? '');
+            $pylon_data['expanse' . $i] = wp_unslash($_POST['expanse' . $i] ?? '');
         }
 
         for ($t = 1; $t <= 3; $t++) {

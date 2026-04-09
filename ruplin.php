@@ -138,6 +138,9 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-ruplin-wppma-database.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-zen-shortcodes.php';
         
+        // Load Trinket System (command registry for vibrantcashew template)
+        require_once SNEFURU_PLUGIN_PATH . 'trinket-system/TrinketCommands.php';
+
         // Load Condor API for Plasma Wizard Step 130 integration
         require_once SNEFURU_PLUGIN_PATH . 'condor/class-condor-api.php';
 

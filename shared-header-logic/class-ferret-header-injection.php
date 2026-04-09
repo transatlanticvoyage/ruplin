@@ -171,12 +171,6 @@ class Ruplin_Ferret_Header_Injection {
             }
         }
         
-        // Fallback to Ferret Snippets if available
-        if (class_exists('Ferret_Snippets')) {
-            $ferret = Ferret_Snippets::get_instance();
-            return $ferret->get_footer_code();
-        }
-        
         // Final fallback to option
         return get_option('ferret_footer_code', '');
     }
