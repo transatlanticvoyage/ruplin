@@ -821,6 +821,25 @@ class SnefuruPlugin {
             nectar_blog_feed_rules TEXT DEFAULT NULL,
             rel_service_category_id BIGINT DEFAULT NULL,
             show_polyansk_custom_page_section BOOLEAN DEFAULT FALSE,
+            expanse1 TEXT DEFAULT NULL,
+            expanse2 TEXT DEFAULT NULL,
+            expanse3 TEXT DEFAULT NULL,
+            expanse4 TEXT DEFAULT NULL,
+            expanse5 TEXT DEFAULT NULL,
+            expanse6 TEXT DEFAULT NULL,
+            expanse7 TEXT DEFAULT NULL,
+            expanse8 TEXT DEFAULT NULL,
+            expanse9 TEXT DEFAULT NULL,
+            expanse10 TEXT DEFAULT NULL,
+            trinket1include BOOLEAN DEFAULT FALSE,
+            trinket1position INT DEFAULT NULL,
+            trinket1command TEXT DEFAULT NULL,
+            trinket2include BOOLEAN DEFAULT FALSE,
+            trinket2position INT DEFAULT NULL,
+            trinket2command TEXT DEFAULT NULL,
+            trinket3include BOOLEAN DEFAULT FALSE,
+            trinket3position INT DEFAULT NULL,
+            trinket3command TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (pylon_id),
             KEY rel_wp_post_id (rel_wp_post_id),
@@ -1581,7 +1600,46 @@ class SnefuruPlugin {
             // Update migration version
             update_option('snefuru_pylons_migration_version', '2.7.0');
         }
-        
+
+        // Migration for version 2.8.0 - Add expanse columns to pylons
+        if (version_compare($current_migration, '2.8.0', '<')) {
+            $expanse_columns = array(
+                'expanse1', 'expanse2', 'expanse3', 'expanse4', 'expanse5',
+                'expanse6', 'expanse7', 'expanse8', 'expanse9', 'expanse10'
+            );
+            foreach ($expanse_columns as $col) {
+                $col_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE '$col'");
+                if (empty($col_exists)) {
+                    $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN $col TEXT DEFAULT NULL");
+                    error_log("Snefuru: Added $col column to pylons table");
+                }
+            }
+            update_option('snefuru_pylons_migration_version', '2.8.0');
+        }
+
+        // Migration for version 2.9.0 - Add trinket columns to pylons
+        if (version_compare($current_migration, '2.9.0', '<')) {
+            $trinket_columns = array(
+                'trinket1include' => 'BOOLEAN DEFAULT FALSE',
+                'trinket1position' => 'INT DEFAULT NULL',
+                'trinket1command' => 'TEXT DEFAULT NULL',
+                'trinket2include' => 'BOOLEAN DEFAULT FALSE',
+                'trinket2position' => 'INT DEFAULT NULL',
+                'trinket2command' => 'TEXT DEFAULT NULL',
+                'trinket3include' => 'BOOLEAN DEFAULT FALSE',
+                'trinket3position' => 'INT DEFAULT NULL',
+                'trinket3command' => 'TEXT DEFAULT NULL',
+            );
+            foreach ($trinket_columns as $col => $definition) {
+                $col_exists = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE '$col'");
+                if (empty($col_exists)) {
+                    $wpdb->query("ALTER TABLE $pylons_table ADD COLUMN $col $definition");
+                    error_log("Snefuru: Added $col column to pylons table");
+                }
+            }
+            update_option('snefuru_pylons_migration_version', '2.9.0');
+        }
+
         // Add avg_rating_box_hide column if it doesn't exist (rating column removed - now using sitespren)
         $column_exists_hide = $wpdb->get_results("SHOW COLUMNS FROM $pylons_table LIKE 'avg_rating_box_hide'");
         if (empty($column_exists_hide)) {

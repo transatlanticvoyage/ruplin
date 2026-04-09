@@ -544,6 +544,66 @@ class CashewEditorAdmin {
                             </td>
                         </tr>
                         
+                        <!-- Expanse Fields Separator -->
+                        <tr>
+                            <td colspan="3" style="padding: 0;"><div style="border-top: 2px solid #000;"></div></td>
+                        </tr>
+                        <?php for ($i = 1; $i <= 10; $i++): ?>
+                        <tr>
+                            <td class="cashew-field-label"><b>expanse<?php echo $i; ?></b></td>
+                            <td>
+                                <input type="text"
+                                       name="expanse<?php echo $i; ?>"
+                                       class="cashew-field-input"
+                                       value="<?php echo esc_attr($pylon_data['expanse' . $i] ?? ''); ?>"
+                                       placeholder="">
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <?php endfor; ?>
+                        <!-- Trinket Fields Separator -->
+                        <tr>
+                            <td colspan="3" style="padding: 0;"><div style="border-top: 2px solid #000;"></div></td>
+                        </tr>
+                        <?php for ($t = 1; $t <= 3; $t++): ?>
+                        <tr>
+                            <td class="cashew-field-label"><b>trinket<?php echo $t; ?>include</b></td>
+                            <td>
+                                <input type="checkbox"
+                                       name="trinket<?php echo $t; ?>include"
+                                       value="1"
+                                       <?php checked(!empty($pylon_data['trinket' . $t . 'include'])); ?>>
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label"><b>trinket<?php echo $t; ?>position</b></td>
+                            <td>
+                                <input type="number"
+                                       name="trinket<?php echo $t; ?>position"
+                                       class="cashew-field-input"
+                                       value="<?php echo esc_attr($pylon_data['trinket' . $t . 'position'] ?? ''); ?>"
+                                       placeholder="0"
+                                       min="0">
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <tr>
+                            <td class="cashew-field-label"><b>trinket<?php echo $t; ?>command</b></td>
+                            <td>
+                                <input type="text"
+                                       name="trinket<?php echo $t; ?>command"
+                                       class="cashew-field-input"
+                                       value="<?php echo esc_attr($pylon_data['trinket' . $t . 'command'] ?? ''); ?>"
+                                       placeholder="">
+                            </td>
+                            <td class="cashew-adjunct-column"></td>
+                        </tr>
+                        <?php endfor; ?>
+                        <tr>
+                            <td colspan="3" style="padding: 0;"><div style="border-top: 2px solid #000;"></div></td>
+                        </tr>
+
                         <!-- Ferret Code Fields from wp_zen_orbitposts -->
                         <tr>
                             <td class="cashew-field-label"><b>wp_zen_orbitposts.ferret_header_code</b></td>
@@ -841,7 +901,7 @@ class CashewEditorAdmin {
         $pylons_table = $wpdb->prefix . 'pylons';
         
         $pylon_data = $wpdb->get_row($wpdb->prepare(
-            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired, show_polyansk_custom_page_section FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired, show_polyansk_custom_page_section, expanse1, expanse2, expanse3, expanse4, expanse5, expanse6, expanse7, expanse8, expanse9, expanse10, trinket1include, trinket1position, trinket1command, trinket2include, trinket2position, trinket2command, trinket3include, trinket3position, trinket3command FROM {$pylons_table} WHERE rel_wp_post_id = %d",
             $post_id
         ), ARRAY_A);
         
@@ -903,22 +963,50 @@ class CashewEditorAdmin {
             'show_polyansk_custom_page_section' => intval($_POST['show_polyansk_custom_page_section'] ?? 0)
         );
 
+        for ($i = 1; $i <= 10; $i++) {
+            $pylon_data['expanse' . $i] = sanitize_text_field($_POST['expanse' . $i] ?? '');
+        }
+
+        for ($t = 1; $t <= 3; $t++) {
+            $pylon_data['trinket' . $t . 'include'] = isset($_POST['trinket' . $t . 'include']) ? 1 : 0;
+            $pylon_data['trinket' . $t . 'position'] = isset($_POST['trinket' . $t . 'position']) && $_POST['trinket' . $t . 'position'] !== '' ? intval($_POST['trinket' . $t . 'position']) : null;
+            $pylon_data['trinket' . $t . 'command'] = sanitize_text_field($_POST['trinket' . $t . 'command'] ?? '');
+        }
+
         if ($exists) {
             // Update existing record
+            $format = array_fill(0, 9, '%s');  // 9 text fields
+            $format[] = '%d';                   // show_polyansk
+            $format = array_merge($format, array_fill(0, 10, '%s')); // 10 expanse fields
+            // 3 trinkets x 3 fields each: include(%d), position(%d), command(%s)
+            for ($t = 0; $t < 3; $t++) {
+                $format[] = '%d'; // include
+                $format[] = '%d'; // position
+                $format[] = '%s'; // command
+            }
             $wpdb->update(
                 $pylons_table,
                 $pylon_data,
                 array('rel_wp_post_id' => $post_id),
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d'), // 9 text fields + 1 integer (show_polyansk)
+                $format,
                 array('%d')
             );
         } else {
             // Insert new record
             $pylon_data['rel_wp_post_id'] = $post_id;
+            $format = array_fill(0, 9, '%s');  // 9 text fields
+            $format[] = '%d';                   // show_polyansk
+            $format = array_merge($format, array_fill(0, 10, '%s')); // 10 expanse fields
+            for ($t = 0; $t < 3; $t++) {
+                $format[] = '%d'; // include
+                $format[] = '%d'; // position
+                $format[] = '%s'; // command
+            }
+            $format[] = '%d';                   // rel_wp_post_id
             $wpdb->insert(
                 $pylons_table,
                 $pylon_data,
-                array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d') // 9 text fields + 1 integer (show_polyansk) + 1 integer (rel_wp_post_id)
+                $format
             );
         }
         

@@ -81,11 +81,16 @@ class Ruplin_Ferret_Header_Injection {
      */
     private function get_ferret_header_code() {
         global $wpdb;
-        
+
         // Try to get from orbitposts table first
         $table_name = $wpdb->prefix . 'zen_orbitposts';
         if ($this->table_exists($table_name)) {
-            $result = $wpdb->get_var("SELECT ferret_header_code FROM {$table_name} LIMIT 1");
+            $post_id = $this->get_current_post_id();
+            if ($post_id) {
+                $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_header_code FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
+            } else {
+                $result = $wpdb->get_var("SELECT ferret_header_code FROM {$table_name} LIMIT 1");
+            }
             if (!empty($result)) {
                 return $result;
             }
@@ -127,11 +132,16 @@ class Ruplin_Ferret_Header_Injection {
      */
     private function get_ferret_header_code_2() {
         global $wpdb;
-        
+
         // Try to get from orbitposts table first
         $table_name = $wpdb->prefix . 'zen_orbitposts';
         if ($this->table_exists($table_name)) {
-            $result = $wpdb->get_var("SELECT ferret_header_code_2 FROM {$table_name} LIMIT 1");
+            $post_id = $this->get_current_post_id();
+            if ($post_id) {
+                $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_header_code_2 FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
+            } else {
+                $result = $wpdb->get_var("SELECT ferret_header_code_2 FROM {$table_name} LIMIT 1");
+            }
             if (!empty($result)) {
                 return $result;
             }
@@ -146,11 +156,16 @@ class Ruplin_Ferret_Header_Injection {
      */
     private function get_ferret_footer_code() {
         global $wpdb;
-        
+
         // Try to get from orbitposts table first
         $table_name = $wpdb->prefix . 'zen_orbitposts';
         if ($this->table_exists($table_name)) {
-            $result = $wpdb->get_var("SELECT ferret_footer_code FROM {$table_name} LIMIT 1");
+            $post_id = $this->get_current_post_id();
+            if ($post_id) {
+                $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_footer_code FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
+            } else {
+                $result = $wpdb->get_var("SELECT ferret_footer_code FROM {$table_name} LIMIT 1");
+            }
             if (!empty($result)) {
                 return $result;
             }
@@ -158,7 +173,7 @@ class Ruplin_Ferret_Header_Injection {
         
         // Fallback to Ferret Snippets if available
         if (class_exists('Ferret_Snippets')) {
-            $ferret = new Ferret_Snippets();
+            $ferret = Ferret_Snippets::get_instance();
             return $ferret->get_footer_code();
         }
         
@@ -188,10 +203,15 @@ class Ruplin_Ferret_Header_Injection {
      */
     private function get_ferret_inline_css() {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'zen_orbitposts';
         if ($this->table_exists($table_name)) {
-            $result = $wpdb->get_var("SELECT ferret_inline_css FROM {$table_name} LIMIT 1");
+            $post_id = $this->get_current_post_id();
+            if ($post_id) {
+                $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_inline_css FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
+            } else {
+                $result = $wpdb->get_var("SELECT ferret_inline_css FROM {$table_name} LIMIT 1");
+            }
             if (!empty($result)) {
                 return $result;
             }
@@ -205,10 +225,15 @@ class Ruplin_Ferret_Header_Injection {
      */
     private function get_ferret_inline_js() {
         global $wpdb;
-        
+
         $table_name = $wpdb->prefix . 'zen_orbitposts';
         if ($this->table_exists($table_name)) {
-            $result = $wpdb->get_var("SELECT ferret_inline_js FROM {$table_name} LIMIT 1");
+            $post_id = $this->get_current_post_id();
+            if ($post_id) {
+                $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_inline_js FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
+            } else {
+                $result = $wpdb->get_var("SELECT ferret_inline_js FROM {$table_name} LIMIT 1");
+            }
             if (!empty($result)) {
                 return $result;
             }
@@ -322,6 +347,15 @@ class Ruplin_Ferret_Header_Injection {
         return get_option('ferret_' . $header_type . '_code', '');
     }
     
+    /**
+     * Get the current WordPress post ID for per-page ferret code lookups.
+     * Returns 0 if the current context has no singular post (archives, 404, etc.).
+     */
+    private function get_current_post_id() {
+        $id = get_queried_object_id();
+        return absint($id);
+    }
+
     /**
      * Check if table exists
      */

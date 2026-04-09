@@ -131,6 +131,30 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
             'adjunct' => 'text_hint',
             'hint'    => 'e.g. 16px or 16 (px auto-added)',
         ),
+        array(
+            'key'              => 'silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_activated',
+            'default'          => 'false',
+            'adjunct'          => 'text_hint',
+            'hint'             => 'true | false',
+            'separator_before' => true,
+        ),
+        array(
+            'key'     => 'silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_color',
+            'default' => '#000000',
+            'adjunct' => 'color',
+        ),
+        array(
+            'key'     => 'silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_px',
+            'default' => '1px',
+            'adjunct' => 'text_hint',
+            'hint'    => 'e.g. 2 or 2px (px auto-added)',
+        ),
+        array(
+            'key'     => 'silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_kind',
+            'default' => 'solid',
+            'adjunct' => 'text_hint',
+            'hint'    => 'e.g. solid | dashed | dotted',
+        ),
     );
 
     public static function get_instance() {
@@ -172,12 +196,18 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
             $css_dim_keys = array(
                 'silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_top_and_bottom',
                 'silkweaver_robust_services_child_area_servicepagepylons_moniker_row_padding_left_and_right',
+                'silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_px',
             );
             foreach (self::$fields as $field) {
                 $key = $field['key'];
                 $val = isset($_POST[$key]) ? sanitize_text_field(wp_unslash($_POST[$key])) : '';
                 if (in_array($key, $css_dim_keys, true)) {
                     $val = self::sanitize_css_dimension($val);
+                } elseif ($field['adjunct'] === 'color' && $val !== '') {
+                    // Normalize color: prepend # if user typed bare hex (e.g. "bdbdbd" → "#bdbdbd")
+                    if ($val[0] !== '#' && preg_match('/^[0-9a-fA-F]{3,6}$/', $val)) {
+                        $val = '#' . $val;
+                    }
                 }
                 update_option($key, $val);
             }
@@ -225,6 +255,9 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
                             $current  = $values[$key];
                             $bg       = ($i % 2 === 0) ? '#fff' : '#f9f9f9';
                         ?>
+                        <?php if (!empty($field['separator_before'])): ?>
+                        <tr><td colspan="3" style="padding:0;border-left:1px solid #ccd0d4;border-right:1px solid #ccd0d4;border-top:none;border-bottom:none;"><div style="border-top:2px solid #000;margin:0;"></div></td></tr>
+                        <?php endif; ?>
                         <tr style="background:<?php echo $bg; ?>;">
                             <td style="padding:10px 14px;border:1px solid #ccd0d4;font-weight:700;font-size:12px;word-break:break-all;">
                                 <?php echo esc_html($key); ?>
@@ -459,6 +492,25 @@ class Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin {
             $tb = ($pad_tb !== '') ? esc_attr($pad_tb) : '4px';
             $lr = ($pad_lr !== '') ? esc_attr($pad_lr) : '12px';
             $css .= ".silkweaver-robust-moniker-row { padding: {$tb} {$lr} !important; }\n";
+        }
+
+        // Top and bottom borders on the ul child pages list (applies to both services and locations
+        // since both render with class .silkweaver-robust-child-pages).
+        $ul_borders_on = get_option('silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_activated', '');
+        if ($ul_borders_on === 'true') {
+            $ul_border_color = get_option('silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_color', '');
+            $ul_border_px    = self::sanitize_css_dimension(get_option('silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_px', ''));
+            $ul_border_kind  = sanitize_text_field(get_option('silkweaver_robust_services_child_area_main_ul_top_and_bottom_borders_kind', ''));
+            // Normalize color: prepend # if stored as bare hex (e.g. "bdbdbd" → "#bdbdbd")
+            if ($ul_border_color !== '' && $ul_border_color[0] !== '#' && preg_match('/^[0-9a-fA-F]{3,6}$/', $ul_border_color)) {
+                $ul_border_color = '#' . $ul_border_color;
+            }
+            // Apply defaults for any empty sub-field
+            if ($ul_border_color === '') $ul_border_color = '#000000';
+            if ($ul_border_px    === '') $ul_border_px    = '1px';
+            if ($ul_border_kind  === '') $ul_border_kind  = 'solid';
+            $border_val = esc_attr($ul_border_px) . ' ' . esc_attr($ul_border_kind) . ' ' . esc_attr($ul_border_color);
+            $css .= ".silkweaver-robust-child-pages { border-top: {$border_val} !important; border-bottom: {$border_val} !important; }\n";
         }
 
         if ($css !== '') {
