@@ -26,7 +26,7 @@ class Ruplin_Jezel_Navigation {
             'post_id' => null,
             'show_frontend' => false,
             'custom_buttons' => array(),
-            'position_left' => '180px',
+            'position_left' => '170px',
             'position_top' => '120px'
         );
         
@@ -244,13 +244,13 @@ class Ruplin_Jezel_Navigation {
             
             /* Adjust for collapsed admin menu */
             body.folded .jezel-nav-container {
-                left: 56px;
+                left: 46px;
             }
-            
+
             /* Hide on mobile where admin menu is hidden */
             @media screen and (max-width: 782px) {
                 .jezel-nav-container {
-                    display: none;
+                    left: 10px;
                 }
             }
         </style>

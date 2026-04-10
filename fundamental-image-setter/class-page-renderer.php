@@ -778,7 +778,7 @@ class Ruplin_Fundamental_Image_Setter_Page_Renderer {
         /* Jezel Navigation Styles */
         .jezel-nav-container {
             position: fixed;
-            left: 180px;
+            left: 170px;
             top: 120px;
             z-index: 9999;
             display: flex;
@@ -828,13 +828,13 @@ class Ruplin_Fundamental_Image_Setter_Page_Renderer {
         
         /* Adjust for collapsed admin menu */
         body.folded .jezel-nav-container {
-            left: 56px;
+            left: 46px;
         }
-        
+
         /* Hide on mobile where admin menu is hidden */
         @media screen and (max-width: 782px) {
             .jezel-nav-container {
-                display: none;
+                left: 10px;
             }
         }
         </style>

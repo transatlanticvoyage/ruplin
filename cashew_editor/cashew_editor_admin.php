@@ -102,10 +102,20 @@ class CashewEditorAdmin {
                 /* Jezel Buttons - Copied from telescope page */
                 .jezel-frontend-container {
                     position: fixed;
-                    left: 20px;
+                    left: 170px;
                     top: 50%;
                     transform: translateY(-50%);
                     z-index: 999999;
+                }
+
+                body.folded .jezel-frontend-container {
+                    left: 46px;
+                }
+
+                @media screen and (max-width: 782px) {
+                    .jezel-frontend-container {
+                        left: 10px;
+                    }
                 }
 
                 .jezel-buttons-wrapper {

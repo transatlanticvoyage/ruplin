@@ -49,7 +49,7 @@ class Ruplin_Plasma_Import_Mar {
             <?php
             // Render Jezel Navigation
             Ruplin_Jezel_Navigation::render(array(
-                'position_left' => '180px',
+                'position_left' => '170px',
                 'position_top' => '120px'
             ));
             ?>
