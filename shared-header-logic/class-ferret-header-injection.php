@@ -34,9 +34,19 @@ class Ruplin_Ferret_Header_Injection {
      * Initialize WordPress hooks
      */
     private function init_hooks() {
-        add_action('wp_head', array($this, 'inject_header_code'), 1);
-        add_action('wp_head', array($this, 'inject_header_code_2'), 2);
-        add_action('wp_footer', array($this, 'inject_footer_code'), 99);
+        // DISABLED 2026-04-10 — these three hooks caused duplicate frontend output.
+        // class-ferret-snippets-frontend.php (Ferret_Snippets_Frontend) is now the
+        // sole authoritative system for injecting ferret_header_code, ferret_header_code_2,
+        // and ferret_footer_code on singular frontend pages.
+        // See: ruplin/shared-header-logic/README_FERRET_INJECTION_DEPRECATION.md
+        // DO NOT re-enable without first disabling the equivalent hooks in
+        // ruplin/includes/ferret-snippets/class-ferret-snippets-frontend.php
+        // add_action('wp_head', array($this, 'inject_header_code'), 1);
+        // add_action('wp_head', array($this, 'inject_header_code_2'), 2);
+        // add_action('wp_footer', array($this, 'inject_footer_code'), 99);
+
+        // enqueue_ferret_assets stays active — it handles ferret_inline_css and
+        // ferret_inline_js columns which Ferret_Snippets_Frontend does NOT cover.
         add_action('wp_enqueue_scripts', array($this, 'enqueue_ferret_assets'));
     }
     
