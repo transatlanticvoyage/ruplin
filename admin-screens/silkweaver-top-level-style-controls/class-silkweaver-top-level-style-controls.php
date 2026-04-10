@@ -38,9 +38,9 @@ class Ruplin_Silkweaver_Top_Level_Style_Controls {
 
     public function add_admin_menu() {
         add_submenu_page(
-            'ruplin_hub_2_mar',
+            'ruplin_hub_3_mar',
             'Silkweaver Top Level Style Controls',
-            'Silkweaver Style Controls',
+            'Silkweaver Top Level Styling Contorls',
             'manage_options',
             'silkweaver_top_level_style_controls',
             array($this, 'render_admin_page')
@@ -48,7 +48,7 @@ class Ruplin_Silkweaver_Top_Level_Style_Controls {
     }
 
     public function enqueue_admin_assets($hook) {
-        if ($hook !== 'ruplin-hub-2_page_silkweaver_top_level_style_controls') {
+        if ($hook !== 'ruplin-hub-3_page_silkweaver_top_level_style_controls') {
             return;
         }
     }
@@ -209,15 +209,15 @@ class Ruplin_Silkweaver_Top_Level_Style_Controls {
         add_action('admin_head', function() {
             ?>
             <style>
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .notice,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .notice-error,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .notice-warning,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .notice-success,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .notice-info,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .error,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .updated,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls .update-nag,
-                body.ruplin-hub-2_page_silkweaver_top_level_style_controls #message {
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .notice,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .notice-error,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .notice-warning,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .notice-success,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .notice-info,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .error,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .updated,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls .update-nag,
+                body.ruplin-hub-3_page_silkweaver_top_level_style_controls #message {
                     display: none !important;
                 }
             </style>
