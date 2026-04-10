@@ -210,6 +210,9 @@ class SnefuruPlugin {
         // Load Service Category Assigner Mar Admin Page
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/service-category-assigner-mar/class-service-category-assigner-mar.php';
         
+        // Load Silkweaver Top Level Style Controls
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/silkweaver-top-level-style-controls/class-silkweaver-top-level-style-controls.php';
+
         // Load Ruplin Admin Screens Searcher
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/ruplin-admin-screens-searcher/class-ruplin-admin-screens-searcher.php';
         

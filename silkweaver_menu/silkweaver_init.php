@@ -44,6 +44,9 @@ class Silkweaver_Menu_System {
 
         // Output user-defined CSS overrides for robust services child area
         add_action('wp_head', array('Ruplin_Silkweaver_Robust_Services_Child_Area_Settings_Admin', 'output_frontend_css'), 99);
+
+        // Output user-defined CSS overrides for top-level silkweaver nav styling
+        add_action('wp_head', array('Ruplin_Silkweaver_Top_Level_Style_Controls', 'output_frontend_css'), 100);
     }
 
     /**
