@@ -134,9 +134,11 @@ class Silkweaver_Menu_System {
                 });
 
                 // ── Mobile: tap/click toggle ────────────────────────────────
+                // Skip if inside header2 — header2's own JS handles mobile accordion
                 if (btn) {
                     btn.addEventListener('click', function(e) {
                         if (!isMobile()) return;
+                        if (dropdown.closest('.zx_hd2_header')) return;
                         e.preventDefault();
                         var wasOpen = dropdown.classList.contains('is-open');
                         closeAllRobust();
