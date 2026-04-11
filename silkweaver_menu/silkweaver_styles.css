@@ -31,7 +31,8 @@
 }
 
 .silkweaver-robust-dropdown:hover .silkweaver-robust-child-area,
-.silkweaver-robust-dropdown:focus-within .silkweaver-robust-child-area {
+.silkweaver-robust-dropdown:focus-within .silkweaver-robust-child-area,
+.silkweaver-robust-dropdown.is-open .silkweaver-robust-child-area {
     display: block;
 }
 
