@@ -257,7 +257,10 @@ class SnefuruPlugin {
         require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/class-loon-ajax.php';
         require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/loon-admin-page.php';
         require_once SNEFURU_PLUGIN_PATH . 'loon-static-site-generator/class-loon-admin.php';
-        
+
+        // Load AI1WM Backup Renamer
+        require_once SNEFURU_PLUGIN_PATH . 'ai1wm-backup-renamer/class-ai1wm-backup-renamer.php';
+
         // DEBUG: Disabled - VectorNode debug output
         // if (file_exists(WP_CONTENT_DIR . '/vectornode-debug.php')) {
         //     require_once WP_CONTENT_DIR . '/vectornode-debug.php';
