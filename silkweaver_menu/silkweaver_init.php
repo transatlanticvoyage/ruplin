@@ -67,8 +67,8 @@ class Silkweaver_Menu_System {
 
             function centerRobustPanels() {
                 if (isMobile()) return; // static positioning on mobile — no centering needed
-                document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dropdown) {
-                    var panel = dropdown.querySelector('.silkweaver-robust-child-area');
+                document.querySelectorAll('.silkweaver-robust-dropdown, .silkweaver-elegant-dropdown').forEach(function(dropdown) {
+                    var panel = dropdown.querySelector('.silkweaver-robust-child-area, .silkweaver-elegant-child-area');
                     if (!panel) return;
                     var dropdownRect = dropdown.getBoundingClientRect();
                     var panelWidth   = panel.offsetWidth;
@@ -79,13 +79,13 @@ class Silkweaver_Menu_System {
             }
 
             function closeAllRobust() {
-                document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dd) {
+                document.querySelectorAll('.silkweaver-robust-dropdown, .silkweaver-elegant-dropdown').forEach(function(dd) {
                     dd.classList.remove('is-open');
                     setExpanded(dd.querySelector('.silkweaver-parent-button'), false);
                 });
             }
 
-            document.querySelectorAll('.silkweaver-robust-dropdown').forEach(function(dropdown) {
+            document.querySelectorAll('.silkweaver-robust-dropdown, .silkweaver-elegant-dropdown').forEach(function(dropdown) {
                 var btn = dropdown.querySelector('.silkweaver-parent-button');
 
                 // ── Desktop: hover ──────────────────────────────────────────
@@ -152,7 +152,7 @@ class Silkweaver_Menu_System {
 
             // Close robust panels when clicking outside
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('.silkweaver-robust-dropdown')) {
+                if (!e.target.closest('.silkweaver-robust-dropdown, .silkweaver-elegant-dropdown')) {
                     closeAllRobust();
                 }
             });

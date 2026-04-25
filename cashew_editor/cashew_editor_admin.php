@@ -411,6 +411,7 @@ class CashewEditorAdmin {
                                 <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="cherry">cherry</button>
                                 <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="vibrantcashew">vibrantcashew</button>
                                 <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="bilberry">bilberry</button>
+                                <button type="button" class="pill-btn" data-target="staircase_page_template_desired" data-value="galleryberry">galleryberry</button>
                             </td>
                         </tr>
                         <tr>
@@ -910,7 +911,7 @@ class CashewEditorAdmin {
         $pylons_table = $wpdb->prefix . 'pylons';
         
         $pylon_data = $wpdb->get_row($wpdb->prepare(
-            "SELECT pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired, show_polyansk_custom_page_section, expanse1, expanse2, expanse3, expanse4, expanse5, expanse6, expanse7, expanse8, expanse9, expanse10, trinket1include, trinket1position, trinket1command, trinket2include, trinket2position, trinket2command, trinket3include, trinket3position, trinket3command FROM {$pylons_table} WHERE rel_wp_post_id = %d",
+            "SELECT moniker, pylon_archetype, cashew_html_expanse, staircase_page_template_desired, expanse_width, header_desired, footer_desired, sidebar_desired, anteheader_desired, show_polyansk_custom_page_section, expanse1, expanse2, expanse3, expanse4, expanse5, expanse6, expanse7, expanse8, expanse9, expanse10, trinket1include, trinket1position, trinket1command, trinket2include, trinket2position, trinket2command, trinket3include, trinket3position, trinket3command FROM {$pylons_table} WHERE rel_wp_post_id = %d",
             $post_id
         ), ARRAY_A);
         

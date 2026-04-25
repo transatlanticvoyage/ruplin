@@ -23,15 +23,33 @@ class Ruplin_Work_Projects_Mar_Page {
      */
     public function __construct() {
         add_action('admin_menu', array($this, 'add_admin_menu'), 20);
-        
+
         // Aggressive notice suppression
         add_action('admin_init', array($this, 'early_notice_suppression'));
         add_action('current_screen', array($this, 'check_and_suppress_notices'));
-        
+
         // AJAX handlers for inline editing
         add_action('wp_ajax_work_projects_mar_update', array($this, 'ajax_update_field'));
         add_action('wp_ajax_work_projects_mar_create', array($this, 'ajax_create_record'));
         add_action('wp_ajax_work_projects_mar_delete', array($this, 'ajax_delete_record'));
+
+        // AJAX handlers for image attachments
+        add_action('wp_ajax_work_projects_mar_attach_images', array($this, 'ajax_attach_images'));
+        add_action('wp_ajax_work_projects_mar_detach_image', array($this, 'ajax_detach_image'));
+        add_action('wp_ajax_work_projects_mar_clear_images', array($this, 'ajax_clear_images'));
+        add_action('wp_ajax_work_projects_mar_list_images', array($this, 'ajax_list_images'));
+
+        // Load WP media library assets on this admin page
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_media_library'));
+    }
+
+    /**
+     * Enqueue WP media library on the work_projects_mar screen only
+     */
+    public function enqueue_media_library($hook_suffix) {
+        if (isset($_GET['page']) && $_GET['page'] === 'work_projects_mar') {
+            wp_enqueue_media();
+        }
     }
     
     /**
@@ -297,6 +315,169 @@ class Ruplin_Work_Projects_Mar_Page {
     }
     
     /**
+     * Get attached images for a project
+     * Returns array of rows with relation_id, image_id, thumb_url, full_url, title
+     */
+    private function get_project_images($project_id) {
+        global $wpdb;
+        $rel_table = $wpdb->prefix . 'work_projects_images_relations';
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT r.relation_id, r.image_id, p.post_title
+             FROM $rel_table r
+             LEFT JOIN {$wpdb->posts} p ON p.ID = r.image_id
+             WHERE r.project_id = %d
+             ORDER BY r.relation_id ASC",
+            $project_id
+        ), ARRAY_A);
+
+        $result = array();
+        foreach ($rows as $row) {
+            $thumb = wp_get_attachment_image_url(intval($row['image_id']), 'thumbnail');
+            $full  = wp_get_attachment_image_url(intval($row['image_id']), 'full');
+            $result[] = array(
+                'relation_id' => intval($row['relation_id']),
+                'image_id'    => intval($row['image_id']),
+                'title'       => $row['post_title'],
+                'thumb_url'   => $thumb ? $thumb : '',
+                'full_url'    => $full ? $full : '',
+            );
+        }
+        return $result;
+    }
+
+    /**
+     * Render the image-strip HTML for a single project row
+     */
+    private function render_images_cell($project_id) {
+        $images = $this->get_project_images($project_id);
+        $html  = '<div class="wpm-images-cell" data-project-id="' . intval($project_id) . '">';
+        $html .= '<div class="wpm-images-strip">';
+        if (empty($images)) {
+            $html .= '<span class="wpm-images-empty">No images</span>';
+        } else {
+            foreach ($images as $img) {
+                $html .= '<span class="wpm-image-thumb" data-relation-id="' . intval($img['relation_id']) . '">';
+                if ($img['thumb_url']) {
+                    $html .= '<img src="' . esc_url($img['thumb_url']) . '" alt="' . esc_attr($img['title']) . '" />';
+                } else {
+                    $html .= '<span class="wpm-missing-image">#' . intval($img['image_id']) . '</span>';
+                }
+                $html .= '<button type="button" class="wpm-thumb-remove" title="Remove">&times;</button>';
+                $html .= '</span>';
+            }
+        }
+        $html .= '</div>';
+        $html .= '<div class="wpm-images-actions">';
+        $html .= '<button type="button" class="button button-small wpm-add-images">Add Images</button>';
+        if (!empty($images)) {
+            $html .= ' <button type="button" class="button button-small wpm-clear-images">Clear All</button>';
+        }
+        $html .= '</div>';
+        $html .= '</div>';
+        return $html;
+    }
+
+    /**
+     * AJAX: Attach one or more images to a project
+     * Expects: project_id (int), image_ids (array of ints)
+     */
+    public function ajax_attach_images() {
+        check_ajax_referer('work_projects_mar_nonce', 'nonce');
+
+        global $wpdb;
+        $rel_table = $wpdb->prefix . 'work_projects_images_relations';
+
+        $project_id = intval($_POST['project_id'] ?? 0);
+        $image_ids  = isset($_POST['image_ids']) && is_array($_POST['image_ids']) ? array_map('intval', $_POST['image_ids']) : array();
+
+        if ($project_id <= 0 || empty($image_ids)) {
+            wp_send_json_error(array('message' => 'Missing project_id or image_ids'));
+        }
+
+        $inserted = 0;
+        foreach ($image_ids as $image_id) {
+            if ($image_id <= 0) continue;
+            $result = $wpdb->insert(
+                $rel_table,
+                array(
+                    'project_id' => $project_id,
+                    'image_id'   => $image_id,
+                )
+            );
+            if ($result) $inserted++;
+        }
+
+        wp_send_json_success(array(
+            'inserted' => $inserted,
+            'html'     => $this->render_images_cell($project_id),
+        ));
+    }
+
+    /**
+     * AJAX: Detach a single relation row
+     * Expects: relation_id (int), project_id (int)
+     */
+    public function ajax_detach_image() {
+        check_ajax_referer('work_projects_mar_nonce', 'nonce');
+
+        global $wpdb;
+        $rel_table = $wpdb->prefix . 'work_projects_images_relations';
+
+        $relation_id = intval($_POST['relation_id'] ?? 0);
+        $project_id  = intval($_POST['project_id'] ?? 0);
+
+        if ($relation_id <= 0 || $project_id <= 0) {
+            wp_send_json_error(array('message' => 'Missing relation_id or project_id'));
+        }
+
+        $wpdb->delete($rel_table, array('relation_id' => $relation_id));
+
+        wp_send_json_success(array(
+            'html' => $this->render_images_cell($project_id),
+        ));
+    }
+
+    /**
+     * AJAX: Clear all image relations for a project
+     * Expects: project_id (int)
+     */
+    public function ajax_clear_images() {
+        check_ajax_referer('work_projects_mar_nonce', 'nonce');
+
+        global $wpdb;
+        $rel_table = $wpdb->prefix . 'work_projects_images_relations';
+
+        $project_id = intval($_POST['project_id'] ?? 0);
+        if ($project_id <= 0) {
+            wp_send_json_error(array('message' => 'Missing project_id'));
+        }
+
+        $wpdb->delete($rel_table, array('project_id' => $project_id));
+
+        wp_send_json_success(array(
+            'html' => $this->render_images_cell($project_id),
+        ));
+    }
+
+    /**
+     * AJAX: List images for a project (returns rendered HTML for the cell)
+     * Expects: project_id (int)
+     */
+    public function ajax_list_images() {
+        check_ajax_referer('work_projects_mar_nonce', 'nonce');
+
+        $project_id = intval($_POST['project_id'] ?? 0);
+        if ($project_id <= 0) {
+            wp_send_json_error(array('message' => 'Missing project_id'));
+        }
+
+        wp_send_json_success(array(
+            'html' => $this->render_images_cell($project_id),
+        ));
+    }
+
+    /**
      * Render the admin page
      */
     public function render_admin_page() {
@@ -334,6 +515,9 @@ class Ruplin_Work_Projects_Mar_Page {
                                     <?php echo strtolower($column->Field); ?>
                                 </th>
                             <?php endforeach; ?>
+                            <th style="border: 1px solid gray; padding: 10px; text-align: left; font-size: 16px; color: #242424; font-weight: normal;">
+                                images
+                            </th>
                             <th style="border: 1px solid gray; padding: 10px; text-align: center; font-size: 16px; color: #242424; font-weight: normal;">
                                 actions
                             </th>
@@ -368,6 +552,9 @@ class Ruplin_Work_Projects_Mar_Page {
                                             <?php endif; ?>
                                         </td>
                                     <?php endforeach; ?>
+                                    <td style="border: 1px solid gray; padding: 8px;">
+                                        <?php echo $this->render_images_cell(intval($record['id'])); ?>
+                                    </td>
                                     <td style="border: 1px solid gray; padding: 8px; text-align: center;">
                                         <button class="button button-small delete-record" data-id="<?php echo esc_attr($record['id']); ?>">
                                             Delete
@@ -377,7 +564,7 @@ class Ruplin_Work_Projects_Mar_Page {
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="<?php echo count($columns) + 1; ?>" style="border: 1px solid gray; padding: 20px; text-align: center; color: #666;">
+                                <td colspan="<?php echo count($columns) + 2; ?>" style="border: 1px solid gray; padding: 20px; text-align: center; color: #666;">
                                     No records found. Click "Create New (Inline)" to add your first project.
                                 </td>
                             </tr>
@@ -410,6 +597,59 @@ class Ruplin_Work_Projects_Mar_Page {
         .work-projects-table .editable-field.error {
             background-color: #f8d7da;
         }
+
+        /* Images cell */
+        .wpm-images-cell { min-width: 260px; }
+        .wpm-images-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .wpm-image-thumb {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 48px;
+            background: #f6f6f6;
+            border: 1px solid #ddd;
+            overflow: hidden;
+        }
+        .wpm-image-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .wpm-image-thumb .wpm-missing-image {
+            font-size: 10px;
+            color: #c00;
+            padding: 4px;
+            display: block;
+        }
+        .wpm-thumb-remove {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 50%;
+            border: 1px solid #c00;
+            background: #fff;
+            color: #c00;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+        }
+        .wpm-thumb-remove:hover { background: #c00; color: #fff; }
+        .wpm-images-empty {
+            color: #999;
+            font-style: italic;
+            font-size: 12px;
+        }
+        .wpm-images-actions .button { margin-right: 4px; }
         </style>
         
         <script>
@@ -479,6 +719,91 @@ class Ruplin_Work_Projects_Mar_Page {
                 });
             });
             
+            // -----------------------------------------------------------
+            // Image management — WP media picker
+            // -----------------------------------------------------------
+            var wpmMediaFrame = null;
+
+            // "Add Images" — open WP media picker in multi-select mode
+            $(document).on('click', '.wpm-add-images', function(e) {
+                e.preventDefault();
+                var $cell = $(this).closest('.wpm-images-cell');
+                var projectId = $cell.data('project-id');
+
+                // Fresh frame each time so selection state doesn't leak between rows
+                wpmMediaFrame = wp.media({
+                    title: 'Select Images for Project #' + projectId,
+                    button: { text: 'Attach Selected' },
+                    library: { type: 'image' },
+                    multiple: 'add'
+                });
+
+                wpmMediaFrame.on('select', function() {
+                    var attachments = wpmMediaFrame.state().get('selection').toJSON();
+                    var imageIds = attachments.map(function(a) { return a.id; });
+                    if (!imageIds.length) return;
+
+                    $.post(ajaxurl, {
+                        action: 'work_projects_mar_attach_images',
+                        nonce: nonce,
+                        project_id: projectId,
+                        image_ids: imageIds
+                    }, function(response) {
+                        if (response.success) {
+                            $cell.replaceWith(response.data.html);
+                        } else {
+                            alert('Failed to attach images: ' + (response.data && response.data.message || 'unknown error'));
+                        }
+                    });
+                });
+
+                wpmMediaFrame.open();
+            });
+
+            // Remove a single image (X button on thumb)
+            $(document).on('click', '.wpm-thumb-remove', function(e) {
+                e.preventDefault();
+                var $thumb = $(this).closest('.wpm-image-thumb');
+                var $cell = $(this).closest('.wpm-images-cell');
+                var projectId = $cell.data('project-id');
+                var relationId = $thumb.data('relation-id');
+                if (!relationId) return;
+
+                $.post(ajaxurl, {
+                    action: 'work_projects_mar_detach_image',
+                    nonce: nonce,
+                    project_id: projectId,
+                    relation_id: relationId
+                }, function(response) {
+                    if (response.success) {
+                        $cell.replaceWith(response.data.html);
+                    } else {
+                        alert('Failed to detach image');
+                    }
+                });
+            });
+
+            // Clear all images for a project
+            $(document).on('click', '.wpm-clear-images', function(e) {
+                e.preventDefault();
+                if (!confirm('Remove all images from this project? Images remain in the media library — only the project relation is cleared.')) return;
+
+                var $cell = $(this).closest('.wpm-images-cell');
+                var projectId = $cell.data('project-id');
+
+                $.post(ajaxurl, {
+                    action: 'work_projects_mar_clear_images',
+                    nonce: nonce,
+                    project_id: projectId
+                }, function(response) {
+                    if (response.success) {
+                        $cell.replaceWith(response.data.html);
+                    } else {
+                        alert('Failed to clear images');
+                    }
+                });
+            });
+
             // Delete record
             $('.delete-record').on('click', function() {
                 if (!confirm('Are you sure you want to delete this record?')) {

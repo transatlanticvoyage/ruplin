@@ -906,7 +906,23 @@ class SnefuruPlugin {
             $wpdb->query("ALTER TABLE $service_categories_table ADD COLUMN is_active BOOLEAN DEFAULT TRUE AFTER rel_featured_image_id");
             error_log('Snefuru: Added is_active column to service_categories table');
         }
-        
+
+        // Create wp_work_projects_images_relations table
+        // Many-to-many join between wp_work_projects and wp_posts (attachments)
+        $work_projects_images_relations_table = $wpdb->prefix . 'work_projects_images_relations';
+        $work_projects_images_relations_sql = "CREATE TABLE IF NOT EXISTS $work_projects_images_relations_table (
+            relation_id INT(11) NOT NULL AUTO_INCREMENT,
+            project_id BIGINT(20) DEFAULT NULL,
+            image_id BIGINT(20) DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (relation_id),
+            INDEX idx_project_id (project_id),
+            INDEX idx_image_id (image_id)
+        ) $charset_collate;";
+
+        dbDelta($work_projects_images_relations_sql);
+
         // Create wp_vulture_txt_flattener_generations table (Vulture TXT Flattener feature)
         $vulture_table = $wpdb->prefix . 'vulture_txt_flattener_generations';
         $vulture_sql = "CREATE TABLE IF NOT EXISTS $vulture_table (

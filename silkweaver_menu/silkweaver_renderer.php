@@ -80,6 +80,10 @@ class Silkweaver_Menu_Renderer {
                 $html .= $this->render_robust_services_menu($item);
             } elseif ($item['type'] === 'dynamic_robust_locations') {
                 $html .= $this->render_robust_locations_menu($item);
+            } elseif ($item['type'] === 'dynamic_elegant_services') {
+                $html .= $this->render_elegant_services_menu($item);
+            } elseif ($item['type'] === 'dynamic_elegant_locations') {
+                $html .= $this->render_elegant_locations_menu($item);
             }
         }
 
@@ -128,6 +132,16 @@ class Silkweaver_Menu_Renderer {
             } elseif (strpos($line, 'pull_all_location_pages_dynamically_with_robust_child_area') === 0) {
                 $menu_items[] = array(
                     'type'  => 'dynamic_robust_locations',
+                    'title' => 'Areas We Serve',
+                );
+            } elseif (strpos($line, 'pull_all_service_pages_dynamically_with_elegant_child_area') === 0) {
+                $menu_items[] = array(
+                    'type'  => 'dynamic_elegant_services',
+                    'title' => 'Services',
+                );
+            } elseif (strpos($line, 'pull_all_location_pages_dynamically_with_elegant_child_area') === 0) {
+                $menu_items[] = array(
+                    'type'  => 'dynamic_elegant_locations',
                     'title' => 'Areas We Serve',
                 );
             } elseif (strpos($line, 'pull_all_service_pages_dynamically') === 0) {
@@ -538,6 +552,149 @@ class Silkweaver_Menu_Renderer {
 
         $html .= '</div>'; // .silkweaver-robust-tiles-wrapper
         $html .= '</div>'; // .silkweaver-robust-child-area
+        $html .= '</li>';
+
+        return $html;
+    }
+
+    /**
+     * Render elegant services dropdown — typography-forward panel, no imagery,
+     * auto-fit category columns, includes category description text
+     */
+    private function render_elegant_services_menu($item) {
+        global $wpdb;
+
+        $sc_table = $wpdb->prefix . 'service_categories';
+        $has_is_active = $wpdb->get_var("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$sc_table' AND COLUMN_NAME = 'is_active'");
+
+        if ($has_is_active) {
+            $categories = $wpdb->get_results("SELECT * FROM $sc_table WHERE is_active = 1 ORDER BY category_name ASC");
+        } else {
+            $categories = $wpdb->get_results("SELECT * FROM $sc_table ORDER BY category_name ASC");
+        }
+
+        if (empty($categories)) {
+            return sprintf(
+                '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false">%s</button></li>',
+                esc_html($item['title'])
+            );
+        }
+
+        $panel_id = 'sw-elegant-services-panel';
+        $html  = sprintf(
+            '<li class="silkweaver-dropdown silkweaver-elegant-dropdown silkweaver-elegant-services-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false" aria-controls="%s" aria-haspopup="true">%s</button>',
+            esc_attr($panel_id),
+            esc_html($item['title'])
+        );
+        $html .= sprintf(
+            '<div id="%s" class="silkweaver-elegant-child-area" role="region" aria-label="%s submenu">',
+            esc_attr($panel_id),
+            esc_attr($item['title'])
+        );
+        $html .= '<div class="silkweaver-elegant-inner">';
+
+        foreach ($categories as $category) {
+            $child_pages = $wpdb->get_results($wpdb->prepare("
+                SELECT p.ID, p.post_title, py.moniker
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->prefix}pylons py ON p.ID = py.rel_wp_post_id
+                WHERE py.rel_service_category_id = %d
+                AND p.post_status = 'publish'
+                ORDER BY CASE WHEN py.moniker IS NULL OR py.moniker = '' THEN p.post_title ELSE py.moniker END ASC
+            ", $category->category_id));
+
+            $column_label_id = 'sw-elegant-cat-' . intval($category->category_id);
+            $html .= sprintf('<div class="silkweaver-elegant-column" role="group" aria-labelledby="%s">', esc_attr($column_label_id));
+            $html .= sprintf('<h3 id="%s" class="silkweaver-elegant-category-title">%s</h3>', esc_attr($column_label_id), esc_html($category->category_name));
+
+            if (!empty($category->category_description)) {
+                $html .= sprintf('<p class="silkweaver-elegant-category-desc">%s</p>', esc_html($category->category_description));
+            }
+
+            if (!empty($child_pages)) {
+                $html .= '<ul class="silkweaver-elegant-child-pages" role="list">';
+                foreach ($child_pages as $page) {
+                    $anchor = !empty($page->moniker) ? $page->moniker : $page->post_title;
+                    $html .= sprintf(
+                        '<li><a href="%s">%s</a></li>',
+                        esc_url(get_permalink($page->ID)),
+                        esc_html($anchor)
+                    );
+                }
+                $html .= '</ul>';
+            }
+
+            $html .= '</div>'; // .silkweaver-elegant-column
+        }
+
+        $html .= '</div>'; // .silkweaver-elegant-inner
+        $html .= '</div>'; // .silkweaver-elegant-child-area
+        $html .= '</li>';
+
+        return $html;
+    }
+
+    /**
+     * Render elegant locations dropdown — dense multi-column link list, no imagery
+     */
+    private function render_elegant_locations_menu($item) {
+        global $wpdb;
+
+        $location_pages = $wpdb->get_results("
+            SELECT p.ID, p.post_title, py.locpage_neighborhood, py.locpage_city
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->prefix}pylons py ON p.ID = py.rel_wp_post_id
+            WHERE py.pylon_archetype = 'locationpage'
+            AND p.post_status = 'publish'
+            ORDER BY
+                CASE
+                    WHEN py.locpage_neighborhood IS NOT NULL AND py.locpage_neighborhood != '' THEN py.locpage_neighborhood
+                    WHEN py.locpage_city IS NOT NULL AND py.locpage_city != '' THEN py.locpage_city
+                    ELSE p.post_title
+                END ASC
+        ");
+
+        if (empty($location_pages)) {
+            return sprintf(
+                '<li><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false">%s</button></li>',
+                esc_html($item['title'])
+            );
+        }
+
+        $panel_id       = 'sw-elegant-locations-panel';
+        $heading_id     = 'sw-elegant-locations-label';
+        $html  = sprintf(
+            '<li class="silkweaver-dropdown silkweaver-elegant-dropdown silkweaver-elegant-locations-dropdown"><button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false" aria-controls="%s" aria-haspopup="true">%s</button>',
+            esc_attr($panel_id),
+            esc_html($item['title'])
+        );
+        $html .= sprintf(
+            '<div id="%s" class="silkweaver-elegant-child-area" role="region" aria-label="%s submenu">',
+            esc_attr($panel_id),
+            esc_attr($item['title'])
+        );
+        $html .= '<div class="silkweaver-elegant-inner silkweaver-elegant-inner--locations">';
+        $html .= sprintf('<h3 id="%s" class="silkweaver-elegant-section-title">Areas We Service</h3>', esc_attr($heading_id));
+        $html .= sprintf('<ul class="silkweaver-elegant-child-pages silkweaver-elegant-locations-list" role="list" aria-labelledby="%s">', esc_attr($heading_id));
+
+        foreach ($location_pages as $page) {
+            if (!empty($page->locpage_neighborhood)) {
+                $anchor = $page->locpage_neighborhood;
+            } elseif (!empty($page->locpage_city)) {
+                $anchor = $page->locpage_city;
+            } else {
+                $anchor = $page->post_title;
+            }
+            $html .= sprintf(
+                '<li><a href="%s">%s</a></li>',
+                esc_url(get_permalink($page->ID)),
+                esc_html($anchor)
+            );
+        }
+
+        $html .= '</ul>';
+        $html .= '</div>'; // .silkweaver-elegant-inner
+        $html .= '</div>'; // .silkweaver-elegant-child-area
         $html .= '</li>';
 
         return $html;
