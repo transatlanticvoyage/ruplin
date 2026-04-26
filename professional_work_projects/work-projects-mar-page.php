@@ -39,6 +39,10 @@ class Ruplin_Work_Projects_Mar_Page {
         add_action('wp_ajax_work_projects_mar_clear_images', array($this, 'ajax_clear_images'));
         add_action('wp_ajax_work_projects_mar_list_images', array($this, 'ajax_list_images'));
 
+        // AJAX handlers for per-relation (per-image-in-project) client metadata
+        add_action('wp_ajax_work_projects_mar_get_all_relations', array($this, 'ajax_get_all_relations'));
+        add_action('wp_ajax_work_projects_mar_update_relation_meta', array($this, 'ajax_update_relation_meta'));
+
         // Load WP media library assets on this admin page
         add_action('admin_enqueue_scripts', array($this, 'enqueue_media_library'));
     }
@@ -187,17 +191,59 @@ class Ruplin_Work_Projects_Mar_Page {
     private function get_table_columns() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'work_projects';
-        
+
         // Get column information
         $columns = $wpdb->get_results("SHOW COLUMNS FROM $table_name");
-        
+
         if (!$columns) {
             // If table doesn't exist, create it with a basic structure
             $this->create_table_if_not_exists();
             $columns = $wpdb->get_results("SHOW COLUMNS FROM $table_name");
+        } else {
+            // Existing table — ensure newer schema additions are present
+            if ($this->ensure_columns_up_to_date()) {
+                $columns = $wpdb->get_results("SHOW COLUMNS FROM $table_name");
+            }
         }
-        
+
         return $columns;
+    }
+
+    /**
+     * Idempotent column migrations for existing installs.
+     * Adds new columns one-by-one if they don't already exist.
+     * Returns true if any column was added (so callers can re-fetch).
+     */
+    private function ensure_columns_up_to_date() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'work_projects';
+        $rel_table  = $wpdb->prefix . 'work_projects_images_relations';
+        $changed = false;
+
+        // wp_work_projects.client_location
+        $col_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_name LIKE 'client_location'");
+        if (empty($col_exists)) {
+            $wpdb->query("ALTER TABLE $table_name ADD COLUMN client_location TEXT DEFAULT NULL AFTER client_name");
+            $changed = true;
+        }
+
+        // wp_work_projects_images_relations.client_name + client_location
+        // Per-image-in-project metadata (one row per image-in-project pairing).
+        $rel_table_exists = $wpdb->get_var("SHOW TABLES LIKE '$rel_table'");
+        if ($rel_table_exists) {
+            $rel_col_name = $wpdb->get_results("SHOW COLUMNS FROM $rel_table LIKE 'client_name'");
+            if (empty($rel_col_name)) {
+                $wpdb->query("ALTER TABLE $rel_table ADD COLUMN client_name TEXT DEFAULT NULL AFTER image_id");
+                $changed = true;
+            }
+            $rel_col_loc = $wpdb->get_results("SHOW COLUMNS FROM $rel_table LIKE 'client_location'");
+            if (empty($rel_col_loc)) {
+                $wpdb->query("ALTER TABLE $rel_table ADD COLUMN client_location TEXT DEFAULT NULL AFTER client_name");
+                $changed = true;
+            }
+        }
+
+        return $changed;
     }
     
     /**
@@ -212,6 +258,7 @@ class Ruplin_Work_Projects_Mar_Page {
             id bigint(20) NOT NULL AUTO_INCREMENT,
             project_name varchar(255) DEFAULT NULL,
             client_name varchar(255) DEFAULT NULL,
+            client_location text DEFAULT NULL,
             project_date date DEFAULT NULL,
             status varchar(50) DEFAULT NULL,
             description text DEFAULT NULL,
@@ -478,6 +525,82 @@ class Ruplin_Work_Projects_Mar_Page {
     }
 
     /**
+     * AJAX: Return a flat ordered list of every image-in-project relation,
+     * with project context and image URLs, for the popup's prev/next cycling.
+     * Sorted by project_id, then relation_id (insertion order within project).
+     */
+    public function ajax_get_all_relations() {
+        check_ajax_referer('work_projects_mar_nonce', 'nonce');
+
+        global $wpdb;
+        $rel_table  = $wpdb->prefix . 'work_projects_images_relations';
+        $proj_table = $wpdb->prefix . 'work_projects';
+
+        $rows = $wpdb->get_results(
+            "SELECT r.relation_id, r.project_id, r.image_id, r.client_name, r.client_location,
+                    p.project_name
+             FROM $rel_table r
+             LEFT JOIN $proj_table p ON p.id = r.project_id
+             ORDER BY r.project_id ASC, r.relation_id ASC",
+            ARRAY_A
+        );
+
+        $out = array();
+        foreach ($rows as $row) {
+            $image_id = intval($row['image_id']);
+            $thumb_url = $image_id > 0 ? wp_get_attachment_image_url($image_id, 'medium')   : '';
+            $full_url  = $image_id > 0 ? wp_get_attachment_image_url($image_id, 'full')     : '';
+            $title     = $image_id > 0 ? get_the_title($image_id) : '';
+            $out[] = array(
+                'relation_id'     => intval($row['relation_id']),
+                'project_id'      => intval($row['project_id']),
+                'project_name'    => $row['project_name'] ?: '',
+                'image_id'        => $image_id,
+                'image_thumb_url' => $thumb_url,
+                'image_full_url'  => $full_url,
+                'image_title'     => $title,
+                'client_name'     => $row['client_name'] ?: '',
+                'client_location' => $row['client_location'] ?: '',
+            );
+        }
+
+        wp_send_json_success(array('relations' => $out));
+    }
+
+    /**
+     * AJAX: Update one client metadata field (client_name | client_location)
+     * for a specific relation row.
+     */
+    public function ajax_update_relation_meta() {
+        check_ajax_referer('work_projects_mar_nonce', 'nonce');
+
+        global $wpdb;
+        $rel_table = $wpdb->prefix . 'work_projects_images_relations';
+
+        $relation_id = intval($_POST['relation_id'] ?? 0);
+        $field       = isset($_POST['field']) ? sanitize_key($_POST['field']) : '';
+        $value       = isset($_POST['value']) ? wp_unslash($_POST['value']) : '';
+        $value       = sanitize_text_field($value);
+
+        $allowed = array('client_name', 'client_location');
+        if ($relation_id <= 0 || !in_array($field, $allowed, true)) {
+            wp_send_json_error(array('message' => 'Bad relation_id or field'));
+        }
+
+        $result = $wpdb->update(
+            $rel_table,
+            array($field => $value),
+            array('relation_id' => $relation_id)
+        );
+
+        if ($result === false) {
+            wp_send_json_error(array('message' => 'Update failed'));
+        }
+
+        wp_send_json_success(array('field' => $field, 'value' => $value));
+    }
+
+    /**
      * Render the admin page
      */
     public function render_admin_page() {
@@ -650,6 +773,147 @@ class Ruplin_Work_Projects_Mar_Page {
             font-size: 12px;
         }
         .wpm-images-actions .button { margin-right: 4px; }
+
+        /* ─────────────────────────────────────────────────────────────
+           Image meta popup (per-image client metadata editor)
+           ───────────────────────────────────────────────────────────── */
+        .wpm-image-thumb img { cursor: pointer; }
+        .wpm-meta-popup-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100000;
+            display: none;
+            align-items: center; justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .wpm-meta-popup-backdrop.is-open { display: flex; }
+        .wpm-meta-popup {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .wpm-meta-popup_header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px;
+            background: #1d2327;
+            color: #fff;
+        }
+        .wpm-meta-popup_header_title {
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .wpm-meta-popup_close {
+            background: none; border: 0; color: #fff;
+            cursor: pointer; padding: 4px 8px;
+            font-size: 22px; line-height: 1;
+        }
+        .wpm-meta-popup_close:hover { color: #ffb900; }
+
+        .wpm-meta-popup_body {
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .wpm-meta-popup_image_wrap {
+            display: flex; align-items: center; justify-content: center;
+            background: #f0f0f1;
+            border-radius: 4px;
+            min-height: 220px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .wpm-meta-popup_image {
+            display: block;
+            max-width: 500px;
+            max-height: 500px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+        .wpm-meta-popup_context {
+            background: #f6f7f7;
+            border: 1px solid #dcdcde;
+            border-radius: 4px;
+            padding: 8px 10px;
+            margin-bottom: 14px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .wpm-meta-popup_context_label {
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            color: #50575e;
+        }
+        .wpm-meta-popup_context_value {
+            font-weight: 600;
+            color: #1d2327;
+        }
+        .wpm-meta-popup_field {
+            margin-bottom: 12px;
+        }
+        .wpm-meta-popup_field label {
+            display: block;
+            font-family: ui-monospace, "SF Mono", Menlo, monospace;
+            font-size: 12px;
+            color: #50575e;
+            margin-bottom: 4px;
+            text-transform: lowercase;
+        }
+        .wpm-meta-popup_input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            border: 1px solid #8c8f94;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.15s, background 0.5s ease;
+        }
+        .wpm-meta-popup_input:focus {
+            border-color: #2271b1;
+            box-shadow: 0 0 0 1px #2271b1;
+            outline: none;
+        }
+        .wpm-meta-popup_input.saving { background-color: #fffbcc; }
+        .wpm-meta-popup_input.saved  { background-color: #d4edda; }
+        .wpm-meta-popup_input.error  { background-color: #f8d7da; }
+
+        .wpm-meta-popup_nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 16px;
+            background: #f6f7f7;
+            border-top: 1px solid #dcdcde;
+        }
+        .wpm-meta-popup_nav_btn {
+            background: #fff;
+            border: 1px solid #dcdcde;
+            border-radius: 4px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #1d2327;
+        }
+        .wpm-meta-popup_nav_btn:hover {
+            background: #2271b1;
+            border-color: #2271b1;
+            color: #fff;
+        }
+        .wpm-meta-popup_nav_btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .wpm-meta-popup_nav_position {
+            font-size: 12px;
+            color: #50575e;
+            font-variant-numeric: tabular-nums;
+        }
         </style>
         
         <script>
@@ -830,6 +1094,186 @@ class Ruplin_Work_Projects_Mar_Page {
                     }
                 });
             });
+        });
+        </script>
+
+        <!-- ─── Image Meta Popup (per-image client metadata editor) ─── -->
+        <div class="wpm-meta-popup-backdrop" id="wpm-meta-popup-backdrop" aria-hidden="true">
+            <div class="wpm-meta-popup" role="dialog" aria-modal="true" aria-labelledby="wpm-meta-popup-header-title">
+                <div class="wpm-meta-popup_header">
+                    <span class="wpm-meta-popup_header_title" id="wpm-meta-popup-header-title">wp_work_projects_images_relations</span>
+                    <button type="button" class="wpm-meta-popup_close" id="wpm-meta-popup-close" aria-label="Close">&times;</button>
+                </div>
+                <div class="wpm-meta-popup_body">
+                    <div class="wpm-meta-popup_image_wrap">
+                        <img class="wpm-meta-popup_image" id="wpm-meta-popup-image" src="" alt="" />
+                    </div>
+                    <div class="wpm-meta-popup_context">
+                        <span class="wpm-meta-popup_context_label">wp_work_projects.project_name:</span>
+                        <span class="wpm-meta-popup_context_value" id="wpm-meta-popup-project-name"></span>
+                    </div>
+                    <div class="wpm-meta-popup_field">
+                        <label for="wpm-meta-popup-client-name">client_name</label>
+                        <input type="text" class="wpm-meta-popup_input" id="wpm-meta-popup-client-name" data-field="client_name" autocomplete="off" />
+                    </div>
+                    <div class="wpm-meta-popup_field">
+                        <label for="wpm-meta-popup-client-location">client_location</label>
+                        <input type="text" class="wpm-meta-popup_input" id="wpm-meta-popup-client-location" data-field="client_location" autocomplete="off" />
+                    </div>
+                </div>
+                <div class="wpm-meta-popup_nav">
+                    <button type="button" class="wpm-meta-popup_nav_btn" id="wpm-meta-popup-prev">&larr; Prev</button>
+                    <span class="wpm-meta-popup_nav_position" id="wpm-meta-popup-position"></span>
+                    <button type="button" class="wpm-meta-popup_nav_btn" id="wpm-meta-popup-next">Next &rarr;</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            var ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>';
+            var nonce   = '<?php echo wp_create_nonce('work_projects_mar_nonce'); ?>';
+
+            var allRelations = [];   // flat list across all projects
+            var currentIndex = -1;   // index into allRelations
+
+            var $backdrop  = $('#wpm-meta-popup-backdrop');
+            var $closeBtn  = $('#wpm-meta-popup-close');
+            var $img       = $('#wpm-meta-popup-image');
+            var $projName  = $('#wpm-meta-popup-project-name');
+            var $clientName = $('#wpm-meta-popup-client-name');
+            var $clientLoc  = $('#wpm-meta-popup-client-location');
+            var $prevBtn   = $('#wpm-meta-popup-prev');
+            var $nextBtn   = $('#wpm-meta-popup-next');
+            var $position  = $('#wpm-meta-popup-position');
+
+            function renderCurrent() {
+                if (currentIndex < 0 || currentIndex >= allRelations.length) return;
+                var rel = allRelations[currentIndex];
+                $img.attr('src', rel.image_full_url || rel.image_thumb_url || '')
+                    .attr('alt', rel.image_title || '');
+                $projName.text(rel.project_name || ('Project #' + rel.project_id));
+                $clientName.val(rel.client_name || '').removeClass('saving saved error');
+                $clientLoc.val(rel.client_location || '').removeClass('saving saved error');
+                $position.text((currentIndex + 1) + ' / ' + allRelations.length);
+                var multiple = allRelations.length > 1;
+                $prevBtn.prop('disabled', !multiple);
+                $nextBtn.prop('disabled', !multiple);
+            }
+
+            function openPopupForRelation(relationId) {
+                $.post(ajaxurl, {
+                    action: 'work_projects_mar_get_all_relations',
+                    nonce: nonce
+                }, function(response) {
+                    if (!response || !response.success) {
+                        alert('Failed to load image list');
+                        return;
+                    }
+                    allRelations = response.data.relations || [];
+                    currentIndex = -1;
+                    for (var i = 0; i < allRelations.length; i++) {
+                        if (allRelations[i].relation_id === relationId) {
+                            currentIndex = i;
+                            break;
+                        }
+                    }
+                    if (currentIndex < 0 && allRelations.length > 0) currentIndex = 0;
+                    if (currentIndex < 0) {
+                        alert('No images found');
+                        return;
+                    }
+                    renderCurrent();
+                    $backdrop.addClass('is-open').attr('aria-hidden', 'false');
+                });
+            }
+
+            function closePopup() {
+                $backdrop.removeClass('is-open').attr('aria-hidden', 'true');
+                allRelations = [];
+                currentIndex = -1;
+            }
+
+            // Click on any thumbnail image opens the meta popup for that relation.
+            // The X delete button has its own handler with stopPropagation precedence.
+            $(document).on('click', '.wpm-image-thumb img', function(e) {
+                var $thumb = $(this).closest('.wpm-image-thumb');
+                var relationId = parseInt($thumb.data('relation-id'), 10);
+                if (!relationId) return;
+                e.preventDefault();
+                e.stopPropagation();
+                openPopupForRelation(relationId);
+            });
+
+            // Prevent the X delete button from also triggering the popup
+            $(document).on('click', '.wpm-thumb-remove', function(e) {
+                e.stopPropagation();
+            });
+
+            $closeBtn.on('click', closePopup);
+
+            // Close on backdrop click (but not on popup body click)
+            $backdrop.on('click', function(e) {
+                if (e.target === this) closePopup();
+            });
+
+            // Esc closes
+            $(document).on('keydown', function(e) {
+                if (!$backdrop.hasClass('is-open')) return;
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closePopup();
+                } else if (e.key === 'ArrowRight') {
+                    $nextBtn.trigger('click');
+                } else if (e.key === 'ArrowLeft') {
+                    $prevBtn.trigger('click');
+                }
+            });
+
+            // Prev / Next cycle through ALL relations across projects
+            $prevBtn.on('click', function() {
+                if (allRelations.length < 2) return;
+                currentIndex = (currentIndex - 1 + allRelations.length) % allRelations.length;
+                renderCurrent();
+            });
+            $nextBtn.on('click', function() {
+                if (allRelations.length < 2) return;
+                currentIndex = (currentIndex + 1) % allRelations.length;
+                renderCurrent();
+            });
+
+            // Inline save on blur for both meta fields
+            function saveField($input) {
+                if (currentIndex < 0) return;
+                var rel = allRelations[currentIndex];
+                var field = $input.data('field');
+                var newVal = $input.val();
+                var oldVal = rel[field] || '';
+                if (newVal === oldVal) return;
+
+                $input.removeClass('saved error').addClass('saving');
+
+                $.post(ajaxurl, {
+                    action: 'work_projects_mar_update_relation_meta',
+                    nonce: nonce,
+                    relation_id: rel.relation_id,
+                    field: field,
+                    value: newVal
+                }, function(response) {
+                    $input.removeClass('saving');
+                    if (response && response.success) {
+                        rel[field] = newVal;
+                        $input.addClass('saved');
+                        setTimeout(function() { $input.removeClass('saved'); }, 1200);
+                    } else {
+                        $input.addClass('error');
+                        setTimeout(function() { $input.removeClass('error'); }, 2000);
+                    }
+                });
+            }
+
+            $clientName.on('blur', function() { saveField($(this)); });
+            $clientLoc.on('blur',  function() { saveField($(this)); });
         });
         </script>
         <?php

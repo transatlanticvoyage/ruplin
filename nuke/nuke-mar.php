@@ -40,10 +40,10 @@ function ruplin_render_nuke_mar_page() {
     <div class="wrap">
         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
             <h1 style="margin: 0;"><?php echo esc_html__('Nuke_Mar - Content Deletion Tool', 'ruplin'); ?></h1>
-            <a href="<?php echo admin_url('admin.php?page=plasma_import_mar'); ?>" 
-               class="button grove-button" 
+            <a href="<?php echo admin_url('admin.php?page=ruplin_plasma_import_mar'); ?>"
+               class="button grove-button"
                style="background: #1e3a5f; color: white; text-decoration: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; display: inline-block; transition: background-color 0.3s ease;">
-                <span style="color: #FFA500;">Go To Grove</span> - <span style="color: white;">plasma_import_mar</span>
+                <span style="color: #FFA500;">Go To Ruplin</span> - <span style="color: white;">ruplin_plasma_import_mar</span>
             </a>
             
             <?php

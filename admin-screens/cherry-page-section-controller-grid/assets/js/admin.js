@@ -23,7 +23,9 @@
         totalDataRows: 0,
         totalDataCols: 0,
         allRows: [],       // all <tr> from tbody
-        filteredRows: [],   // after search filter
+        filteredRows: [],   // after search + archetype filter
+        currentSearchTerm: '',
+        currentArchetypeFilter: 'all',  // 'all' | 'servicepage' | 'locationpage'
 
         // Wolf Exclusion Band: sticky columns always visible (tools, post_id, post_title)
         wolfBandIndices: [0, 1, 2],
@@ -69,6 +71,9 @@
             // Search
             $(document).on('input', '#ccg-search', this.handleSearch.bind(this));
 
+            // Archetype filter buttons (all / servicepage / locationpage)
+            $(document).on('click', '.ccg-archetype-btn', this.handleArchetypeFilter.bind(this));
+
             // Row pagination buttons
             $(document).on('click', '.ccg-rows-per-page-btn', this.handleRowsPerPageClick.bind(this));
             $(document).on('click', '#ccg-first-row-page', function() { CherryControllerGrid.currentRowPage = 1; CherryControllerGrid.applyPagination(); });
@@ -96,17 +101,40 @@
             $(document).on('click', '#ccg-last-col-page', function() { CherryControllerGrid.currentColPage = CherryControllerGrid.totalColPages; CherryControllerGrid.applyPagination(); });
         },
 
-        // ===================== SEARCH =====================
+        // ===================== SEARCH + ARCHETYPE FILTER =====================
 
         handleSearch: function(e) {
-            var searchTerm = $(e.target).val().toLowerCase();
-            if (searchTerm === '') {
-                this.filteredRows = this.allRows.slice();
-            } else {
-                this.filteredRows = this.allRows.filter(function(tr) {
-                    return $(tr).text().toLowerCase().indexOf(searchTerm) !== -1;
-                });
-            }
+            this.currentSearchTerm = $(e.target).val().toLowerCase();
+            this.applyAllFilters();
+        },
+
+        handleArchetypeFilter: function(e) {
+            var $btn = $(e.currentTarget);
+            var arch = $btn.data('archetype') || 'all';
+            this.currentArchetypeFilter = String(arch);
+            // Toggle active class on the buttons
+            $('.ccg-archetype-btn').removeClass('ccg-archetype-btn-active');
+            $btn.addClass('ccg-archetype-btn-active');
+            this.applyAllFilters();
+        },
+
+        /**
+         * Filter `allRows` by both the current search term and the current
+         * archetype filter, then rerun pagination from page 1.
+         */
+        applyAllFilters: function() {
+            var term = this.currentSearchTerm || '';
+            var arch = this.currentArchetypeFilter || 'all';
+            this.filteredRows = this.allRows.filter(function(tr) {
+                if (arch !== 'all') {
+                    var rowArch = tr.getAttribute('data-pylon-archetype') || '';
+                    if (rowArch !== arch) return false;
+                }
+                if (term !== '') {
+                    if ($(tr).text().toLowerCase().indexOf(term) === -1) return false;
+                }
+                return true;
+            });
             this.currentRowPage = 1;
             this.applyPagination();
         },

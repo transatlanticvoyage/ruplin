@@ -125,6 +125,16 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                     <span id="save-status" style="margin-left: 10px;"></span>
                 </div>
 
+                <!-- Archetype Filter Bar — filters main grid rows by wp_pylons.pylon_archetype -->
+                <div class="ccg-archetype-filter-bar" style="margin: 16px 0 12px 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <strong style="font-family: ui-monospace, Menlo, monospace; font-size: 13px;">filter by archetype:</strong>
+                    <div class="ccg-archetype-filter-buttons" style="display: flex; gap: 4px;">
+                        <button type="button" class="button ccg-archetype-btn ccg-archetype-btn-active" data-archetype="all">all</button>
+                        <button type="button" class="button ccg-archetype-btn" data-archetype="servicepage">servicepage</button>
+                        <button type="button" class="button ccg-archetype-btn" data-archetype="locationpage">locationpage</button>
+                    </div>
+                </div>
+
                 <!-- Rocket Chamber Div - Contains the pagination controls and search -->
                 <div class="rocket_chamber_div" style="border: 1px solid black; padding: 0; margin: 20px 0; position: relative;">
                     <div style="position: absolute; top: 4px; left: 4px; font-size: 16px; font-weight: bold; display: flex; align-items: center; gap: 6px;">
@@ -567,7 +577,7 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
             $output = '<tr><td colspan="38" class="no-data">No posts with pylon data found</td></tr>';
         } else {
             foreach ($data as $row) {
-                $output .= '<tr data-pylon-id="' . esc_attr($row['pylon_id']) . '">';
+                $output .= '<tr data-pylon-id="' . esc_attr($row['pylon_id']) . '" data-pylon-archetype="' . esc_attr($row['pylon_archetype'] ?? '') . '">';
                 $pid = esc_attr($row['post_id']);
                 $output .= '<td class="ccg-tools-cell">';
                 $output .= '<a href="' . admin_url('post.php?post=' . $pid . '&action=edit') . '" class="ccg-tool-btn" target="_blank">pendulum</a>';

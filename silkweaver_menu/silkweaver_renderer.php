@@ -591,8 +591,8 @@ class Silkweaver_Menu_Renderer {
             esc_attr($panel_id),
             esc_attr($item['title'])
         );
-        $html .= '<div class="silkweaver-elegant-inner">';
-
+        // Pre-fetch each category's child pages so we can find the largest one
+        $cat_data = [];
         foreach ($categories as $category) {
             $child_pages = $wpdb->get_results($wpdb->prepare("
                 SELECT p.ID, p.post_title, py.moniker
@@ -603,28 +603,89 @@ class Silkweaver_Menu_Renderer {
                 ORDER BY CASE WHEN py.moniker IS NULL OR py.moniker = '' THEN p.post_title ELSE py.moniker END ASC
             ", $category->category_id));
 
+            $cat_data[] = [
+                'category'    => $category,
+                'child_pages' => $child_pages ?: [],
+                'count'       => is_array($child_pages) ? count($child_pages) : 0,
+            ];
+        }
+
+        // Pull out the category with the most items to be the leftmost feature column.
+        // First-occurrence wins on ties (preserves the original ASC-by-name order).
+        $feature_idx = 0;
+        foreach ($cat_data as $i => $row) {
+            if ($row['count'] > $cat_data[$feature_idx]['count']) {
+                $feature_idx = $i;
+            }
+        }
+        $feature = $cat_data[$feature_idx];
+        $rest    = $cat_data;
+        array_splice($rest, $feature_idx, 1);
+
+        // Split remaining categories across two stacked containers (top/bottom 50/50).
+        $rest_count = count($rest);
+        $top_count  = (int) ceil($rest_count / 2);
+        $rest_top   = array_slice($rest, 0, $top_count);
+        $rest_bot   = array_slice($rest, $top_count);
+
+        // Local helper to render one category column
+        $render_column = function($row) {
+            $category    = $row['category'];
+            $child_pages = $row['child_pages'];
+
             $column_label_id = 'sw-elegant-cat-' . intval($category->category_id);
-            $html .= sprintf('<div class="silkweaver-elegant-column" role="group" aria-labelledby="%s">', esc_attr($column_label_id));
-            $html .= sprintf('<h3 id="%s" class="silkweaver-elegant-category-title">%s</h3>', esc_attr($column_label_id), esc_html($category->category_name));
+            $col_html  = sprintf('<div class="silkweaver-elegant-column" role="group" aria-labelledby="%s">', esc_attr($column_label_id));
+            $col_html .= sprintf('<h3 id="%s" class="silkweaver-elegant-category-title">%s</h3>', esc_attr($column_label_id), esc_html($category->category_name));
 
             if (!empty($category->category_description)) {
-                $html .= sprintf('<p class="silkweaver-elegant-category-desc">%s</p>', esc_html($category->category_description));
+                $col_html .= sprintf('<p class="silkweaver-elegant-category-desc">%s</p>', esc_html($category->category_description));
             }
 
             if (!empty($child_pages)) {
-                $html .= '<ul class="silkweaver-elegant-child-pages" role="list">';
+                $col_html .= '<ul class="silkweaver-elegant-child-pages" role="list">';
                 foreach ($child_pages as $page) {
                     $anchor = !empty($page->moniker) ? $page->moniker : $page->post_title;
-                    $html .= sprintf(
+                    $col_html .= sprintf(
                         '<li><a href="%s">%s</a></li>',
                         esc_url(get_permalink($page->ID)),
                         esc_html($anchor)
                     );
                 }
-                $html .= '</ul>';
+                $col_html .= '</ul>';
             }
 
-            $html .= '</div>'; // .silkweaver-elegant-column
+            $col_html .= '</div>'; // .silkweaver-elegant-column
+            return $col_html;
+        };
+
+        $html .= '<div class="silkweaver-elegant-inner">';
+
+        // Feature (largest) category: leftmost, full panel height
+        $html .= '<div class="silkweaver-elegant-feature">';
+        $html .= $render_column($feature);
+        $html .= '</div>';
+
+        // Remaining categories: right side, two stacked rows.
+        // Both rows share the same column tracks so a "visual column" (top + bottom)
+        // is sized by whichever side is widest. Column count = max(top, bottom).
+        if (!empty($rest)) {
+            $max_cols   = max(count($rest_top), count($rest_bot));
+            $rest_style = sprintf('grid-template-columns: repeat(%d, minmax(0, 1fr));', $max_cols);
+
+            $html .= sprintf('<div class="silkweaver-elegant-rest" style="%s">', esc_attr($rest_style));
+            $html .= '<div class="silkweaver-elegant-row silkweaver-elegant-row-top">';
+            foreach ($rest_top as $row) {
+                $html .= $render_column($row);
+            }
+            $html .= '</div>';
+            if (!empty($rest_bot)) {
+                $html .= '<div class="silkweaver-elegant-row silkweaver-elegant-row-bottom">';
+                foreach ($rest_bot as $row) {
+                    $html .= $render_column($row);
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
         }
 
         $html .= '</div>'; // .silkweaver-elegant-inner

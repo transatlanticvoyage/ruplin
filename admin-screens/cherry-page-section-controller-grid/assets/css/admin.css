@@ -264,3 +264,17 @@
         font-size: 16px;
     }
 }
+
+/* ===== Archetype filter bar ===== */
+.ccg-archetype-btn.ccg-archetype-btn-active {
+    background: #2271b1 !important;
+    color: #fff !important;
+    border-color: #135e96 !important;
+    box-shadow: inset 0 0 0 1px #135e96;
+}
+.ccg-archetype-btn.ccg-archetype-btn-active:hover,
+.ccg-archetype-btn.ccg-archetype-btn-active:focus {
+    background: #135e96 !important;
+    color: #fff !important;
+    border-color: #0a4b78 !important;
+}

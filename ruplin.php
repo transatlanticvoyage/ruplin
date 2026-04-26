@@ -914,6 +914,8 @@ class SnefuruPlugin {
             relation_id INT(11) NOT NULL AUTO_INCREMENT,
             project_id BIGINT(20) DEFAULT NULL,
             image_id BIGINT(20) DEFAULT NULL,
+            client_name TEXT DEFAULT NULL,
+            client_location TEXT DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (relation_id),
