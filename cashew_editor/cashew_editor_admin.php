@@ -73,8 +73,147 @@ class CashewEditorAdmin {
                         : '<em class="hogtanker-last-none">(none yet)</em>';
                 ?></span>
             </div>
+            <?php
+            // "open" link — uses the hogtanker-open:// URL scheme handled by the
+            // Jellbot Hogtanker Opener desktop helper to open the file from
+            // ~/Downloads/ in its default macOS app.
+            $has_filename = $last && !empty($last['filename']);
+            $safe_fn = $has_filename ? self::sanitize_for_url($last['filename']) : '';
+            $open_href = $has_filename ? 'hogtanker-open://~/Downloads/' . $safe_fn : '#';
+            $copy_href = $has_filename ? 'hogtanker-copy://~/Downloads/' . $safe_fn : '#';
+            ?>
+            <div class="hogtanker-open-line"<?php echo $has_filename ? '' : ' style="display:none;"'; ?>>
+                <a class="hogtanker-open-link" href="<?php echo esc_attr($open_href); ?>"
+                   title="open the most recent download in its default macOS app (requires Jellbot Hogtanker Opener)">open</a>
+                <a class="hogtanker-copy-link" href="<?php echo esc_attr($copy_href); ?>"
+                   title="read the file from disk and copy contents to clipboard via Jellbot Hogtanker Opener">copy contents of file</a>
+            </div>
         </div>
         <?php
+    }
+
+    /**
+     * Render the "hogtanker terminal info" button (sits next to the Lightning Popup
+     * button at the top of the cashew editor page). Opens a full-height popup with
+     * copy-to-clipboard Terminal commands for managing the hogtanker / Jellbot system.
+     */
+    public static function render_hogtanker_terminal_info_button() {
+        ?>
+        <button type="button" class="button button-primary hogtanker-terminal-info-btn"
+                onclick="window.openHogtankerTerminalInfo()">
+            🛠 hogtanker terminal info (jellbot)
+        </button>
+        <?php
+    }
+
+    /**
+     * Render the full-height popup that holds all the dev terminal commands.
+     * Each command block is click-to-copy with visual feedback.
+     */
+    public static function render_hogtanker_terminal_info_popup() {
+        // Each section: ['title' => '...', 'desc' => '...', 'cmd' => "..."]
+        $sections = array(
+            array(
+                'title' => 'Quit Chrome completely',
+                'desc'  => 'Required before any Chrome policy change takes effect. Closing windows is not enough.',
+                'cmd'   => "osascript -e 'tell app \"Google Chrome\" to quit'",
+            ),
+            array(
+                'title' => 'Build & install the Jellbot Hogtanker Opener helper',
+                'desc'  => 'Compiles the Swift helper, signs it ad-hoc, copies it to /Applications, and registers the URL scheme with macOS.',
+                'cmd'   => "cd ~/Documents/repos/desktop-apps/jellbot_hogtanker_opener && ./build.sh install",
+            ),
+            array(
+                'title' => 'Re-register the URL scheme with LaunchServices',
+                'desc'  => "Run if the helper is installed but Chrome says \"no app is associated with this URL\". Tells macOS to re-scan the .app bundle and pick up the hogtanker-open:// scheme.",
+                'cmd'   => "/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -f -R \"/Applications/Jellbot Hogtanker Opener.app\"",
+            ),
+            array(
+                'title' => 'Apply the Chrome auto-open policy (skip the confirmation dialog)',
+                'desc'  => 'Allowlists BOTH hogtanker-open:// and hogtanker-copy:// from http://saltwater.local. Run once. Re-run safely re-creates the file. Quit Chrome first (see top section).',
+                'cmd'   => "sudo mkdir -p \"/Library/Managed Preferences\" && \\\nsudo /usr/libexec/PlistBuddy \\\n  -c \"Delete :AutoLaunchProtocolsFromOrigins\" \\\n  \"/Library/Managed Preferences/com.google.Chrome.plist\" 2>/dev/null; \\\nsudo /usr/libexec/PlistBuddy \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins array\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:0 dict\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:0:protocol string hogtanker-open\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:0:allowed_origins array\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:0:allowed_origins:0 string http://saltwater.local\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:1 dict\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:1:protocol string hogtanker-copy\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:1:allowed_origins array\" \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:1:allowed_origins:0 string http://saltwater.local\" \\\n  \"/Library/Managed Preferences/com.google.Chrome.plist\"",
+            ),
+            array(
+                'title' => 'Verify the policy file on disk',
+                'desc'  => 'Should print AutoLaunchProtocolsFromOrigins → Array → Dict → protocol = hogtanker-open + allowed_origins listing http://saltwater.local',
+                'cmd'   => "sudo /usr/libexec/PlistBuddy -c \"Print\" \"/Library/Managed Preferences/com.google.Chrome.plist\"",
+            ),
+            array(
+                'title' => 'Open Chrome to its policy inspector',
+                'desc'  => 'After applying the policy + relaunching Chrome, this confirms Chrome actually loaded the policy. Look for AutoLaunchProtocolsFromOrigins with status = OK.',
+                'cmd'   => "open -a \"Google Chrome\" \"chrome://policy\"",
+            ),
+            array(
+                'title' => 'Add another local site origin to the policy',
+                'desc'  => 'Use when you spin up a new dev site (e.g. coastal.local) that should also auto-open hogtanker links. Increment :1 to the next unused index if you already added one.',
+                'cmd'   => "sudo /usr/libexec/PlistBuddy \\\n  -c \"Add :AutoLaunchProtocolsFromOrigins:0:allowed_origins:1 string http://coastal.local\" \\\n  \"/Library/Managed Preferences/com.google.Chrome.plist\"",
+            ),
+            array(
+                'title' => 'Remove the auto-open policy entirely',
+                'desc'  => 'Reverts to the "Open Jellbot Hogtanker Opener?" confirmation dialog on every click.',
+                'cmd'   => "sudo /usr/libexec/PlistBuddy -c \"Delete :AutoLaunchProtocolsFromOrigins\" \"/Library/Managed Preferences/com.google.Chrome.plist\"",
+            ),
+            array(
+                'title' => 'Test the URL scheme from Terminal (helper sanity check)',
+                'desc'  => 'Creates a test file in ~/Downloads and asks the helper to open it. If TextEdit opens with "hello from hogtanker test", the helper works end-to-end.',
+                'cmd'   => "echo 'hello from hogtanker test' > ~/Downloads/hogtanker-test.txt && \\\nopen 'hogtanker-open://~/Downloads/hogtanker-test.txt'",
+            ),
+            array(
+                'title' => 'Test the COPY scheme from Terminal',
+                'desc'  => 'Asks the helper to read ~/Downloads/hogtanker-test.txt and copy contents to your macOS clipboard. After running, paste anywhere — should yield "hello from hogtanker test".',
+                'cmd'   => "open 'hogtanker-copy://~/Downloads/hogtanker-test.txt'",
+            ),
+            array(
+                'title' => 'Uninstall the helper app',
+                'desc'  => 'Removes the .app bundle. URL scheme registration disappears once macOS notices.',
+                'cmd'   => "rm -rf \"/Applications/Jellbot Hogtanker Opener.app\"",
+            ),
+            array(
+                'title' => 'Clean rebuild from source (no install)',
+                'desc'  => "Wipes ./build/ and recompiles. Useful if you've changed Swift source. Use ./build.sh install to push to /Applications.",
+                'cmd'   => "cd ~/Documents/repos/desktop-apps/jellbot_hogtanker_opener && ./build.sh clean && ./build.sh",
+            ),
+        );
+        ?>
+        <div id="hogtanker-terminal-info-popup" class="hogtanker-tip-overlay" style="display:none;">
+            <div class="hogtanker-tip-container">
+                <div class="hogtanker-tip-header">
+                    <h2 class="hogtanker-tip-title">🛠 Hogtanker Terminal Info</h2>
+                    <button type="button" class="hogtanker-tip-close"
+                            onclick="window.closeHogtankerTerminalInfo()">&times;</button>
+                </div>
+                <div class="hogtanker-tip-content">
+                    <p class="hogtanker-tip-intro">
+                        Click any command block to copy it to your clipboard.
+                        Paste into Terminal.app and press Enter.
+                    </p>
+                    <?php foreach ($sections as $i => $s): ?>
+                        <div class="hogtanker-tip-section">
+                            <div class="hogtanker-tip-section-title"><?php echo esc_html($s['title']); ?></div>
+                            <div class="hogtanker-tip-section-desc"><?php echo esc_html($s['desc']); ?></div>
+                            <pre class="hogtanker-tip-cmd"
+                                 data-cmd="<?php echo esc_attr($s['cmd']); ?>"
+                                 title="click to copy"><?php echo esc_html($s['cmd']); ?></pre>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Sanitize a filename component before placing it in a URL path.
+     * Strips any path-traversal pieces and reserved chars; URL-encodes spaces.
+     */
+    private static function sanitize_for_url($filename) {
+        // Drop directory components — only the basename should ever be here.
+        $base = basename($filename);
+        // Strip any leading dots (no hidden files) and remove characters that
+        // would change URL meaning if smuggled in.
+        $base = ltrim($base, '.');
+        $base = str_replace(array('..', '/', '\\', '?', '#'), '', $base);
+        return rawurlencode($base);
     }
 
     public function __construct() {
@@ -560,6 +699,206 @@ class CashewEditorAdmin {
                     color: #065f46 !important;
                     transition: background 0.4s ease;
                 }
+                /* Hogtanker Terminal Info button + popup */
+                .hogtanker-terminal-info-btn {
+                    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+                    border: 2px solid #4f46e5 !important;
+                    color: #ffffff !important;
+                    font-weight: 600 !important;
+                    padding: 8px 16px !important;
+                    border-radius: 6px !important;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    height: auto !important;
+                }
+                .hogtanker-terminal-info-btn:hover {
+                    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%) !important;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+                }
+                .hogtanker-tip-overlay {
+                    position: fixed;
+                    top: 0; left: 0; width: 100%; height: 100%;
+                    background: rgba(0, 0, 0, 0.8);
+                    z-index: 999999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .hogtanker-tip-container {
+                    background: #fff;
+                    width: 92%;
+                    max-width: 1100px;
+                    height: 100vh;
+                    max-height: 100vh;
+                    border-radius: 12px;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                }
+                .hogtanker-tip-header {
+                    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+                    color: #fff;
+                    height: 48px;
+                    padding: 0 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    flex-shrink: 0;
+                }
+                .hogtanker-tip-title {
+                    margin: 0;
+                    font-size: 16px;
+                    font-weight: 700;
+                    color: #fff;
+                }
+                .hogtanker-tip-close {
+                    background: none;
+                    border: none;
+                    color: #fff;
+                    font-size: 26px;
+                    cursor: pointer;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 50%;
+                    line-height: 1;
+                }
+                .hogtanker-tip-close:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                }
+                .hogtanker-tip-content {
+                    flex: 1;
+                    padding: 24px 28px 32px;
+                    overflow-y: auto;
+                    background: #f9fafb;
+                }
+                .hogtanker-tip-intro {
+                    color: #4b5563;
+                    font-size: 13px;
+                    margin: 0 0 20px 0;
+                    padding: 12px 14px;
+                    background: #eef2ff;
+                    border-left: 4px solid #6366f1;
+                    border-radius: 4px;
+                }
+                .hogtanker-tip-section {
+                    background: #fff;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 16px 18px;
+                    margin-bottom: 14px;
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+                }
+                .hogtanker-tip-section-title {
+                    font-weight: 700;
+                    color: #1f2937;
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                }
+                .hogtanker-tip-section-desc {
+                    color: #6b7280;
+                    font-size: 12px;
+                    line-height: 1.5;
+                    margin-bottom: 10px;
+                }
+                .hogtanker-tip-cmd {
+                    background: #1f2937;
+                    color: #e5e7eb;
+                    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+                    font-size: 12px;
+                    line-height: 1.5;
+                    padding: 12px 14px;
+                    border-radius: 6px;
+                    margin: 0;
+                    cursor: pointer;
+                    overflow-x: auto;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    border: 1px solid #374151;
+                    transition: background 0.15s ease, border-color 0.15s ease;
+                }
+                .hogtanker-tip-cmd:hover {
+                    background: #111827;
+                    border-color: #6366f1;
+                }
+                .hogtanker-tip-cmd.hogtanker-tip-copied {
+                    background: #064e3b !important;
+                    border-color: #10b981 !important;
+                    color: #d1fae5 !important;
+                }
+                body.hogtanker-tip-open {
+                    overflow: hidden;
+                }
+
+                /* "open" link below the last-download line */
+                .hogtanker-open-line {
+                    margin-top: 2px;
+                    font-size: 11px;
+                    line-height: 1.4;
+                }
+                .hogtanker-open-link {
+                    color: #2563eb;
+                    text-decoration: none;
+                    font-weight: 600;
+                    cursor: pointer;
+                }
+                .hogtanker-open-link:hover {
+                    text-decoration: underline;
+                    color: #1d4ed8;
+                }
+                /* "copy contents of file" — sits to the right of "open" */
+                .hogtanker-copy-link {
+                    margin-left: 10px;
+                    color: #2563eb;
+                    font-weight: 600;
+                    cursor: pointer;
+                    padding: 1px 4px;
+                    border-radius: 3px;
+                    transition: background 0.15s ease;
+                    user-select: none;
+                }
+                .hogtanker-copy-link:hover {
+                    background: #fde68a; /* yellow */
+                    color: #1f2937;
+                }
+                /* Centered fade-in/out feedback popup after copy */
+                .hogtanker-copy-feedback {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: #16a34a; /* green */
+                    font-size: 20px;
+                    font-weight: bold;
+                    text-align: center;
+                    background: rgba(255, 255, 255, 0.95);
+                    padding: 22px 38px;
+                    border-radius: 10px;
+                    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.18);
+                    z-index: 99999999;
+                    pointer-events: none;
+                    line-height: 1.4;
+                    opacity: 0;
+                    /* total 1.5s: 0.5s fade in, then 1s fade out */
+                    animation: hogtanker-copy-feedback-anim 1.5s ease-out forwards;
+                }
+                .hogtanker-copy-feedback .hogtanker-copy-feedback-filename {
+                    display: block;
+                    margin-top: 6px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #065f46;
+                    word-break: break-all;
+                }
+                @keyframes hogtanker-copy-feedback-anim {
+                    0%   { opacity: 0; }
+                    33%  { opacity: 1; } /* 0.5s in / 1.5s total = 33.3% */
+                    100% { opacity: 0; }
+                }
                 .hogtanker-last-none {
                     color: #9ca3af;
                     font-style: italic;
@@ -671,10 +1010,12 @@ class CashewEditorAdmin {
 
             <?php
             if (class_exists('Ruplin_Lightning_Popup')) {
-                echo '<div class="cashew-lightning-bar" style="margin: 0 0 16px 0;">';
+                echo '<div class="cashew-lightning-bar" style="margin: 0 0 16px 0; display: flex; gap: 8px; align-items: center;">';
                 Ruplin_Lightning_Popup::render_button($post_id);
+                self::render_hogtanker_terminal_info_button();
                 echo '</div>';
                 Ruplin_Lightning_Popup::render_modal($post_id);
+                self::render_hogtanker_terminal_info_popup();
             }
             ?>
 
@@ -1149,6 +1490,127 @@ class CashewEditorAdmin {
                         });
                     });
 
+                    // Centered fade-in/out feedback popup helper.
+                    function showHogtankerCopyFeedback(filename) {
+                        // Remove any prior popup so rapid clicks don't stack.
+                        var existing = document.querySelector('.hogtanker-copy-feedback');
+                        if (existing) existing.remove();
+                        var fb = document.createElement('div');
+                        fb.className = 'hogtanker-copy-feedback';
+                        var line1 = document.createElement('div');
+                        line1.textContent = 'Copied file contents!';
+                        var line2 = document.createElement('span');
+                        line2.className = 'hogtanker-copy-feedback-filename';
+                        line2.textContent = filename || '';
+                        fb.appendChild(line1);
+                        fb.appendChild(line2);
+                        document.body.appendChild(fb);
+                        // Animation runs 1.5s; then remove the node.
+                        setTimeout(function () { if (fb.parentNode) fb.parentNode.removeChild(fb); }, 1500);
+                    }
+
+                    // Click "copy contents of file" → fire hogtanker-copy:// URL.
+                    // Jellbot helper reads the file from disk and writes contents to
+                    // the macOS clipboard. We do NOT preventDefault — the browser
+                    // navigates to the custom URL so the OS dispatches to the helper.
+                    //
+                    // Then we VERIFY a change happened before showing the popup:
+                    //   - read clipboard before click
+                    //   - wait for Jellbot to (potentially) finish writing
+                    //   - read clipboard again
+                    //   - if it changed → show popup; else stay silent
+                    // This avoids the false-positive popup when Jellbot isn't
+                    // installed, isn't allowlisted in Chrome policy, or otherwise
+                    // failed to write.
+                    document.querySelectorAll('.hogtanker-copy-link').forEach(function (link) {
+                        link.addEventListener('click', function () {
+                            var stack = this.closest('.hogtanker-btn-stack');
+                            var filename = '';
+                            if (stack) {
+                                var valEl = stack.querySelector('.hogtanker-last-value');
+                                if (valEl && !valEl.querySelector('.hogtanker-last-none')) {
+                                    filename = valEl.textContent.trim();
+                                }
+                            }
+
+                            // If we can't verify the clipboard, stay silent (better
+                            // than a false-positive popup).
+                            if (!navigator.clipboard || !navigator.clipboard.readText) {
+                                return;
+                            }
+
+                            navigator.clipboard.readText().then(function (before) {
+                                var beforeClip = before || '';
+                                // Give Jellbot time to launch + read + write.
+                                // Cold-launch of the .app on first use after a reboot
+                                // can take ~400-700ms; subsequent runs ~150ms.
+                                setTimeout(function () {
+                                    navigator.clipboard.readText().then(function (after) {
+                                        if (after && after !== beforeClip) {
+                                            showHogtankerCopyFeedback(filename);
+                                        }
+                                        // else: no change → no popup (Jellbot didn't run,
+                                        // wasn't installed, or the file was empty).
+                                    }).catch(function () { /* silent */ });
+                                }, 800);
+                            }).catch(function () {
+                                // Clipboard read permission denied or unavailable —
+                                // stay silent rather than showing a false success.
+                            });
+                            // No preventDefault — the hogtanker-copy:// URL fires to Jellbot.
+                        });
+                    });
+
+                    // Hogtanker Terminal Info popup — open/close + click-to-copy on each cmd block.
+                    window.openHogtankerTerminalInfo = function () {
+                        var pop = document.getElementById('hogtanker-terminal-info-popup');
+                        if (!pop) return;
+                        pop.style.display = 'flex';
+                        document.body.classList.add('hogtanker-tip-open');
+                    };
+                    window.closeHogtankerTerminalInfo = function () {
+                        var pop = document.getElementById('hogtanker-terminal-info-popup');
+                        if (!pop) return;
+                        pop.style.display = 'none';
+                        document.body.classList.remove('hogtanker-tip-open');
+                    };
+                    // Click overlay backdrop to close (but not when clicking inside the container).
+                    var tipPop = document.getElementById('hogtanker-terminal-info-popup');
+                    if (tipPop) {
+                        tipPop.addEventListener('click', function (e) {
+                            if (e.target === this) window.closeHogtankerTerminalInfo();
+                        });
+                    }
+                    // Escape to close (only when this popup is the visible one).
+                    document.addEventListener('keydown', function (e) {
+                        if (e.key === 'Escape') {
+                            var pop = document.getElementById('hogtanker-terminal-info-popup');
+                            if (pop && pop.style.display !== 'none') window.closeHogtankerTerminalInfo();
+                        }
+                    });
+                    // Click any command block to copy it.
+                    document.querySelectorAll('.hogtanker-tip-cmd').forEach(function (cmd) {
+                        cmd.addEventListener('click', function () {
+                            var text = this.getAttribute('data-cmd') || this.textContent || '';
+                            var self = this;
+                            var done = function () {
+                                self.classList.add('hogtanker-tip-copied');
+                                setTimeout(function () { self.classList.remove('hogtanker-tip-copied'); }, 900);
+                            };
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(text).then(done).catch(function () {});
+                            } else {
+                                var ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                try { document.execCommand('copy'); done(); } catch (e) {}
+                                document.body.removeChild(ta);
+                            }
+                        });
+                    });
+
                     // Hogtanker download split-button — records the download in
                     // wp_hogtanker_log via AJAX (which assigns the per-item_type
                     // prefix_number and assembles the full filename), then streams
@@ -1214,6 +1676,20 @@ class CashewEditorAdmin {
                                             setTimeout(function () {
                                                 valueEl.classList.remove('hogtanker-just-updated');
                                             }, 1500);
+                                        }
+                                        // Update the "open" + "copy contents of file" link hrefs and show the line.
+                                        var openLine = stack.querySelector('.hogtanker-open-line');
+                                        var openLink = stack.querySelector('.hogtanker-open-link');
+                                        var copyLink = stack.querySelector('.hogtanker-copy-link');
+                                        var encodedFn = encodeURIComponent(filename);
+                                        if (openLink) {
+                                            openLink.setAttribute('href', 'hogtanker-open://~/Downloads/' + encodedFn);
+                                        }
+                                        if (copyLink) {
+                                            copyLink.setAttribute('href', 'hogtanker-copy://~/Downloads/' + encodedFn);
+                                        }
+                                        if (openLine) {
+                                            openLine.style.display = '';
                                         }
                                     }
                                 })
