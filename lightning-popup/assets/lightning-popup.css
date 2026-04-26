@@ -1,0 +1,123 @@
+/* ============================================================
+   Lightning Popup — central reusable component
+   Extracted from hurricane.css; rendered on:
+     - WP native post/page edit screen
+     - Telescope content editor
+     - Cashew editor
+   ============================================================ */
+
+.snefuru-lightning-popup-btn {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    border: 2px solid #ff9800;
+    color: #333;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.snefuru-lightning-popup-btn:hover {
+    background: linear-gradient(135deg, #ffca28 0%, #ffa726 100%);
+    border-color: #ffa726;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+}
+
+.snefuru-lightning-popup-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
+}
+
+/* Lightning Popup Modal */
+.snefuru-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.snefuru-popup-container {
+    background: #fff;
+    width: 90%;
+    max-width: 1200px;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.snefuru-popup-header {
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    color: white;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 20px !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #005a87;
+    flex-shrink: 0;
+}
+
+.snefuru-popup-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+.snefuru-popup-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.snefuru-popup-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.snefuru-popup-content {
+    flex: 1;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-y: auto;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Prevent body scroll when popup is open */
+body.snefuru-popup-open {
+    overflow: hidden;
+}
+
+/* Ensure ferret snippets container fills the popup content and starts at top */
+.snefuru-popup-content #ferret-snippets-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 100%;
+    width: 100%;
+}

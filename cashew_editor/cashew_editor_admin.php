@@ -4,8 +4,90 @@ if (!defined('ABSPATH')) {
 }
 
 class CashewEditorAdmin {
-    
+
+    /**
+     * Look up the most recent hogtanker download row for a given button identity.
+     * Returns ['filename' => string, 'generated_at' => string] or null if none.
+     */
+    private static function get_last_hogtanker_download($post_id, $admin_screen_slug, $field_name, $item_type) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'hogtanker_log';
+        $row = $wpdb->get_row($wpdb->prepare(
+            "SELECT filename, generated_at
+             FROM {$table}
+             WHERE rel_wp_post_id    = %d
+               AND admin_screen_slug = %s
+               AND field_name        = %s
+               AND item_type         = %s
+             ORDER BY item_id DESC
+             LIMIT 1",
+            $post_id, $admin_screen_slug, $field_name, $item_type
+        ), ARRAY_A);
+        return $row ?: null;
+    }
+
+    /**
+     * Render the 4-part Hogtanker download split-button.
+     * Layout: [ⓘ tooltip] | [download hogtanker file] | [txt] | [html]
+     * Below the button, a "last download:" line shows the most recent filename
+     * generated from this button (persisted via wp_hogtanker_log → survives page refresh).
+     *
+     * @param string $field_name        Form-field name (must match a textarea on the page).
+     * @param int    $post_id           Post the button belongs to (for the audit log).
+     * @param string $admin_screen_slug Which admin screen this button lives on (for log + identity).
+     * @param string $item_type         Hogtanker item type; restarts prefix counter per type.
+     */
+    public static function render_hogtanker_btn($field_name, $post_id = 0, $admin_screen_slug = '', $item_type = 'download_single_db_field') {
+        $fn = esc_attr($field_name);
+        $it = esc_attr($item_type);
+        $tooltip = sprintf('download hogtanker file for "item_type" of "%s"', $item_type);
+
+        // Look up most recent download for this exact button identity.
+        $last = ($post_id && $admin_screen_slug)
+            ? self::get_last_hogtanker_download($post_id, $admin_screen_slug, $field_name, $item_type)
+            : null;
+        ?>
+        <div class="hogtanker-btn-stack" data-field="<?php echo $fn; ?>" data-item-type="<?php echo $it; ?>">
+            <div class="cashew-hogtanker-btn" data-field="<?php echo $fn; ?>" data-item-type="<?php echo $it; ?>">
+                <span class="hogtanker-tooltip-wrap">
+                    <span class="hogtanker-part hogtanker-tooltip-icon" aria-label="info">&#9432;</span>
+                    <span class="hogtanker-tooltip-popup" role="tooltip"
+                          data-copy-text="<?php echo esc_attr($tooltip); ?>"
+                          title="click to copy"><?php echo esc_html($tooltip); ?></span>
+                </span>
+                <span class="hogtanker-divider"></span>
+                <button type="button" class="hogtanker-part hogtanker-main"
+                        data-field="<?php echo $fn; ?>" data-item-type="<?php echo $it; ?>" data-format="txt">download hogtanker file</button>
+                <span class="hogtanker-divider"></span>
+                <button type="button" class="hogtanker-part hogtanker-format hogtanker-format-txt"
+                        data-field="<?php echo $fn; ?>" data-item-type="<?php echo $it; ?>" data-format="txt">txt</button>
+                <span class="hogtanker-divider"></span>
+                <button type="button" class="hogtanker-part hogtanker-format hogtanker-format-html"
+                        data-field="<?php echo $fn; ?>" data-item-type="<?php echo $it; ?>" data-format="html">html</button>
+            </div>
+            <div class="hogtanker-last-filename">
+                <span class="hogtanker-last-label">last download:</span>
+                <span class="hogtanker-last-value"><?php
+                    echo $last && !empty($last['filename'])
+                        ? esc_html($last['filename'])
+                        : '<em class="hogtanker-last-none">(none yet)</em>';
+                ?></span>
+            </div>
+        </div>
+        <?php
+    }
+
     public function __construct() {
+        // Register Cashew Editor screen with the central Lightning Popup component.
+        if (class_exists('Ruplin_Lightning_Popup')) {
+            Ruplin_Lightning_Popup::register_screen(
+                'admin_page_cashew_editor',
+                function () {
+                    return isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0;
+                }
+            );
+        }
+
         add_action('admin_menu', array($this, 'add_admin_menu'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('admin_head', array($this, 'suppress_notices'));
@@ -15,9 +97,121 @@ class CashewEditorAdmin {
         
         // Add AJAX handler for cherry template generation
         add_action('wp_ajax_generate_cherry_template_html', array($this, 'ajax_generate_cherry_template'));
-        
+
         // Add AJAX handler for creating orbitposts row
         add_action('wp_ajax_create_orbitposts_row', array($this, 'ajax_create_orbitposts_row'));
+
+        // Add AJAX handler for hogtanker download recording
+        add_action('wp_ajax_hogtanker_record_download', array($this, 'ajax_hogtanker_record_download'));
+    }
+
+    /**
+     * AJAX: record a hogtanker download into wp_hogtanker_log and return the
+     * generated filename. Assigns a per-item_type prefix_number atomically.
+     */
+    public function ajax_hogtanker_record_download() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('forbidden', 403);
+        }
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'hogtanker_record')) {
+            wp_send_json_error('bad nonce', 403);
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'hogtanker_log';
+
+        $item_type         = isset($_POST['item_type']) && $_POST['item_type'] !== ''
+                              ? sanitize_text_field(wp_unslash($_POST['item_type']))
+                              : 'download_single_db_field';
+        $field_name        = isset($_POST['field_name'])
+                              ? sanitize_text_field(wp_unslash($_POST['field_name']))
+                              : '';
+        $format            = isset($_POST['format']) && in_array($_POST['format'], array('txt','html'), true)
+                              ? $_POST['format'] : 'txt';
+        $post_id           = isset($_POST['post_id']) ? (int) $_POST['post_id'] : 0;
+        $admin_screen_slug = isset($_POST['admin_screen_slug'])
+                              ? sanitize_text_field(wp_unslash($_POST['admin_screen_slug']))
+                              : '';
+        $bytes_size        = isset($_POST['bytes_size']) ? (int) $_POST['bytes_size'] : null;
+
+        if (!$field_name) {
+            wp_send_json_error('field_name required');
+        }
+
+        // permalink_slug — page path with '/' replaced by '-'
+        $permalink_slug = '';
+        if ($post_id) {
+            $permalink = get_permalink($post_id);
+            if ($permalink) {
+                $home = home_url('/');
+                $relative = trim(str_replace($home, '', $permalink), '/');
+                if ($relative === '') $relative = 'home';
+                $permalink_slug = str_replace('/', '-', $relative);
+            }
+        }
+
+        // wp_siteurl — strip protocol and port
+        $wp_siteurl = get_option('siteurl');
+        $wp_siteurl = preg_replace('#^https?://#', '', (string) $wp_siteurl);
+        $wp_siteurl = preg_replace('#:\d+$#', '', (string) $wp_siteurl);
+
+        // sitespren_base — single row in wp_zen_sitespren
+        $sitespren_table = $wpdb->prefix . 'zen_sitespren';
+        $sitespren_base = $wpdb->get_var("SELECT sitespren_base FROM {$sitespren_table} LIMIT 1");
+        if (!$sitespren_base) $sitespren_base = '';
+
+        $suffix_id = '1';
+
+        // Atomic prefix_number assignment via transaction + FOR UPDATE.
+        // The composite UNIQUE KEY (item_type, prefix_number) is the safety net.
+        $wpdb->query('START TRANSACTION');
+        $next_prefix = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COALESCE(MAX(prefix_number), 0) + 1
+             FROM {$table}
+             WHERE item_type = %s
+             FOR UPDATE",
+            $item_type
+        ));
+
+        $filename = sprintf(
+            '%d_%s_%s_%s_%s_%s.%s',
+            $next_prefix,
+            $permalink_slug,
+            $field_name,
+            $wp_siteurl,
+            $sitespren_base,
+            $suffix_id,
+            $format
+        );
+
+        $insert = $wpdb->insert(
+            $table,
+            array(
+                'item_type'         => $item_type,
+                'prefix_number'     => $next_prefix,
+                'rel_wp_post_id'    => $post_id ?: null,
+                'permalink_slug'    => $permalink_slug,
+                'admin_screen_slug' => $admin_screen_slug,
+                'field_name'        => $field_name,
+                'format'            => $format,
+                'filename'          => $filename,
+                'wp_siteurl'        => $wp_siteurl,
+                'sitespren_base'    => $sitespren_base,
+                'rel_wp_user_id'    => get_current_user_id() ?: null,
+                'bytes_size'        => $bytes_size,
+            )
+        );
+        if ($insert === false) {
+            $wpdb->query('ROLLBACK');
+            wp_send_json_error('insert failed: ' . $wpdb->last_error);
+        }
+        $wpdb->query('COMMIT');
+
+        wp_send_json_success(array(
+            'item_id'       => (int) $wpdb->insert_id,
+            'prefix_number' => $next_prefix,
+            'filename'      => $filename,
+        ));
     }
 
     public function add_admin_menu() {
@@ -231,6 +425,151 @@ class CashewEditorAdmin {
                     resize: vertical;
                 }
 
+                /* Hogtanker file download split-button (4 parts: tooltip | main | txt | html) */
+                .cashew-hogtanker-btn {
+                    display: inline-flex;
+                    align-items: stretch;
+                    margin-top: 6px;
+                    border: 1px solid #6b7280;
+                    border-radius: 4px;
+                    /* Note: NO overflow:hidden here — would clip the tooltip popup. */
+                    background: #f3f4f6;
+                    font-size: 12px;
+                    line-height: 1;
+                    user-select: none;
+                }
+                .cashew-hogtanker-btn > *:first-child {
+                    border-top-left-radius: 4px;
+                    border-bottom-left-radius: 4px;
+                }
+                .cashew-hogtanker-btn > *:last-child {
+                    border-top-right-radius: 4px;
+                    border-bottom-right-radius: 4px;
+                }
+                .cashew-hogtanker-btn .hogtanker-part {
+                    background: transparent;
+                    border: 0;
+                    padding: 6px 10px;
+                    cursor: pointer;
+                    color: #1f2937;
+                    font-size: 12px;
+                    line-height: 1;
+                    font-family: inherit;
+                }
+                .cashew-hogtanker-btn .hogtanker-part:hover {
+                    background: #e5e7eb;
+                }
+                .cashew-hogtanker-btn .hogtanker-part:active {
+                    background: #d1d5db;
+                }
+                .cashew-hogtanker-btn .hogtanker-main {
+                    font-weight: 600;
+                }
+                .cashew-hogtanker-btn .hogtanker-divider {
+                    width: 1px;
+                    background: #6b7280;
+                    flex-shrink: 0;
+                }
+                .cashew-hogtanker-btn .hogtanker-format {
+                    text-transform: lowercase;
+                    color: #4b5563;
+                }
+                .cashew-hogtanker-btn .hogtanker-format:hover {
+                    color: #1f2937;
+                }
+
+                /* Tooltip section (leftmost) */
+                .cashew-hogtanker-btn .hogtanker-tooltip-wrap {
+                    position: relative;
+                    display: inline-flex;
+                    align-items: center;
+                }
+                .cashew-hogtanker-btn .hogtanker-tooltip-icon {
+                    cursor: help;
+                    color: #4b5563;
+                    font-size: 14px;
+                    line-height: 1;
+                    padding: 6px 10px;
+                }
+                .cashew-hogtanker-btn .hogtanker-tooltip-popup {
+                    position: absolute;
+                    bottom: calc(100% + 6px);
+                    left: 0;
+                    background: #1f2937;
+                    color: #f3f4f6;
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    white-space: nowrap;
+                    opacity: 0;
+                    visibility: hidden;
+                    transition: opacity 0.15s ease, visibility 0.15s ease;
+                    cursor: pointer;
+                    z-index: 1000;
+                    pointer-events: none;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
+                .cashew-hogtanker-btn .hogtanker-tooltip-popup::after {
+                    content: "";
+                    position: absolute;
+                    top: 100%;
+                    left: 12px;
+                    border: 5px solid transparent;
+                    border-top-color: #1f2937;
+                }
+                .cashew-hogtanker-btn .hogtanker-tooltip-wrap:hover .hogtanker-tooltip-popup,
+                .cashew-hogtanker-btn .hogtanker-tooltip-popup:hover,
+                .cashew-hogtanker-btn .hogtanker-tooltip-wrap.is-open .hogtanker-tooltip-popup {
+                    opacity: 1;
+                    visibility: visible;
+                    pointer-events: auto;
+                }
+
+                /* Last-download filename line (persists across page refresh, sourced from wp_hogtanker_log) */
+                .hogtanker-btn-stack {
+                    display: inline-block;
+                    max-width: 100%;
+                }
+                .hogtanker-last-filename {
+                    margin-top: 4px;
+                    font-size: 11px;
+                    line-height: 1.4;
+                    color: #6b7280;
+                    word-break: break-all;
+                }
+                .hogtanker-last-label {
+                    font-weight: 600;
+                    margin-right: 4px;
+                    cursor: pointer;
+                }
+                .hogtanker-last-label:hover {
+                    color: #1f2937;
+                    text-decoration: underline;
+                }
+                .hogtanker-last-value {
+                    font-family: 'Courier New', monospace;
+                    color: #1f2937;
+                    cursor: pointer;
+                }
+                .hogtanker-last-value:hover {
+                    text-decoration: underline;
+                }
+                .hogtanker-copy-flash {
+                    background: #d1fae5 !important;
+                    color: #065f46 !important;
+                    transition: background 0.4s ease;
+                }
+                .hogtanker-last-none {
+                    color: #9ca3af;
+                    font-style: italic;
+                }
+                /* Brief flash when the value gets updated post-download */
+                .hogtanker-last-value.hogtanker-just-updated {
+                    background: #fef3c7;
+                    transition: background 0.4s ease;
+                }
+
                 .cashew-readonly {
                     background-color: #f3f4f6;
                     color: #6b7280;
@@ -329,7 +668,16 @@ class CashewEditorAdmin {
             </style>
 
             <h1>Cashew Editor</h1>
-            
+
+            <?php
+            if (class_exists('Ruplin_Lightning_Popup')) {
+                echo '<div class="cashew-lightning-bar" style="margin: 0 0 16px 0;">';
+                Ruplin_Lightning_Popup::render_button($post_id);
+                echo '</div>';
+                Ruplin_Lightning_Popup::render_modal($post_id);
+            }
+            ?>
+
             <!-- Editor Navigation Button Bar -->
             <div class="editor-navigation-bar" style="background: #f0f0f1; padding: 10px 20px; border: 1px solid #c3c4c7; border-radius: 4px; margin: 20px 0;">
                 <div style="display: flex; gap: 10px; align-items: center;">
@@ -544,9 +892,12 @@ class CashewEditorAdmin {
                             <td class="cashew-adjunct-column"></td>
                         </tr>
                         <tr>
-                            <td class="cashew-field-label">wp_pylons.cashew_html_expanse</td>
+                            <td class="cashew-field-label">
+                                <div>wp_pylons.cashew_html_expanse</div>
+                                <?php self::render_hogtanker_btn('cashew_html_expanse', $post_id, 'cashew_editor'); ?>
+                            </td>
                             <td>
-                                <textarea name="cashew_html_expanse" 
+                                <textarea name="cashew_html_expanse"
                                           class="cashew-field-textarea"
                                           placeholder="Enter your custom HTML content here..."><?php echo esc_textarea($pylon_data['cashew_html_expanse'] ?? ''); ?></textarea>
                             </td>
@@ -561,7 +912,10 @@ class CashewEditorAdmin {
                         </tr>
                         <?php for ($i = 1; $i <= 10; $i++): ?>
                         <tr>
-                            <td class="cashew-field-label"><b>expanse<?php echo $i; ?></b></td>
+                            <td class="cashew-field-label">
+                                <div><b>expanse<?php echo $i; ?></b></div>
+                                <?php if ($i <= 2) self::render_hogtanker_btn('expanse' . $i, $post_id, 'cashew_editor'); ?>
+                            </td>
                             <td>
                                 <textarea name="expanse<?php echo $i; ?>"
                                           class="cashew-field-input cashew-html-field"
@@ -702,6 +1056,171 @@ class CashewEditorAdmin {
                             var input = document.querySelector('input[name="' + field + '"]');
                             var isOn = this.classList.toggle('cashew-toggle-on');
                             input.value = isOn ? '1' : '0';
+                        });
+                    });
+
+                    // Hogtanker tooltip — click the ⓘ icon to toggle visibility (also works on hover).
+                    document.querySelectorAll('.cashew-hogtanker-btn .hogtanker-tooltip-icon').forEach(function (icon) {
+                        icon.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            var wrap = this.closest('.hogtanker-tooltip-wrap');
+                            // Close any other open tooltips first
+                            document.querySelectorAll('.hogtanker-tooltip-wrap.is-open').forEach(function (w) {
+                                if (w !== wrap) w.classList.remove('is-open');
+                            });
+                            wrap.classList.toggle('is-open');
+                        });
+                    });
+                    // Click outside any tooltip closes all open tooltips.
+                    document.addEventListener('click', function (e) {
+                        if (e.target.closest('.hogtanker-tooltip-wrap')) return;
+                        document.querySelectorAll('.hogtanker-tooltip-wrap.is-open').forEach(function (w) {
+                            w.classList.remove('is-open');
+                        });
+                    });
+
+                    // Click the tooltip text → copy it to clipboard.
+                    document.querySelectorAll('.cashew-hogtanker-btn .hogtanker-tooltip-popup').forEach(function (pop) {
+                        pop.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            var text = this.getAttribute('data-copy-text') || this.textContent || '';
+                            var done = function () {
+                                var orig = pop.textContent;
+                                pop.textContent = '✓ copied!';
+                                setTimeout(function () { pop.textContent = orig; }, 1200);
+                            };
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(text).then(done).catch(function () { /* ignore */ });
+                            } else {
+                                // Fallback for older browsers
+                                var ta = document.createElement('textarea');
+                                ta.value = text;
+                                ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                try { document.execCommand('copy'); done(); } catch (e) {}
+                                document.body.removeChild(ta);
+                            }
+                        });
+                    });
+
+                    // Shared copy helper used by the "last download" line — copies text to
+                    // clipboard and briefly flashes the clicked element green.
+                    function hogtankerCopy(text, flashEl) {
+                        var flash = function () {
+                            flashEl.classList.add('hogtanker-copy-flash');
+                            setTimeout(function () { flashEl.classList.remove('hogtanker-copy-flash'); }, 700);
+                        };
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text).then(flash).catch(function () { /* ignore */ });
+                        } else {
+                            var ta = document.createElement('textarea');
+                            ta.value = text;
+                            ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                            document.body.appendChild(ta);
+                            ta.select();
+                            try { document.execCommand('copy'); flash(); } catch (e) {}
+                            document.body.removeChild(ta);
+                        }
+                    }
+
+                    // Click the filename value → copy just the filename.
+                    document.querySelectorAll('.hogtanker-last-filename .hogtanker-last-value').forEach(function (val) {
+                        val.addEventListener('click', function () {
+                            // If still placeholder ("(none yet)"), do nothing.
+                            if (this.querySelector('.hogtanker-last-none')) return;
+                            var filename = this.textContent.trim();
+                            if (!filename) return;
+                            hogtankerCopy(filename, this);
+                        });
+                    });
+
+                    // Click the "last download:" label → copy "/Downloads/{filename}".
+                    document.querySelectorAll('.hogtanker-last-filename .hogtanker-last-label').forEach(function (lbl) {
+                        lbl.addEventListener('click', function () {
+                            var wrap = this.closest('.hogtanker-last-filename');
+                            if (!wrap) return;
+                            var valEl = wrap.querySelector('.hogtanker-last-value');
+                            if (!valEl || valEl.querySelector('.hogtanker-last-none')) return;
+                            var filename = valEl.textContent.trim();
+                            if (!filename) return;
+                            hogtankerCopy('/Downloads/' + filename, this);
+                        });
+                    });
+
+                    // Hogtanker download split-button — records the download in
+                    // wp_hogtanker_log via AJAX (which assigns the per-item_type
+                    // prefix_number and assembles the full filename), then streams
+                    // the live textarea value with that filename. No wrapping/comments.
+                    document.querySelectorAll('.cashew-hogtanker-btn .hogtanker-part').forEach(function (btn) {
+                        // Tooltip icon is not a download trigger.
+                        if (btn.classList.contains('hogtanker-tooltip-icon')) return;
+
+                        btn.addEventListener('click', function () {
+                            var field = this.getAttribute('data-field');
+                            var itemType = this.getAttribute('data-item-type') || 'download_single_db_field';
+                            var format = this.getAttribute('data-format') || 'txt';
+                            var src = document.querySelector('[name="' + field + '"]');
+                            if (!src) {
+                                alert('Hogtanker download: field "' + field + '" not found on page.');
+                                return;
+                            }
+                            var content = src.value || '';
+                            var bytes = new Blob([content]).size;
+
+                            var fd = new FormData();
+                            fd.append('action', 'hogtanker_record_download');
+                            fd.append('nonce', cashewHogtanker.nonce);
+                            fd.append('field_name', field);
+                            fd.append('item_type', itemType);
+                            fd.append('format', format);
+                            fd.append('post_id', cashewHogtanker.post_id);
+                            fd.append('admin_screen_slug', cashewHogtanker.admin_screen_slug);
+                            fd.append('bytes_size', bytes);
+
+                            // Disable button briefly to prevent double-click duplicates.
+                            var disabledBtn = this;
+                            disabledBtn.style.pointerEvents = 'none';
+
+                            fetch(cashewHogtanker.ajaxurl, { method: 'POST', body: fd, credentials: 'same-origin' })
+                                .then(function (r) { return r.json(); })
+                                .then(function (resp) {
+                                    disabledBtn.style.pointerEvents = '';
+                                    if (!resp || !resp.success) {
+                                        var msg = (resp && resp.data) ? resp.data : 'unknown error';
+                                        alert('Hogtanker record failed: ' + msg);
+                                        return;
+                                    }
+                                    var filename = resp.data.filename;
+                                    var mime = (format === 'html') ? 'text/html' : 'text/plain';
+                                    var blob = new Blob([content], { type: mime + ';charset=utf-8' });
+                                    var url = URL.createObjectURL(blob);
+                                    var a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+
+                                    // Update the "last download" filename display below this button.
+                                    var stack = disabledBtn.closest('.hogtanker-btn-stack');
+                                    if (stack) {
+                                        var valueEl = stack.querySelector('.hogtanker-last-value');
+                                        if (valueEl) {
+                                            valueEl.textContent = filename;
+                                            valueEl.classList.add('hogtanker-just-updated');
+                                            setTimeout(function () {
+                                                valueEl.classList.remove('hogtanker-just-updated');
+                                            }, 1500);
+                                        }
+                                    }
+                                })
+                                .catch(function (err) {
+                                    disabledBtn.style.pointerEvents = '';
+                                    alert('Hogtanker fetch failed: ' + err.message);
+                                });
                         });
                     });
                 });
@@ -1100,7 +1619,18 @@ class CashewEditorAdmin {
         if ($hook !== 'admin_page_cashew_editor') {
             return;
         }
-        
+
+        // Provide AJAX vars to the inline hogtanker download handler.
+        $post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0;
+        wp_register_script('cashew-hogtanker-vars', '', array('jquery'), null, true);
+        wp_enqueue_script('cashew-hogtanker-vars');
+        wp_localize_script('cashew-hogtanker-vars', 'cashewHogtanker', array(
+            'ajaxurl'           => admin_url('admin-ajax.php'),
+            'nonce'             => wp_create_nonce('hogtanker_record'),
+            'post_id'           => $post_id,
+            'admin_screen_slug' => 'cashew_editor',
+        ));
+
         // Additional script to hide notices via JavaScript
         wp_add_inline_script('jquery', '
             jQuery(document).ready(function($) {

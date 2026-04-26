@@ -20,6 +20,19 @@ class Snefuru_Hurricane {
     private $cobalt;
     
     public function __construct() {
+        // Register the post/page edit screens with the central Lightning Popup component
+        // so its CSS/JS auto-load there.
+        if (class_exists('Ruplin_Lightning_Popup')) {
+            $resolver = function () {
+                global $post;
+                if ($post && isset($post->ID)) return (int) $post->ID;
+                if (isset($_GET['post'])) return (int) $_GET['post'];
+                return 0;
+            };
+            Ruplin_Lightning_Popup::register_screen('post.php', $resolver);
+            Ruplin_Lightning_Popup::register_screen('post-new.php', $resolver);
+        }
+
         add_action('add_meta_boxes', array($this, 'add_hurricane_metabox'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_hurricane_assets'));
         add_action('edit_form_top', array($this, 'add_stellar_chamber'), 10);
@@ -4625,37 +4638,22 @@ In the following text content I paste below, you will be seeing the following:
      * Render the Hurricane metabox content
      */
     public function render_hurricane_metabox($post) {
+        $post_id = $post && isset($post->ID) ? (int) $post->ID : 0;
         ?>
         <div class="snefuru-hurricane-container">
             <div class="snefuru-hurricane-content">
                 Tsunami
             </div>
             <div class="snefuru-hurricane-controls">
-                <button type="button" class="button button-primary snefuru-lightning-popup-btn" onclick="window.snefuruOpenLightningPopup()">
-                    ⚡ Lightning Popup
-                </button>
+                <?php Ruplin_Lightning_Popup::render_button($post_id); ?>
                 <button type="button" class="button button-primary snefuru-thunder-popup-btn" onclick="window.snefuruOpenThunderPopup()" style="margin-top: 8px;">
                     ⛈️ Thunder Button (papyrus)
                 </button>
             </div>
         </div>
-        
-        <!-- Lightning Popup Modal -->
-        <div id="snefuru-lightning-popup" class="snefuru-popup-overlay" style="display: none;">
-            <div class="snefuru-popup-container">
-                <div class="snefuru-popup-header">
-                    <h2 class="snefuru-popup-title">Lightning Popup</h2>
-                    <button type="button" class="snefuru-popup-close" onclick="window.snefuruCloseLightningPopup()">&times;</button>
-                </div>
-                <div class="snefuru-popup-content">
-                    <?php
-                    // Hook for other plugins/features to add content
-                    do_action('ruplin_lightning_popup_content');
-                    ?>
-                </div>
-            </div>
-        </div>
-        
+
+        <?php Ruplin_Lightning_Popup::render_modal($post_id); ?>
+
         <!-- Thunder Popup Modal (Papyrus) -->
         <div id="snefuru-thunder-popup" class="snefuru-popup-overlay" style="display: none;">
             <div class="snefuru-popup-container">

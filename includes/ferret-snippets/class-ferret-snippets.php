@@ -74,16 +74,33 @@ class Ferret_Snippets {
      * Enqueue admin scripts and styles
      */
     public function enqueue_admin_assets($hook) {
-        // Only load on post/page edit screens
-        if (!in_array($hook, array('post.php', 'post-new.php'))) {
+        // Load on post/page edit screens AND on the screens that host the Lightning popup
+        // (Telescope content editor and Cashew editor) so the snippet UI works there too.
+        $allowed_hooks = array(
+            'post.php',
+            'post-new.php',
+            'toplevel_page_telescope_content_editor',
+            'admin_page_cashew_editor',
+        );
+        if (!in_array($hook, $allowed_hooks, true)) {
             return;
         }
-        
-        global $post;
-        if (!$post) {
+
+        // Resolve the post ID per host screen.
+        $post_id = 0;
+        if (in_array($hook, array('post.php', 'post-new.php'), true)) {
+            global $post;
+            if ($post && isset($post->ID)) $post_id = (int) $post->ID;
+        } elseif ($hook === 'toplevel_page_telescope_content_editor') {
+            $post_id = isset($_GET['post']) ? (int) $_GET['post'] : 0;
+        } elseif ($hook === 'admin_page_cashew_editor') {
+            $post_id = isset($_GET['post_id']) ? (int) $_GET['post_id'] : 0;
+        }
+
+        if (!$post_id) {
             return;
         }
-        
+
         // Enqueue CSS
         wp_enqueue_style(
             'ferret-snippets',
@@ -91,7 +108,7 @@ class Ferret_Snippets {
             array(),
             '1.0.0'
         );
-        
+
         // Enqueue JS
         wp_enqueue_script(
             'ferret-snippets',
@@ -100,12 +117,12 @@ class Ferret_Snippets {
             '1.0.0',
             true
         );
-        
+
         // Localize script with necessary data
         wp_localize_script('ferret-snippets', 'ferretSnippets', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('ferret_snippets_nonce'),
-            'postId' => $post->ID,
+            'postId' => $post_id,
             'messages' => array(
                 'saveSuccess' => __('Code snippet saved successfully', 'ruplin'),
                 'saveError' => __('Error saving code snippet', 'ruplin'),
@@ -115,16 +132,20 @@ class Ferret_Snippets {
     }
     
     /**
-     * Render content for Lightning popup
+     * Render content for Lightning popup.
+     * @param int|null $post_id Optional post ID passed from Lightning Popup. Falls back to global $post.
      */
-    public function render_popup_content() {
-        global $post;
-        if (!$post) {
-            return;
+    public function render_popup_content($post_id = null) {
+        if (!$post_id) {
+            global $post;
+            if (!$post) {
+                return;
+            }
+            $post_id = $post->ID;
         }
-        
+
         // Get existing snippets for this post
-        $snippets = $this->get_snippets($post->ID);
+        $snippets = $this->get_snippets($post_id);
         ?>
         <div id="ferret-snippets-container">
             <div class="ferret-tabs">

@@ -21,6 +21,16 @@ class Snefuru_Admin {
         add_action('admin_menu', array($this, 'add_admin_menu'), 22);
         add_action('admin_head', array($this, 'admin_head_styles'));
         add_action('admin_init', array($this, 'init_settings'));
+
+        // Register Telescope screen with the central Lightning Popup component.
+        if (class_exists('Ruplin_Lightning_Popup')) {
+            Ruplin_Lightning_Popup::register_screen(
+                'toplevel_page_telescope_content_editor',
+                function () {
+                    return isset($_GET['post']) ? (int) $_GET['post'] : 0;
+                }
+            );
+        }
         
         // Early admin notice suppression for all snefuruplin pages
         add_action('current_screen', array($this, 'maybe_suppress_admin_notices'), 1);

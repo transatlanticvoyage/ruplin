@@ -122,6 +122,11 @@ class SnefuruPlugin {
     }
     
     private function load_dependencies() {
+        // Load Lightning Popup component FIRST so any consumer (Cashew, Telescope,
+        // Hurricane, etc.) can call Ruplin_Lightning_Popup::register_screen() in their
+        // constructor without a class_exists race.
+        require_once SNEFURU_PLUGIN_PATH . 'lightning-popup/class-lightning-popup.php';
+
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-api-client.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-data-collector.php';
         require_once SNEFURU_PLUGIN_PATH . 'includes/class-admin.php';
@@ -1027,6 +1032,36 @@ class SnefuruPlugin {
             KEY idx_upload_date (upload_date)
         ) $charset_collate;";
         dbDelta($hazelnut_items_sql);
+
+        // Create wp_hogtanker_log table — per-site download/audit log + per-type
+        // prefix counter source for hogtanker filenames.
+        // item_id        = global PK (MySQL AUTO_INCREMENT, internal use only)
+        // prefix_number  = the number that appears in generated filenames; restarts
+        //                  at 1 per item_type. Assigned by application code under a
+        //                  transaction (the composite UNIQUE key is the safety net).
+        $hogtanker_log_table = $wpdb->prefix . 'hogtanker_log';
+        $hogtanker_log_sql = "CREATE TABLE $hogtanker_log_table (
+            item_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            item_type TEXT NOT NULL,
+            prefix_number BIGINT UNSIGNED NOT NULL,
+            generated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            rel_wp_post_id BIGINT UNSIGNED NULL,
+            permalink_slug varchar(255) NULL,
+            admin_screen_slug TEXT NULL,
+            field_name varchar(64) NOT NULL,
+            format varchar(8) NOT NULL,
+            filename varchar(512) NOT NULL,
+            wp_siteurl varchar(255) NULL,
+            sitespren_base varchar(255) NULL,
+            rel_wp_user_id BIGINT UNSIGNED NULL,
+            bytes_size INT UNSIGNED NULL,
+            PRIMARY KEY  (item_id),
+            UNIQUE KEY uniq_type_prefix (item_type(64), prefix_number),
+            KEY idx_post (rel_wp_post_id),
+            KEY idx_generated (generated_at),
+            KEY idx_field (field_name)
+        ) $charset_collate;";
+        dbDelta($hogtanker_log_sql);
 
         // Handle migration of box_order column to box_order_json
         $this->migrate_box_orders_table();

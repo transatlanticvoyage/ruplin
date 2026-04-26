@@ -3,25 +3,7 @@
  * Handles interactions for the Hurricane interface element
  */
 
-// Define global functions first (outside of jQuery scope)
-function snefuruOpenLightningPopup() {
-    console.log('Opening lightning popup...');
-    var popup = jQuery('#snefuru-lightning-popup');
-    if (popup.length) {
-        popup.show().fadeIn(300);
-        jQuery('body').addClass('snefuru-popup-open');
-        console.log('Lightning popup opened successfully');
-    } else {
-        console.error('Popup element not found!');
-    }
-}
-
-function snefuruCloseLightningPopup() {
-    console.log('Closing lightning popup...');
-    jQuery('#snefuru-lightning-popup').fadeOut(300);
-    jQuery('body').removeClass('snefuru-popup-open');
-    console.log('Lightning popup closed');
-}
+// Lightning popup open/close functions live in ruplin/lightning-popup/assets/lightning-popup.js.
 
 // Thunder popup functions
 function snefuruOpenThunderPopup() {
@@ -75,8 +57,6 @@ function saveThunderPapyrusData() {
 }
 
 // Make functions available on window object
-window.snefuruOpenLightningPopup = snefuruOpenLightningPopup;
-window.snefuruCloseLightningPopup = snefuruCloseLightningPopup;
 window.snefuruOpenThunderPopup = snefuruOpenThunderPopup;
 window.snefuruCloseThunderPopup = snefuruCloseThunderPopup;
 window.saveThunderPapyrusData = saveThunderPapyrusData;
@@ -99,81 +79,13 @@ window.saveThunderPapyrusData = saveThunderPapyrusData;
         // Initialize Stellar Chamber tabs
         initStellarTabs();
         
-        // Check if elements exist
-        if ($('.snefuru-lightning-popup-btn').length) {
-            console.log('Lightning button found');
-        } else {
-            console.log('Lightning button NOT found');
-        }
-        
-        if ($('#snefuru-lightning-popup').length) {
-            console.log('Lightning popup found');
-        } else {
-            console.log('Lightning popup NOT found');
-        }
-        
-        // Use event delegation to handle dynamically loaded content
-        $(document).off('click.hurricane').on('click.hurricane', '.snefuru-lightning-popup-btn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Lightning button clicked via jQuery!');
-            snefuruOpenLightningPopup();
-        });
-        
-        // Add popup close handlers using delegation
-        $(document).off('click.hurricane-close').on('click.hurricane-close', '.snefuru-popup-close', function(e) {
-            e.preventDefault();
-            console.log('Close button clicked');
-            snefuruCloseLightningPopup();
-        });
-        
-        // Close popup when clicking overlay background (but not when interacting with content)
-        var isInteractingWithPopup = false;
-        
-        // Track if interaction starts within the popup container
-        $(document).off('mousedown.hurricane-container').on('mousedown.hurricane-container', '.snefuru-popup-container', function(e) {
-            isInteractingWithPopup = true;
-            e.stopPropagation(); // Prevent event from bubbling to overlay
-        });
-        
-        // Also prevent mouseup events within container from bubbling
-        $(document).off('mouseup.hurricane-container').on('mouseup.hurricane-container', '.snefuru-popup-container', function(e) {
-            e.stopPropagation(); // Prevent event from bubbling to overlay
-        });
-        
-        // Track mousedown on the overlay itself
-        $(document).off('mousedown.hurricane-overlay').on('mousedown.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
-            // Only set flag to false if clicking directly on overlay (not container)
-            if (e.target === this) {
-                isInteractingWithPopup = false;
-            }
-        });
-        
-        // Handle mouseup on overlay
-        $(document).off('mouseup.hurricane-overlay').on('mouseup.hurricane-overlay', '.snefuru-popup-overlay', function(e) {
-            // Only close if we're not interacting with the popup content
-            // and the click target is the overlay itself
-            if (!isInteractingWithPopup && e.target === this) {
-                console.log('Overlay clicked - closing popup');
-                snefuruCloseLightningPopup();
-            }
-            
-            // Reset the flag after a short delay to handle edge cases
-            setTimeout(function() {
-                isInteractingWithPopup = false;
-            }, 100);
-        });
-        
-        // Close popup with Escape key
+        // Lightning popup handlers (button click, overlay click, Escape) live in
+        // ruplin/lightning-popup/assets/lightning-popup.js.
+
+        // Close Thunder popup with Escape key
         $(document).off('keydown.hurricane').on('keydown.hurricane', function(e) {
-            if (e.keyCode === 27) {
-                if ($('#snefuru-lightning-popup').is(':visible')) {
-                    console.log('Escape pressed - closing lightning popup');
-                    snefuruCloseLightningPopup();
-                } else if ($('#snefuru-thunder-popup').is(':visible')) {
-                    console.log('Escape pressed - closing thunder popup');
-                    snefuruCloseThunderPopup();
-                }
+            if (e.keyCode === 27 && $('#snefuru-thunder-popup').is(':visible')) {
+                snefuruCloseThunderPopup();
             }
         });
         

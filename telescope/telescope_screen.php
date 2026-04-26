@@ -240,7 +240,17 @@ function ruplin_render_telescope_screen() {
             <h1>🔭 Telescope Content Editor</h1>
             <div class="subtitle">Advanced content management and optimization interface</div>
         </div>
-        
+
+        <?php
+        if (class_exists('Ruplin_Lightning_Popup')) {
+            $lp_post_id = isset($_GET['post']) ? (int) $_GET['post'] : 0;
+            echo '<div class="telescope-lightning-bar" style="margin: 0 0 16px 0;">';
+            Ruplin_Lightning_Popup::render_button($lp_post_id);
+            echo '</div>';
+            Ruplin_Lightning_Popup::render_modal($lp_post_id);
+        }
+        ?>
+
         <!-- Editor Navigation Button Bar -->
         <div class="editor-navigation-bar" style="background: #f0f0f1; padding: 10px 20px; border-bottom: 1px solid #c3c4c7; margin-bottom: 20px;">
             <div style="display: flex; gap: 10px; align-items: center;">
