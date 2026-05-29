@@ -69,9 +69,10 @@ class Silkweaver_Menu_Renderer {
                 $item_path = trailingslashit(parse_url($item['url'], PHP_URL_PATH));
                 $is_current = ($current_path === $item_path);
                 $html .= sprintf(
-                    '<li><a href="%s"%s>%s</a></li>',
+                    '<li><a href="%s"%s%s>%s</a></li>',
                     esc_url($item['url']),
                     $is_current ? ' aria-current="page"' : '',
+                    !empty($item['nofollow']) ? ' rel="nofollow"' : '',
                     esc_html($item['anchor'])
                 );
             } elseif ($item['type'] === 'dynamic') {
@@ -113,16 +114,23 @@ class Silkweaver_Menu_Renderer {
             error_log("Silkweaver parsing line " . ($line_num + 1) . ": '" . $original_line . "' -> '" . $line . "'");
             
             if (strpos($line, 'target_url=') === 0) {
-                // Static menu item: target_url=/path anchor=Link Text
-                preg_match('/target_url=([^\s]+)\s+anchor=(.+)/', $line, $matches);
+                // Static menu item: target_url=/path anchor=Link Text [nofollow=yes]
+                // Optional "nofollow=yes" token adds rel="nofollow" to the rendered <a>.
+                // Detect it first, then strip ANY nofollow=<value> token from the line so
+                // it doesn't bleed into the anchor text (anchor= captures to end of line).
+                $nofollow   = (bool) preg_match('/\bnofollow=yes\b/i', $line);
+                $parse_line = trim(preg_replace('/\s*\bnofollow=\S+/i', '', $line));
+
+                preg_match('/target_url=([^\s]+)\s+anchor=(.+)/', $parse_line, $matches);
                 error_log("Silkweaver static line regex matches: " . json_encode($matches));
                 if (count($matches) === 3) {
                     $menu_items[] = array(
-                        'type' => 'static',
-                        'url' => $matches[1],
-                        'anchor' => $matches[2]
+                        'type'     => 'static',
+                        'url'      => $matches[1],
+                        'anchor'   => trim($matches[2]),
+                        'nofollow' => $nofollow
                     );
-                    error_log("Silkweaver added static item: " . $matches[1] . " -> " . $matches[2]);
+                    error_log("Silkweaver added static item: " . $matches[1] . " -> " . trim($matches[2]) . ($nofollow ? ' [nofollow]' : ''));
                 }
             } elseif (strpos($line, 'pull_all_service_pages_dynamically_with_robust_child_area') === 0) {
                 $menu_items[] = array(
