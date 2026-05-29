@@ -16,6 +16,7 @@
  * Git test trigger comment: 2025-10-26
  * Test comment: VSCode source control pane test - 2026-03-20
  * Test comment to show shared header logic in VSCode source control
+ * Test comment: VSCode source control sync test - 2026-05-28
  */
 
 // Prevent direct access
