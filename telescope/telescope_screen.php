@@ -1704,16 +1704,10 @@ function telescope_render_edit_form($post_id) {
                             mediaFrame.on('open', function() {
                                 // Get the frame content
                                 var content = mediaFrame.content.get();
-                                
+
                                 // Switch to browse/library mode if available
                                 if (content && content.mode) {
                                     content.mode('browse');
-                                }
-                                
-                                // Alternative: directly activate the library tab
-                                var menu = mediaFrame.menu.get();
-                                if (menu) {
-                                    menu.activate('library');
                                 }
                             });
                             

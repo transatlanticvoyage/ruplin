@@ -203,22 +203,16 @@ class Vulture_Controller {
             $meta_description = $rank_math_desc;
         }
         
-        $pylons_data = $wpdb->get_row($wpdb->prepare(
-            "SELECT staircase_page_template_desired, vectornode_meta_title, vectornode_meta_description 
-             FROM {$wpdb->prefix}pylons 
-             WHERE rel_wp_post_id = %d 
+        // Fetch the ENTIRE wp_pylons row so every column can be flattened to the TXT file.
+        $pylons_row = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}pylons
+             WHERE rel_wp_post_id = %d
              LIMIT 1",
             $post->ID
-        ));
-        
-        $staircase_template = '';
-        $vectornode_meta_title = '';
-        $vectornode_meta_description = '';
-        
-        if ($pylons_data) {
-            $staircase_template = $pylons_data->staircase_page_template_desired ?: '';
-            $vectornode_meta_title = $pylons_data->vectornode_meta_title ?: '';
-            $vectornode_meta_description = $pylons_data->vectornode_meta_description ?: '';
+        ), ARRAY_A);
+
+        if (!is_array($pylons_row)) {
+            $pylons_row = array();
         }
         
         $content = "======================================================================\n";
@@ -232,10 +226,7 @@ class Vulture_Controller {
         $content .= "is_front_page: {$is_front_page}\n";
         $content .= "is_pdf: FALSE\n";
         $content .= "notes: \n\n";
-        
-        $content .= "### wp_pylons.staircase_page_template_desired\n";
-        $content .= "{$staircase_template}\n\n";
-        
+
         $content .= "### post_id\n";
         $content .= "{$post->ID}\n\n";
         
@@ -338,15 +329,18 @@ class Vulture_Controller {
         $content .= "### redirect_from_old_url\n";
         $content .= "\n\n";
         
-        $content .= "### vectornode_meta_title\n";
-        $content .= "{$vectornode_meta_title}\n\n";
-        
-        $content .= "### vectornode_meta_description\n";
-        $content .= "{$vectornode_meta_description}\n\n";
-        
-        $content .= "### staircase_page_template_desired\n";
-        $content .= "{$staircase_template}\n";
-        
+        // ── Full wp_pylons dump ────────────────────────────────────────────────
+        // Every column from the joined wp_pylons row, one labelled block each,
+        // so nothing is lost on the round-trip back into the DB.
+        $content .= "======================================================================\n";
+        $content .= "ALL wp_pylons COLUMNS (" . count($pylons_row) . " total)\n";
+        $content .= "======================================================================\n\n";
+
+        foreach ($pylons_row as $col_name => $col_value) {
+            $content .= "### wp_pylons.{$col_name}\n";
+            $content .= ($col_value === null ? '' : $col_value) . "\n\n";
+        }
+
         return $content;
     }
     
