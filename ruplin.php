@@ -236,6 +236,12 @@ class SnefuruPlugin {
         // Load Warbler Migrator (self-contained migration tool, child of Ruplin Hub 3)
         require_once SNEFURU_PLUGIN_PATH . 'warbler-migrator/class-warbler-migrator.php';
 
+        // Load Blog Post Fixer For Broken Sites (child of Ruplin Hub 3)
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/blog-post-fixer-for-broken-sites/class-blog-post-fixer-for-broken-sites.php';
+
+        // Load Set Default Sitewide Header And Footer (child of Ruplin Hub 3)
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/set-default-sitewide-header-and-footer/class-set-default-sitewide-header-and-footer.php';
+
         // Load Elementor components only if Elementor is available
         if ($this->elementor_available) {
             require_once SNEFURU_PLUGIN_PATH . 'includes/class-elementor-updater.php';
