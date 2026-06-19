@@ -71,7 +71,38 @@ class Ruplin_Blog_Post_Fixer_For_Broken_Sites {
         $td_style = 'padding:8px 14px;border:1px solid #ccd0d4;vertical-align:top;';
         ?>
         <div class="wrap blog-post-fixer-for-broken-sites-wrap">
-            <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+                <h1 style="margin:0;"><?php echo esc_html(get_admin_page_title()); ?></h1>
+                <button type="button" id="bpffbs-show-bilberry-sql" class="button">sql for updating all blog posts to bilberry template</button>
+            </div>
+
+            <!-- Bilberry SQL popup -->
+            <div id="bpffbs-sql-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100000;">
+                <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;max-width:95%;background:#fff;border-radius:6px;box-shadow:0 0 30px rgba(0,0,0,0.4);display:flex;flex-direction:column;max-height:90vh;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #e5e7eb;">
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=axiomplunger')); ?>" target="_blank" rel="noopener" class="button" style="display:inline-flex;align-items:center;gap:6px;">
+                            <span aria-hidden="true">&#8599;</span> open axiom plunger
+                        </a>
+                        <button type="button" id="bpffbs-sql-modal-close" aria-label="Close" style="background:none;border:none;font-size:26px;line-height:1;cursor:pointer;color:#6b7280;">&times;</button>
+                    </div>
+                    <div style="padding:16px;overflow-y:auto;">
+                        <p style="margin:0 0 8px;font-weight:600;">SQL — set all posts (not pages) to the bilberry template</p>
+                        <textarea id="bpffbs-sql-text" readonly style="width:100%;height:200px;box-sizing:border-box;font-family:monospace;font-size:13px;border:1px solid #d1d5db;border-radius:4px;padding:12px;resize:vertical;">UPDATE wp_pylons
+SET staircase_page_template_desired = 'bilberry'
+WHERE rel_wp_post_id IN (
+    SELECT ID FROM wp_posts WHERE post_type = 'post'
+);</textarea>
+                        <div style="margin-top:10px;">
+                            <button type="button" id="bpffbs-sql-copy" class="button button-primary">Copy SQL</button>
+                            <span id="bpffbs-sql-copied" style="display:none;color:#46b450;font-weight:600;margin-left:8px;">Copied!</span>
+                        </div>
+                        <p class="description" style="margin-top:10px;">
+                            Assumes the <code>wp_</code> table prefix. If this site uses a different prefix,
+                            change <code>wp_pylons</code> / <code>wp_posts</code> before running.
+                        </p>
+                    </div>
+                </div>
+            </div>
 
             <?php if ($result !== null): ?>
             <div style="background:#46b450;color:#fff;padding:12px 16px;border-radius:4px;margin:16px 0;">
@@ -153,6 +184,43 @@ class Ruplin_Blog_Post_Fixer_For_Broken_Sites {
                         e.preventDefault();
                     }
                 });
+            }
+
+            // --- Bilberry SQL popup ---
+            var sqlBtn = document.getElementById('bpffbs-show-bilberry-sql');
+            var sqlOverlay = document.getElementById('bpffbs-sql-modal-overlay');
+            if (sqlBtn && sqlOverlay) {
+                sqlBtn.addEventListener('click', function() { sqlOverlay.style.display = 'block'; });
+                sqlOverlay.addEventListener('click', function(e) {
+                    if (e.target === sqlOverlay) sqlOverlay.style.display = 'none';
+                });
+                var sqlClose = document.getElementById('bpffbs-sql-modal-close');
+                if (sqlClose) sqlClose.addEventListener('click', function() { sqlOverlay.style.display = 'none'; });
+                var sqlCopy = document.getElementById('bpffbs-sql-copy');
+                var sqlText = document.getElementById('bpffbs-sql-text');
+                var sqlCopied = document.getElementById('bpffbs-sql-copied');
+                if (sqlCopy && sqlText) {
+                    sqlCopy.addEventListener('click', function() {
+                        sqlText.focus();
+                        sqlText.select();
+                        sqlText.setSelectionRange(0, 99999);
+                        var done = function() {
+                            if (sqlCopied) {
+                                sqlCopied.style.display = 'inline';
+                                setTimeout(function() { sqlCopied.style.display = 'none'; }, 1500);
+                            }
+                        };
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(sqlText.value).then(done, function() {
+                                try { document.execCommand('copy'); } catch (e) {}
+                                done();
+                            });
+                        } else {
+                            try { document.execCommand('copy'); } catch (e) {}
+                            done();
+                        }
+                    });
+                }
             }
 
             var table = document.getElementById('bpffbs-table');
