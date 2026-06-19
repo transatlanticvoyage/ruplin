@@ -582,6 +582,8 @@ class SnefuruPlugin {
             site_default_header TEXT DEFAULT NULL,
             site_default_sidebar TEXT DEFAULT NULL,
             site_default_anteheader TEXT DEFAULT NULL,
+            boilerplatich_victoria_blog_box_heading TEXT DEFAULT NULL,
+            boilerplatich_victoria_blog_box_subheading TEXT DEFAULT NULL,
             PRIMARY KEY (id),
             KEY fk_users_id (fk_users_id),
             KEY fk_domreg_hostaccount (fk_domreg_hostaccount),
