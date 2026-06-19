@@ -45,14 +45,17 @@ class Ruplin_Blog_Post_Fixer_For_Broken_Sites {
     public function render_admin_page() {
         $this->suppress_admin_notices();
 
-        // ---- Handle f8372 run (re-assign post dates + change URLs) ----
-        $keep_past_value = 12; // default for the "# of past posts to keep same date" input
+        // ---- Handle f8372 run (re-assign post dates + optional URL changes) ----
+        $keep_past_value = 12;       // default for the "# of past posts to keep same date" input
+        $change_urls_checked = true; // checkbox default: ticked
         $result = null;
         if (isset($_POST['bpffbs_run_f8372']) && check_admin_referer('bpffbs_f8372', 'bpffbs_f8372_nonce')) {
             $keep_past_value = isset($_POST['bpffbs_keep_past']) ? max(0, intval($_POST['bpffbs_keep_past'])) : 12;
-            $result = $this->run_f8372($keep_past_value);
+            $change_urls_checked = isset($_POST['bpffbs_change_urls']); // unchecked boxes aren't posted
+            $result = $this->run_f8372($keep_past_value, $change_urls_checked);
         } elseif (isset($_POST['bpffbs_keep_past'])) {
             $keep_past_value = max(0, intval($_POST['bpffbs_keep_past']));
+            $change_urls_checked = isset($_POST['bpffbs_change_urls']);
         }
 
         // Pull every post regardless of status (publish, future, draft, pending,
@@ -124,11 +127,17 @@ WHERE rel_wp_post_id IN (
             <form method="post" id="bpffbs-f8372-form" style="margin:16px 0;padding:16px;border:1px solid #ccd0d4;background:#fff;border-radius:4px;max-width:760px;">
                 <?php wp_nonce_field('bpffbs_f8372', 'bpffbs_f8372_nonce'); ?>
                 <div style="margin-bottom:12px;">
+                    <label style="display:flex;align-items:flex-start;gap:8px;font-weight:600;cursor:pointer;">
+                        <input type="checkbox" name="bpffbs_change_urls" id="bpffbs_change_urls" value="1" <?php checked($change_urls_checked); ?> style="margin-top:2px;">
+                        <span>change urls by removing filler words etc to get a unique url</span>
+                    </label>
+                </div>
+                <div style="margin-bottom:12px;">
                     <label for="bpffbs_keep_past" style="display:block;font-weight:600;margin-bottom:4px;"># of past posts to keep same date</label>
                     <input type="number" min="0" step="1" name="bpffbs_keep_past" id="bpffbs_keep_past" value="<?php echo esc_attr($keep_past_value); ?>" style="width:90px;">
                 </div>
                 <button type="submit" name="bpffbs_run_f8372" value="1" id="bpffbs-run-f8372" class="button button-primary">
-                    run f8372 - re assign post dates and change urls
+                    run f8372 - re assign post dates<span id="bpffbs-urls-suffix" style="color:#ffb74d;"<?php echo $change_urls_checked ? '' : ' hidden'; ?>> (and change urls)</span>
                 </button>
                 <p style="color:#666;margin:10px 0 0;font-size:12px;">
                     Affects <strong>all</strong> posts automatically — no selection needed.
@@ -170,16 +179,26 @@ WHERE rel_wp_post_id IN (
 
         <script>
         (function() {
+            // --- f8372: checkbox toggles the "(and change urls)" button suffix ---
+            var changeUrlsCb = document.getElementById('bpffbs_change_urls');
+            var urlsSuffix = document.getElementById('bpffbs-urls-suffix');
+            if (changeUrlsCb && urlsSuffix) {
+                changeUrlsCb.addEventListener('change', function() {
+                    urlsSuffix.hidden = !changeUrlsCb.checked;
+                });
+            }
+
             // --- f8372 confirmation popup ---
             var f8372form = document.getElementById('bpffbs-f8372-form');
             if (f8372form) {
                 f8372form.addEventListener('submit', function(e) {
+                    var withUrls = changeUrlsCb ? changeUrlsCb.checked : true;
                     var msg = 'Run f8372?\n\n' +
-                        'This will re-assign post dates AND change the URL (slug) of ALL ' +
-                        'posts on this site. Every post is affected automatically — you do ' +
-                        'not need to select any.\n\n' +
-                        'This rewrites permalinks and publication dates and cannot be easily undone.\n\n' +
-                        'Proceed?';
+                        (withUrls
+                            ? 'This will re-assign post dates AND change the URL (slug) of ALL posts on this site.'
+                            : 'This will re-assign post dates for ALL posts on this site (URLs will NOT be changed).') +
+                        '\n\nEvery post is affected automatically — you do not need to select any. ' +
+                        'This cannot be easily undone.\n\nProceed?';
                     if (!window.confirm(msg)) {
                         e.preventDefault();
                     }
@@ -340,7 +359,7 @@ WHERE rel_wp_post_id IN (
      * @param int $keep_past Number of most-recent past PUBLISHED posts to leave untouched (dates).
      * @return array Summary counts.
      */
-    private function run_f8372($keep_past) {
+    private function run_f8372($keep_past, $change_urls = true) {
         $result = array(
             'total'           => 0,
             'urls_changed'    => 0,
@@ -427,18 +446,20 @@ WHERE rel_wp_post_id IN (
         foreach ($posts as $p) {
             $args = array('ID' => $p->ID);
 
-            // Part 1 — change URL slug for every post.
-            $slug = $this->modify_slug($p->post_name, $protected, $filler);
-            if ($slug !== null && $slug['slug'] !== '' && $slug['slug'] !== $p->post_name) {
-                $args['post_name'] = $slug['slug'];
-                $result['urls_changed']++;
-                if ($slug['method'] === 'A') {
-                    $result['method_a']++;
+            // Part 1 — change URL slug for every post (only when enabled).
+            if ($change_urls) {
+                $slug = $this->modify_slug($p->post_name, $protected, $filler);
+                if ($slug !== null && $slug['slug'] !== '' && $slug['slug'] !== $p->post_name) {
+                    $args['post_name'] = $slug['slug'];
+                    $result['urls_changed']++;
+                    if ($slug['method'] === 'A') {
+                        $result['method_a']++;
+                    } else {
+                        $result['method_b']++;
+                    }
                 } else {
-                    $result['method_b']++;
+                    $result['url_unchanged']++;
                 }
-            } else {
-                $result['url_unchanged']++;
             }
 
             // Part 2 — re-drip date for drip-set posts.
