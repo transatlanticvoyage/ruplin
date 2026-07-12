@@ -320,8 +320,9 @@ class Ruplin_Blog_Post_Url_Cleanup_W_Redirects {
     }
 
     /**
-     * AJAX handler: scan every blog post's post_content for <a href="...">
-     * links, extract the target URLs, and return a de-duped list.
+     * AJAX handler: scan every published or scheduled blog post's post_content
+     * for <a href="..."> links, extract the target URLs, and return a
+     * de-duped list.
      */
     public function ajax_scan_target_urls() {
         check_ajax_referer('ruplin_bpuc_scan_target_urls', 'nonce');
@@ -332,7 +333,7 @@ class Ruplin_Blog_Post_Url_Cleanup_W_Redirects {
 
         $posts = get_posts(array(
             'post_type'        => 'post',
-            'post_status'      => 'publish',
+            'post_status'      => array('publish', 'future'),
             'numberposts'      => -1,
             'suppress_filters' => true,
         ));
@@ -397,7 +398,7 @@ class Ruplin_Blog_Post_Url_Cleanup_W_Redirects {
 
         $posts = get_posts(array(
             'post_type'        => 'post',
-            'post_status'      => 'publish',
+            'post_status'      => array('publish', 'future'),
             'numberposts'      => -1,
             'suppress_filters' => true,
         ));
@@ -441,14 +442,14 @@ class Ruplin_Blog_Post_Url_Cleanup_W_Redirects {
     }
 
     /**
-     * Permalinks for every currently-published blog post.
+     * Permalinks for every published or scheduled blog post.
      *
      * @return string[]
      */
     private function get_all_blog_post_permalinks() {
         $posts = get_posts(array(
             'post_type'        => 'post',
-            'post_status'      => 'publish',
+            'post_status'      => array('publish', 'future'),
             'numberposts'      => -1,
             'suppress_filters' => true,
         ));
