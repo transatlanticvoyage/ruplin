@@ -239,6 +239,9 @@ class SnefuruPlugin {
         // Load Blog Post Fixer For Broken Sites (child of Ruplin Hub 3)
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/blog-post-fixer-for-broken-sites/class-blog-post-fixer-for-broken-sites.php';
 
+        // Load Blog Post URL Cleanup W/ Redirects (child of Ruplin Hub 3)
+        require_once SNEFURU_PLUGIN_PATH . 'admin-screens/blog-post-url-cleanup-w-redirects/class-blog-post-url-cleanup-w-redirects.php';
+
         // Load Set Default Sitewide Header And Footer (child of Ruplin Hub 3)
         require_once SNEFURU_PLUGIN_PATH . 'admin-screens/set-default-sitewide-header-and-footer/class-set-default-sitewide-header-and-footer.php';
 
