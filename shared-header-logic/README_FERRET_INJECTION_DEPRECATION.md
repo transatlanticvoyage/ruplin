@@ -67,6 +67,22 @@ The practical symptom: accordion JS on peanut FAQ pages was broken because
   `ferret_inline_css` and `ferret_inline_js` columns via `wp_add_inline_style` /
   `wp_add_inline_script`. The new class does not handle these.
 
+  **UPDATE 2026-08-16 — those two columns are phantom.** `ferret_inline_css` and
+  `ferret_inline_js` appear in **no** ruplin `CREATE TABLE`, in no `ADD COLUMN`
+  migration, and on no known install — verified against chimney-exp, jerseycity-pestcontrol,
+  derrekspestcontrol, roachesrodentshouston and lagoon, and against the raw live-site
+  AI1WM database dumps for chimney-exp and jerseycity (0 occurrences in either). The
+  `get_option()` fallbacks are unset too. So this hook could never return anything; it
+  only produced `Unknown column ... in 'field list'` errors on every page load, which
+  ruplin then leaked onto the frontend (see the general-shortcodes / `show_errors()`
+  loop). `get_ferret_inline_css()` / `get_ferret_inline_js()` now gate on a new
+  `column_exists()` helper, so the SELECTs are skipped unless the columns are really
+  there. Behaviour is unchanged if they are ever added.
+
+  This means the stated reason for keeping `enqueue_ferret_assets()` hooked no longer
+  holds. The hook is now inert on every existing site and is a candidate for removal
+  along with the rest of this class.
+
 - **`clear_cache()`** — called by `class-shared-header-loader.php` when a "ferret"
   cache clear is triggered in the admin UI. Deletes transients.
 

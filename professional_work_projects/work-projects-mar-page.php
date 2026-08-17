@@ -254,7 +254,7 @@ class Ruplin_Work_Projects_Mar_Page {
         $table_name = $wpdb->prefix . 'work_projects';
         $charset_collate = $wpdb->get_charset_collate();
         
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
             id bigint(20) NOT NULL AUTO_INCREMENT,
             project_name varchar(255) DEFAULT NULL,
             client_name varchar(255) DEFAULT NULL,

@@ -2154,7 +2154,7 @@ class CashewEditorAdmin {
         if (!$table_exists) {
             // Create the table if it doesn't exist
             $charset_collate = $wpdb->get_charset_collate();
-            $sql = "CREATE TABLE IF NOT EXISTS $orbitposts_table (
+            $sql = "CREATE TABLE $orbitposts_table (
                 id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                 rel_wp_post_id BIGINT(20) UNSIGNED NOT NULL,
                 ferret_header_code LONGTEXT DEFAULT NULL,

@@ -196,7 +196,7 @@ class Ruplin_Service_Categories_Mar_Admin {
         $table_name = $wpdb->prefix . 'service_categories';
         $charset_collate = $wpdb->get_charset_collate();
         
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
             id int(11) NOT NULL AUTO_INCREMENT,
             category_name varchar(255) DEFAULT NULL,
             longer_name text DEFAULT NULL,

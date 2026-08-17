@@ -209,7 +209,10 @@ class Ruplin_Ferret_Header_Injection {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'zen_orbitposts';
-        if ($this->table_exists($table_name)) {
+        // ferret_inline_css is not in any ruplin CREATE TABLE and exists on no known
+        // install, so guard on the column too — without this the SELECT below raises
+        // "Unknown column 'ferret_inline_css' in 'field list'" on every page load.
+        if ($this->table_exists($table_name) && $this->column_exists($table_name, 'ferret_inline_css')) {
             $post_id = $this->get_current_post_id();
             if ($post_id) {
                 $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_inline_css FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
@@ -231,7 +234,9 @@ class Ruplin_Ferret_Header_Injection {
         global $wpdb;
 
         $table_name = $wpdb->prefix . 'zen_orbitposts';
-        if ($this->table_exists($table_name)) {
+        // See note in get_ferret_inline_css() — ferret_inline_js is likewise absent from
+        // every known install, so the column must be checked before it is selected.
+        if ($this->table_exists($table_name) && $this->column_exists($table_name, 'ferret_inline_js')) {
             $post_id = $this->get_current_post_id();
             if ($post_id) {
                 $result = $wpdb->get_var($wpdb->prepare("SELECT ferret_inline_js FROM {$table_name} WHERE rel_wp_post_id = %d", $post_id));
@@ -365,9 +370,36 @@ class Ruplin_Ferret_Header_Injection {
      */
     private function table_exists($table_name) {
         global $wpdb;
-        
+
         $query = $wpdb->prepare("SHOW TABLES LIKE %s", $table_name);
         return $wpdb->get_var($query) === $table_name;
+    }
+
+    /**
+     * Check that a column exists before selecting it.
+     *
+     * ruplin's schema is upgraded piecemeal (and several CREATE TABLE statements use
+     * IF NOT EXISTS, which stops dbDelta adding columns at all), so a column this class
+     * wants may simply not be present. Selecting a missing column makes wpdb emit a
+     * "WordPress database error" — which ruplin can surface on the frontend — so callers
+     * must gate on this first. Results are cached per request.
+     *
+     * @param string $table_name  Full table name, already prefixed.
+     * @param string $column_name Column to look for.
+     * @return bool
+     */
+    private function column_exists($table_name, $column_name) {
+        global $wpdb;
+
+        static $cache = array();
+        $key = $table_name . '.' . $column_name;
+
+        if (!isset($cache[$key])) {
+            $query = $wpdb->prepare("SHOW COLUMNS FROM `{$table_name}` LIKE %s", $column_name);
+            $cache[$key] = (bool) $wpdb->get_var($query);
+        }
+
+        return $cache[$key];
     }
     
     /**

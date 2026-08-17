@@ -599,7 +599,7 @@ class SnefuruPlugin {
         
         // Create zen_hoof_codes table for dynamic shortcodes (shared with Grove)
         $zen_hoof_codes_table = $wpdb->prefix . 'zen_hoof_codes';
-        $zen_hoof_codes_sql = "CREATE TABLE IF NOT EXISTS $zen_hoof_codes_table (
+        $zen_hoof_codes_sql = "CREATE TABLE $zen_hoof_codes_table (
             hoof_id int(11) NOT NULL AUTO_INCREMENT,
             hoof_slug varchar(100) NOT NULL,
             hoof_title varchar(255) DEFAULT NULL,
@@ -621,7 +621,7 @@ class SnefuruPlugin {
         
         // Create wp_pylons table for page content blocks
         $pylons_table = $wpdb->prefix . 'pylons';
-        $pylons_sql = "CREATE TABLE IF NOT EXISTS $pylons_table (
+        $pylons_sql = "CREATE TABLE $pylons_table (
             pylon_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             rel_wp_post_id BIGINT(20) UNSIGNED DEFAULT NULL,
             plasma_page_id BIGINT(20) UNSIGNED DEFAULT NULL,
@@ -878,7 +878,7 @@ class SnefuruPlugin {
         
         // Create wp_box_orders table for box ordering system
         $box_orders_table = $wpdb->prefix . 'box_orders';
-        $box_orders_sql = "CREATE TABLE IF NOT EXISTS $box_orders_table (
+        $box_orders_sql = "CREATE TABLE $box_orders_table (
             item_id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
             rel_post_id BIGINT(20) UNSIGNED NOT NULL,
             is_active BOOLEAN DEFAULT FALSE,
@@ -895,7 +895,7 @@ class SnefuruPlugin {
         
         // Create wp_service_categories table
         $service_categories_table = $wpdb->prefix . 'service_categories';
-        $service_categories_sql = "CREATE TABLE IF NOT EXISTS $service_categories_table (
+        $service_categories_sql = "CREATE TABLE $service_categories_table (
             category_id INT(11) NOT NULL AUTO_INCREMENT,
             category_name TEXT NOT NULL,
             longer_name TEXT DEFAULT NULL,
@@ -928,7 +928,7 @@ class SnefuruPlugin {
         // Create wp_work_projects_images_relations table
         // Many-to-many join between wp_work_projects and wp_posts (attachments)
         $work_projects_images_relations_table = $wpdb->prefix . 'work_projects_images_relations';
-        $work_projects_images_relations_sql = "CREATE TABLE IF NOT EXISTS $work_projects_images_relations_table (
+        $work_projects_images_relations_sql = "CREATE TABLE $work_projects_images_relations_table (
             relation_id INT(11) NOT NULL AUTO_INCREMENT,
             project_id BIGINT(20) DEFAULT NULL,
             image_id BIGINT(20) DEFAULT NULL,
@@ -945,7 +945,7 @@ class SnefuruPlugin {
 
         // Create wp_vulture_txt_flattener_generations table (Vulture TXT Flattener feature)
         $vulture_table = $wpdb->prefix . 'vulture_txt_flattener_generations';
-        $vulture_sql = "CREATE TABLE IF NOT EXISTS $vulture_table (
+        $vulture_sql = "CREATE TABLE $vulture_table (
             generation_id      INT(11) UNSIGNED     NOT NULL AUTO_INCREMENT,
             folder_number      INT(11) UNSIGNED     NOT NULL,
             site_domain        VARCHAR(255)         NOT NULL,
@@ -970,7 +970,7 @@ class SnefuruPlugin {
 
         // Create wp_blovian_image_entities table
         $blovian_table = $wpdb->prefix . 'blovian_image_entities';
-        $blovian_sql = "CREATE TABLE IF NOT EXISTS $blovian_table (
+        $blovian_sql = "CREATE TABLE $blovian_table (
             entity_id                  BIGINT(20) UNSIGNED  NOT NULL AUTO_INCREMENT,
             native_wp_image_post_id    BIGINT(20) UNSIGNED  DEFAULT NULL,
             rel_page_post_id           BIGINT(20) UNSIGNED  DEFAULT NULL,
@@ -1010,7 +1010,7 @@ class SnefuruPlugin {
 
         // Create wp_hazelnut_items table for static HTML upload management
         $hazelnut_items_table = $wpdb->prefix . 'hazelnut_items';
-        $hazelnut_items_sql = "CREATE TABLE IF NOT EXISTS $hazelnut_items_table (
+        $hazelnut_items_sql = "CREATE TABLE $hazelnut_items_table (
             item_id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
             rel_post_id BIGINT(20) UNSIGNED DEFAULT NULL,
             rel_post_status_of_implementation TEXT DEFAULT NULL,

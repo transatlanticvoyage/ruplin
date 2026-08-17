@@ -780,12 +780,12 @@ function telescope_render_edit_form($post_id) {
         return;
     }
     
-    // Get plasma_pages data if it exists
-    $plasma_data = $wpdb->get_row($wpdb->prepare(
-        "SELECT * FROM {$wpdb->prefix}plasma_pages WHERE rel_wp_page_id = %d",
-        $post_id
-    ), ARRAY_A);
-    
+    // NOTE: there is deliberately no WP-side `plasma_pages` table. `plasma_pages` lives in
+    // Supabase; its content is exported from there and imported into `wp_pylons`, which
+    // carries the linkage via rel_plasma_page_id / plasma_page_id. A query against
+    // {$wpdb->prefix}plasma_pages used to sit here; its result was never read, and it raised
+    // "Table 'wp_plasma_pages' doesn't exist" on every load of this screen. Removed.
+
     /**
      * ============================================================
      * CLAUDE CRITICAL: FIELD DEFINITION ARRAY

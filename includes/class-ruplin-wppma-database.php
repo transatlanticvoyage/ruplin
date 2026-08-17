@@ -283,6 +283,12 @@ class Ruplin_WP_Database_Horse_Class {
             ) $charset_collate;";
             
             // Create zen_general_shortcodes table
+            //
+            // NOTE: shortcode_type must NOT be TEXT with a non-NULL DEFAULT. MariaDB permits
+            // `TEXT DEFAULT 'custom'`, but MySQL rejects it outright:
+            //   ERROR 1101 (42000) BLOB, TEXT, GEOMETRY or JSON column ... can't have a default
+            // When that happens the CREATE fails, the table never exists, and ruplin's
+            // table-verification then fails on EVERY request for the life of the install.
             $general_shortcodes_table = $wpdb->prefix . 'zen_general_shortcodes';
             $general_shortcodes_sql = "CREATE TABLE $general_shortcodes_table (
                 shortcode_id INT(11) NOT NULL AUTO_INCREMENT,
@@ -291,7 +297,7 @@ class Ruplin_WP_Database_Horse_Class {
                 shortcode_content LONGTEXT NOT NULL,
                 shortcode_description TEXT DEFAULT NULL,
                 shortcode_category TEXT DEFAULT NULL,
-                shortcode_type TEXT DEFAULT 'custom',
+                shortcode_type VARCHAR(50) DEFAULT 'custom',
                 shortcode_usage_example TEXT DEFAULT NULL,
                 is_active TINYINT(1) DEFAULT 1,
                 is_system TINYINT(1) DEFAULT 0,
@@ -308,7 +314,7 @@ class Ruplin_WP_Database_Horse_Class {
                 KEY idx_global (is_global),
                 KEY idx_adminpublic (is_adminpublic),
                 KEY idx_category (shortcode_category(100)),
-                KEY idx_type (shortcode_type(50)),
+                KEY idx_type (shortcode_type),
                 KEY idx_position (position_order),
                 KEY idx_author (author_user_id)
             ) $charset_collate;";
@@ -849,10 +855,15 @@ class Ruplin_WP_Database_Horse_Class {
         error_log("DEBUG: Table existence check result: " . var_export($table_check, true));
         
         // Delete any shortcodes that contain PHP code (they shouldn't be in the database)
-        $wpdb->hide_errors(); // Temporarily hide errors
+        //
+        // hide_errors() returns the PREVIOUS setting — restore that rather than calling
+        // show_errors(), which forces display ON unconditionally. Forcing it on leaks raw
+        // SQL into page output for the rest of the request (visible to logged-out visitors)
+        // even when WP_DEBUG is false, because wpdb::print_error() only checks show_errors.
+        $previous_show_errors = $wpdb->hide_errors();
         $result = $wpdb->query("DELETE FROM $table_name WHERE shortcode_content LIKE '%<?php%'");
         $last_error = $wpdb->last_error;
-        $wpdb->show_errors(); // Re-enable error display
+        $wpdb->show_errors($previous_show_errors);
         
         error_log("DEBUG: DELETE query result: " . var_export($result, true));
         if (!empty($last_error)) {
