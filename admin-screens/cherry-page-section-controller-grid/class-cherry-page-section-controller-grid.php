@@ -15,6 +15,14 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
     private static $instance = null;
 
     /**
+     * Last DB error from get_service_page_data(), so the grid can report a failed query
+     * instead of silently rendering it as "no rows".
+     *
+     * @var string
+     */
+    private $last_query_error = '';
+
+    /**
      * Get singleton instance
      */
     public static function get_instance() {
@@ -48,6 +56,7 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
         // AJAX handlers
         add_action('wp_ajax_cherry_controller_grid_get_data', array($this, 'ajax_get_data'));
         add_action('wp_ajax_cherry_controller_grid_save_changes', array($this, 'ajax_save_changes'));
+        add_action('wp_ajax_cherry_controller_grid_save_sitewide_toggle', array($this, 'ajax_save_sitewide_toggle'));
     }
 
     /**
@@ -107,9 +116,47 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
     /**
      * Render the admin page
      */
+    /**
+     * Read the sitewide avg-rating-box flag from wp_zen_sitespren.
+     *
+     * zen_sitespren is a single-row, per-site settings table. Returns the row id so the
+     * toggle can update that exact row rather than assuming id = 1.
+     *
+     * @return array{available:bool, value:int, row_id:int|null, reason:string}
+     */
+    private function get_sitewide_avg_rating_hide() {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'zen_sitespren';
+        $out = array('available' => false, 'value' => 0, 'row_id' => null, 'reason' => '');
+
+        if (!$wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table))) {
+            $out['reason'] = 'table ' . $table . ' does not exist';
+            return $out;
+        }
+        if (!$wpdb->get_var($wpdb->prepare("SHOW COLUMNS FROM `{$table}` LIKE %s", 'avg_rating_box_hide_sitewide'))) {
+            $out['reason'] = 'column avg_rating_box_hide_sitewide does not exist';
+            return $out;
+        }
+
+        $row = $wpdb->get_row("SELECT id, avg_rating_box_hide_sitewide FROM `{$table}` ORDER BY id ASC LIMIT 1", ARRAY_A);
+        if (!$row) {
+            $out['reason'] = 'no row in ' . $table;
+            return $out;
+        }
+
+        $out['available'] = true;
+        $out['value'] = (int) $row['avg_rating_box_hide_sitewide'];
+        $out['row_id'] = (int) $row['id'];
+
+        return $out;
+    }
+
     public function render_admin_page() {
         // Aggressive notice/warning suppression
         $this->suppress_all_admin_notices();
+
+        $sitewide = $this->get_sitewide_avg_rating_hide();
 
         ?>
         <div class="wrap cherry-controller-grid">
@@ -118,6 +165,28 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
             <div class="cherry-controller-grid-container">
                 <div class="table-description">
                     all wp_posts joined to wp_pylons (all pylon archetypes) &nbsp;&nbsp;|||| cherry page section controller grid
+                </div>
+
+                <!-- Sitewide toggle: writes wp_zen_sitespren.avg_rating_box_hide_sitewide directly.
+                     ON = 1 = the column is true = the avg rating box is hidden across the whole site. -->
+                <div class="ccg-sitewide-toggle-bar">
+                    <?php if ($sitewide['available']) : ?>
+                        <label class="ccg-switch">
+                            <input
+                                type="checkbox"
+                                id="ccg-avg-rating-sitewide"
+                                data-row-id="<?php echo esc_attr($sitewide['row_id']); ?>"
+                                <?php checked($sitewide['value'], 1); ?>
+                            />
+                            <span class="ccg-switch-slider"></span>
+                        </label>
+                        <code class="ccg-switch-label">wp_zen_sitespren.avg_rating_box_hide_sitewide</code>
+                        <span id="ccg-sitewide-status" class="ccg-switch-status"></span>
+                    <?php else : ?>
+                        <span class="ccg-switch-label ccg-switch-unavailable">
+                            wp_zen_sitespren.avg_rating_box_hide_sitewide &mdash; unavailable (<?php echo esc_html($sitewide['reason']); ?>)
+                        </span>
+                    <?php endif; ?>
                 </div>
 
                 <div class="table-actions">
@@ -487,6 +556,29 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
             return array();
         }
 
+        // The service_categories join is decorative -- it supplies category_name only. Older
+        // installs name its primary key `id` rather than `category_id`, and dbDelta cannot
+        // rename a column, so on those sites joining on sc.category_id raises
+        // "Unknown column 'sc.category_id'" and takes the WHOLE query down, blanking a grid
+        // that otherwise has plenty of pylon rows to show. Only join when the expected column
+        // is really there, and fall back to NULL for the sc.* fields when it is not.
+        $categories_table = $wpdb->prefix . 'service_categories';
+        $has_categories = (bool) $wpdb->get_var(
+            $wpdb->prepare("SHOW TABLES LIKE %s", $categories_table)
+        );
+        if ($has_categories) {
+            $has_categories = (bool) $wpdb->get_var(
+                $wpdb->prepare("SHOW COLUMNS FROM `{$categories_table}` LIKE %s", 'category_id')
+            );
+        }
+
+        $category_select = $has_categories
+            ? "sc.category_id,\n                sc.category_name,"
+            : "NULL as category_id,\n                NULL as category_name,";
+        $category_join = $has_categories
+            ? "LEFT JOIN {$categories_table} sc ON pyl.rel_service_category_id = sc.category_id"
+            : "";
+
         $query = "
             SELECT
                 p.ID as post_id,
@@ -499,8 +591,7 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                 pyl.moniker,
                 pyl.service_category,
                 pyl.rel_service_category_id,
-                sc.category_id,
-                sc.category_name,
+                {$category_select}
                 pyl.batman_hero_box_hide,
                 pyl.avg_rating_box_hide,
                 pyl.derek_blog_post_meta_box_hide,
@@ -528,14 +619,24 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
                 pyl.liz_pricing_box_hide
             FROM {$wpdb->posts} p
             INNER JOIN {$wpdb->prefix}pylons pyl ON p.ID = pyl.rel_wp_post_id
-            LEFT JOIN {$wpdb->prefix}service_categories sc ON pyl.rel_service_category_id = sc.category_id
+            {$category_join}
             WHERE p.post_status IN ('publish', 'draft', 'private', 'pending')
             ORDER BY p.post_title ASC
         ";
 
         $results = $wpdb->get_results($query, ARRAY_A);
 
-        return $results;
+        // Distinguish "the query failed" from "there are genuinely no rows". Without this a
+        // failed query returns null, renders as the generic "No posts with pylon data found",
+        // and the real cause (usually a missing column) is invisible.
+        if ($wpdb->last_error) {
+            $this->last_query_error = $wpdb->last_error;
+            return array();
+        }
+
+        $this->last_query_error = '';
+
+        return is_array($results) ? $results : array();
     }
 
     /**
@@ -574,7 +675,13 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
         );
 
         if (empty($data)) {
-            $output = '<tr><td colspan="38" class="no-data">No posts with pylon data found</td></tr>';
+            if (!empty($this->last_query_error)) {
+                $output = '<tr><td colspan="38" class="no-data">Query failed: '
+                    . esc_html($this->last_query_error)
+                    . '</td></tr>';
+            } else {
+                $output = '<tr><td colspan="38" class="no-data">No posts with pylon data found</td></tr>';
+            }
         } else {
             foreach ($data as $row) {
                 $output .= '<tr data-pylon-id="' . esc_attr($row['pylon_id']) . '" data-pylon-archetype="' . esc_attr($row['pylon_archetype'] ?? '') . '">';
@@ -638,6 +745,54 @@ class Ruplin_Cherry_Page_Section_Controller_Grid {
     /**
      * AJAX handler to save changes
      */
+    /**
+     * Persist the sitewide avg-rating-box toggle to wp_zen_sitespren.
+     *
+     * Writes the column verbatim: 1 = hidden sitewide, 0 = not hidden. The row is targeted by
+     * the id read at render time rather than a hardcoded id = 1.
+     */
+    public function ajax_save_sitewide_toggle() {
+        check_ajax_referer('cherry_controller_grid_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Unauthorized'));
+            return;
+        }
+
+        global $wpdb;
+
+        $state = $this->get_sitewide_avg_rating_hide();
+        if (!$state['available']) {
+            wp_send_json_error(array('message' => 'Cannot save: ' . $state['reason']));
+            return;
+        }
+
+        $value = (isset($_POST['value']) && (string) $_POST['value'] === '1') ? 1 : 0;
+
+        $updated = $wpdb->update(
+            $wpdb->prefix . 'zen_sitespren',
+            array('avg_rating_box_hide_sitewide' => $value),
+            array('id' => $state['row_id']),
+            array('%d'),
+            array('%d')
+        );
+
+        if ($updated === false) {
+            wp_send_json_error(array(
+                'message' => 'Database update failed' . ($wpdb->last_error ? ': ' . $wpdb->last_error : ''),
+            ));
+            return;
+        }
+
+        // Re-read so the response reflects what is actually stored, not what we intended.
+        $stored = $this->get_sitewide_avg_rating_hide();
+
+        wp_send_json_success(array(
+            'value'   => $stored['value'],
+            'message' => 'saved (' . $stored['value'] . ')',
+        ));
+    }
+
     public function ajax_save_changes() {
         check_ajax_referer('cherry_controller_grid_nonce', 'nonce');
 

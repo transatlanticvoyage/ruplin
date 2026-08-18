@@ -435,3 +435,60 @@
     CherryControllerGrid.init();
 
 })(jQuery);
+
+/**
+ * Sitewide toggle — wp_zen_sitespren.avg_rating_box_hide_sitewide
+ *
+ * Writes the column verbatim: checked = 1, unchecked = 0. Kept separate from the grid's
+ * batched "Save Changes" flow because this is a single per-site setting, not a pylon row.
+ * The checkbox reverts to its previous state if the request fails, so what is on screen
+ * always reflects what is actually in the database.
+ */
+(function($) {
+    'use strict';
+
+    $(function() {
+        var $toggle = $('#ccg-avg-rating-sitewide');
+        if (!$toggle.length) { return; }
+
+        var $status = $('#ccg-sitewide-status');
+
+        $toggle.on('change', function() {
+            var $input = $(this);
+            var desired = $input.is(':checked') ? 1 : 0;
+
+            $input.prop('disabled', true);
+            $status.text('saving…').css('color', '#646970');
+
+            $.ajax({
+                url: cherry_controller_grid_ajax.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'cherry_controller_grid_save_sitewide_toggle',
+                    nonce: cherry_controller_grid_ajax.nonce,
+                    value: desired
+                }
+            })
+            .done(function(response) {
+                if (response && response.success) {
+                    // Trust the server's re-read rather than the local intent.
+                    $input.prop('checked', parseInt(response.data.value, 10) === 1);
+                    $status.text(response.data.message).css('color', '#00a32a');
+                } else {
+                    $input.prop('checked', desired !== 1);
+                    var msg = (response && response.data && response.data.message)
+                        ? response.data.message : 'save failed';
+                    $status.text(msg).css('color', 'red');
+                }
+            })
+            .fail(function(jqXHR, textStatus) {
+                $input.prop('checked', desired !== 1);
+                $status.text('save failed: ' + textStatus).css('color', 'red');
+            })
+            .always(function() {
+                $input.prop('disabled', false);
+            });
+        });
+    });
+
+})(jQuery);

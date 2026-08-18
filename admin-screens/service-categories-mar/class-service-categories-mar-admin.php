@@ -196,8 +196,14 @@ class Ruplin_Service_Categories_Mar_Admin {
         $table_name = $wpdb->prefix . 'service_categories';
         $charset_collate = $wpdb->get_charset_collate();
         
+        // The primary key MUST be `category_id`, not `id`. This screen's own queries all use
+        // category_id (SELECT ... ORDER BY category_id, WHERE category_id = %d), as does
+        // ruplin.php's definition of the same table and the cherry grid's
+        // `LEFT JOIN ... ON pyl.rel_service_category_id = sc.category_id`. When this statement
+        // won the race and created the table as `id`, every one of those broke -- and dbDelta
+        // can never repair it, because dbDelta adds and changes columns but never renames one.
         $sql = "CREATE TABLE $table_name (
-            id int(11) NOT NULL AUTO_INCREMENT,
+            category_id int(11) NOT NULL AUTO_INCREMENT,
             category_name varchar(255) DEFAULT NULL,
             longer_name text DEFAULT NULL,
             category_slug varchar(255) DEFAULT NULL,
@@ -209,7 +215,7 @@ class Ruplin_Service_Categories_Mar_Admin {
             is_active tinyint(1) DEFAULT 1,
             created_at timestamp DEFAULT CURRENT_TIMESTAMP,
             updated_at timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
+            PRIMARY KEY (category_id),
             KEY idx_slug (category_slug),
             KEY idx_parent (parent_id),
             KEY idx_order (display_order)
