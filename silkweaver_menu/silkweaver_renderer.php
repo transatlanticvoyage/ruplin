@@ -69,10 +69,9 @@ class Silkweaver_Menu_Renderer {
                 $item_path = trailingslashit(parse_url($item['url'], PHP_URL_PATH));
                 $is_current = ($current_path === $item_path);
                 $html .= sprintf(
-                    '<li><a href="%s"%s%s>%s</a></li>',
+                    '<li><a href="%s"%s>%s</a></li>',
                     esc_url($item['url']),
                     $is_current ? ' aria-current="page"' : '',
-                    !empty($item['nofollow']) ? ' rel="nofollow"' : '',
                     esc_html($item['anchor'])
                 );
             } elseif ($item['type'] === 'dynamic') {
@@ -85,6 +84,8 @@ class Silkweaver_Menu_Renderer {
                 $html .= $this->render_elegant_services_menu($item);
             } elseif ($item['type'] === 'dynamic_elegant_locations') {
                 $html .= $this->render_elegant_locations_menu($item);
+            } elseif ($item['type'] === 'dynamic_metro_flyout_locations') {
+                $html .= $this->render_metro_flyout_locations_menu($item);
             }
         }
 
@@ -114,23 +115,16 @@ class Silkweaver_Menu_Renderer {
             error_log("Silkweaver parsing line " . ($line_num + 1) . ": '" . $original_line . "' -> '" . $line . "'");
             
             if (strpos($line, 'target_url=') === 0) {
-                // Static menu item: target_url=/path anchor=Link Text [nofollow=yes]
-                // Optional "nofollow=yes" token adds rel="nofollow" to the rendered <a>.
-                // Detect it first, then strip ANY nofollow=<value> token from the line so
-                // it doesn't bleed into the anchor text (anchor= captures to end of line).
-                $nofollow   = (bool) preg_match('/\bnofollow=yes\b/i', $line);
-                $parse_line = trim(preg_replace('/\s*\bnofollow=\S+/i', '', $line));
-
-                preg_match('/target_url=([^\s]+)\s+anchor=(.+)/', $parse_line, $matches);
+                // Static menu item: target_url=/path anchor=Link Text
+                preg_match('/target_url=([^\s]+)\s+anchor=(.+)/', $line, $matches);
                 error_log("Silkweaver static line regex matches: " . json_encode($matches));
                 if (count($matches) === 3) {
                     $menu_items[] = array(
-                        'type'     => 'static',
-                        'url'      => $matches[1],
-                        'anchor'   => trim($matches[2]),
-                        'nofollow' => $nofollow
+                        'type' => 'static',
+                        'url' => $matches[1],
+                        'anchor' => $matches[2]
                     );
-                    error_log("Silkweaver added static item: " . $matches[1] . " -> " . trim($matches[2]) . ($nofollow ? ' [nofollow]' : ''));
+                    error_log("Silkweaver added static item: " . $matches[1] . " -> " . $matches[2]);
                 }
             } elseif (strpos($line, 'pull_all_service_pages_dynamically_with_robust_child_area') === 0) {
                 $menu_items[] = array(
@@ -146,6 +140,17 @@ class Silkweaver_Menu_Renderer {
                 $menu_items[] = array(
                     'type'  => 'dynamic_elegant_services',
                     'title' => 'Services',
+                );
+            } elseif (strpos($line, 'pull_all_location_pages_dynamically_with_metro_flyout_child_area') === 0) {
+                // Service Areas — metro groups, each with its own city fly-out.
+                // Optional: append `anchor=Some Label` to rename the top-level item.
+                $metro_anchor = 'Service Areas';
+                if (preg_match('/\banchor=(.+)$/', $line, $anchor_m)) {
+                    $metro_anchor = trim($anchor_m[1]);
+                }
+                $menu_items[] = array(
+                    'type'  => 'dynamic_metro_flyout_locations',
+                    'title' => $metro_anchor,
                 );
             } elseif (strpos($line, 'pull_all_location_pages_dynamically_with_elegant_child_area') === 0) {
                 $menu_items[] = array(
@@ -774,6 +779,187 @@ class Silkweaver_Menu_Renderer {
      */
     public function clear_cache() {
         delete_transient($this->cache_key);
+    }
+
+    /**
+     * Render the Service Areas dropdown.
+     *
+     * Emits the SAME markup as render_elegant_services_menu() —
+     * .silkweaver-elegant-inner / -feature / -rest / -column /
+     * -category-title / -child-pages — so it inherits the Services mega-menu's
+     * look and open/close behaviour instead of reimplementing them. The biggest
+     * metro takes the shaded "feature" column; the rest fill the grid.
+     *
+     * Metros come from {prefix}location_categories, cities join on
+     * {prefix}pylons.rel_location_category_id.
+     *
+     * Labels are derived, never taken from `moniker` — that column holds
+     * research text like "Clearwater, FL, 33755 -- Northwest (~22 miles)
+     * (117,000 population)" and, on /tampa/, the literal string "Home".
+     * Order: locpage_neighborhood -> locpage_city -> cleaned post_title.
+     *
+     * DSL: pull_all_location_pages_dynamically_with_metro_flyout_child_area [anchor=Label]
+     */
+    private function render_metro_flyout_locations_menu($item) {
+        global $wpdb;
+
+        $cat_table = $wpdb->prefix . 'location_categories';
+
+        // Fail silently (render nothing) if the migration has not run yet,
+        // rather than emitting a broken empty dropdown.
+        $table_exists = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s",
+            $cat_table
+        ));
+        if (!$table_exists) {
+            return '';
+        }
+
+        $metros = $wpdb->get_results(
+            "SELECT * FROM $cat_table
+             WHERE is_active = 1
+             ORDER BY sort_order ASC, category_name ASC"
+        );
+        if (empty($metros)) {
+            return '';
+        }
+
+        // Collect each metro's cities up front so we can pick the biggest one
+        // for the feature column.
+        $groups = array();
+        foreach ($metros as $metro) {
+            $rows = $wpdb->get_results($wpdb->prepare("
+                SELECT p.ID, p.post_title, py.locpage_city, py.locpage_neighborhood
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->prefix}pylons py ON p.ID = py.rel_wp_post_id
+                WHERE py.rel_location_category_id = %d
+                  AND p.post_status = 'publish'
+            ", $metro->location_category_id));
+            $rows = $rows ?: array();
+
+            $cities = array();
+            foreach ($rows as $row) {
+                $label = trim((string) $row->locpage_neighborhood);
+                if ($label === '') {
+                    $label = trim((string) $row->locpage_city);
+                }
+                if ($label === '') {
+                    $label = trim(preg_replace('/^Chimney Services in\s*/i', '', (string) $row->post_title));
+                    $label = trim(preg_replace('/,\s*[A-Za-z]{2}\s*,?\s*\d{0,5}\s*$/', '', $label));
+                    $label = trim(preg_replace('/,\s*\d{5}\s*$/', '', $label));
+                }
+                if ($label === '') {
+                    $label = (string) $row->post_title;
+                }
+                $cities[] = array('id' => (int) $row->ID, 'label' => $label);
+            }
+
+            usort($cities, function ($a, $b) {
+                return strcasecmp($a['label'], $b['label']);
+            });
+
+            $groups[] = array('metro' => $metro, 'cities' => $cities);
+        }
+
+        // Biggest metro leads, in the shaded feature column.
+        $feature_index = 0;
+        $most = -1;
+        foreach ($groups as $i => $g) {
+            if (count($g['cities']) > $most) {
+                $most = count($g['cities']);
+                $feature_index = $i;
+            }
+        }
+
+        $panel_id = 'sw-metro-areas-panel';
+        $title    = !empty($item['title']) ? $item['title'] : 'Service Areas';
+
+        $html  = '<li class="silkweaver-dropdown silkweaver-elegant-dropdown silkweaver-metro-dropdown">';
+        $html .= sprintf(
+            '<button type="button" class="silkweaver-dropdown-toggle silkweaver-parent-button" aria-expanded="false" aria-controls="%s" aria-haspopup="true">%s</button>',
+            esc_attr($panel_id),
+            esc_html($title)
+        );
+        $html .= sprintf(
+            '<div id="%s" class="silkweaver-elegant-child-area silkweaver-metro-child-area" role="region" aria-label="%s submenu">',
+            esc_attr($panel_id),
+            esc_attr($title)
+        );
+        $html .= '<div class="silkweaver-elegant-inner">';
+
+        $html .= '<div class="silkweaver-elegant-feature">';
+        $html .= $this->render_metro_column($groups[$feature_index], true);
+        $html .= '</div>';
+
+        $rest = array();
+        foreach ($groups as $i => $g) {
+            if ($i !== $feature_index) { $rest[] = $g; }
+        }
+
+        $html .= '<div class="silkweaver-elegant-rest">';
+        $chunks = array_chunk($rest, 3);
+        foreach ($chunks as $n => $chunk) {
+            $row_class = 'silkweaver-elegant-row ' . ($n === 0
+                ? 'silkweaver-elegant-row-top'
+                : 'silkweaver-elegant-row-bottom');
+            $html .= '<div class="' . esc_attr($row_class) . '">';
+            foreach ($chunk as $g) {
+                $html .= $this->render_metro_column($g, false);
+            }
+            $html .= '</div>';
+        }
+        $html .= '</div>'; // .silkweaver-elegant-rest
+
+        $html .= '</div>'; // .silkweaver-elegant-inner
+        $html .= '</div>'; // .silkweaver-elegant-child-area
+        $html .= '</li>';
+
+        return $html;
+    }
+
+    /**
+     * One metro column, shaped like a Services category column.
+     * The heading is a link to that metro's hub page.
+     */
+    private function render_metro_column($group, $is_feature) {
+        $metro  = $group['metro'];
+        $cities = $group['cities'];
+
+        $hub_url = '';
+        if (!empty($metro->rel_hub_wp_post_id)) {
+            $hub_url = get_permalink((int) $metro->rel_hub_wp_post_id);
+        }
+
+        $col_class = 'silkweaver-elegant-column silkweaver-metro-column';
+        if ($is_feature) { $col_class .= ' silkweaver-metro-column--feature'; }
+
+        $html  = '<div class="' . esc_attr($col_class) . '">';
+        $html .= '<h3 class="silkweaver-elegant-category-title">';
+        if ($hub_url) {
+            $html .= sprintf('<a href="%s">%s</a>', esc_url($hub_url), esc_html($metro->category_name));
+        } else {
+            $html .= esc_html($metro->category_name);
+        }
+        $html .= '</h3>';
+
+        if (!empty($cities)) {
+            $html .= '<ul class="silkweaver-elegant-child-pages" role="list">';
+            foreach ($cities as $city) {
+                $html .= sprintf(
+                    '<li><a href="%s">%s</a></li>',
+                    esc_url(get_permalink($city['id'])),
+                    esc_html($city['label'])
+                );
+            }
+            $html .= '</ul>';
+        } else {
+            $html .= '<p class="silkweaver-metro-soon">Coming soon</p>';
+        }
+
+        $html .= '</div>';
+
+        return $html;
     }
 }
 
